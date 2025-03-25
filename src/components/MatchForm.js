@@ -1,0 +1,136 @@
+import React, { useState } from "react";
+import { createMatch, submitMatchResult } from "../services/api";
+
+const MatchForm = () => {
+  const [matchName, setMatchName] = useState("");
+  const [matchType, setMatchType] = useState("T20");
+  const [team1, setTeam1] = useState("");
+  const [team2, setTeam2] = useState("");
+  const [runs1, setRuns1] = useState("");
+  const [overs1, setOvers1] = useState("");
+  const [wickets1, setWickets1] = useState("");
+  const [runs2, setRuns2] = useState("");
+  const [overs2, setOvers2] = useState("");
+  const [wickets2, setWickets2] = useState("");
+  const [resultMsg, setResultMsg] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const maxOvers = matchType === "T20" ? 20 : 50;
+
+    if (parseFloat(overs1) > maxOvers || parseFloat(overs2) > maxOvers) {
+      alert(`Overs cannot exceed ${maxOvers} for ${matchType}`);
+      return;
+    }
+
+    // ✅ Strict Wicket Validation: Must be 0–10
+    if (
+      parseInt(wickets1) < 0 || parseInt(wickets1) > 10 ||
+      parseInt(wickets2) < 0 || parseInt(wickets2) > 10
+    ) {
+      alert("Wickets must be between 0 and 10 only.");
+      return;
+    }
+
+    try {
+      const match = await createMatch({ match_name: matchName, match_type: matchType });
+      const result = await submitMatchResult({
+        match_id: match.match_id,
+        team1,
+        team2,
+        runs1: parseInt(runs1),
+        overs1: parseFloat(overs1),
+        wickets1: parseInt(wickets1),
+        runs2: parseInt(runs2),
+        overs2: parseFloat(overs2),
+        wickets2: parseInt(wickets2),
+      });
+
+      setResultMsg(result.message);
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
+  };
+
+  return (
+    <div className="container mt-5">
+      <div className="card shadow p-4">
+        <h2 className="text-center mb-4 text-primary">🏏 Enter Match Details</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label>Match Name:</label>
+            <input type="text" className="form-control" value={matchName} onChange={(e) => setMatchName(e.target.value)} required />
+          </div>
+          <div className="mb-3">
+            <label>Match Type:</label>
+            <select className="form-select" value={matchType} onChange={(e) => setMatchType(e.target.value)}>
+              <option value="T20">T20</option>
+              <option value="ODI">ODI</option>
+            </select>
+          </div>
+
+          <h5 className="mt-4">Bat First Team</h5>
+          <input type="text" className="form-control mb-2" placeholder="Team 1 Name" value={team1} onChange={(e) => setTeam1(e.target.value)} required />
+
+          <div className="row">
+            <div className="col">
+              <input type="number" className="form-control mb-2" placeholder={`Runs by ${team1 || "Team 1"}`} value={runs1} onChange={(e) => setRuns1(e.target.value)} required />
+            </div>
+            <div className="col">
+              <input type="number" className="form-control mb-2" placeholder={`Overs by ${team1 || "Team 1"}`} value={overs1} onChange={(e) => setOvers1(e.target.value)} required />
+            </div>
+            <div className="col">
+              <input
+                type="number"
+                className="form-control mb-2"
+                placeholder={`Wickets by ${team1 || "Team 1"}`}
+                value={wickets1}
+                onChange={(e) => setWickets1(e.target.value)}
+                required
+                min="0"
+                max="10"
+              />
+            </div>
+          </div>
+
+          <h5 className="mt-4">Second Team</h5>
+          <input type="text" className="form-control mb-2" placeholder="Team 2 Name" value={team2} onChange={(e) => setTeam2(e.target.value)} required />
+
+          <div className="row">
+            <div className="col">
+              <input type="number" className="form-control mb-2" placeholder={`Runs by ${team2 || "Team 2"}`} value={runs2} onChange={(e) => setRuns2(e.target.value)} required />
+            </div>
+            <div className="col">
+              <input type="number" className="form-control mb-2" placeholder={`Overs by ${team2 || "Team 2"}`} value={overs2} onChange={(e) => setOvers2(e.target.value)} required />
+            </div>
+            <div className="col">
+              <input
+                type="number"
+                className="form-control mb-2"
+                placeholder={`Wickets by ${team2 || "Team 2"}`}
+                value={wickets2}
+                onChange={(e) => setWickets2(e.target.value)}
+                required
+                min="0"
+                max="10"
+              />
+            </div>
+          </div>
+
+          <div className="d-grid mt-3">
+            <button className="btn btn-primary">Submit Match Result</button>
+          </div>
+        </form>
+
+        {resultMsg && (
+          <div className="alert alert-success mt-4 text-center" role="alert">
+            {resultMsg}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default MatchForm;
