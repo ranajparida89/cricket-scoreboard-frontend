@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import { getTeams } from "../services/api";
 import { io } from "socket.io-client";
 
-// Connect to backend Socket.io server
-const socket = io("http://localhost:5000");
+// ✅ IMPORTANT: use your deployed backend Socket.io URL here
+const socket = io("https://cricket-scoreboard-backend.onrender.com"); // <-- Updated from localhost
 
 const Leaderboard = () => {
   const [teams, setTeams] = useState([]);
 
-  // Function to fetch leaderboard data
+  // 🔁 Fetch team leaderboard
   const fetchTeams = async () => {
     try {
       const data = await getTeams();
@@ -22,16 +22,15 @@ const Leaderboard = () => {
   };
 
   useEffect(() => {
-    fetchTeams(); // Initial load
+    fetchTeams(); // ✅ Initial load
 
-    // Listen for real-time updates from backend
     socket.on("matchUpdate", () => {
       console.log("📡 Real-time update received");
-      fetchTeams(); // Refresh data when update received
+      fetchTeams(); // ✅ Real-time refresh
     });
 
     return () => {
-      socket.off("matchUpdate"); // Cleanup on unmount
+      socket.off("matchUpdate");
     };
   }, []);
 

@@ -9,6 +9,7 @@ const MatchHistory = () => {
     winner: ""
   });
 
+  // ✅ Load all data initially
   const fetchData = async (filterValues = {}) => {
     try {
       const data = await getMatchHistory(filterValues);
@@ -19,7 +20,7 @@ const MatchHistory = () => {
   };
 
   useEffect(() => {
-    fetchData(); // load full history on first load
+    fetchData(); // ✅ Initial load
   }, []);
 
   const handleChange = (e) => {
@@ -117,9 +118,9 @@ const MatchHistory = () => {
                     <td>{match.match_name}</td>
                     <td>{match.match_type}</td>
                     <td>{match.team1}</td>
-                    <td>{match.runs1}/{match.wickets1} ({match.overs1} ov)</td>
+                    <td>{match.runs1}/{match.wickets1} ({Number(match.overs1).toFixed(1)} ov)</td>
                     <td>{match.team2}</td>
-                    <td>{match.runs2}/{match.wickets2} ({match.overs2} ov)</td>
+                    <td>{match.runs2}/{match.wickets2} ({Number(match.overs2).toFixed(1)} ov)</td>
                     <td>{match.winner}</td>
                     <td>{new Date(match.match_time).toLocaleString()}</td>
                   </tr>
