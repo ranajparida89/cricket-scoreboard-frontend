@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { createMatch, submitMatchResult } from "../services/api";
 
-// Official team name mappings
+// ✅ Team Mapping (Full + Short Forms)
 const TEAM_MAP = {
   AFG: "Afghanistan", AUS: "Australia", BAN: "Bangladesh", ENG: "England", IND: "India",
   IRE: "Ireland", NZ: "New Zealand", PAK: "Pakistan", SA: "South Africa", SL: "Sri Lanka",
@@ -10,18 +10,17 @@ const TEAM_MAP = {
   HK: "Hong Kong", CAN: "Canada", KEN: "Kenya", BER: "Bermuda"
 };
 
-// Normalization helper
+// ✅ Normalize team input
 const normalizeTeamName = (input) => {
   if (!input) return "";
   const upper = input.toUpperCase().trim();
-
-  for (const [code, fullName] of Object.entries(TEAM_MAP)) {
-    if (upper === code || upper === fullName.toUpperCase()) return fullName;
+  for (const [code, full] of Object.entries(TEAM_MAP)) {
+    if (upper === code || upper === full.toUpperCase()) return full;
   }
-  return input.trim(); // Custom name allowed
+  return input.trim(); // Allow custom names like Best11, Daredevils
 };
 
-// Overs validation helper
+// ✅ Ball (overs) validation: max 6 balls per over
 const isValidOver = (over) => {
   const [main, decimal] = over.toString().split(".");
   return !decimal || parseInt(decimal) <= 6;
@@ -45,26 +44,26 @@ const MatchForm = () => {
     e.preventDefault();
     const maxOvers = matchType === "T20" ? 20 : 50;
 
-    // Validate overs
+    // ✅ Overs validation
     if (
       parseFloat(overs1) > maxOvers || parseFloat(overs2) > maxOvers ||
       !isValidOver(overs1) || !isValidOver(overs2)
     ) {
-      alert(`Invalid overs! Overs must not exceed ${maxOvers} and max 6 balls per over.`);
+      alert(`Invalid overs! Max ${maxOvers} overs, and max 6 balls per over (e.g., 19.6 is OK, 19.7 is not).`);
       return;
     }
 
-    // Normalize team names
+    // ✅ Normalize team names
     const formattedTeam1 = normalizeTeamName(team1);
     const formattedTeam2 = normalizeTeamName(team2);
 
-    // Validate team duplication
+    // ✅ Duplicate team check
     if (formattedTeam1.toLowerCase() === formattedTeam2.toLowerCase()) {
-      alert("Both teams cannot be the same. Please enter two different teams.");
+      alert("Both teams cannot be the same.");
       return;
     }
 
-    // Validate wickets
+    // ✅ Wickets check
     if (
       parseInt(wickets1) < 0 || parseInt(wickets1) > 10 ||
       parseInt(wickets2) < 0 || parseInt(wickets2) > 10
@@ -74,7 +73,7 @@ const MatchForm = () => {
     }
 
     try {
-      setIsSubmitting(true);
+      setIsSubmitting(true); // Show loader
       const match = await createMatch({ match_name: matchName, match_type: matchType });
 
       const result = await submitMatchResult({
