@@ -13,7 +13,7 @@ const MatchForm = () => {
   const [overs2, setOvers2] = useState("");
   const [wickets2, setWickets2] = useState("");
   const [resultMsg, setResultMsg] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false); // 🆕 spinner control
+  const [isSubmitting, setIsSubmitting] = useState(false); // 🆕
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,7 +34,7 @@ const MatchForm = () => {
     }
 
     try {
-      setIsSubmitting(true); // 🆕 start spinner
+      setIsSubmitting(true); // 🆕
       const match = await createMatch({ match_name: matchName, match_type: matchType });
 
       const result = await submitMatchResult({
@@ -53,7 +53,7 @@ const MatchForm = () => {
     } catch (err) {
       alert("Error: " + err.message);
     } finally {
-      setIsSubmitting(false); // 🆕 stop spinner
+      setIsSubmitting(false); // 🆕
     }
   };
 
@@ -127,14 +127,15 @@ const MatchForm = () => {
               {isSubmitting ? "Submitting Match... ⏳" : "Submit Match Result"}
             </button>
           </div>
-        </form>
 
-        {/* 🆕 Feedback section */}
-        {isSubmitting && (
-          <div className="text-center mt-3 text-info">
-            Submitting match result... this may take a few seconds on first request (free hosting).
-          </div>
-        )}
+          {/* 🆕 Loading Spinner */}
+          {isSubmitting && (
+            <div className="text-center mt-3">
+              <div className="spinner-border text-info" role="status" />
+              <p className="text-muted mt-2">Hang tight... Submitting the match</p>
+            </div>
+          )}
+        </form>
 
         {resultMsg && (
           <div className="alert alert-success mt-4 text-center" role="alert">
