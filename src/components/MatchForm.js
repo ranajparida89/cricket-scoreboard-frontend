@@ -1,13 +1,30 @@
 import React, { useState } from "react";
 import { createMatch, submitMatchResult } from "../services/api";
 
-// 🏏 Team map for standardization
-const teamMap = {
+// Official team name mappings
+const TEAM_MAP = {
   AFG: "Afghanistan", AUS: "Australia", BAN: "Bangladesh", ENG: "England", IND: "India",
   IRE: "Ireland", NZ: "New Zealand", PAK: "Pakistan", SA: "South Africa", SL: "Sri Lanka",
-  WI: "West Indies", ZIM: "Zimbabwe", NED: "Netherlands", SCO: "Scotland", UAE: "UAE",
-  NEP: "Nepal", OMA: "Oman", PNG: "Papua New Guinea", NAM: "Namibia", USA: "USA",
+  WI: "West Indies", ZIM: "Zimbabwe", NED: "Netherlands", SCO: "Scotland", UAE: "United Arab Emirates",
+  NEP: "Nepal", OMA: "Oman", PNG: "Papua New Guinea", NAM: "Namibia", USA: "United States of America",
   HK: "Hong Kong", CAN: "Canada", KEN: "Kenya", BER: "Bermuda"
+};
+
+// Normalization helper
+const normalizeTeamName = (input) => {
+  if (!input) return "";
+  const upper = input.toUpperCase().trim();
+
+  for (const [code, fullName] of Object.entries(TEAM_MAP)) {
+    if (upper === code || upper === fullName.toUpperCase()) return fullName;
+  }
+  return input.trim(); // Custom name allowed
+};
+
+// Overs validation helper
+const isValidOver = (over) => {
+  const [main, decimal] = over.toString().split(".");
+  return !decimal || parseInt(decimal) <= 6;
 };
 
 const MatchForm = () => {
@@ -24,44 +41,35 @@ const MatchForm = () => {
   const [resultMsg, setResultMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const normalizeTeam = (input) => {
-    const upper = input.trim().toUpperCase();
-    return teamMap[upper] || input.trim();
-  };
-
-  const isValidOvers = (overs) => {
-    const [whole, decimal] = overs.split(".");
-    return !decimal || parseInt(decimal) <= 6;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const maxOvers = matchType === "T20" ? 20 : 50;
 
-    if (!isValidOvers(overs1) || !isValidOvers(overs2)) {
-      alert("Invalid overs input! Max 6 balls allowed per over.");
+    // Validate overs
+    if (
+      parseFloat(overs1) > maxOvers || parseFloat(overs2) > maxOvers ||
+      !isValidOver(overs1) || !isValidOver(overs2)
+    ) {
+      alert(`Invalid overs! Overs must not exceed ${maxOvers} and max 6 balls per over.`);
       return;
     }
 
-    if (parseFloat(overs1) > maxOvers || parseFloat(overs2) > maxOvers) {
-      alert(`Overs cannot exceed ${maxOvers} for ${matchType}`);
+    // Normalize team names
+    const formattedTeam1 = normalizeTeamName(team1);
+    const formattedTeam2 = normalizeTeamName(team2);
+
+    // Validate team duplication
+    if (formattedTeam1.toLowerCase() === formattedTeam2.toLowerCase()) {
+      alert("Both teams cannot be the same. Please enter two different teams.");
       return;
     }
 
+    // Validate wickets
     if (
       parseInt(wickets1) < 0 || parseInt(wickets1) > 10 ||
       parseInt(wickets2) < 0 || parseInt(wickets2) > 10
     ) {
-      alert("Wickets must be between 0 and 10 only.");
-      return;
-    }
-
-    const team1Final = normalizeTeam(team1);
-    const team2Final = normalizeTeam(team2);
-
-    if (team1Final.toLowerCase() === team2Final.toLowerCase()) {
-      alert("Team 1 and Team 2 cannot be the same.");
+      alert("Wickets must be between 0 and 10.");
       return;
     }
 
@@ -71,8 +79,8 @@ const MatchForm = () => {
 
       const result = await submitMatchResult({
         match_id: match.match_id,
-        team1: team1Final,
-        team2: team2Final,
+        team1: formattedTeam1,
+        team2: formattedTeam2,
         runs1: parseInt(runs1),
         overs1: parseFloat(overs1),
         wickets1: parseInt(wickets1),
@@ -98,7 +106,6 @@ const MatchForm = () => {
             <label>Match Name:</label>
             <input type="text" className="form-control" value={matchName} onChange={(e) => setMatchName(e.target.value)} required />
           </div>
-
           <div className="mb-3">
             <label>Match Type:</label>
             <select className="form-select" value={matchType} onChange={(e) => setMatchType(e.target.value)}>
@@ -109,31 +116,29 @@ const MatchForm = () => {
 
           <h5 className="mt-4">Bat First Team</h5>
           <input type="text" className="form-control mb-2" placeholder="Team 1 Name" value={team1} onChange={(e) => setTeam1(e.target.value)} required />
-
           <div className="row">
             <div className="col">
-              <input type="number" className="form-control mb-2" placeholder="Runs" value={runs1} onChange={(e) => setRuns1(e.target.value)} required />
+              <input type="number" className="form-control mb-2" placeholder={`Runs by ${team1 || "Team 1"}`} value={runs1} onChange={(e) => setRuns1(e.target.value)} required />
             </div>
             <div className="col">
-              <input type="text" className="form-control mb-2" placeholder="Overs (e.g., 18.4)" value={overs1} onChange={(e) => setOvers1(e.target.value)} required />
+              <input type="text" className="form-control mb-2" placeholder={`Overs by ${team1 || "Team 1"}`} value={overs1} onChange={(e) => setOvers1(e.target.value)} required />
             </div>
             <div className="col">
-              <input type="number" className="form-control mb-2" placeholder="Wickets" value={wickets1} onChange={(e) => setWickets1(e.target.value)} required min="0" max="10" />
+              <input type="number" className="form-control mb-2" placeholder={`Wickets by ${team1 || "Team 1"}`} value={wickets1} onChange={(e) => setWickets1(e.target.value)} required min="0" max="10" />
             </div>
           </div>
 
           <h5 className="mt-4">Second Team</h5>
           <input type="text" className="form-control mb-2" placeholder="Team 2 Name" value={team2} onChange={(e) => setTeam2(e.target.value)} required />
-
           <div className="row">
             <div className="col">
-              <input type="number" className="form-control mb-2" placeholder="Runs" value={runs2} onChange={(e) => setRuns2(e.target.value)} required />
+              <input type="number" className="form-control mb-2" placeholder={`Runs by ${team2 || "Team 2"}`} value={runs2} onChange={(e) => setRuns2(e.target.value)} required />
             </div>
             <div className="col">
-              <input type="text" className="form-control mb-2" placeholder="Overs (e.g., 20.0)" value={overs2} onChange={(e) => setOvers2(e.target.value)} required />
+              <input type="text" className="form-control mb-2" placeholder={`Overs by ${team2 || "Team 2"}`} value={overs2} onChange={(e) => setOvers2(e.target.value)} required />
             </div>
             <div className="col">
-              <input type="number" className="form-control mb-2" placeholder="Wickets" value={wickets2} onChange={(e) => setWickets2(e.target.value)} required min="0" max="10" />
+              <input type="number" className="form-control mb-2" placeholder={`Wickets by ${team2 || "Team 2"}`} value={wickets2} onChange={(e) => setWickets2(e.target.value)} required min="0" max="10" />
             </div>
           </div>
 
