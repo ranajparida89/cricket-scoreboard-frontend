@@ -1,101 +1,150 @@
-/* 🌙 Base Dark Theme */
+/* src/styles/theme.css */
+
+/* 🌙 Global Dark Background */
 body {
     background-color: #0c1c2c;
     color: #ffffff;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
   }
   
-  /* 🟩 Buttons */
-  .btn-primary {
-    background-color: #00c853;
-    border-color: #00c853;
-    color: white;
-  }
-  .btn-primary:hover {
-    background-color: #00a94c;
-    border-color: #00a94c;
-  }
-  
-  /* 🟨 Highlight for leaderboard rows */
-  .table tbody tr:first-child {
-    background-color: rgba(255, 255, 255, 0.05);
-    font-weight: 600;
-  }
-  
-  /* 🏏 Match Card Styling */
-  .match-card {
-    background-color: #142d45;
+  /* 📦 Card Containers (Forms, Leaderboard, Match Cards) */
+  .card {
+    background-color: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
-    padding: 20px;
-    margin-bottom: 20px;
-    color: #fff;
-  }
-  .match-card:hover {
-    transform: translateY(-3px);
-    transition: all 0.3s ease-in-out;
+    padding: 25px;
+    margin: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
   }
   
-  /* 🧾 Team & Score Display */
-  .team-score {
-    font-size: 1.3rem;
+  /* 🧾 Match Form Headings */
+  h2, h3, h4 {
+    color: #00d2ff;
+    margin-bottom: 15px;
     font-weight: bold;
   }
-  .match-result {
-    font-size: 0.9rem;
-    color: #90ee90;
-  }
-  .match-nrr {
-    font-size: 0.85rem;
-    color: #ccc;
+  
+  /* ✏️ Form Fields */
+  .form-control,
+  .form-select {
+    background-color: #f8f9fa;
+    color: #212529;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
   }
   
-  /* 🏆 Leaderboard Table */
-  .table {
-    background-color: #142d45;
+  /* ✅ Submit Button Styling */
+  .btn-success {
+    background-color: #00c851;
+    border-color: #00c851;
+    color: white;
+    font-weight: 600;
+    padding: 10px 20px;
+    font-size: 16px;
     border-radius: 8px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .btn-success:hover {
+    background-color: #007e33;
+    border-color: #007e33;
+  }
+  
+  /* 🏆 Leaderboard Table Styling */
+  .table {
+    background-color: #ffffff;
+    border-radius: 10px;
     overflow: hidden;
   }
-  .table th, .table td {
-    color: #ffffff;
-    border-color: #1f2f40;
-  }
-  .table thead {
-    background-color: #1f2f40;
-  }
-  .table-striped tbody tr:nth-of-type(odd) {
-    background-color: #102433;
-  }
   
-  /* 🧭 Navbar */
-  .navbar {
-    background-color: #0c1c2c !important;
-    border-bottom: 1px solid #1a2f40;
-  }
-  .navbar-brand,
-  .navbar-nav .nav-link {
-    color: #ffffff !important;
-  }
-  .navbar-nav .nav-link:hover {
-    color: #00c853 !important;
-  }
-  
-  /* 🌐 Footer (if added later) */
-  .footer {
+  .table th {
     background-color: #0c1c2c;
-    color: #ccc;
+    color: #ffffff;
+    font-weight: 600;
     text-align: center;
-    padding: 20px 0;
-    margin-top: 50px;
   }
   
-  /* 📱 Responsive fixes */
+  .table td {
+    background-color: #ffffff;
+    color: #212529;
+    text-align: center;
+  }
+  
+  /* ✨ Match Card Styles */
+  .match-card {
+    background-color: #112233;
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease;
+  }
+  
+  .match-card:hover {
+    transform: scale(1.01);
+  }
+  
+  .match-card .score {
+    font-size: 20px;
+    font-weight: bold;
+  }
+  
+  .match-card .result {
+    font-size: 14px;
+    color: #90caf9;
+  }
+  
+  /* 🇮🇳 Flag and Layout Support */
+  .flag-icon {
+    width: 24px;
+    height: 18px;
+    object-fit: contain;
+    margin-right: 6px;
+  }
+  
+  .flex-align {
+    display: flex;
+    align-items: center;
+  }
+  
+  /* 📱 Responsive Adjustments */
   @media (max-width: 768px) {
-    .match-card {
-      padding: 16px;
+    .card {
+      margin: 15px;
+      padding: 20px;
     }
-    .team-score {
-      font-size: 1.1rem;
+  
+    .btn-success {
+      width: 100%;
     }
+  }
+  
+  /* 🌐 Navbar */
+  .navbar {
+    background-color: #0c1c2c;
+    border-bottom: 1px solid #00d2ff;
+  }
+  
+  .navbar-brand,
+  .nav-link {
+    color: #ffffff !important;
+    font-weight: 500;
+  }
+  
+  .nav-link:hover {
+    color: #00d2ff !important;
+  }
+  
+  /* 📌 Footer or Utility Classes */
+  .text-center {
+    text-align: center;
+  }
+  
+  .text-light {
+    color: #e0e0e0 !important;
   }
   
