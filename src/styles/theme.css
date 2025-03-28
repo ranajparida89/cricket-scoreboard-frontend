@@ -1,0 +1,101 @@
+/* 🌙 Base Dark Theme */
+body {
+    background-color: #0c1c2c;
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  /* 🟩 Buttons */
+  .btn-primary {
+    background-color: #00c853;
+    border-color: #00c853;
+    color: white;
+  }
+  .btn-primary:hover {
+    background-color: #00a94c;
+    border-color: #00a94c;
+  }
+  
+  /* 🟨 Highlight for leaderboard rows */
+  .table tbody tr:first-child {
+    background-color: rgba(255, 255, 255, 0.05);
+    font-weight: 600;
+  }
+  
+  /* 🏏 Match Card Styling */
+  .match-card {
+    background-color: #142d45;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    margin-bottom: 20px;
+    color: #fff;
+  }
+  .match-card:hover {
+    transform: translateY(-3px);
+    transition: all 0.3s ease-in-out;
+  }
+  
+  /* 🧾 Team & Score Display */
+  .team-score {
+    font-size: 1.3rem;
+    font-weight: bold;
+  }
+  .match-result {
+    font-size: 0.9rem;
+    color: #90ee90;
+  }
+  .match-nrr {
+    font-size: 0.85rem;
+    color: #ccc;
+  }
+  
+  /* 🏆 Leaderboard Table */
+  .table {
+    background-color: #142d45;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .table th, .table td {
+    color: #ffffff;
+    border-color: #1f2f40;
+  }
+  .table thead {
+    background-color: #1f2f40;
+  }
+  .table-striped tbody tr:nth-of-type(odd) {
+    background-color: #102433;
+  }
+  
+  /* 🧭 Navbar */
+  .navbar {
+    background-color: #0c1c2c !important;
+    border-bottom: 1px solid #1a2f40;
+  }
+  .navbar-brand,
+  .navbar-nav .nav-link {
+    color: #ffffff !important;
+  }
+  .navbar-nav .nav-link:hover {
+    color: #00c853 !important;
+  }
+  
+  /* 🌐 Footer (if added later) */
+  .footer {
+    background-color: #0c1c2c;
+    color: #ccc;
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 50px;
+  }
+  
+  /* 📱 Responsive fixes */
+  @media (max-width: 768px) {
+    .match-card {
+      padding: 16px;
+    }
+    .team-score {
+      font-size: 1.1rem;
+    }
+  }
+  
