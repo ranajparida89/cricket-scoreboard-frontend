@@ -27,7 +27,7 @@ const MatchCards = () => {
       "New Zealand": "🇳🇿",
       Pakistan: "🇵🇰",
       "South Africa": "🇿🇦",
-      Sri Lanka: "🇱🇰",
+      SriLanka: "🇱🇰",
       Ireland: "🇮🇪",
       Kenya: "🇰🇪",
     };
