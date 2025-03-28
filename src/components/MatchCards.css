@@ -5,17 +5,31 @@
     padding: 20px;
     border-radius: 10px;
     color: white;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.05);
-    transition: transform 0.2s;
+    border: 1px solid rgba(0, 255, 255, 0.1);          /* ✅ Add subtle border */
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.08);      /* ✅ Shadow glow */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: fadeIn 0.4s ease-in;                    /* ✅ Fade in animation */
   }
   
   .match-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.15);
+    transform: translateY(-6px) scale(1.02);           /* ✅ Hover pop effect */
+    box-shadow: 0 0 18px rgba(0, 255, 255, 0.15);
   }
   
   .nrr-info {
     font-size: 14px;
     color: #cccccc;
+  }
+  
+  /* ✅ Fade-in animation keyframes */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   

@@ -1,7 +1,7 @@
 // src/components/MatchCards.js
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "./MatchCards.css"; // ✅ This is the import you need for styles
+import "./MatchCards.css";
 
 const MatchCards = () => {
   const [matches, setMatches] = useState([]);
@@ -10,7 +10,11 @@ const MatchCards = () => {
     const fetchMatches = async () => {
       try {
         const res = await axios.get("/api/match-history");
-        setMatches(res.data);
+        if (Array.isArray(res.data)) {
+          setMatches(res.data);
+        } else {
+          console.error("Invalid match data format");
+        }
       } catch (err) {
         console.error("Error fetching matches:", err);
       }
@@ -20,18 +24,19 @@ const MatchCards = () => {
   }, []);
 
   const getFlag = (teamName) => {
+    const normalized = teamName?.trim().toLowerCase();
     const flags = {
-      India: "🇮🇳",
-      Australia: "🇦🇺",
-      England: "🏴",
-      "New Zealand": "🇳🇿",
-      Pakistan: "🇵🇰",
-      "South Africa": "🇿🇦",
-      SriLanka: "🇱🇰",
-      Ireland: "🇮🇪",
-      Kenya: "🇰🇪",
+      india: "🇮🇳",
+      australia: "🇦🇺",
+      england: "🏴",
+      "new zealand": "🇳🇿",
+      pakistan: "🇵🇰",
+      "south africa": "🇿🇦",
+      "sri lanka": "🇱🇰",
+      ireland: "🇮🇪",
+      kenya: "🇰🇪",
     };
-    return flags[teamName] || "🏳️";
+    return flags[normalized] || "🏳️";
   };
 
   const renderMatchCard = (match, index) => (
@@ -40,13 +45,13 @@ const MatchCards = () => {
       <div className="d-flex justify-content-between align-items-center mb-2">
         <div>
           <h6 className="mb-1">
-            {getFlag(match.team1)} <strong>{match.team1.toUpperCase()}</strong> {match.runs1}/{match.wickets1}
+            {getFlag(match.team1)} <strong>{match.team1?.toUpperCase()}</strong> {match.runs1}/{match.wickets1}
           </h6>
           <p className="text-muted">Overs: {match.overs1}</p>
         </div>
         <div>
           <h6 className="mb-1">
-            {getFlag(match.team2)} <strong>{match.team2.toUpperCase()}</strong> {match.runs2}/{match.wickets2}
+            {getFlag(match.team2)} <strong>{match.team2?.toUpperCase()}</strong> {match.runs2}/{match.wickets2}
           </h6>
           <p className="text-muted">Overs: {match.overs2}</p>
         </div>
@@ -66,7 +71,7 @@ const MatchCards = () => {
     <div className="container mt-4">
       <h3 className="text-light mb-4">🏏 ODI Matches</h3>
       <div className="row">
-        {matches.length === 0 ? (
+        {matches?.length === 0 ? (
           <p className="text-white">No match data available.</p>
         ) : (
           matches.map((match, index) => (
