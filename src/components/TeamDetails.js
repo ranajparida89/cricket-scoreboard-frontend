@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import "./TeamDetails.css"; // optional for styling
+import "./TeamDetails.css";
 
 const trophyData = {
   India: {
@@ -23,7 +23,117 @@ const trophyData = {
     ],
     about: "The most successful team in ICC history — unmatched consistency and true champion mentality.",
   },
-  // ➕ Add more teams as needed
+  England: {
+    flag: "🏴",
+    achievements: [
+      "🏆 World Cup: 1 (2019)",
+      "🔥 T20 World Cup: 1 (2010)",
+      "🥇 Champions Trophy: 1 (2004)",
+    ],
+    about: "England reinvented white-ball cricket and won their first World Cup at home in 2019.",
+  },
+  Pakistan: {
+    flag: "🇵🇰",
+    achievements: [
+      "🏆 World Cup: 1 (1992)",
+      "🔥 T20 World Cup: 1 (2009)",
+      "🥇 Champions Trophy: 1 (2017)",
+    ],
+    about: "Known for unpredictability and pace power. 2017 CT win over India was iconic.",
+  },
+  "New Zealand": {
+    flag: "🇳🇿",
+    achievements: [
+      "🔥 T20 World Cup: 1 (2021)",
+      "🥇 Champions Trophy: 1 (2000)",
+    ],
+    about: "Loved for their spirit and sportsmanship. One of cricket's most consistent sides.",
+  },
+  "South Africa": {
+    flag: "🇿🇦",
+    achievements: [
+      "🥇 Champions Trophy: 1 (1998)",
+    ],
+    about: "The 'nearly men' of cricket. Full of talent but heartbreak in knockouts.",
+  },
+  "Sri Lanka": {
+    flag: "🇱🇰",
+    achievements: [
+      "🏆 World Cup: 1 (1996)",
+      "🔥 T20 World Cup: 1 (2014)",
+      "🥇 Champions Trophy: 1 (2002*)",
+    ],
+    about: "Known for their surprise 1996 World Cup win and cricketing legends.",
+  },
+  Bangladesh: {
+    flag: "🇧🇩",
+    achievements: ["🌱 No ICC trophies (yet)"],
+    about: "The Tigers have shown immense growth and potential in world cricket.",
+  },
+  Afghanistan: {
+    flag: "🇦🇫",
+    achievements: ["🌍 No ICC trophies"],
+    about: "Fearless, rising force in world cricket. Known for players like Rashid Khan.",
+  },
+  "West Indies": {
+    flag: "🌴",
+    achievements: [
+      "🏆 World Cups: 2 (1975, 1979)",
+      "🔥 T20 World Cups: 2 (2012, 2016)",
+      "🥇 Champions Trophy: 1 (2004)",
+    ],
+    about: "Flair and fire! Two-time T20 WC champs known for explosive style.",
+  },
+  Zimbabwe: {
+    flag: "🇿🇼",
+    achievements: ["🌱 No ICC trophies"],
+    about: "Has produced legends like Andy Flower and many iconic moments.",
+  },
+  Ireland: {
+    flag: "🇮🇪",
+    achievements: ["🌱 No ICC trophies"],
+    about: "Famous for stunning upsets like beating England in 2011.",
+  },
+  Netherlands: {
+    flag: "🇳🇱",
+    achievements: ["🌱 No ICC trophies"],
+    about: "Fearless batting style and known for upsetting top teams in T20s.",
+  },
+  Scotland: {
+    flag: "🏴",
+    achievements: ["🌱 No ICC trophies"],
+    about: "Rising performance and grit. Known for passion and improvement.",
+  },
+  Nepal: {
+    flag: "🇳🇵",
+    achievements: ["🌱 No ICC trophies"],
+    about: "Fan-favorite team with a massive following and growing potential.",
+  },
+  UAE: {
+    flag: "🇦🇪",
+    achievements: ["🌱 No ICC trophies"],
+    about: "Host to many ICC events. A base for rising associate talent.",
+  },
+  Namibia: {
+    flag: "🇳🇦",
+    achievements: ["🌱 No ICC trophies"],
+    about: "Surprise package in T20 WCs. Known for passion and underdog story.",
+  },
+  USA: {
+    flag: "🇺🇸",
+    achievements: ["🌱 No ICC trophies"],
+    about: "With MLC and ICC events, USA is emerging as a global cricket market.",
+  },
+  Oman: {
+    flag: "🇴🇲",
+    achievements: ["🌱 No ICC trophies"],
+    about: "Fast-rising associate that has hosted T20 World Cup matches.",
+  },
+  "Papua New Guinea": {
+    flag: "🇵🇬",
+    achievements: ["🌱 No ICC trophies"],
+    about: "Known for spirit and debut in T20 World Cup. A proud associate team.",
+  },
 };
 
 const normalizeTeam = (name) => {
@@ -37,6 +147,17 @@ const normalizeTeam = (name) => {
     sl: "Sri Lanka", "sri lanka": "Sri Lanka",
     wi: "West Indies", "west indies": "West Indies",
     afg: "Afghanistan", afghanistan: "Afghanistan",
+    ban: "Bangladesh", bangladesh: "Bangladesh",
+    zim: "Zimbabwe", zimbabwe: "Zimbabwe",
+    ire: "Ireland", ireland: "Ireland",
+    ned: "Netherlands", netherlands: "Netherlands",
+    sco: "Scotland", scotland: "Scotland",
+    nep: "Nepal", nepal: "Nepal",
+    uae: "UAE",
+    nam: "Namibia", namibia: "Namibia",
+    usa: "USA",
+    oma: "Oman",
+    png: "Papua New Guinea", "papua new guinea": "Papua New Guinea",
   };
   return map[name.toLowerCase()] || name;
 };
@@ -56,75 +177,63 @@ const TeamDetails = () => {
         const res = await axios.get(`/api/match-history?team=${normalized}`);
         if (Array.isArray(res.data)) {
           setMatches(res.data);
-        } else {
-          console.error("Invalid match data format (not an array):", res.data);
         }
       } catch (err) {
-        console.error("Error fetching team matches:", err);
+        console.error("Error fetching matches:", err);
       }
     };
     fetchMatches();
   }, [normalized]);
 
   useEffect(() => {
-    if (Array.isArray(matches) && matches.length > 0) {
-      let total = 0, wins = 0, losses = 0;
-      let totalRuns = 0, totalOvers = 0, totalConceded = 0, totalBowled = 0;
+    if (!matches?.length) return;
+    let total = 0, wins = 0, losses = 0, totalRuns = 0, totalOvers = 0, conceded = 0, bowled = 0;
 
-      matches.forEach((match) => {
-        const isTeam1 = match.team1.toLowerCase() === normalized.toLowerCase();
-        const teamRuns = isTeam1 ? match.runs1 : match.runs2;
-        const teamOvers = parseFloat(isTeam1 ? match.overs1 : match.overs2);
-        const oppRuns = isTeam1 ? match.runs2 : match.runs1;
-        const oppOvers = parseFloat(isTeam1 ? match.overs2 : match.overs1);
+    matches.forEach((m) => {
+      const isTeam1 = m.team1.toLowerCase() === normalized.toLowerCase();
+      const teamRuns = isTeam1 ? m.runs1 : m.runs2;
+      const teamOvers = parseFloat(isTeam1 ? m.overs1 : m.overs2);
+      const oppRuns = isTeam1 ? m.runs2 : m.runs1;
+      const oppOvers = parseFloat(isTeam1 ? m.overs2 : m.overs1);
 
-        total++;
-        if (match.winner?.toLowerCase().includes(normalized.toLowerCase())) wins++;
-        else if (match.winner && match.winner !== "Match Draw") losses++;
+      total++;
+      if (m.winner?.toLowerCase().includes(normalized.toLowerCase())) wins++;
+      else if (m.winner && m.winner !== "Match Draw") losses++;
 
-        totalRuns += teamRuns;
-        totalOvers += teamOvers;
-        totalConceded += oppRuns;
-        totalBowled += oppOvers;
-      });
+      totalRuns += teamRuns;
+      totalOvers += teamOvers;
+      conceded += oppRuns;
+      bowled += oppOvers;
+    });
 
-      const winPercent = ((wins / total) * 100).toFixed(2);
-      const nrr = (
-        totalOvers > 0 && totalBowled > 0
-          ? (totalRuns / totalOvers) - (totalConceded / totalBowled)
-          : 0
-      ).toFixed(2);
+    const winPercent = ((wins / total) * 100).toFixed(2);
+    const nrr = (totalOvers > 0 && bowled > 0)
+      ? ((totalRuns / totalOvers) - (conceded / bowled)).toFixed(2)
+      : "0.00";
 
-      setStats({ total, wins, losses, winPercent, nrr });
-    } else {
-      console.warn("No valid match data to calculate stats.");
-    }
+    setStats({ total, wins, losses, winPercent, nrr });
   }, [matches, normalized]);
 
   return (
     <div className="container mt-4 text-white">
-      {/* ❌ Close Button */}
-      <button
-        onClick={() => navigate("/")}
-        className="btn btn-outline-light mb-3"
-      >
+      <button onClick={() => navigate("/")} className="btn btn-outline-light mb-3">
         ❌ Close
       </button>
 
       <h2 className="mb-3">{teamInfo?.flag || "🏏"} {normalized} - Team Profile</h2>
 
       {teamInfo && (
-        <div className="mb-4">
-          <h5>Trophies & Achievements:</h5>
-          <ul className="list-group list-group-flush bg-dark p-3 rounded">
-            {teamInfo.achievements.map((achieve, idx) => (
-              <li key={idx} className="list-group-item bg-transparent text-light">
-                {achieve}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-3">{teamInfo.about}</p>
-        </div>
+        <>
+          <div className="mb-3">
+            <h5>Trophies & Achievements:</h5>
+            <ul className="list-group bg-dark rounded">
+              {teamInfo.achievements.map((ach, i) => (
+                <li key={i} className="list-group-item bg-transparent text-light">{ach}</li>
+              ))}
+            </ul>
+            <p className="mt-3">{teamInfo.about}</p>
+          </div>
+        </>
       )}
 
       {stats ? (
@@ -164,7 +273,7 @@ const TeamDetails = () => {
           </div>
         </>
       ) : (
-        <p>Loading team stats or no match data available.</p>
+        <p>No match data available.</p>
       )}
     </div>
   );

@@ -1,0 +1,38 @@
+/* src/components/TeamDetails.css */
+
+/* Card Styling */
+.card {
+    background-color: #0e1a2b !important;
+    border: 1px solid #333;
+    color: #fff;
+  }
+  
+  /* Trophy Achievement List */
+  .list-group-item {
+    background-color: transparent;
+    color: #d1d1d1;
+    font-size: 1rem;
+    border-bottom: 1px solid #2c3e50;
+  }
+  
+  /* Close Button */
+  button.btn-outline-light {
+    border-color: #999;
+    color: #eee;
+  }
+  
+  button.btn-outline-light:hover {
+    background-color: #444;
+    color: #fff;
+  }
+  
+  /* Section Titles */
+  h2, h5 {
+    color: #ffffff;
+  }
+  
+  /* Match Info List */
+  .list-group {
+    margin-top: 1rem;
+  }
+  
