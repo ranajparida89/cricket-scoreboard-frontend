@@ -7,24 +7,30 @@ import Leaderboard from "./components/Leaderboard";
 import MatchHistory from "./components/MatchHistory";
 import TeamChart from "./components/TeamCharts";
 import MatchCards from "./components/MatchCards";
-import TeamsPage from "./components/TeamsPage";          // ✅ New
-import TeamDetails from "./components/TeamDetails";      // ✅ New
-import AboutCrickEdge from "./components/AboutCrickEdge"; // ✅ New
-import ContactFeedback from "./components/ContactFeedback"; // ✅ New
-import PageWrapper from "./components/PageWrapper";      // ✅ For Close Button Support
+import TeamsPage from "./components/TeamsPage";
+import TeamDetails from "./components/TeamDetails";
+import AboutCrickEdge from "./components/AboutCrickEdge";
+import ContactFeedback from "./components/ContactFeedback";
+import PageWrapper from "./components/PageWrapper";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// Homepage = Match Summary + Leaderboard
+// ✅ Homepage = Match Summary (ODI + T20) + Leaderboard
 function HomePage() {
   return (
     <div className="container mt-4">
       <div className="row">
-        <div className="col-lg-8">
+        {/* 🏏 ODI + T20 Match Cards */}
+        <div className="col-lg-8 mb-4">
           <MatchCards />
         </div>
-        <div className="col-lg-4">
-          <Leaderboard />
+
+        {/* 🏆 Team Leaderboard */}
+        <div className="col-lg-4 mb-4">
+          <div className="card bg-dark text-white p-3 shadow">
+            <h4 className="text-center text-success mb-3">🏆 Team Leaderboard</h4>
+            <Leaderboard />
+          </div>
         </div>
       </div>
     </div>
@@ -119,7 +125,7 @@ function App() {
           }
         />
 
-        {/* ✅ Alias for Points */}
+        {/* ✅ Aliases */}
         <Route path="/points" element={<Leaderboard />} />
         <Route path="/matches" element={<HomePage />} />
       </Routes>

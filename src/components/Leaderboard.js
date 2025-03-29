@@ -1,14 +1,14 @@
+// src/components/Leaderboard.js
 import React, { useEffect, useState } from "react";
 import { getTeams } from "../services/api";
 import { io } from "socket.io-client";
+import "./Leaderboard.css"; // ✅ You’ll create this file in next step
 
-// ✅ IMPORTANT: use your deployed backend Socket.io URL here
-const socket = io("https://cricket-scoreboard-backend.onrender.com"); // <-- Updated from localhost
+const socket = io("https://cricket-scoreboard-backend.onrender.com");
 
 const Leaderboard = () => {
   const [teams, setTeams] = useState([]);
 
-  // 🔁 Fetch team leaderboard
   const fetchTeams = async () => {
     try {
       const data = await getTeams();
@@ -22,55 +22,51 @@ const Leaderboard = () => {
   };
 
   useEffect(() => {
-    fetchTeams(); // ✅ Initial load
-
+    fetchTeams();
     socket.on("matchUpdate", () => {
       console.log("📡 Real-time update received");
-      fetchTeams(); // ✅ Real-time refresh
+      fetchTeams();
     });
-
-    return () => {
-      socket.off("matchUpdate");
-    };
+    return () => socket.off("matchUpdate");
   }, []);
 
   return (
-    <div className="container mt-5">
-      <div className="card shadow p-4">
-        <h2 className="text-center text-success mb-4">🏆 Team Leaderboard</h2>
-        <div className="table-responsive">
-          <table className="table table-bordered text-center">
-            <thead className="table-dark">
-              <tr>
-                <th>#</th>
-                <th>Team</th>
-                <th>Matches</th>
-                <th>Wins</th>
-                <th>Losses</th>
-                <th>Points</th>
-                <th>NRR</th>
+    <div className="leaderboard-container mt-4">
+      <h4 className="text-success text-center mb-3">🏆 Team Leaderboard</h4>
+      <div className="table-responsive leaderboard-table-wrapper">
+        <table className="table table-bordered table-dark table-sm text-center mb-0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Team</th>
+              <th>Matches</th>
+              <th>Wins</th>
+              <th>Losses</th>
+              <th>Points</th>
+              <th>NRR</th>
+            </tr>
+          </thead>
+          <tbody>
+            {teams.map((team, index) => (
+              <tr key={team.team_name}>
+                <td>{index + 1}</td>
+                <td>{team.team_name}</td>
+                <td>{team.matches_played}</td>
+                <td>{team.wins}</td>
+                <td>{team.losses}</td>
+                <td>{team.points}</td>
+                <td>{Number(team.nrr).toFixed(2)}</td>
               </tr>
-            </thead>
-            <tbody>
-              {teams.map((team, index) => (
-                <tr key={team.team_name}>
-                  <td>{index + 1}</td>
-                  <td>{team.team_name}</td>
-                  <td>{team.matches_played}</td>
-                  <td>{team.wins}</td>
-                  <td>{team.losses}</td>
-                  <td>{team.points}</td>
-                  <td>{Number(team.nrr).toFixed(2)}</td>
-                </tr>
-              ))}
-              {teams.length === 0 && (
-                <tr>
-                  <td colSpan="7">No match data available.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            ))}
+            {teams.length === 0 && (
+              <tr>
+                <td colSpan="7" className="text-muted">
+                  No match data available.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
