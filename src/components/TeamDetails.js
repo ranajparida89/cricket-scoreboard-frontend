@@ -1,6 +1,6 @@
 // src/components/TeamDetails.js
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./TeamDetails.css"; // optional for styling
 
@@ -23,7 +23,7 @@ const trophyData = {
     ],
     about: "The most successful team in ICC history — unmatched consistency and true champion mentality.",
   },
-  // ✅ Add other teams here similarly...
+  // ➕ Add more teams as needed
 };
 
 const normalizeTeam = (name) => {
@@ -43,8 +43,10 @@ const normalizeTeam = (name) => {
 
 const TeamDetails = () => {
   const { teamName } = useParams();
+  const navigate = useNavigate();
   const [matches, setMatches] = useState([]);
   const [stats, setStats] = useState(null);
+
   const normalized = normalizeTeam(teamName);
   const teamInfo = trophyData[normalized];
 
@@ -52,7 +54,11 @@ const TeamDetails = () => {
     const fetchMatches = async () => {
       try {
         const res = await axios.get(`/api/match-history?team=${normalized}`);
-        setMatches(res.data);
+        if (Array.isArray(res.data)) {
+          setMatches(res.data);
+        } else {
+          console.error("Invalid match data format (not an array):", res.data);
+        }
       } catch (err) {
         console.error("Error fetching team matches:", err);
       }
@@ -61,7 +67,7 @@ const TeamDetails = () => {
   }, [normalized]);
 
   useEffect(() => {
-    if (matches.length > 0) {
+    if (Array.isArray(matches) && matches.length > 0) {
       let total = 0, wins = 0, losses = 0;
       let totalRuns = 0, totalOvers = 0, totalConceded = 0, totalBowled = 0;
 
@@ -90,11 +96,21 @@ const TeamDetails = () => {
       ).toFixed(2);
 
       setStats({ total, wins, losses, winPercent, nrr });
+    } else {
+      console.warn("No valid match data to calculate stats.");
     }
   }, [matches, normalized]);
 
   return (
     <div className="container mt-4 text-white">
+      {/* ❌ Close Button */}
+      <button
+        onClick={() => navigate("/")}
+        className="btn btn-outline-light mb-3"
+      >
+        ❌ Close
+      </button>
+
       <h2 className="mb-3">{teamInfo?.flag || "🏏"} {normalized} - Team Profile</h2>
 
       {teamInfo && (
@@ -148,7 +164,7 @@ const TeamDetails = () => {
           </div>
         </>
       ) : (
-        <p>Loading team stats...</p>
+        <p>Loading team stats or no match data available.</p>
       )}
     </div>
   );
