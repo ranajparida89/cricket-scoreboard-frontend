@@ -27,16 +27,16 @@ const MatchCards = () => {
     const normalized = teamName?.trim().toLowerCase();
     const flags = {
       india: "🇮🇳",
-      australia: "🇦🇺🇸",
+      australia: "🇦🇺",
       england: "🏴",
       "new zealand": "🇳🇿",
       pakistan: "🇵🇰",
-      "south africa": "🇸🇦",
+      "south africa": "🇿🇦",
       "sri lanka": "🇱🇰",
       ireland: "🇮🇪",
       kenya: "🇰🇪",
       namibia: "🇳🇦",
-      bangladesh: "🇧🇱🇩",
+      bangladesh: "🇧🇩",
       afghanistan: "🇦🇫",
       zimbabwe: "🇿🇼",
       "west indies": "🏴‍☠️",
@@ -78,9 +78,9 @@ const MatchCards = () => {
     </div>
   );
 
-  // ✅ Separate T20 & ODI
-  const odiMatches = matches.filter((m) => m.match_type === "ODI");
-  const t20Matches = matches.filter((m) => m.match_type === "T20");
+  // ✅ UPDATED: Case-insensitive filtering of match type
+  const odiMatches = matches.filter((m) => m.match_type?.toLowerCase() === "odi");
+  const t20Matches = matches.filter((m) => m.match_type?.toLowerCase() === "t20");
 
   return (
     <div className="container mt-4">
