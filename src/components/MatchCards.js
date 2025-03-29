@@ -27,14 +27,25 @@ const MatchCards = () => {
     const normalized = teamName?.trim().toLowerCase();
     const flags = {
       india: "🇮🇳",
-      australia: "🇦🇺",
+      australia: "🇦🇺🇸",
       england: "🏴",
       "new zealand": "🇳🇿",
       pakistan: "🇵🇰",
-      "south africa": "🇿🇦",
+      "south africa": "🇸🇦",
       "sri lanka": "🇱🇰",
       ireland: "🇮🇪",
       kenya: "🇰🇪",
+      namibia: "🇳🇦",
+      bangladesh: "🇧🇱🇩",
+      afghanistan: "🇦🇫",
+      zimbabwe: "🇿🇼",
+      "west indies": "🏴‍☠️",
+      usa: "🇺🇸",
+      uae: "🇦🇪",
+      oman: "🇴🇲",
+      scotland: "🏴",
+      netherlands: "🇳🇱",
+      nepal: "🇳🇵",
     };
     return flags[normalized] || "🏳️";
   };
@@ -67,12 +78,13 @@ const MatchCards = () => {
     </div>
   );
 
-  // Filter matches by type
+  // ✅ Separate T20 & ODI
   const odiMatches = matches.filter((m) => m.match_type === "ODI");
   const t20Matches = matches.filter((m) => m.match_type === "T20");
 
   return (
     <div className="container mt-4">
+      {/* 🏏 ODI Section */}
       <h3 className="text-light mb-3">🏏 ODI Matches</h3>
       <div className="row">
         {odiMatches.length === 0 ? (
@@ -86,6 +98,7 @@ const MatchCards = () => {
         )}
       </div>
 
+      {/* 🔥 T20 Section */}
       <h3 className="text-light mt-5 mb-3">🔥 T20 Matches</h3>
       <div className="row">
         {t20Matches.length === 0 ? (
