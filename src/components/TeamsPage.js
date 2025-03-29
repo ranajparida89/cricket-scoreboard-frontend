@@ -1,7 +1,7 @@
 // src/components/TeamsPage.js
 import React from "react";
 import { Link } from "react-router-dom";
-import "./TeamsPage.css"; // 💡 Create this CSS file for custom styles
+import "./TeamsPage.css";
 
 const teams = [
   { name: "India", code: "IND", flag: "🇮🇳" },
@@ -29,7 +29,7 @@ const teams = [
 const TeamsPage = () => {
   return (
     <div className="container text-white py-4">
-      <h2 className="mb-4">🌍 Teams Overview</h2>
+      <h2 className="mb-4 text-info">🌍 Teams Overview</h2>
       <div className="row">
         {teams.map((team, idx) => (
           <div key={idx} className="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">

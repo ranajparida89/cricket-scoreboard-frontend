@@ -2,68 +2,79 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import "./TeamDetails.css"; // optional for styling
+
+const trophyData = {
+  India: {
+    flag: "🇮🇳",
+    achievements: [
+      "🏆 World Cups: 2 (1983, 2011)",
+      "🔥 T20 World Cups: 2 (2007, 2024)",
+      "🥇 Champions Trophies: 3 (2002*, 2013, 2025)",
+    ],
+    about: "India is a cricketing superpower with dominance across formats and a massive fanbase.",
+  },
+  Australia: {
+    flag: "🇦🇺",
+    achievements: [
+      "🏆 World Cups: 6 (1987, 1999, 2003, 2007, 2015, 2023)",
+      "🔥 T20 World Cups: 1 (2021)",
+      "🥇 Champions Trophies: 2 (2006, 2009)",
+    ],
+    about: "The most successful team in ICC history — unmatched consistency and true champion mentality.",
+  },
+  // ✅ Add other teams here similarly...
+};
+
+const normalizeTeam = (name) => {
+  const map = {
+    ind: "India", india: "India",
+    aus: "Australia", australia: "Australia",
+    eng: "England", england: "England",
+    pak: "Pakistan", pakistan: "Pakistan",
+    nz: "New Zealand", "new zealand": "New Zealand",
+    sa: "South Africa", "south africa": "South Africa",
+    sl: "Sri Lanka", "sri lanka": "Sri Lanka",
+    wi: "West Indies", "west indies": "West Indies",
+    afg: "Afghanistan", afghanistan: "Afghanistan",
+  };
+  return map[name.toLowerCase()] || name;
+};
 
 const TeamDetails = () => {
   const { teamName } = useParams();
   const [matches, setMatches] = useState([]);
   const [stats, setStats] = useState(null);
-
-  // Normalize team name (e.g., 'ind', 'IND' => 'India')
-  const normalizeTeam = (name) => {
-    const map = {
-      ind: "India",
-      india: "India",
-      aus: "Australia",
-      australia: "Australia",
-      eng: "England",
-      england: "England",
-      pak: "Pakistan",
-      pakistan: "Pakistan",
-      nz: "New Zealand",
-      "new zealand": "New Zealand",
-      sa: "South Africa",
-      "south africa": "South Africa",
-      sl: "Sri Lanka",
-      "sri lanka": "Sri Lanka",
-      wi: "West Indies",
-      "west indies": "West Indies",
-      afg: "Afghanistan",
-      afghanistan: "Afghanistan",
-    };
-    return map[name.toLowerCase()] || name;
-  };
+  const normalized = normalizeTeam(teamName);
+  const teamInfo = trophyData[normalized];
 
   useEffect(() => {
     const fetchMatches = async () => {
       try {
-        const res = await axios.get(`/api/match-history?team=${normalizeTeam(teamName)}`);
+        const res = await axios.get(`/api/match-history?team=${normalized}`);
         setMatches(res.data);
       } catch (err) {
         console.error("Error fetching team matches:", err);
       }
     };
     fetchMatches();
-  }, [teamName]);
+  }, [normalized]);
 
   useEffect(() => {
     if (matches.length > 0) {
       let total = 0, wins = 0, losses = 0;
-      let totalRuns = 0, totalOvers = 0;
-      let totalConceded = 0, totalBowled = 0;
+      let totalRuns = 0, totalOvers = 0, totalConceded = 0, totalBowled = 0;
 
       matches.forEach((match) => {
-        let isTeam1 = match.team1.toLowerCase() === normalizeTeam(teamName).toLowerCase();
+        const isTeam1 = match.team1.toLowerCase() === normalized.toLowerCase();
         const teamRuns = isTeam1 ? match.runs1 : match.runs2;
         const teamOvers = parseFloat(isTeam1 ? match.overs1 : match.overs2);
         const oppRuns = isTeam1 ? match.runs2 : match.runs1;
         const oppOvers = parseFloat(isTeam1 ? match.overs2 : match.overs1);
 
         total++;
-        if (match.winner && match.winner.toLowerCase().includes(normalizeTeam(teamName).toLowerCase())) {
-          wins++;
-        } else if (match.winner && match.winner !== "Match Draw") {
-          losses++;
-        }
+        if (match.winner?.toLowerCase().includes(normalized.toLowerCase())) wins++;
+        else if (match.winner && match.winner !== "Match Draw") losses++;
 
         totalRuns += teamRuns;
         totalOvers += teamOvers;
@@ -80,11 +91,25 @@ const TeamDetails = () => {
 
       setStats({ total, wins, losses, winPercent, nrr });
     }
-  }, [matches, teamName]);
+  }, [matches, normalized]);
 
   return (
     <div className="container mt-4 text-white">
-      <h2 className="mb-4">📊 {normalizeTeam(teamName)} - Team Statistics</h2>
+      <h2 className="mb-3">{teamInfo?.flag || "🏏"} {normalized} - Team Profile</h2>
+
+      {teamInfo && (
+        <div className="mb-4">
+          <h5>Trophies & Achievements:</h5>
+          <ul className="list-group list-group-flush bg-dark p-3 rounded">
+            {teamInfo.achievements.map((achieve, idx) => (
+              <li key={idx} className="list-group-item bg-transparent text-light">
+                {achieve}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3">{teamInfo.about}</p>
+        </div>
+      )}
 
       {stats ? (
         <>
@@ -109,11 +134,9 @@ const TeamDetails = () => {
             </div>
           </div>
 
-          <div className="mb-4">
-            <h5>Net Run Rate (NRR): <strong>{stats.nrr}</strong></h5>
-          </div>
+          <h5>Net Run Rate (NRR): <strong>{stats.nrr}</strong></h5>
 
-          <div>
+          <div className="mt-4">
             <h5>🕒 Last 5 Matches</h5>
             <ul className="list-group list-group-flush">
               {matches.slice(0, 5).map((m, i) => (
