@@ -67,14 +67,31 @@ const MatchCards = () => {
     </div>
   );
 
+  // Filter matches by type
+  const odiMatches = matches.filter((m) => m.match_type === "ODI");
+  const t20Matches = matches.filter((m) => m.match_type === "T20");
+
   return (
     <div className="container mt-4">
-      <h3 className="text-light mb-4">🏏 ODI Matches</h3>
+      <h3 className="text-light mb-3">🏏 ODI Matches</h3>
       <div className="row">
-        {matches?.length === 0 ? (
-          <p className="text-white">No match data available.</p>
+        {odiMatches.length === 0 ? (
+          <p className="text-white">No ODI matches available.</p>
         ) : (
-          matches.map((match, index) => (
+          odiMatches.map((match, index) => (
+            <div key={index} className="col-md-6 col-lg-4">
+              {renderMatchCard(match, index)}
+            </div>
+          ))
+        )}
+      </div>
+
+      <h3 className="text-light mt-5 mb-3">🔥 T20 Matches</h3>
+      <div className="row">
+        {t20Matches.length === 0 ? (
+          <p className="text-white">No T20 matches available.</p>
+        ) : (
+          t20Matches.map((match, index) => (
             <div key={index} className="col-md-6 col-lg-4">
               {renderMatchCard(match, index)}
             </div>
