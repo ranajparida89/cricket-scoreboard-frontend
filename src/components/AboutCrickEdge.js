@@ -30,6 +30,26 @@ const AboutCrickEdge = () => {
         <li>🧑‍💼 <strong>Admin Panel (Optional):</strong> Toggle match submission restrictions for control or simplicity.</li>
         <li>💻 <strong>Responsive Design:</strong> Optimized for mobile, tablet, and desktop screens using dark UI.</li>
       </ul>
+
+      <hr className="bg-light" />
+
+      {/* ✅ New Developer Section */}
+      <h4 className="mt-5">👨‍💻 About the Developer – <em>Ranaj Parida</em></h4>
+      <p>
+        CrickEdge is more than just a cricket scoreboard — it’s a labor of love, built from the ground up by a passionate developer, <strong>Ranaj Parida</strong>.
+      </p>
+      <p>
+        With over <strong>9+ years of experience</strong> in the IT industry, Ranaj leveraged his core strengths in <strong>Oracle SQL, PL/SQL, and backend engineering</strong> to explore new technologies and bring CrickEdge to life. Despite a busy professional and personal life, Ranaj single-handedly designed, coded, tested, and deployed CrickEdge — managing both the frontend and backend with great precision.
+      </p>
+      <p>
+        💡 What truly sets Ranaj apart is his <strong>grit, consistency, and eagerness to learn</strong>. Having no prior experience in full-stack JavaScript frameworks, he took the initiative to self-learn <strong>React.js, Node.js, PostgreSQL, Socket.IO, Bootstrap</strong>, and even explored <strong>cloud hosting with Render and Vercel</strong> — just to ensure CrickEdge provides a seamless, real-time, and responsive experience for every cricket fan.
+      </p>
+      <p>
+        🛠️ Every feature — from <strong>match submissions</strong>, <strong>real-time leaderboard updates</strong>, to <strong>dynamic team performance analytics</strong> — is the result of late-night coding sessions, rigorous debugging, and tireless iterations by Ranaj. He poured countless hours into getting the <strong>NRR calculations</strong> right, refining the <strong>UI/UX</strong>, and making the app <strong>mobile-friendly and production-ready</strong> — all while balancing his role as a Senior Consultant and a family man.
+      </p>
+      <p>
+        💚 Ranaj’s journey is a shining example of how <strong>passion meets perseverance</strong>. CrickEdge is his tribute to cricket, clean design, and continuous self-improvement — a dream turned into code.
+      </p>
     </div>
   );
 };
