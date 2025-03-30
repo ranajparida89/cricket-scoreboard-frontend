@@ -5,8 +5,8 @@ import "./MatchCards.css";
 
 const MatchCards = () => {
   const [matches, setMatches] = useState([]);
-  const [showODI, setShowODI] = useState(false);
-  const [showT20, setShowT20] = useState(false);
+  const [showODI, setShowODI] = useState(true);
+  const [showT20, setShowT20] = useState(true);
 
   useEffect(() => {
     const fetchMatches = async () => {
@@ -21,6 +21,7 @@ const MatchCards = () => {
         console.error("Error fetching matches:", err);
       }
     };
+
     fetchMatches();
   }, []);
 
@@ -28,11 +29,10 @@ const MatchCards = () => {
     const normalized = teamName?.trim().toLowerCase();
     const flags = {
       india: "🇮🇳", australia: "🇦🇺", england: "🏴", "new zealand": "🇳🇿",
-      pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱🇰",
-      ireland: "🇮🇪", kenya: "🇰🇪", namibia: "🇳🇦", bangladesh: "🇧🇩",
-      afghanistan: "🇦🇫", zimbabwe: "🇿🇼", "west indies": "🏴‍☠️",
-      usa: "🇺🇸", uae: "🇦🇪", oman: "🇴🇲", scotland: "🏴",
-      netherlands: "🇳🇱", nepal: "🇳🇵",
+      pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱🇰", ireland: "🇮🇪",
+      kenya: "🇰🇪", namibia: "🇳🇦", bangladesh: "🇧🇩", afghanistan: "🇦🇫",
+      zimbabwe: "🇿🇼", "west indies": "🏴‍☠️", usa: "🇺🇸", uae: "🇦🇪",
+      oman: "🇴🇲", scotland: "🏴", netherlands: "🇳🇱", nepal: "🇳🇵"
     };
     return flags[normalized] || "🏳️";
   };
@@ -68,46 +68,56 @@ const MatchCards = () => {
 
   return (
     <div className="container mt-4">
-      {/* 🏏 ODI Toggle Button */}
-      <button
-        className="btn btn-outline-warning mb-3"
-        onClick={() => setShowODI(!showODI)}
-      >
-        🏏 ODI Matches {showODI ? "▲" : "▼"}
-      </button>
+      {/* ✅ Toggle Buttons with Flex Alignment */}
+      <div className="d-flex gap-3 mb-4">
+        <button
+          className={`btn ${showODI ? "btn-warning" : "btn-outline-warning"}`}
+          onClick={() => setShowODI(!showODI)}
+        >
+          🏏 ODI Matches {showODI ? "▼" : "▲"}
+        </button>
+        <button
+          className={`btn ${showT20 ? "btn-danger" : "btn-outline-danger"}`}
+          onClick={() => setShowT20(!showT20)}
+        >
+          🔥 T20 Matches {showT20 ? "▼" : "▲"}
+        </button>
+      </div>
+
+      {/* ✅ ODI Section */}
       {showODI && (
-        <div className="row">
-          {odiMatches.length === 0 ? (
-            <p className="text-white">No ODI matches available.</p>
-          ) : (
-            odiMatches.map((match, index) => (
-              <div key={index} className="col-md-6 col-lg-4">
-                {renderMatchCard(match, index)}
-              </div>
-            ))
-          )}
-        </div>
+        <>
+          <h4 className="text-light mb-2">ODI Matches</h4>
+          <div className="row">
+            {odiMatches.length === 0 ? (
+              <p className="text-white">No ODI matches available.</p>
+            ) : (
+              odiMatches.map((match, index) => (
+                <div key={index} className="col-md-6 col-lg-4">
+                  {renderMatchCard(match, index)}
+                </div>
+              ))
+            )}
+          </div>
+        </>
       )}
 
-      {/* 🔥 T20 Toggle Button */}
-      <button
-        className="btn btn-outline-danger mb-3 mt-4"
-        onClick={() => setShowT20(!showT20)}
-      >
-        🔥 T20 Matches {showT20 ? "▲" : "▼"}
-      </button>
+      {/* ✅ T20 Section */}
       {showT20 && (
-        <div className="row">
-          {t20Matches.length === 0 ? (
-            <p className="text-white">No T20 matches available.</p>
-          ) : (
-            t20Matches.map((match, index) => (
-              <div key={index} className="col-md-6 col-lg-4">
-                {renderMatchCard(match, index)}
-              </div>
-            ))
-          )}
-        </div>
+        <>
+          <h4 className="text-light mt-4 mb-2">T20 Matches</h4>
+          <div className="row">
+            {t20Matches.length === 0 ? (
+              <p className="text-white">No T20 matches available.</p>
+            ) : (
+              t20Matches.map((match, index) => (
+                <div key={index} className="col-md-6 col-lg-4">
+                  {renderMatchCard(match, index)}
+                </div>
+              ))
+            )}
+          </div>
+        </>
       )}
     </div>
   );
