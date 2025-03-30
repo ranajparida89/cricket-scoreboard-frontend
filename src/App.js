@@ -15,23 +15,19 @@ import PageWrapper from "./components/PageWrapper";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// ✅ Homepage = Match Summary (ODI + T20) + Leaderboard
+// ✅ Homepage = Match Summary (ODI + T20) + Full Width Leaderboard
 function HomePage() {
   return (
     <div className="container mt-4">
-      <div className="row">
-        {/* 🏏 ODI + T20 Match Cards */}
-        <div className="col-lg-8 mb-4">
-          <MatchCards />
-        </div>
+      {/* 🏏 Match Summary Section */}
+      <div className="mb-5">
+        <MatchCards />
+      </div>
 
-        {/* 🏆 Team Leaderboard */}
-        <div className="col-lg-4 mb-4">
-          <div className="card bg-dark text-white p-3 shadow">
-            <h4 className="text-center text-success mb-3">🏆 Team Leaderboard</h4>
-            <Leaderboard />
-          </div>
-        </div>
+      {/* 🏆 Full Width Leaderboard Section */}
+      <div className="card bg-dark text-white p-4 shadow mb-5">
+        <h4 className="text-center text-success mb-3">🏆 Team Leaderboard</h4>
+        <Leaderboard />
       </div>
     </div>
   );
@@ -42,10 +38,7 @@ function App() {
     <Router>
       <AppNavbar />
       <Routes>
-        {/* ✅ Default Landing Page */}
         <Route path="/" element={<HomePage />} />
-
-        {/* ✅ Match Form */}
         <Route
           path="/add-match"
           element={
@@ -54,8 +47,6 @@ function App() {
             </PageWrapper>
           }
         />
-
-        {/* ✅ Leaderboard */}
         <Route
           path="/leaderboard"
           element={
@@ -64,8 +55,6 @@ function App() {
             </PageWrapper>
           }
         />
-
-        {/* ✅ Match History */}
         <Route
           path="/match-history"
           element={
@@ -74,8 +63,6 @@ function App() {
             </PageWrapper>
           }
         />
-
-        {/* ✅ Graphs & Charts */}
         <Route
           path="/graphs"
           element={
@@ -84,8 +71,6 @@ function App() {
             </PageWrapper>
           }
         />
-
-        {/* ✅ Teams Overview Page */}
         <Route
           path="/teams"
           element={
@@ -94,8 +79,6 @@ function App() {
             </PageWrapper>
           }
         />
-
-        {/* ✅ Team Details Page */}
         <Route
           path="/teams/:teamName"
           element={
@@ -104,8 +87,6 @@ function App() {
             </PageWrapper>
           }
         />
-
-        {/* ✅ About Page */}
         <Route
           path="/about"
           element={
@@ -114,8 +95,6 @@ function App() {
             </PageWrapper>
           }
         />
-
-        {/* ✅ Contact/Feedback */}
         <Route
           path="/contact"
           element={
@@ -124,8 +103,6 @@ function App() {
             </PageWrapper>
           }
         />
-
-        {/* ✅ Aliases */}
         <Route path="/points" element={<Leaderboard />} />
         <Route path="/matches" element={<HomePage />} />
       </Routes>

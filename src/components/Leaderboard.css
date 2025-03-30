@@ -1,35 +1,35 @@
 /* Leaderboard.css */
 
-/* Container spans full width */
+/* 🔷 Full-width container with styling */
 .leaderboard-container {
     background-color: #0c1c2c;
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
     width: 100%;
+    overflow-x: auto; /* allow scroll only if really needed */
   }
   
-  /* Make table responsive but remove unnecessary scroll */
+  /* 🔷 Allow the table to adjust to content size */
   .leaderboard-table-wrapper {
     max-height: 500px;
     overflow-y: auto;
-    overflow-x: hidden;
     width: 100%;
   }
   
-  /* Table layout uses auto width based on content */
+  /* 🔷 Full-width table with smart column sizing */
   .table {
     width: 100%;
-    table-layout: auto; /* ✅ allow column auto sizing */
+    table-layout: auto; /* lets columns expand based on content */
   }
   
-  /* Ensure readable spacing */
+  /* 🔷 Prevent data overlap and keep it neat */
   .table th,
   .table td {
     padding: 10px 14px;
     font-size: 15px;
     text-align: center;
     vertical-align: middle;
-    white-space: nowrap; /* ✅ prevent line breaks */
+    white-space: nowrap; /* prevent breaking like "West Indies" */
   }
   
