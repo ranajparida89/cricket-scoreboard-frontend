@@ -43,8 +43,11 @@ const MatchCards = () => {
   // ✅ Fetch correct team NRR
   const getTeamNRR = (teamName) => {
     const team = teams.find((t) => t.team_name === teamName);
-    return team?.nrr?.toFixed(2) || "N/A";
+    const nrr = team?.nrr;
+  
+    return typeof nrr === "number" ? nrr.toFixed(2) : "N/A";
   };
+  
 
   const renderMatchCard = (match, index) => (
     <div className="match-card mb-4" key={index}>
