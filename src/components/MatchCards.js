@@ -41,8 +41,11 @@ const MatchCards = () => {
   };
 
   // ✅ Fetch correct team NRR
-  const getTeamNRR = (teamName) => {
-    const normalizedName = teamName?.trim().toLowerCase();
+  // ✅ Updated getTeamNRR with strict case-insensitive matching
+const getTeamNRR = (teamName) => {
+    if (!teamName || !Array.isArray(teams)) return "N/A";
+  
+    const normalizedName = teamName.trim().toLowerCase();
   
     const team = teams.find(
       (t) => t.team_name?.trim().toLowerCase() === normalizedName
@@ -51,6 +54,7 @@ const MatchCards = () => {
     const nrr = team?.nrr;
     return typeof nrr === "number" ? nrr.toFixed(2) : "N/A";
   };
+  
   
   
 
@@ -62,13 +66,15 @@ const MatchCards = () => {
           <h6 className="mb-1">
             {getFlag(match.team1)} <strong>{match.team1?.toUpperCase()}</strong> {match.runs1}/{match.wickets1}
           </h6>
-          <p className="overs-info">Overs: {match.overs1}</p>
+          <p className="overs-info">Overs: {Number(match.overs1).toFixed(1)}</p>
+
         </div>
         <div>
           <h6 className="mb-1">
             {getFlag(match.team2)} <strong>{match.team2?.toUpperCase()}</strong> {match.runs2}/{match.wickets2}
           </h6>
-          <p className="overs-info">Overs: {match.overs2}</p>
+          <p className="overs-info">Overs: {Number(match.overs2).toFixed(1)}</p>
+
         </div>
       </div>
       <p className="text-light"><strong>🏆 {match.winner}</strong></p>
