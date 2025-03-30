@@ -1,6 +1,6 @@
 // src/components/MatchCards.js
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { getMatchHistory } from "../services/api";  // ✅ Use centralized API
 import "./MatchCards.css";
 
 const MatchCards = () => {
@@ -11,18 +11,16 @@ const MatchCards = () => {
   useEffect(() => {
     const fetchMatches = async () => {
       try {
-        const res = await axios.get("/api/match-history");
+        const res = await getMatchHistory();  // ✅ Using central API
+        console.log("✅ Received match data:", res);  // ✅ Debug log
 
-        // ✅✅ LOG added here
-        console.log("✅ Received match data:", res.data);
-
-        if (Array.isArray(res.data)) {
-          setMatches(res.data);
+        if (Array.isArray(res)) {
+          setMatches(res);
         } else {
-          console.error("Invalid match data format");
+          console.error("❌ Invalid match data format");
         }
       } catch (err) {
-        console.error("Error fetching matches:", err);
+        console.error("❌ Error fetching matches:", err);
       }
     };
 
@@ -32,26 +30,12 @@ const MatchCards = () => {
   const getFlag = (teamName) => {
     const normalized = teamName?.trim().toLowerCase();
     const flags = {
-      india: "🇮🇳",
-      australia: "🇦🇺",
-      england: "🏴",
-      "new zealand": "🇳🇿",
-      pakistan: "🇵🇰",
-      "south africa": "🇿🇦",
-      "sri lanka": "🇱🇰",
-      ireland: "🇮🇪",
-      kenya: "🇰🇪",
-      namibia: "🇳🇦",
-      bangladesh: "🇧🇩",
-      afghanistan: "🇦🇫",
-      zimbabwe: "🇿🇼",
-      "west indies": "🏴‍☠️",
-      usa: "🇺🇸",
-      uae: "🇦🇪",
-      oman: "🇴🇲",
-      scotland: "🏴",
-      netherlands: "🇳🇱",
-      nepal: "🇳🇵",
+      india: "🇮🇳", australia: "🇦🇺", england: "🏴",
+      "new zealand": "🇳🇿", pakistan: "🇵🇰", "south africa": "🇿🇦",
+      "sri lanka": "🇱🇰", ireland: "🇮🇪", kenya: "🇰🇪", namibia: "🇳🇦",
+      bangladesh: "🇧🇩", afghanistan: "🇦🇫", zimbabwe: "🇿🇼", 
+      "west indies": "🏴‍☠️", usa: "🇺🇸", uae: "🇦🇪", oman: "🇴🇲", 
+      scotland: "🏴", netherlands: "🇳🇱", nepal: "🇳🇵",
     };
     return flags[normalized] || "🏳️";
   };
@@ -73,18 +57,15 @@ const MatchCards = () => {
           <p className="text-muted">Overs: {match.overs2}</p>
         </div>
       </div>
-
       <p className="text-light">
         <strong>🏆 {match.winner}</strong>
       </p>
-
       <div className="nrr-info small text-secondary">
         NRR: {match.runs1}/{match.overs1} – {match.runs2}/{match.overs2}
       </div>
     </div>
   );
 
-  // ✅ Use exact string match based on DB values (case-sensitive)
   const odiMatches = matches.filter((m) => m.match_type === "ODI");
   const t20Matches = matches.filter((m) => m.match_type === "T20");
 
