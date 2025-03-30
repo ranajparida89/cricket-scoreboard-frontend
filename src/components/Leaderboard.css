@@ -26,6 +26,6 @@
   
   /* ✅ Ensure table uses full width in smaller containers */
   .table {
-    min-width: 1000px;          /* Guarantees all columns fit */
+    min-width: 300px;          /* Guarantees all columns fit */
   }
   
