@@ -1,10 +1,11 @@
+// src/components/MatchCards.js
 import React, { useEffect, useState } from "react";
-import { getMatchHistory, getTeams } from "../services/api"; // ✅ Added getTeams
+import { getMatchHistory, getTeams } from "../services/api"; // ✅ Centralized API usage
 import "./MatchCards.css";
 
 const MatchCards = () => {
   const [matches, setMatches] = useState([]);
-  const [teams, setTeams] = useState([]); // ✅ Store team NRRs
+  const [teams, setTeams] = useState([]); // ✅ Fetch from teams table
   const [showOdi, setShowOdi] = useState(true);
   const [showT20, setShowT20] = useState(false);
 
@@ -12,7 +13,10 @@ const MatchCards = () => {
     const fetchData = async () => {
       try {
         const matchRes = await getMatchHistory();
-        const teamRes = await getTeams(); // ✅ Fetch NRR data
+        const teamRes = await getTeams(); // ✅ Includes NRR data
+
+        console.log("✅ Match History:", matchRes);
+        console.log("✅ Team List (NRR):", teamRes);
 
         if (Array.isArray(matchRes)) setMatches(matchRes);
         if (Array.isArray(teamRes)) setTeams(teamRes);
@@ -27,14 +31,16 @@ const MatchCards = () => {
   const getFlag = (teamName) => {
     const normalized = teamName?.trim().toLowerCase();
     const flags = {
-      india: "🇮🇳", australia: "🇦🇺", england: "🏴", "new zealand": "🇳🇿", pakistan: "🇵🇰",
-      "south africa": "🇿🇦", "sri lanka": "🇱🇰", ireland: "🇮🇪", kenya: "🇰🇪", namibia: "🇳🇦",
-      bangladesh: "🇧🇩", afghanistan: "🇦🇫", zimbabwe: "🇿🇼", "west indies": "🏴‍☠️", usa: "🇺🇸",
-      uae: "🇦🇪", oman: "🇴🇲", scotland: "🏴", netherlands: "🇳🇱", nepal: "🇳🇵",
+      india: "🇮🇳", australia: "🇦🇺", england: "🏴", "new zealand": "🇳🇿",
+      pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱🇰", ireland: "🇮🇪",
+      kenya: "🇰🇪", namibia: "🇳🇦", bangladesh: "🇧🇩", afghanistan: "🇦🇫",
+      zimbabwe: "🇿🇼", "west indies": "🏴‍☠️", usa: "🇺🇸", uae: "🇦🇪",
+      oman: "🇴🇲", scotland: "🏴", netherlands: "🇳🇱", nepal: "🇳🇵",
     };
     return flags[normalized] || "🏳️";
   };
 
+  // ✅ Fetch correct team NRR
   const getTeamNRR = (teamName) => {
     const team = teams.find((t) => t.team_name === teamName);
     return team?.nrr?.toFixed(2) || "N/A";
@@ -57,9 +63,9 @@ const MatchCards = () => {
           <p className="overs-info">Overs: {match.overs2}</p>
         </div>
       </div>
-      <p className="text-light">
-        <strong>🏆 {match.winner}</strong>
-      </p>
+      <p className="text-light"><strong>🏆 {match.winner}</strong></p>
+
+      {/* ✅ Display NRR from teams table */}
       <div className="nrr-info">
         NRR: {getTeamNRR(match.team1)} – {getTeamNRR(match.team2)}
       </div>
