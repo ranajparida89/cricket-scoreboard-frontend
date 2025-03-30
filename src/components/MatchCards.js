@@ -42,11 +42,16 @@ const MatchCards = () => {
 
   // ✅ Fetch correct team NRR
   const getTeamNRR = (teamName) => {
-    const team = teams.find((t) => t.team_name === teamName);
-    const nrr = team?.nrr;
+    const normalizedName = teamName?.trim().toLowerCase();
   
+    const team = teams.find(
+      (t) => t.team_name?.trim().toLowerCase() === normalizedName
+    );
+  
+    const nrr = team?.nrr;
     return typeof nrr === "number" ? nrr.toFixed(2) : "N/A";
   };
+  
   
 
   const renderMatchCard = (match, index) => (
