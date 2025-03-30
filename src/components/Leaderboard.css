@@ -1,33 +1,36 @@
 /* Leaderboard.css */
 
+/* 🔷 Increase the container width to allow more space */
 .leaderboard-container {
     background-color: #0c1c2c;
     border-radius: 8px;
-    padding: 15px;
+    padding: 20px;
     box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
-    width: 100%; /* Ensures it expands fully in column */
+    width: 100%;
+    max-width: 100%; /* Ensures full width on parent */
   }
   
-  /* ✅ Remove horizontal scroll by letting the table resize properly */
+  /* 🔷 Let the table grow, prevent horizontal scroll */
   .leaderboard-table-wrapper {
-    max-height: 420px;
-    overflow-y: auto;
-    overflow-x: hidden; /* REMOVE horizontal scroll */
+    max-height: 500px;       /* Slightly taller */
+    overflow-y: auto;        /* Enable vertical scroll if needed */
+    overflow-x: auto;        /* Restore horizontal scroll ONLY if still needed */
     width: 100%;
   }
   
-  /* ✅ Allow wrapping text if needed (not nowrap) */
-  .table th,
-  .table td {
-    white-space: normal;  /* Allow line break if space is tight */
-    padding: 8px 12px;
-    font-size: 14px;
-    text-align: center;
+  /* 🔷 Allow full table to fit and keep text readable */
+  .table {
+    width: 100%;
+    table-layout: fixed;     /* Prevent shrinking; each column gets equal space */
   }
   
-  /* ✅ Remove unnecessary min-width */
-  .table {
-    width: 100%;       /* Let Bootstrap handle column layout */
-    table-layout: auto;
+  /* 🔷 Set font and padding for good spacing */
+  .table th,
+  .table td {
+    padding: 10px 14px;
+    font-size: 15px;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;     /* Prevent wrapping rows like “West Indies” */
   }
   
