@@ -5,8 +5,8 @@ import "./MatchCards.css";
 
 const MatchCards = () => {
   const [matches, setMatches] = useState([]);
-  const [showODI, setShowODI] = useState(true);
-  const [showT20, setShowT20] = useState(true);
+  const [showOdi, setShowOdi] = useState(true);   // ✅ Show ODI initially
+  const [showT20, setShowT20] = useState(false);  // ✅ Hide T20 initially
 
   useEffect(() => {
     const fetchMatches = async () => {
@@ -28,11 +28,26 @@ const MatchCards = () => {
   const getFlag = (teamName) => {
     const normalized = teamName?.trim().toLowerCase();
     const flags = {
-      india: "🇮🇳", australia: "🇦🇺", england: "🏴", "new zealand": "🇳🇿",
-      pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱🇰", ireland: "🇮🇪",
-      kenya: "🇰🇪", namibia: "🇳🇦", bangladesh: "🇧🇩", afghanistan: "🇦🇫",
-      zimbabwe: "🇿🇼", "west indies": "🏴‍☠️", usa: "🇺🇸", uae: "🇦🇪",
-      oman: "🇴🇲", scotland: "🏴", netherlands: "🇳🇱", nepal: "🇳🇵"
+      india: "🇮🇳",
+      australia: "🇦🇺",
+      england: "🏴",
+      "new zealand": "🇳🇿",
+      pakistan: "🇵🇰",
+      "south africa": "🇿🇦",
+      "sri lanka": "🇱🇰",
+      ireland: "🇮🇪",
+      kenya: "🇰🇪",
+      namibia: "🇳🇦",
+      bangladesh: "🇧🇩",
+      afghanistan: "🇦🇫",
+      zimbabwe: "🇿🇼",
+      "west indies": "🏴‍☠️",
+      usa: "🇺🇸",
+      uae: "🇦🇪",
+      oman: "🇴🇲",
+      scotland: "🏴",
+      netherlands: "🇳🇱",
+      nepal: "🇳🇵",
     };
     return flags[normalized] || "🏳️";
   };
@@ -54,9 +69,11 @@ const MatchCards = () => {
           <p className="text-muted">Overs: {match.overs2}</p>
         </div>
       </div>
+
       <p className="text-light">
         <strong>🏆 {match.winner}</strong>
       </p>
+
       <div className="nrr-info small text-secondary">
         NRR: {match.runs1}/{match.overs1} – {match.runs2}/{match.overs2}
       </div>
@@ -68,26 +85,33 @@ const MatchCards = () => {
 
   return (
     <div className="container mt-4">
-      {/* ✅ Toggle Buttons with Flex Alignment */}
+      {/* ✅ Toggle Buttons */}
       <div className="d-flex gap-3 mb-4">
         <button
-          className={`btn ${showODI ? "btn-warning" : "btn-outline-warning"}`}
-          onClick={() => setShowODI(!showODI)}
+          className={`btn btn-warning ${showOdi ? "active" : ""}`}
+          onClick={() => {
+            setShowOdi(true);
+            setShowT20(false);
+          }}
         >
-          🏏 ODI Matches {showODI ? "▼" : "▲"}
+          🏏 ODI Matches {showOdi ? "▼" : "▲"}
         </button>
+
         <button
-          className={`btn ${showT20 ? "btn-danger" : "btn-outline-danger"}`}
-          onClick={() => setShowT20(!showT20)}
+          className={`btn btn-danger ${showT20 ? "active" : ""}`}
+          onClick={() => {
+            setShowOdi(false);
+            setShowT20(true);
+          }}
         >
           🔥 T20 Matches {showT20 ? "▼" : "▲"}
         </button>
       </div>
 
-      {/* ✅ ODI Section */}
-      {showODI && (
+      {/* ✅ Render ODI Section */}
+      {showOdi && (
         <>
-          <h4 className="text-light mb-2">ODI Matches</h4>
+          <h3 className="text-light mb-3">ODI Matches</h3>
           <div className="row">
             {odiMatches.length === 0 ? (
               <p className="text-white">No ODI matches available.</p>
@@ -102,10 +126,10 @@ const MatchCards = () => {
         </>
       )}
 
-      {/* ✅ T20 Section */}
+      {/* ✅ Render T20 Section */}
       {showT20 && (
         <>
-          <h4 className="text-light mt-4 mb-2">T20 Matches</h4>
+          <h3 className="text-light mt-5 mb-3">T20 Matches</h3>
           <div className="row">
             {t20Matches.length === 0 ? (
               <p className="text-white">No T20 matches available.</p>
