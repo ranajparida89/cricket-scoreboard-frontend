@@ -5,7 +5,7 @@ import "./MatchCards.css";
 
 const MatchCards = () => {
   const [matches, setMatches] = useState([]);
-  const [teams, setTeams] = useState([]); // ✅ Fetch from teams table
+  const [teams, setTeams] = useState([]); // 🔄 Optional: can remove if NRR not used
   const [showOdi, setShowOdi] = useState(true);
   const [showT20, setShowT20] = useState(false);
 
@@ -13,7 +13,7 @@ const MatchCards = () => {
     const fetchData = async () => {
       try {
         const matchRes = await getMatchHistory();
-        const teamRes = await getTeams(); // ✅ Includes NRR data
+        const teamRes = await getTeams();
 
         console.log("✅ Match History:", matchRes);
         console.log("✅ Team List (NRR):", teamRes);
@@ -40,24 +40,7 @@ const MatchCards = () => {
     return flags[normalized] || "🏳️";
   };
 
-  // ✅ Fetch correct team NRR
-  // ✅ Updated getTeamNRR with strict case-insensitive matching
-const getTeamNRR = (teamName) => {
-    if (!teamName || !Array.isArray(teams)) return "N/A";
-  
-    const normalizedName = teamName.trim().toLowerCase();
-  
-    const team = teams.find(
-      (t) => t.team_name?.trim().toLowerCase() === normalizedName
-    );
-  
-    const nrr = team?.nrr;
-    return typeof nrr === "number" ? nrr.toFixed(2) : "N/A";
-  };
-  
-  
-  
-
+  // ✅ Render individual match card (NRR removed)
   const renderMatchCard = (match, index) => (
     <div className="match-card mb-4" key={index}>
       <h5 className="text-white">{match.match_name}</h5>
@@ -67,22 +50,15 @@ const getTeamNRR = (teamName) => {
             {getFlag(match.team1)} <strong>{match.team1?.toUpperCase()}</strong> {match.runs1}/{match.wickets1}
           </h6>
           <p className="overs-info">Overs: {Number(match.overs1).toFixed(1)}</p>
-
         </div>
         <div>
           <h6 className="mb-1">
             {getFlag(match.team2)} <strong>{match.team2?.toUpperCase()}</strong> {match.runs2}/{match.wickets2}
           </h6>
           <p className="overs-info">Overs: {Number(match.overs2).toFixed(1)}</p>
-
         </div>
       </div>
       <p className="text-light"><strong>🏆 {match.winner}</strong></p>
-
-      {/* ✅ Display NRR from teams table */}
-      <div className="nrr-info">
-        NRR: {getTeamNRR(match.team1)} – {getTeamNRR(match.team2)}
-      </div>
     </div>
   );
 
