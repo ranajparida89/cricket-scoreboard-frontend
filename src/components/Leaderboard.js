@@ -32,7 +32,7 @@ const Leaderboard = () => {
 
   return (
     <div className="leaderboard-container mt-4">
-      <h4 className="text-success text-center mb-3">🏆 Team Leaderboard</h4>
+      <h4 className="text-success text-center mb-3">🏆 ATeam Leaderboard</h4>
       <div className="table-responsive leaderboard-table-wrapper">
         <table className="table table-bordered table-dark table-sm text-center mb-0">
           <thead>
