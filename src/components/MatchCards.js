@@ -1,43 +1,43 @@
-// src/components/MatchCards.js
 import React, { useEffect, useState } from "react";
-import { getMatchHistory } from "../services/api";  // ✅ Use centralized API
+import { getMatchHistory, getTeams } from "../services/api"; // ✅ Added getTeams
 import "./MatchCards.css";
 
 const MatchCards = () => {
   const [matches, setMatches] = useState([]);
-  const [showOdi, setShowOdi] = useState(true);   // ✅ Show ODI initially
-  const [showT20, setShowT20] = useState(false);  // ✅ Hide T20 initially
+  const [teams, setTeams] = useState([]); // ✅ Store team NRRs
+  const [showOdi, setShowOdi] = useState(true);
+  const [showT20, setShowT20] = useState(false);
 
   useEffect(() => {
-    const fetchMatches = async () => {
+    const fetchData = async () => {
       try {
-        const res = await getMatchHistory();  // ✅ Using central API
-        console.log("✅ Received match data:", res);  // ✅ Debug log
+        const matchRes = await getMatchHistory();
+        const teamRes = await getTeams(); // ✅ Fetch NRR data
 
-        if (Array.isArray(res)) {
-          setMatches(res);
-        } else {
-          console.error("❌ Invalid match data format");
-        }
+        if (Array.isArray(matchRes)) setMatches(matchRes);
+        if (Array.isArray(teamRes)) setTeams(teamRes);
       } catch (err) {
-        console.error("❌ Error fetching matches:", err);
+        console.error("❌ Error fetching data:", err);
       }
     };
 
-    fetchMatches();
+    fetchData();
   }, []);
 
   const getFlag = (teamName) => {
     const normalized = teamName?.trim().toLowerCase();
     const flags = {
-      india: "🇮🇳", australia: "🇦🇺", england: "🏴",
-      "new zealand": "🇳🇿", pakistan: "🇵🇰", "south africa": "🇿🇦",
-      "sri lanka": "🇱🇰", ireland: "🇮🇪", kenya: "🇰🇪", namibia: "🇳🇦",
-      bangladesh: "🇧🇩", afghanistan: "🇦🇫", zimbabwe: "🇿🇼", 
-      "west indies": "🏴‍☠️", usa: "🇺🇸", uae: "🇦🇪", oman: "🇴🇲", 
-      scotland: "🏴", netherlands: "🇳🇱", nepal: "🇳🇵",
+      india: "🇮🇳", australia: "🇦🇺", england: "🏴", "new zealand": "🇳🇿", pakistan: "🇵🇰",
+      "south africa": "🇿🇦", "sri lanka": "🇱🇰", ireland: "🇮🇪", kenya: "🇰🇪", namibia: "🇳🇦",
+      bangladesh: "🇧🇩", afghanistan: "🇦🇫", zimbabwe: "🇿🇼", "west indies": "🏴‍☠️", usa: "🇺🇸",
+      uae: "🇦🇪", oman: "🇴🇲", scotland: "🏴", netherlands: "🇳🇱", nepal: "🇳🇵",
     };
     return flags[normalized] || "🏳️";
+  };
+
+  const getTeamNRR = (teamName) => {
+    const team = teams.find((t) => t.team_name === teamName);
+    return team?.nrr?.toFixed(2) || "N/A";
   };
 
   const renderMatchCard = (match, index) => (
@@ -48,20 +48,20 @@ const MatchCards = () => {
           <h6 className="mb-1">
             {getFlag(match.team1)} <strong>{match.team1?.toUpperCase()}</strong> {match.runs1}/{match.wickets1}
           </h6>
-          <p className="text-muted">Overs: {match.overs1}</p>
+          <p className="overs-info">Overs: {match.overs1}</p>
         </div>
         <div>
           <h6 className="mb-1">
             {getFlag(match.team2)} <strong>{match.team2?.toUpperCase()}</strong> {match.runs2}/{match.wickets2}
           </h6>
-          <p className="text-muted">Overs: {match.overs2}</p>
+          <p className="overs-info">Overs: {match.overs2}</p>
         </div>
       </div>
       <p className="text-light">
         <strong>🏆 {match.winner}</strong>
       </p>
-      <div className="nrr-info small text-secondary">
-        NRR: {match.runs1}/{match.overs1} – {match.runs2}/{match.overs2}
+      <div className="nrr-info">
+        NRR: {getTeamNRR(match.team1)} – {getTeamNRR(match.team2)}
       </div>
     </div>
   );
@@ -72,7 +72,7 @@ const MatchCards = () => {
   return (
     <div className="container mt-4">
       {/* ✅ Toggle Buttons */}
-      <div className="d-flex gap-3 mb-4">
+      <div className="toggle-buttons">
         <button
           className={`btn btn-warning ${showOdi ? "active" : ""}`}
           onClick={() => {
@@ -94,7 +94,7 @@ const MatchCards = () => {
         </button>
       </div>
 
-      {/* ✅ Render ODI Section */}
+      {/* ✅ ODI Matches */}
       {showOdi && (
         <>
           <h3 className="text-light mb-3">ODI Matches</h3>
@@ -112,7 +112,7 @@ const MatchCards = () => {
         </>
       )}
 
-      {/* ✅ Render T20 Section */}
+      {/* ✅ T20 Matches */}
       {showT20 && (
         <>
           <h3 className="text-light mt-5 mb-3">T20 Matches</h3>

@@ -5,23 +5,26 @@
     padding: 20px;
     border-radius: 10px;
     color: white;
-    border: 1px solid rgba(0, 255, 255, 0.1);      /* ✅ Add subtle border */
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.08);  /* ✅ Shadow glow */
+    border: 1px solid rgba(0, 255, 255, 0.1);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.08);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    animation: fadeIn 0.4s ease-in;                /* ✅ Fade in animation */
+    animation: fadeIn 0.4s ease-in;
   }
   
   .match-card:hover {
-    transform: translateY(-6px) scale(1.02);       /* ✅ Hover pop effect */
+    transform: translateY(-6px) scale(1.02);
     box-shadow: 0 0 18px rgba(0, 255, 255, 0.15);
   }
   
-  .nrr-info {
+  /* ✅ Updated color for readability */
+  .nrr-info,
+  .overs-info {
     font-size: 14px;
-    color: #cccccc;
+    color: #ffffff;
+    font-weight: 500;
   }
   
-  /* ✅ Fade-in animation keyframes */
+  /* ✅ Fade-in animation */
   @keyframes fadeIn {
     from {
       opacity: 0;
@@ -33,7 +36,7 @@
     }
   }
   
-  /* ✅ NEW: Button alignment fix */
+  /* ✅ Match toggle buttons */
   .toggle-buttons {
     display: flex;
     flex-wrap: wrap;
@@ -41,7 +44,6 @@
     margin-bottom: 20px;
   }
   
-  /* ✅ Optional: uniform min-width for consistency */
   .toggle-buttons button {
     min-width: 160px;
     font-weight: 500;
