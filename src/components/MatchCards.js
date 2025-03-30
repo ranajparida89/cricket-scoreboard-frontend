@@ -12,6 +12,10 @@ const MatchCards = () => {
     const fetchMatches = async () => {
       try {
         const res = await axios.get("/api/match-history");
+
+        // ✅✅ LOG added here
+        console.log("✅ Received match data:", res.data);
+
         if (Array.isArray(res.data)) {
           setMatches(res.data);
         } else {
@@ -80,8 +84,9 @@ const MatchCards = () => {
     </div>
   );
 
-  const odiMatches = matches.filter((m) => m.match_type?.toLowerCase() === "odi");
-  const t20Matches = matches.filter((m) => m.match_type?.toLowerCase() === "t20");
+  // ✅ Use exact string match based on DB values (case-sensitive)
+  const odiMatches = matches.filter((m) => m.match_type === "ODI");
+  const t20Matches = matches.filter((m) => m.match_type === "T20");
 
   return (
     <div className="container mt-4">
