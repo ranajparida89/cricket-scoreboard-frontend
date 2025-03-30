@@ -5,27 +5,29 @@
     border-radius: 8px;
     padding: 15px;
     box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
+    width: 100%; /* Ensures it expands fully in column */
   }
   
-  /* ✅ Make sure table scrolls and is responsive */
+  /* ✅ Remove horizontal scroll by letting the table resize properly */
   .leaderboard-table-wrapper {
-    max-height: 420px;         /* Slightly increased height */
-    overflow-x: auto;          /* Horizontal scroll */
-    overflow-y: auto;          /* Optional: vertical scroll if needed */
-    width: 100%;               /* Ensures it fits the container */
+    max-height: 420px;
+    overflow-y: auto;
+    overflow-x: hidden; /* REMOVE horizontal scroll */
+    width: 100%;
   }
   
-  /* ✅ Prevent squeezing & wrap text properly */
+  /* ✅ Allow wrapping text if needed (not nowrap) */
   .table th,
   .table td {
-    white-space: nowrap;       /* Prevent line break */
+    white-space: normal;  /* Allow line break if space is tight */
     padding: 8px 12px;
     font-size: 14px;
     text-align: center;
   }
   
-  /* ✅ Ensure table uses full width in smaller containers */
+  /* ✅ Remove unnecessary min-width */
   .table {
-    min-width: 30px;          /* Guarantees all columns fit */
+    width: 100%;       /* Let Bootstrap handle column layout */
+    table-layout: auto;
   }
   
