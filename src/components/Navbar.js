@@ -26,9 +26,14 @@ const AppNavbar = () => {
             </NavDropdown>
           </Nav>
 
-          <Button as={Link} to="/add-match" variant="success" className="fw-bold">
-            + Add Match
-          </Button>
+          <div className="d-flex gap-2">
+            <Button as={Link} to="/add-match" variant="success" className="fw-bold">
+              + Add Match
+            </Button>
+            <Button as={Link} to="/add-test-match" variant="warning" className="fw-bold text-dark">
+              + Test Match
+            </Button>
+          </div>
         </Navbar.Collapse>
       </Container>
     </Navbar>
