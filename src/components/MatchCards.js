@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { getMatchHistory, getTeams } from "../services/api";
 import "./MatchCards.css";
 
-// 🔧 Format overs from decimal (e.g., 19.66667) to cricket format (e.g., 19.4)
 const formatOvers = (decimalOvers) => {
   const fullOvers = Math.floor(decimalOvers);
   const balls = Math.round((decimalOvers - fullOvers) * 6);
@@ -15,6 +14,7 @@ const MatchCards = () => {
   const [teams, setTeams] = useState([]);
   const [showOdi, setShowOdi] = useState(true);
   const [showT20, setShowT20] = useState(false);
+  const [showTest, setShowTest] = useState(false); // ✅ New state for Test
 
   useEffect(() => {
     const fetchData = async () => {
@@ -22,16 +22,12 @@ const MatchCards = () => {
         const matchRes = await getMatchHistory();
         const teamRes = await getTeams();
 
-        console.log("✅ Match History:", matchRes);
-        console.log("✅ Team List (NRR):", teamRes);
-
         if (Array.isArray(matchRes)) setMatches(matchRes);
         if (Array.isArray(teamRes)) setTeams(teamRes);
       } catch (err) {
-        console.error("❌ Error fetching data:", err);
+        console.error("❌ Error fetching match/team data:", err);
       }
     };
-
     fetchData();
   }, []);
 
@@ -55,13 +51,13 @@ const MatchCards = () => {
           <h6 className="mb-1">
             {getFlag(match.team1)} <strong>{match.team1?.toUpperCase()}</strong> {match.runs1}/{match.wickets1}
           </h6>
-          <p className="overs-info">Overs: {formatOvers(match.overs1)}</p> {/* 🔧 Updated */}
+          <p className="overs-info">Overs: {formatOvers(match.overs1)}</p>
         </div>
         <div>
           <h6 className="mb-1">
             {getFlag(match.team2)} <strong>{match.team2?.toUpperCase()}</strong> {match.runs2}/{match.wickets2}
           </h6>
-          <p className="overs-info">Overs: {formatOvers(match.overs2)}</p> {/* 🔧 Updated */}
+          <p className="overs-info">Overs: {formatOvers(match.overs2)}</p>
         </div>
       </div>
       <p className="text-light"><strong>🏆 {match.winner}</strong></p>
@@ -70,6 +66,7 @@ const MatchCards = () => {
 
   const odiMatches = matches.filter((m) => m.match_type === "ODI");
   const t20Matches = matches.filter((m) => m.match_type === "T20");
+  const testMatches = matches.filter((m) => m.match_type === "Test"); // ✅ New filter
 
   return (
     <div className="container mt-4">
@@ -79,22 +76,36 @@ const MatchCards = () => {
           onClick={() => {
             setShowOdi(true);
             setShowT20(false);
+            setShowTest(false);
           }}
         >
-          🏏 ODI Matches {showOdi ? "▼" : "▲"}
+          🏏 ODI Matches {showOdi ? "▼" : ""}
         </button>
 
         <button
           className={`btn btn-danger ${showT20 ? "active" : ""}`}
           onClick={() => {
-            setShowOdi(false);
             setShowT20(true);
+            setShowOdi(false);
+            setShowTest(false);
           }}
         >
-          🔥 T20 Matches {showT20 ? "▼" : "▲"}
+          🔥 T20 Matches {showT20 ? "▼" : ""}
+        </button>
+
+        <button
+          className={`btn btn-info ${showTest ? "active" : ""}`}
+          onClick={() => {
+            setShowTest(true);
+            setShowOdi(false);
+            setShowT20(false);
+          }}
+        >
+          🧪 Test Matches {showTest ? "▼" : ""}
         </button>
       </div>
 
+      {/* ODI */}
       {showOdi && (
         <>
           <h3 className="text-light mb-3">ODI Matches</h3>
@@ -112,6 +123,7 @@ const MatchCards = () => {
         </>
       )}
 
+      {/* T20 */}
       {showT20 && (
         <>
           <h3 className="text-light mt-5 mb-3">T20 Matches</h3>
@@ -120,6 +132,24 @@ const MatchCards = () => {
               <p className="text-white">No T20 matches available.</p>
             ) : (
               t20Matches.map((match, index) => (
+                <div key={index} className="col-md-6 col-lg-4">
+                  {renderMatchCard(match, index)}
+                </div>
+              ))
+            )}
+          </div>
+        </>
+      )}
+
+      {/* ✅ Test Matches */}
+      {showTest && (
+        <>
+          <h3 className="text-light mt-5 mb-3">Test Matches</h3>
+          <div className="row">
+            {testMatches.length === 0 ? (
+              <p className="text-white">No Test matches available.</p>
+            ) : (
+              testMatches.map((match, index) => (
                 <div key={index} className="col-md-6 col-lg-4">
                   {renderMatchCard(match, index)}
                 </div>
