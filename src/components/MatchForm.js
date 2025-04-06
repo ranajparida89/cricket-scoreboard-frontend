@@ -1,252 +1,183 @@
-// ✅ Updated server.js with overs sanitation logic
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const http = require("http");
-const socketIo = require("socket.io");
-const { Pool } = require("pg");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+// src/components/MatchForm.js
+import React, { useState } from "react";
+import { createMatch, submitMatchResult } from "../services/api.js";
 
-const app = express();
-const server = http.createServer(app);
-
-const io = socketIo(server, {
-  cors: {
-    origin: "https://crickedge.in",
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-});
-
-app.use(cors());
-app.use(express.json());
-
-const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
-});
-
-// ✅ Sanitize overs: max 5 balls after decimal (e.g., 19.5 is okay, 19.6 is not)
-const sanitizeOversInput = (overs) => {
-  const [fullOversStr, ballsStr = "0"] = overs.toString().split(".");
-  const fullOvers = parseInt(fullOversStr);
-  const balls = parseInt(ballsStr.slice(0, 1));
-
-  if (isNaN(fullOvers) || isNaN(balls) || balls > 5) {
-    throw new Error(`Invalid overs format: ${overs}`);
-  }
-
-  return fullOvers + balls / 6;
+const TEAM_MAP = {
+  IND: "India", AUS: "Australia", ENG: "England", PAK: "Pakistan", SA: "South Africa",
+  NZ: "New Zealand", SL: "Sri Lanka", BAN: "Bangladesh", AFG: "Afghanistan", WI: "West Indies",
+  UAE: "United Arab Emirates", NAM: "Namibia", SCO: "Scotland", USA: "United States of America",
+  NEP: "Nepal", NED: "Netherlands", IRE: "Ireland", OMA: "Oman", PNG: "Papua New Guinea",
+  CAN: "Canada", KEN: "Kenya", BER: "Bermuda", HK: "Hong Kong", ZIM: "Zimbabwe"
 };
 
-app.get("/api/ping", async (req, res) => {
-  try {
-    await pool.query("SELECT 1");
-    res.status(200).json({ message: "DB connection alive" });
-  } catch (err) {
-    console.error("Ping DB error:", err);
-    res.status(500).json({ message: "DB not reachable" });
+const normalizeTeamName = (input) => {
+  if (!input) return "";
+  const upper = input.toUpperCase().trim();
+  for (const [code, full] of Object.entries(TEAM_MAP)) {
+    if (upper === code || upper === full.toUpperCase()) return full;
   }
-});
+  return input.trim();
+};
 
-setInterval(() => {
-  pool.query("SELECT 1").catch((err) => console.error("Periodic DB ping failed:", err));
-}, 5000);
+const isValidOver = (over) => {
+  const parts = over.toString().split(".");
+  const balls = parts[1] ? parseInt(parts[1].padEnd(1, "0")) : 0;
+  return balls <= 5;
+};
 
-app.post("/api/login", async (req, res) => {
-  const { username, password } = req.body;
-  try {
-    const result = await pool.query("SELECT * FROM admins WHERE username = $1", [username]);
-    if (result.rows.length === 0) return res.status(401).json({ error: "Invalid username" });
+const MatchForm = () => {
+  const [matchName, setMatchName] = useState("");
+  const [matchType, setMatchType] = useState("T20");
+  const [team1, setTeam1] = useState("");
+  const [team2, setTeam2] = useState("");
 
-    const admin = result.rows[0];
-    const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch) return res.status(401).json({ error: "Invalid password" });
+  const [runs1, setRuns1] = useState("");
+  const [overs1, setOvers1] = useState("");
+  const [wickets1, setWickets1] = useState("");
+  const [runs2, setRuns2] = useState("");
+  const [overs2, setOvers2] = useState("");
+  const [wickets2, setWickets2] = useState("");
 
-    const token = jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    res.json({ token });
-  } catch (err) {
-    res.status(500).json({ error: "Server error" });
-  }
-});
+  const [overs1Error, setOvers1Error] = useState("");
+  const [overs2Error, setOvers2Error] = useState("");
+  const [wickets1Error, setWickets1Error] = useState("");
+  const [wickets2Error, setWickets2Error] = useState("");
+  const [resultMsg, setResultMsg] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-app.post("/api/match", async (req, res) => {
-  try {
-    const { match_name, match_type } = req.body;
-    const result = await pool.query(
-      "INSERT INTO matches (match_name, match_type) VALUES ($1, $2) RETURNING id",
-      [match_name, match_type]
-    );
-    res.json({ match_id: result.rows[0].id });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+  const maxOvers = matchType === "T20" ? 20 : 50;
 
-app.post("/api/submit-result", async (req, res) => {
-  try {
-    const {
-      match_id, team1, team2,
-      runs1, overs1, wickets1,
-      runs2, overs2, wickets2,
-    } = req.body;
+  const handleOvers1Change = (val) => {
+    setOvers1(val);
+    const isValid = isValidOver(val) && parseFloat(val) <= maxOvers;
+    setOvers1Error(isValid ? "" : `Invalid overs for ${normalizeTeamName(team1) || "Team 1"}`);
+  };
 
-    const matchResult = await pool.query("SELECT * FROM matches WHERE id = $1", [match_id]);
-    if (matchResult.rows.length === 0) return res.status(400).json({ error: "Invalid match_id" });
+  const handleOvers2Change = (val) => {
+    setOvers2(val);
+    const isValid = isValidOver(val) && parseFloat(val) <= maxOvers;
+    setOvers2Error(isValid ? "" : `Invalid overs for ${normalizeTeamName(team2) || "Team 2"}`);
+  };
 
-    const { match_name, match_type } = matchResult.rows[0];
-    const maxOvers = match_type === "T20" ? 20 : 50;
+  const handleWickets1Change = (val) => {
+    setWickets1(val);
+    const w = parseInt(val);
+    setWickets1Error(w >= 0 && w <= 10 ? "" : "Wickets must be 0 to 10");
+  };
 
-    const overs1DecimalRaw = sanitizeOversInput(overs1);
-    const overs2DecimalRaw = sanitizeOversInput(overs2);
+  const handleWickets2Change = (val) => {
+    setWickets2(val);
+    const w = parseInt(val);
+    setWickets2Error(w >= 0 && w <= 10 ? "" : "Wickets must be 0 to 10");
+  };
 
-    const actualOvers1 = (wickets1 === 10) ? maxOvers : overs1DecimalRaw;
-    const actualOvers2 = (wickets2 === 10) ? maxOvers : overs2DecimalRaw;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    let winner = "Match Draw";
-    let points1 = 1, points2 = 1;
-    if (runs1 > runs2) {
-      winner = `${team1} won the match!`; points1 = 2; points2 = 0;
-    } else if (runs2 > runs1) {
-      winner = `${team2} won the match!`; points1 = 0; points2 = 2;
+    if (overs1Error || overs2Error || wickets1Error || wickets2Error) {
+      alert("❌ Please fix overs/wickets input errors before submitting.");
+      return;
     }
 
-    await pool.query(`INSERT INTO teams 
-      (match_id, name, matches_played, wins, losses, points, total_runs, total_overs, total_runs_conceded, total_overs_bowled)
-      VALUES 
-      ($1, $2, 1, $3, $4, $5, $6, $7, $8, $9)
-      ON CONFLICT (match_id, name) DO UPDATE SET
-        matches_played = teams.matches_played + 1,
-        wins = teams.wins + $3,
-        losses = teams.losses + $4,
-        points = teams.points + $5,
-        total_runs = teams.total_runs + $6,
-        total_overs = teams.total_overs + $7,
-        total_runs_conceded = teams.total_runs_conceded + $8,
-        total_overs_bowled = teams.total_overs_bowled + $9`,
-      [match_id, team1, points1 === 2 ? 1 : 0, points2 === 2 ? 1 : 0, points1,
-        runs1, actualOvers1, runs2, overs2DecimalRaw]
-    );
-
-    await pool.query(`INSERT INTO teams 
-      (match_id, name, matches_played, wins, losses, points, total_runs, total_overs, total_runs_conceded, total_overs_bowled)
-      VALUES 
-      ($1, $2, 1, $3, $4, $5, $6, $7, $8, $9)
-      ON CONFLICT (match_id, name) DO UPDATE SET
-        matches_played = teams.matches_played + 1,
-        wins = teams.wins + $3,
-        losses = teams.losses + $4,
-        points = teams.points + $5,
-        total_runs = teams.total_runs + $6,
-        total_overs = teams.total_overs + $7,
-        total_runs_conceded = teams.total_runs_conceded + $8,
-        total_overs_bowled = teams.total_overs_bowled + $9`,
-      [match_id, team2, points2 === 2 ? 1 : 0, points1 === 2 ? 1 : 0, points2,
-        runs2, actualOvers2, runs1, overs1DecimalRaw]
-    );
-
-    await pool.query(`
-      WITH team_stats AS (
-        SELECT name,
-               SUM(total_runs) AS total_runs,
-               SUM(total_overs) AS total_overs,
-               SUM(total_runs_conceded) AS total_runs_conceded,
-               SUM(total_overs_bowled) AS total_overs_bowled
-        FROM teams
-        GROUP BY name
-      )
-      UPDATE teams t
-      SET nrr = (
-        SELECT 
-          CASE 
-            WHEN ts.total_overs > 0 AND ts.total_overs_bowled > 0 THEN 
-              (ts.total_runs::decimal / ts.total_overs) - 
-              (ts.total_runs_conceded::decimal / ts.total_overs_bowled)
-            ELSE 0
-          END
-        FROM team_stats ts
-        WHERE ts.name = t.name
-      )
-    `);
-
-    await pool.query(`INSERT INTO match_history 
-      (match_name, match_type, team1, runs1, overs1, wickets1, team2, runs2, overs2, wickets2, winner) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-      [match_name, match_type, team1, runs1, actualOvers1, wickets1,
-        team2, runs2, actualOvers2, wickets2, winner]
-    );
-
-    io.emit("matchUpdate", { match_id, winner });
-    res.json({ message: winner });
-
-  } catch (err) {
-    console.error("Submit Result Error:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.get("/api/teams", async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT name AS team_name, 
-             SUM(matches_played) AS matches_played,
-             SUM(wins) AS wins,
-             SUM(losses) AS losses,
-             SUM(points) AS points,
-             ROUND(
-               (SUM(total_runs)::decimal / NULLIF(SUM(total_overs), 0)) -
-               (SUM(total_runs_conceded)::decimal / NULLIF(SUM(total_overs_bowled), 0)),
-             2) AS nrr
-      FROM teams
-      GROUP BY name
-      ORDER BY SUM(points) DESC, 
-               ROUND(
-                 (SUM(total_runs)::decimal / NULLIF(SUM(total_overs), 0)) -
-                 (SUM(total_runs_conceded)::decimal / NULLIF(SUM(total_overs_bowled), 0)), 2
-               ) DESC
-    `);
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch leaderboard" });
-  }
-});
-
-app.get("/api/match-history", async (req, res) => {
-  try {
-    const { match_type, team, winner } = req.query;
-    let query = `SELECT * FROM match_history WHERE 1=1`;
-    const params = [];
-
-    if (match_type) {
-      params.push(match_type);
-      query += ` AND match_type = $${params.length}`;
-    }
-    if (team) {
-      params.push(`%${team}%`);
-      query += ` AND (team1 ILIKE $${params.length} OR team2 ILIKE $${params.length})`;
-    }
-    if (winner) {
-      params.push(`%${winner}%`);
-      query += ` AND winner ILIKE $${params.length}`;
+    const t1 = normalizeTeamName(team1);
+    const t2 = normalizeTeamName(team2);
+    if (t1.toLowerCase() === t2.toLowerCase()) {
+      alert("❌ Both teams cannot be the same.");
+      return;
     }
 
-    query += ` ORDER BY match_time DESC`;
-    const result = await pool.query(query, params);
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch match history" });
-  }
-});
+    try {
+      setIsSubmitting(true);
 
-io.on("connection", (socket) => {
-  console.log("New client connected");
-  socket.on("disconnect", () => console.log("Client disconnected"));
-});
+      const match = await createMatch({ match_name: matchName, match_type: matchType });
 
-server.listen(5000, () => {
-  console.log("✅ Server running on port 5000");
-});
+      const payload = {
+        match_id: match.match_id,
+        match_type,
+        team1: t1,
+        team2: t2,
+        runs1: parseInt(runs1),
+        overs1: parseFloat(overs1),
+        wickets1: parseInt(wickets1),
+        runs2: parseInt(runs2),
+        overs2: parseFloat(overs2),
+        wickets2: parseInt(wickets2)
+      };
+
+      const result = await submitMatchResult(payload);
+      setResultMsg(result.message);
+    } catch (err) {
+      alert("❌ Error: " + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="container mt-4">
+      <div className="card shadow p-4">
+        <h3 className="text-center mb-4 text-primary">🏏 Enter Match Details</h3>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label>Match Name:</label>
+            <input type="text" className="form-control" value={matchName} onChange={(e) => setMatchName(e.target.value)} required />
+          </div>
+
+          <div className="mb-3">
+            <label>Match Type:</label>
+            <select className="form-select" value={matchType} onChange={(e) => setMatchType(e.target.value)}>
+              <option value="T20">T20</option>
+              <option value="ODI">ODI</option>
+            </select>
+          </div>
+
+          {/* Team 1 */}
+          <h5 className="mt-4">Team 1 (Bat First)</h5>
+          <input type="text" className="form-control mb-2" placeholder="Team 1 Name" value={team1} onChange={(e) => setTeam1(e.target.value)} required />
+          <div className="row">
+            <div className="col">
+              <input type="number" className="form-control mb-2" placeholder="Runs" value={runs1} onChange={(e) => setRuns1(e.target.value)} />
+            </div>
+            <div className="col">
+              <input type="text" className="form-control mb-2" placeholder="Overs" value={overs1} onChange={(e) => handleOvers1Change(e.target.value)} />
+              {overs1Error && <small className="text-danger">{overs1Error}</small>}
+            </div>
+            <div className="col">
+              <input type="number" className="form-control mb-2" placeholder="Wickets" value={wickets1} onChange={(e) => handleWickets1Change(e.target.value)} />
+              {wickets1Error && <small className="text-danger">{wickets1Error}</small>}
+            </div>
+          </div>
+
+          {/* Team 2 */}
+          <h5 className="mt-4">Team 2</h5>
+          <input type="text" className="form-control mb-2" placeholder="Team 2 Name" value={team2} onChange={(e) => setTeam2(e.target.value)} required />
+          <div className="row">
+            <div className="col">
+              <input type="number" className="form-control mb-2" placeholder="Runs" value={runs2} onChange={(e) => setRuns2(e.target.value)} />
+            </div>
+            <div className="col">
+              <input type="text" className="form-control mb-2" placeholder="Overs" value={overs2} onChange={(e) => handleOvers2Change(e.target.value)} />
+              {overs2Error && <small className="text-danger">{overs2Error}</small>}
+            </div>
+            <div className="col">
+              <input type="number" className="form-control mb-2" placeholder="Wickets" value={wickets2} onChange={(e) => handleWickets2Change(e.target.value)} />
+              {wickets2Error && <small className="text-danger">{wickets2Error}</small>}
+            </div>
+          </div>
+
+          <div className="d-grid mt-3">
+            <button className="btn btn-primary" disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Submit Match"}
+            </button>
+          </div>
+        </form>
+
+        {resultMsg && (
+          <div className="alert alert-success mt-3 text-center">{resultMsg}</div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default MatchForm;
