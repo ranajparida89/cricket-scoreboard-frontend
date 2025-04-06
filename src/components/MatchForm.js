@@ -21,33 +21,55 @@ const normalizeTeamName = (input) => {
 
 const parseFloatSafe = (v) => v ? parseFloat(v) : 0;
 
+const isValidOver = (val) => {
+  const parts = val?.toString().split(".");
+  const balls = parts[1] ? parseInt(parts[1].padEnd(1, "0")) : 0;
+  return balls <= 5;
+};
+
 const MatchForm = () => {
   const [matchName, setMatchName] = useState("");
   const [matchType, setMatchType] = useState("T20");
   const [team1, setTeam1] = useState("");
   const [team2, setTeam2] = useState("");
 
-  // Common innings
-  const [runs1, setRuns1] = useState(""); const [overs1, setOvers1] = useState(""); const [wickets1, setWickets1] = useState("");
-  const [runs2, setRuns2] = useState(""); const [overs2, setOvers2] = useState(""); const [wickets2, setWickets2] = useState("");
+  // Innings
+  const [runs1, setRuns1] = useState(""), [overs1, setOvers1] = useState(""), [wickets1, setWickets1] = useState("");
+  const [runs2, setRuns2] = useState(""), [overs2, setOvers2] = useState(""), [wickets2, setWickets2] = useState("");
 
-  // Test only: 2nd innings
-  const [runs1_2, setRuns1_2] = useState(""); const [overs1_2, setOvers1_2] = useState(""); const [wickets1_2, setWickets1_2] = useState("");
-  const [runs2_2, setRuns2_2] = useState(""); const [overs2_2, setOvers2_2] = useState(""); const [wickets2_2, setWickets2_2] = useState("");
+  const [runs1_2, setRuns1_2] = useState(""), [overs1_2, setOvers1_2] = useState(""), [wickets1_2, setWickets1_2] = useState("");
+  const [runs2_2, setRuns2_2] = useState(""), [overs2_2, setOvers2_2] = useState(""), [wickets2_2, setWickets2_2] = useState("");
 
+  const [overs1Error, setOvers1Error] = useState("");
+  const [overs2Error, setOvers2Error] = useState("");
+  const [winner, setWinner] = useState("");
   const [totalDays, setTotalDays] = useState(5);
   const [oversPerDay, setOversPerDay] = useState(90);
-  const [winner, setWinner] = useState("");
   const [resultMsg, setResultMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const totalOvers = totalDays * oversPerDay;
-
   const totalUsedOvers = parseFloatSafe(overs1) + parseFloatSafe(overs2) + parseFloatSafe(overs1_2) + parseFloatSafe(overs2_2);
   const remainingOvers = matchType === "Test" ? Math.max(0, (totalOvers - totalUsedOvers).toFixed(1)) : 0;
 
+  const maxOvers = matchType === "T20" ? 20 : matchType === "ODI" ? 50 : 450;
+
+  const handleOvers1Change = (val) => {
+    setOvers1(val);
+    const isValid = isValidOver(val) && parseFloat(val) <= maxOvers;
+    setOvers1Error(isValid ? "" : `❌ Invalid overs for ${normalizeTeamName(team1) || "Team 1"}`);
+  };
+
+  const handleOvers2Change = (val) => {
+    setOvers2(val);
+    const isValid = isValidOver(val) && parseFloat(val) <= maxOvers;
+    setOvers2Error(isValid ? "" : `❌ Invalid overs for ${normalizeTeamName(team2) || "Team 2"}`);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (overs1Error || overs2Error) return alert("❌ Please correct invalid overs input.");
     const t1 = normalizeTeamName(team1);
     const t2 = normalizeTeamName(team2);
     if (t1 === t2) return alert("❌ Both teams cannot be the same.");
@@ -64,11 +86,8 @@ const MatchForm = () => {
         team2: t2,
         winner,
 
-        // 1st Innings
         runs1: +runs1, overs1: parseFloatSafe(overs1), wickets1: +wickets1,
         runs2: +runs2, overs2: parseFloatSafe(overs2), wickets2: +wickets2,
-
-        // 2nd Innings (only for Test)
         runs1_2: matchType === "Test" ? +runs1_2 : null,
         overs1_2: matchType === "Test" ? parseFloatSafe(overs1_2) : null,
         wickets1_2: matchType === "Test" ? +wickets1_2 : null,
@@ -106,7 +125,7 @@ const MatchForm = () => {
             </select>
           </div>
 
-          {(matchType === "Test") && (
+          {matchType === "Test" && (
             <div className="row mb-3">
               <div className="col">
                 <label>Total Days (Max 5)</label>
@@ -127,14 +146,21 @@ const MatchForm = () => {
             </div>
           )}
 
-          {/* Team 1 */}
           <h5 className="mt-4">Team 1 (Bat First)</h5>
           <input className="form-control mb-2" placeholder="Team 1" value={team1} onChange={(e) => setTeam1(e.target.value)} />
           <div className="row mb-2">
-            <div className="col"><input type="number" className="form-control" placeholder="Runs (1st Inn)" value={runs1} onChange={(e) => setRuns1(e.target.value)} /></div>
-            <div className="col"><input type="number" className="form-control" placeholder="Overs" value={overs1} onChange={(e) => setOvers1(e.target.value)} /></div>
-            <div className="col"><input type="number" className="form-control" placeholder="Wickets" value={wickets1} onChange={(e) => setWickets1(e.target.value)} /></div>
+            <div className="col">
+              <input type="number" className="form-control" placeholder="Runs (1st Inn)" value={runs1} onChange={(e) => setRuns1(e.target.value)} />
+            </div>
+            <div className="col">
+              <input type="text" className="form-control" placeholder="Overs" value={overs1} onChange={(e) => handleOvers1Change(e.target.value)} />
+              {overs1Error && <small className="text-danger">{overs1Error}</small>}
+            </div>
+            <div className="col">
+              <input type="number" className="form-control" placeholder="Wickets" value={wickets1} onChange={(e) => setWickets1(e.target.value)} />
+            </div>
           </div>
+
           {matchType === "Test" && (
             <div className="row mb-2">
               <div className="col"><input type="number" className="form-control" placeholder="Runs (2nd Inn)" value={runs1_2} onChange={(e) => setRuns1_2(e.target.value)} /></div>
@@ -143,14 +169,17 @@ const MatchForm = () => {
             </div>
           )}
 
-          {/* Team 2 */}
           <h5 className="mt-4">Team 2</h5>
           <input className="form-control mb-2" placeholder="Team 2" value={team2} onChange={(e) => setTeam2(e.target.value)} />
           <div className="row mb-2">
             <div className="col"><input type="number" className="form-control" placeholder="Runs (1st Inn)" value={runs2} onChange={(e) => setRuns2(e.target.value)} /></div>
-            <div className="col"><input type="number" className="form-control" placeholder="Overs" value={overs2} onChange={(e) => setOvers2(e.target.value)} /></div>
+            <div className="col">
+              <input type="text" className="form-control" placeholder="Overs" value={overs2} onChange={(e) => handleOvers2Change(e.target.value)} />
+              {overs2Error && <small className="text-danger">{overs2Error}</small>}
+            </div>
             <div className="col"><input type="number" className="form-control" placeholder="Wickets" value={wickets2} onChange={(e) => setWickets2(e.target.value)} /></div>
           </div>
+
           {matchType === "Test" && (
             <div className="row mb-2">
               <div className="col"><input type="number" className="form-control" placeholder="Runs (2nd Inn)" value={runs2_2} onChange={(e) => setRuns2_2(e.target.value)} /></div>
