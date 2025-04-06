@@ -21,8 +21,8 @@ const normalizeTeamName = (input) => {
 
 const isValidOver = (over) => {
   const parts = over.toString().split(".");
-  const balls = parts[1] ? parseInt(parts[1].padEnd(1, "0")) : 0;
-  return balls <= 5;
+  const balls = parts[1] ? parseInt(parts[1][0]) : 0;
+  return !isNaN(balls) && balls >= 0 && balls <= 5;
 };
 
 const MatchForm = () => {
@@ -30,70 +30,50 @@ const MatchForm = () => {
   const [matchType, setMatchType] = useState("T20");
   const [team1, setTeam1] = useState("");
   const [team2, setTeam2] = useState("");
-
-  const [runs1, setRuns1] = useState("");
-  const [overs1, setOvers1] = useState("");
-  const [wickets1, setWickets1] = useState("");
-  const [runs2, setRuns2] = useState("");
-  const [overs2, setOvers2] = useState("");
-  const [wickets2, setWickets2] = useState("");
-
-  const [overs1Error, setOvers1Error] = useState("");
-  const [overs2Error, setOvers2Error] = useState("");
-  const [wickets1Error, setWickets1Error] = useState("");
-  const [wickets2Error, setWickets2Error] = useState("");
-  const [resultMsg, setResultMsg] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [runs1, setRuns1] = useState(""); const [overs1, setOvers1] = useState(""); const [wickets1, setWickets1] = useState("");
+  const [runs2, setRuns2] = useState(""); const [overs2, setOvers2] = useState(""); const [wickets2, setWickets2] = useState("");
+  const [overs1Error, setOvers1Error] = useState(""); const [overs2Error, setOvers2Error] = useState("");
+  const [wickets1Error, setWickets1Error] = useState(""); const [wickets2Error, setWickets2Error] = useState("");
+  const [resultMsg, setResultMsg] = useState(""); const [isSubmitting, setIsSubmitting] = useState(false);
 
   const maxOvers = matchType === "T20" ? 20 : 50;
 
-  const handleOvers1Change = (val) => {
-    setOvers1(val);
-    const isValid = isValidOver(val) && parseFloat(val) <= maxOvers;
-    setOvers1Error(isValid ? "" : `Invalid overs for ${normalizeTeamName(team1) || "Team 1"}`);
+  const handleOversChange = (val, setOvers, setError, teamName) => {
+    setOvers(val);
+    const valid = isValidOver(val) && parseFloat(val) <= maxOvers;
+    setError(valid ? "" : `❌ Invalid overs for ${normalizeTeamName(teamName) || "Team"}`);
   };
 
-  const handleOvers2Change = (val) => {
-    setOvers2(val);
-    const isValid = isValidOver(val) && parseFloat(val) <= maxOvers;
-    setOvers2Error(isValid ? "" : `Invalid overs for ${normalizeTeamName(team2) || "Team 2"}`);
-  };
-
-  const handleWickets1Change = (val) => {
-    setWickets1(val);
+  const handleWicketsChange = (val, setWickets, setError) => {
     const w = parseInt(val);
-    setWickets1Error(w >= 0 && w <= 10 ? "" : "Wickets must be between 0 and 10");
-  };
-
-  const handleWickets2Change = (val) => {
-    setWickets2(val);
-    const w = parseInt(val);
-    setWickets2Error(w >= 0 && w <= 10 ? "" : "Wickets must be between 0 and 10");
+    setWickets(val);
+    const valid = !isNaN(w) && w >= 0 && w <= 10;
+    setError(valid ? "" : "❌ Wickets must be between 0 and 10");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (overs1Error || overs2Error || wickets1Error || wickets2Error) {
-      alert("❌ Please fix overs/wickets input errors before submitting.");
-      return;
-    }
-
     const t1 = normalizeTeamName(team1);
     const t2 = normalizeTeamName(team2);
+
     if (t1.toLowerCase() === t2.toLowerCase()) {
       alert("❌ Both teams cannot be the same.");
       return;
     }
 
+    if (overs1Error || overs2Error || wickets1Error || wickets2Error) {
+      alert("❌ Please fix all validation errors before submitting.");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
-
       const match = await createMatch({ match_name: matchName, match_type: matchType });
 
       const payload = {
         match_id: match.match_id,
-        match_type,
+        match_type: matchType,
         team1: t1,
         team2: t2,
         runs1: parseInt(runs1),
@@ -139,11 +119,11 @@ const MatchForm = () => {
               <input type="number" className="form-control mb-2" placeholder={`Runs by ${normalizeTeamName(team1) || "Team 1"}`} value={runs1} onChange={(e) => setRuns1(e.target.value)} />
             </div>
             <div className="col">
-              <input type="text" className="form-control mb-2" placeholder="Overs" value={overs1} onChange={(e) => handleOvers1Change(e.target.value)} />
+              <input type="text" className="form-control mb-2" placeholder="Overs" value={overs1} onChange={(e) => handleOversChange(e.target.value, setOvers1, setOvers1Error, team1)} />
               {overs1Error && <small className="text-danger">{overs1Error}</small>}
             </div>
             <div className="col">
-              <input type="number" className="form-control mb-2" placeholder="Wickets" value={wickets1} onChange={(e) => handleWickets1Change(e.target.value)} />
+              <input type="number" className="form-control mb-2" placeholder="Wickets" value={wickets1} onChange={(e) => handleWicketsChange(e.target.value, setWickets1, setWickets1Error)} />
               {wickets1Error && <small className="text-danger">{wickets1Error}</small>}
             </div>
           </div>
@@ -156,11 +136,11 @@ const MatchForm = () => {
               <input type="number" className="form-control mb-2" placeholder={`Runs by ${normalizeTeamName(team2) || "Team 2"}`} value={runs2} onChange={(e) => setRuns2(e.target.value)} />
             </div>
             <div className="col">
-              <input type="text" className="form-control mb-2" placeholder="Overs" value={overs2} onChange={(e) => handleOvers2Change(e.target.value)} />
+              <input type="text" className="form-control mb-2" placeholder="Overs" value={overs2} onChange={(e) => handleOversChange(e.target.value, setOvers2, setOvers2Error, team2)} />
               {overs2Error && <small className="text-danger">{overs2Error}</small>}
             </div>
             <div className="col">
-              <input type="number" className="form-control mb-2" placeholder="Wickets" value={wickets2} onChange={(e) => handleWickets2Change(e.target.value)} />
+              <input type="number" className="form-control mb-2" placeholder="Wickets" value={wickets2} onChange={(e) => handleWicketsChange(e.target.value, setWickets2, setWickets2Error)} />
               {wickets2Error && <small className="text-danger">{wickets2Error}</small>}
             </div>
           </div>
