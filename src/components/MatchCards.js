@@ -1,11 +1,18 @@
 // src/components/MatchCards.js
 import React, { useEffect, useState } from "react";
-import { getMatchHistory, getTeams } from "../services/api"; // ✅ Centralized API usage
+import { getMatchHistory, getTeams } from "../services/api";
 import "./MatchCards.css";
+
+// 🔧 Format overs from decimal (e.g., 19.66667) to cricket format (e.g., 19.4)
+const formatOvers = (decimalOvers) => {
+  const fullOvers = Math.floor(decimalOvers);
+  const balls = Math.round((decimalOvers - fullOvers) * 6);
+  return `${fullOvers}.${balls}`;
+};
 
 const MatchCards = () => {
   const [matches, setMatches] = useState([]);
-  const [teams, setTeams] = useState([]); // 🔄 Optional: can remove if NRR not used
+  const [teams, setTeams] = useState([]);
   const [showOdi, setShowOdi] = useState(true);
   const [showT20, setShowT20] = useState(false);
 
@@ -40,7 +47,6 @@ const MatchCards = () => {
     return flags[normalized] || "🏳️";
   };
 
-  // ✅ Render individual match card (NRR removed)
   const renderMatchCard = (match, index) => (
     <div className="match-card mb-4" key={index}>
       <h5 className="text-white">{match.match_name}</h5>
@@ -49,13 +55,13 @@ const MatchCards = () => {
           <h6 className="mb-1">
             {getFlag(match.team1)} <strong>{match.team1?.toUpperCase()}</strong> {match.runs1}/{match.wickets1}
           </h6>
-          <p className="overs-info">Overs: {Number(match.overs1).toFixed(1)}</p>
+          <p className="overs-info">Overs: {formatOvers(match.overs1)}</p> {/* 🔧 Updated */}
         </div>
         <div>
           <h6 className="mb-1">
             {getFlag(match.team2)} <strong>{match.team2?.toUpperCase()}</strong> {match.runs2}/{match.wickets2}
           </h6>
-          <p className="overs-info">Overs: {Number(match.overs2).toFixed(1)}</p>
+          <p className="overs-info">Overs: {formatOvers(match.overs2)}</p> {/* 🔧 Updated */}
         </div>
       </div>
       <p className="text-light"><strong>🏆 {match.winner}</strong></p>
@@ -67,7 +73,6 @@ const MatchCards = () => {
 
   return (
     <div className="container mt-4">
-      {/* ✅ Toggle Buttons */}
       <div className="toggle-buttons">
         <button
           className={`btn btn-warning ${showOdi ? "active" : ""}`}
@@ -90,7 +95,6 @@ const MatchCards = () => {
         </button>
       </div>
 
-      {/* ✅ ODI Matches */}
       {showOdi && (
         <>
           <h3 className="text-light mb-3">ODI Matches</h3>
@@ -108,7 +112,6 @@ const MatchCards = () => {
         </>
       )}
 
-      {/* ✅ T20 Matches */}
       {showT20 && (
         <>
           <h3 className="text-light mt-5 mb-3">T20 Matches</h3>
