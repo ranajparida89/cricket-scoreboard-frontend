@@ -62,13 +62,13 @@ const MatchForm = () => {
   const handleWickets1Change = (val) => {
     setWickets1(val);
     const w = parseInt(val);
-    setWickets1Error(w >= 0 && w <= 10 ? "" : "Wickets must be 0 to 10");
+    setWickets1Error(w >= 0 && w <= 10 ? "" : "Wickets must be between 0 and 10");
   };
 
   const handleWickets2Change = (val) => {
     setWickets2(val);
     const w = parseInt(val);
-    setWickets2Error(w >= 0 && w <= 10 ? "" : "Wickets must be 0 to 10");
+    setWickets2Error(w >= 0 && w <= 10 ? "" : "Wickets must be between 0 and 10");
   };
 
   const handleSubmit = async (e) => {
@@ -136,7 +136,7 @@ const MatchForm = () => {
           <input type="text" className="form-control mb-2" placeholder="Team 1 Name" value={team1} onChange={(e) => setTeam1(e.target.value)} required />
           <div className="row">
             <div className="col">
-              <input type="number" className="form-control mb-2" placeholder="Runs" value={runs1} onChange={(e) => setRuns1(e.target.value)} />
+              <input type="number" className="form-control mb-2" placeholder={`Runs by ${normalizeTeamName(team1) || "Team 1"}`} value={runs1} onChange={(e) => setRuns1(e.target.value)} />
             </div>
             <div className="col">
               <input type="text" className="form-control mb-2" placeholder="Overs" value={overs1} onChange={(e) => handleOvers1Change(e.target.value)} />
@@ -153,7 +153,7 @@ const MatchForm = () => {
           <input type="text" className="form-control mb-2" placeholder="Team 2 Name" value={team2} onChange={(e) => setTeam2(e.target.value)} required />
           <div className="row">
             <div className="col">
-              <input type="number" className="form-control mb-2" placeholder="Runs" value={runs2} onChange={(e) => setRuns2(e.target.value)} />
+              <input type="number" className="form-control mb-2" placeholder={`Runs by ${normalizeTeamName(team2) || "Team 2"}`} value={runs2} onChange={(e) => setRuns2(e.target.value)} />
             </div>
             <div className="col">
               <input type="text" className="form-control mb-2" placeholder="Overs" value={overs2} onChange={(e) => handleOvers2Change(e.target.value)} />
