@@ -1,13 +1,9 @@
 // src/components/TestMatchForm.js
 import React, { useState } from "react";
-import axios from "axios";
 import { createMatch } from "../services/api";
+import axios from "axios";
 
-const API_URL = "https://cricket-scoreboard-backend.onrender.com/api";
-
-const normalizeTeamName = (name) => {
-  return name ? name.trim().toUpperCase() : "";
-};
+const normalizeTeamName = (name) => name ? name.trim().toUpperCase() : "";
 
 const isValidOver = (over) => {
   const parts = over.toString().split(".");
@@ -67,34 +63,23 @@ const TestMatchForm = () => {
     if (t2Runs > t1Runs) return { winner: team2, points: 12 };
     if (t1Runs > t2Runs && t2Wickets2 === 10) return { winner: team1, points: 12 };
     if (usedOvers >= maxOvers) return { winner: "Draw", points: 4 };
+
     return { winner: "Draw", points: 4 };
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const t1 = normalizeTeamName(team1);
     const t2 = normalizeTeamName(team2);
 
-    if (!matchName || !t1 || !t2) {
-      alert("❌ Fill all required fields.");
-      return;
-    }
-
-    if (t1 === t2) {
-      alert("❌ Team names must be different.");
-      return;
-    }
+    if (!matchName || !t1 || !t2) return alert("❌ Fill all required fields.");
+    if (t1 === t2) return alert("❌ Team names must be different.");
 
     const hasError = Object.values(innings).some((inn) => inn.error !== "");
-    if (hasError) {
-      alert("❌ Please fix validation errors before submitting.");
-      return;
-    }
+    if (hasError) return alert("❌ Please fix validation errors before submitting.");
 
     try {
       setIsSubmitting(true);
-
       const match = await createMatch({ match_name: matchName, match_type: "Test" });
       const { winner, points } = calculateResult();
 
@@ -106,22 +91,21 @@ const TestMatchForm = () => {
         winner,
         points,
         runs1: parseInt(innings.t1i1.runs),
-        overs1: innings.t1i1.overs,
+        overs1: parseFloat(innings.t1i1.overs),
         wickets1: parseInt(innings.t1i1.wickets),
         runs2: parseInt(innings.t2i1.runs),
-        overs2: innings.t2i1.overs,
+        overs2: parseFloat(innings.t2i1.overs),
         wickets2: parseInt(innings.t2i1.wickets),
         runs1_2: parseInt(innings.t1i2.runs),
-        overs1_2: innings.t1i2.overs,
+        overs1_2: parseFloat(innings.t1i2.overs),
         wickets1_2: parseInt(innings.t1i2.wickets),
         runs2_2: parseInt(innings.t2i2.runs),
-        overs2_2: innings.t2i2.overs,
+        overs2_2: parseFloat(innings.t2i2.overs),
         wickets2_2: parseInt(innings.t2i2.wickets),
         total_overs_used: totalUsedOvers()
       };
 
-      // ✅ Correct endpoint for test match
-      const result = await axios.post(`${API_URL}/test-match`, payload);
+      const result = await axios.post("https://cricket-scoreboard-backend.onrender.com/api/test-match", payload);
       setResultMsg(result.data.message);
     } catch (err) {
       alert("❌ Error: " + err.message);
@@ -152,26 +136,22 @@ const TestMatchForm = () => {
             <div className="col"><label>Team 1:</label><input type="text" className="form-control" value={team1} onChange={(e) => setTeam1(e.target.value)} required /></div>
             <div className="col"><label>Team 2:</label><input type="text" className="form-control" value={team2} onChange={(e) => setTeam2(e.target.value)} required /></div>
           </div>
-
           <div className="mb-3 row">
             <div className="col"><label>🗓️ Total Days</label><input className="form-control" value="5" disabled /></div>
             <div className="col"><label>🎯 Overs/Day</label><input className="form-control" value="90" disabled /></div>
             <div className="col"><label>🧮 Total Overs</label><input className="form-control" value={maxOvers} disabled /></div>
             <div className="col"><label>⏳ Overs Remaining</label><input className="form-control" value={remainingOvers()} disabled /></div>
           </div>
-
           {renderInning(`${team1 || "Team 1"} - 1st Innings`, "t1i1")}
           {renderInning(`${team2 || "Team 2"} - 1st Innings`, "t2i1")}
           {renderInning(`${team1 || "Team 1"} - 2nd Innings`, "t1i2")}
           {renderInning(`${team2 || "Team 2"} - 2nd Innings`, "t2i2")}
-
           <div className="d-grid mt-4">
             <button className="btn btn-success" disabled={isSubmitting}>
               {isSubmitting ? "Submitting..." : "Submit Test Match"}
             </button>
           </div>
         </form>
-
         {resultMsg && <div className="alert alert-success mt-3 text-center">{resultMsg}</div>}
       </div>
     </div>
