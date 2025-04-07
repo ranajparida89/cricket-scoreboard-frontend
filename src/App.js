@@ -12,6 +12,7 @@ import TeamDetails from "./components/TeamDetails";
 import AboutCrickEdge from "./components/AboutCrickEdge";
 import ContactFeedback from "./components/ContactFeedback";
 import PageWrapper from "./components/PageWrapper";
+import TestMatchForm from "./components/TestMatchForm"; // ✅ Added for test match support
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -39,6 +40,8 @@ function App() {
       <AppNavbar />
       <Routes>
         <Route path="/" element={<HomePage />} />
+        
+        {/* ✅ Add Match (ODI/T20) */}
         <Route
           path="/add-match"
           element={
@@ -47,6 +50,17 @@ function App() {
             </PageWrapper>
           }
         />
+
+        {/* ✅ Add Test Match */}
+        <Route
+          path="/add-test-match"
+          element={
+            <PageWrapper>
+              <TestMatchForm />
+            </PageWrapper>
+          }
+        />
+
         <Route
           path="/leaderboard"
           element={
@@ -103,7 +117,11 @@ function App() {
             </PageWrapper>
           }
         />
+
+        {/* ✅ Points Table route (optional wrapper) */}
         <Route path="/points" element={<Leaderboard />} />
+
+        {/* ✅ Matches Page (Home Page reused) */}
         <Route path="/matches" element={<HomePage />} />
       </Routes>
     </Router>
