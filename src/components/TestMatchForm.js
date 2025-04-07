@@ -16,7 +16,6 @@ const TestMatchForm = () => {
   const [matchName, setMatchName] = useState("");
   const [team1, setTeam1] = useState("");
   const [team2, setTeam2] = useState("");
-  const [winner, setWinner] = useState("");
   const [resultMsg, setResultMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -56,14 +55,28 @@ const TestMatchForm = () => {
     return Math.max(0, (maxOvers - totalUsedOvers()).toFixed(1));
   };
 
+  const calculateResult = () => {
+    const t1Runs = parseInt(innings.t1i1.runs || 0) + parseInt(innings.t1i2.runs || 0);
+    const t2Runs = parseInt(innings.t2i1.runs || 0) + parseInt(innings.t2i2.runs || 0);
+
+    const t2Wickets2 = parseInt(innings.t2i2.wickets || 0);
+    const usedOvers = totalUsedOvers();
+
+    if (t2Runs > t1Runs) return { winner: team2, points: 12 };
+    if (t1Runs > t2Runs && t2Wickets2 === 10) return { winner: team1, points: 12 };
+    if (usedOvers >= maxOvers) return { winner: "Draw", points: 4 };
+
+    return { winner: "Draw", points: 4 };
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const t1 = normalizeTeamName(team1);
     const t2 = normalizeTeamName(team2);
 
-    if (!matchName || !t1 || !t2 || !winner) {
-      alert("❌ Fill all fields.");
+    if (!matchName || !t1 || !t2) {
+      alert("❌ Fill all required fields.");
       return;
     }
 
@@ -80,7 +93,9 @@ const TestMatchForm = () => {
 
     try {
       setIsSubmitting(true);
+
       const match = await createMatch({ match_name: matchName, match_type: "Test" });
+      const { winner, points } = calculateResult();
 
       const payload = {
         match_id: match.match_id,
@@ -88,7 +103,7 @@ const TestMatchForm = () => {
         team1: t1,
         team2: t2,
         winner,
-        points: winner.toLowerCase() === "draw" ? 4 : 12,
+        points,
         runs1: parseInt(innings.t1i1.runs),
         overs1: parseFloat(innings.t1i1.overs),
         wickets1: parseInt(innings.t1i1.wickets),
@@ -147,11 +162,6 @@ const TestMatchForm = () => {
           {renderInning(`${team2 || "Team 2"} - 1st Innings`, "t2i1")}
           {renderInning(`${team1 || "Team 1"} - 2nd Innings`, "t1i2")}
           {renderInning(`${team2 || "Team 2"} - 2nd Innings`, "t2i2")}
-
-          <div className="mb-2 mt-3">
-            <label>Winner Team or type "Draw":</label>
-            <input type="text" className="form-control" value={winner} onChange={(e) => setWinner(e.target.value)} />
-          </div>
 
           <div className="d-grid mt-4">
             <button className="btn btn-success" disabled={isSubmitting}>
