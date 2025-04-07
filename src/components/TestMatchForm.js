@@ -1,7 +1,6 @@
 // src/components/TestMatchForm.js
 import React, { useState } from "react";
-import { createMatch } from "../services/api";
-import axios from "axios";
+import { createMatch, submitTestMatchResult } from "../services/api"; // ✅ Centralized API import
 
 const normalizeTeamName = (name) => name ? name.trim().toUpperCase() : "";
 
@@ -80,9 +79,14 @@ const TestMatchForm = () => {
 
     try {
       setIsSubmitting(true);
+
+      // ✅ Create match in database
       const match = await createMatch({ match_name: matchName, match_type: "Test" });
+
+      // ✅ Determine result automatically
       const { winner, points } = calculateResult();
 
+      // ✅ Prepare payload for backend
       const payload = {
         match_id: match.match_id,
         match_type: "Test",
@@ -105,10 +109,11 @@ const TestMatchForm = () => {
         total_overs_used: totalUsedOvers()
       };
 
-      const result = await axios.post("https://cricket-scoreboard-backend.onrender.com/api/test-match", payload);
-      setResultMsg(result.data.message);
+      // ✅ Submit to backend via centralized API method
+      const result = await submitTestMatchResult(payload);
+      setResultMsg(result.message);
     } catch (err) {
-      alert("❌ Error: " + err.message);
+      alert("❌ Error: " + (err?.response?.data?.error || err.message));
     } finally {
       setIsSubmitting(false);
     }
