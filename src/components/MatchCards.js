@@ -1,6 +1,6 @@
 // src/components/MatchCards.js
 import React, { useEffect, useState } from "react";
-import { getMatchHistory, getTeams } from "../services/api";
+import { getMatchHistory, getTeams, getTestMatches } from "../services/api"; // ✅ new
 import "./MatchCards.css";
 
 const formatOvers = (decimalOvers) => {
@@ -11,18 +11,21 @@ const formatOvers = (decimalOvers) => {
 
 const MatchCards = () => {
   const [matches, setMatches] = useState([]);
+  const [testMatches, setTestMatches] = useState([]); // ✅ new
   const [teams, setTeams] = useState([]);
   const [showOdi, setShowOdi] = useState(true);
   const [showT20, setShowT20] = useState(false);
-  const [showTest, setShowTest] = useState(false); // ✅ New state for Test
+  const [showTest, setShowTest] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const matchRes = await getMatchHistory();
+        const testRes = await getTestMatches(); // ✅ new
         const teamRes = await getTeams();
 
         if (Array.isArray(matchRes)) setMatches(matchRes);
+        if (Array.isArray(testRes)) setTestMatches(testRes); // ✅ new
         if (Array.isArray(teamRes)) setTeams(teamRes);
       } catch (err) {
         console.error("❌ Error fetching match/team data:", err);
@@ -64,45 +67,41 @@ const MatchCards = () => {
     </div>
   );
 
+  // ✅ New: Render Test Match Card with both innings
+  const renderTestMatchCard = (match, index) => (
+    <div className="match-card mb-4" key={index}>
+      <h5 className="text-white">{match.match_type} Match #{match.match_id}</h5>
+      <div>
+        <h6 className="text-info">{getFlag(match.team1)} {match.team1?.toUpperCase()}</h6>
+        <p className="overs-info mb-1">1st Innings: {match.runs1}/{match.wickets1} ({formatOvers(match.overs1)} ov)</p>
+        <p className="overs-info mb-1">2nd Innings: {match.runs1_2}/{match.wickets1_2} ({formatOvers(match.overs1_2)} ov)</p>
+      </div>
+      <div>
+        <h6 className="text-info">{getFlag(match.team2)} {match.team2?.toUpperCase()}</h6>
+        <p className="overs-info mb-1">1st Innings: {match.runs2}/{match.wickets2} ({formatOvers(match.overs2)} ov)</p>
+        <p className="overs-info mb-1">2nd Innings: {match.runs2_2}/{match.wickets2_2} ({formatOvers(match.overs2_2)} ov)</p>
+      </div>
+      <p className="text-light mt-2"><strong>🏆 {match.winner}</strong></p>
+    </div>
+  );
+
   const odiMatches = matches.filter((m) => m.match_type === "ODI");
   const t20Matches = matches.filter((m) => m.match_type === "T20");
-  const testMatches = matches.filter((m) => m.match_type === "Test"); // ✅ New filter
 
   return (
     <div className="container mt-4">
       <div className="toggle-buttons">
-        <button
-          className={`btn btn-warning ${showOdi ? "active" : ""}`}
-          onClick={() => {
-            setShowOdi(true);
-            setShowT20(false);
-            setShowTest(false);
-          }}
-        >
-          🏏 ODI Matches {showOdi ? "▼" : ""}
-        </button>
+        <button className={`btn btn-warning ${showOdi ? "active" : ""}`} onClick={() => {
+          setShowOdi(true); setShowT20(false); setShowTest(false);
+        }}>🏏 ODI Matches {showOdi ? "▼" : ""}</button>
 
-        <button
-          className={`btn btn-danger ${showT20 ? "active" : ""}`}
-          onClick={() => {
-            setShowT20(true);
-            setShowOdi(false);
-            setShowTest(false);
-          }}
-        >
-          🔥 T20 Matches {showT20 ? "▼" : ""}
-        </button>
+        <button className={`btn btn-danger ${showT20 ? "active" : ""}`} onClick={() => {
+          setShowT20(true); setShowOdi(false); setShowTest(false);
+        }}>🔥 T20 Matches {showT20 ? "▼" : ""}</button>
 
-        <button
-          className={`btn btn-info ${showTest ? "active" : ""}`}
-          onClick={() => {
-            setShowTest(true);
-            setShowOdi(false);
-            setShowT20(false);
-          }}
-        >
-          🧪 Test Matches {showTest ? "▼" : ""}
-        </button>
+        <button className={`btn btn-info ${showTest ? "active" : ""}`} onClick={() => {
+          setShowTest(true); setShowOdi(false); setShowT20(false);
+        }}>🧪 Test Matches {showTest ? "▼" : ""}</button>
       </div>
 
       {/* ODI */}
@@ -151,7 +150,7 @@ const MatchCards = () => {
             ) : (
               testMatches.map((match, index) => (
                 <div key={index} className="col-md-6 col-lg-4">
-                  {renderMatchCard(match, index)}
+                  {renderTestMatchCard(match, index)}
                 </div>
               ))
             )}
