@@ -1,6 +1,9 @@
 // src/components/TestMatchForm.js
 import React, { useState } from "react";
-import { createMatch, submitMatchResult } from "../services/api";
+import axios from "axios";
+import { createMatch } from "../services/api";
+
+const API_URL = "https://cricket-scoreboard-backend.onrender.com/api";
 
 const normalizeTeamName = (name) => {
   return name ? name.trim().toUpperCase() : "";
@@ -58,14 +61,12 @@ const TestMatchForm = () => {
   const calculateResult = () => {
     const t1Runs = parseInt(innings.t1i1.runs || 0) + parseInt(innings.t1i2.runs || 0);
     const t2Runs = parseInt(innings.t2i1.runs || 0) + parseInt(innings.t2i2.runs || 0);
-
     const t2Wickets2 = parseInt(innings.t2i2.wickets || 0);
     const usedOvers = totalUsedOvers();
 
     if (t2Runs > t1Runs) return { winner: team2, points: 12 };
     if (t1Runs > t2Runs && t2Wickets2 === 10) return { winner: team1, points: 12 };
     if (usedOvers >= maxOvers) return { winner: "Draw", points: 4 };
-
     return { winner: "Draw", points: 4 };
   };
 
@@ -105,22 +106,23 @@ const TestMatchForm = () => {
         winner,
         points,
         runs1: parseInt(innings.t1i1.runs),
-        overs1: parseFloat(innings.t1i1.overs),
+        overs1: innings.t1i1.overs,
         wickets1: parseInt(innings.t1i1.wickets),
         runs2: parseInt(innings.t2i1.runs),
-        overs2: parseFloat(innings.t2i1.overs),
+        overs2: innings.t2i1.overs,
         wickets2: parseInt(innings.t2i1.wickets),
         runs1_2: parseInt(innings.t1i2.runs),
-        overs1_2: parseFloat(innings.t1i2.overs),
+        overs1_2: innings.t1i2.overs,
         wickets1_2: parseInt(innings.t1i2.wickets),
         runs2_2: parseInt(innings.t2i2.runs),
-        overs2_2: parseFloat(innings.t2i2.overs),
+        overs2_2: innings.t2i2.overs,
         wickets2_2: parseInt(innings.t2i2.wickets),
         total_overs_used: totalUsedOvers()
       };
 
-      const result = await submitMatchResult(payload);
-      setResultMsg(result.message);
+      // ✅ Correct endpoint for test match
+      const result = await axios.post(`${API_URL}/test-match`, payload);
+      setResultMsg(result.data.message);
     } catch (err) {
       alert("❌ Error: " + err.message);
     } finally {
