@@ -33,3 +33,9 @@ export const getMatchHistory = async (filters = {}) => {
   const response = await axios.get(`${API_URL}/match-history?${queryParams}`);
   return response.data;
 };
+
+// ✅ NEW: Get Test Matches (both innings info)
+export const getTestMatches = async () => {
+  const response = await axios.get(`${API_URL}/test-matches`);
+  return response.data;
+};
