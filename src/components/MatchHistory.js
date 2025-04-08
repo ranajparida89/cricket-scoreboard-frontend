@@ -9,7 +9,6 @@ const MatchHistory = () => {
     winner: ""
   });
 
-  // ✅ Load all data initially
   const fetchData = async (filterValues = {}) => {
     try {
       const data = await getMatchHistory(filterValues);
@@ -44,6 +43,14 @@ const MatchHistory = () => {
     fetchData({});
   };
 
+  const formatOvers = (overs) => {
+    if (!overs && overs !== 0) return "-";
+    const floatVal = parseFloat(overs);
+    const full = Math.floor(floatVal);
+    const balls = Math.round((floatVal - full) * 6);
+    return `${full}.${balls}`;
+  };
+
   return (
     <div className="container mt-5">
       <div className="card shadow p-4">
@@ -61,7 +68,7 @@ const MatchHistory = () => {
               <option value="">All Match Types</option>
               <option value="T20">T20</option>
               <option value="ODI">ODI</option>
-              <option value="Test">Test</option> {/* ✅ NEW */}
+              <option value="Test">Test</option> {/* ✅ Added Test option */}
             </select>
           </div>
 
@@ -113,19 +120,39 @@ const MatchHistory = () => {
             </thead>
             <tbody>
               {matches.length > 0 ? (
-                matches.map((match, index) => (
-                  <tr key={match.id}>
-                    <td>{index + 1}</td>
-                    <td>{match.match_name}</td>
-                    <td>{match.match_type}</td>
-                    <td>{match.team1}</td>
-                    <td>{match.runs1}/{match.wickets1} ({Number(match.overs1).toFixed(1)} ov)</td>
-                    <td>{match.team2}</td>
-                    <td>{match.runs2}/{match.wickets2} ({Number(match.overs2).toFixed(1)} ov)</td>
-                    <td>{match.winner}</td>
-                    <td>{new Date(match.match_time).toLocaleString()}</td>
-                  </tr>
-                ))
+                matches.map((match, index) => {
+                  const isTest = match.match_type === "Test";
+
+                  const team1Runs = isTest
+                    ? (parseInt(match.runs1 || 0) + parseInt(match.runs1_2 || 0))
+                    : match.runs1;
+                  const team1Overs = isTest
+                    ? (parseFloat(match.overs1 || 0) + parseFloat(match.overs1_2 || 0))
+                    : match.overs1;
+                  const team1Wickets = isTest ? 10 : match.wickets1;
+
+                  const team2Runs = isTest
+                    ? (parseInt(match.runs2 || 0) + parseInt(match.runs2_2 || 0))
+                    : match.runs2;
+                  const team2Overs = isTest
+                    ? (parseFloat(match.overs2 || 0) + parseFloat(match.overs2_2 || 0))
+                    : match.overs2;
+                  const team2Wickets = isTest ? 10 : match.wickets2;
+
+                  return (
+                    <tr key={match.id}>
+                      <td>{index + 1}</td>
+                      <td>{match.match_name}</td>
+                      <td>{match.match_type}</td>
+                      <td>{match.team1}</td>
+                      <td>{team1Runs}/{team1Wickets} ({formatOvers(team1Overs)} ov)</td>
+                      <td>{match.team2}</td>
+                      <td>{team2Runs}/{team2Wickets} ({formatOvers(team2Overs)} ov)</td>
+                      <td>{match.winner}</td>
+                      <td>{new Date(match.match_time).toLocaleString()}</td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan="9">No match history available.</td>
