@@ -61,6 +61,7 @@ const MatchHistory = () => {
               <option value="">All Match Types</option>
               <option value="T20">T20</option>
               <option value="ODI">ODI</option>
+              <option value="Test">Test</option> {/* ✅ NEW */}
             </select>
           </div>
 
