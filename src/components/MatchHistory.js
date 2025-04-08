@@ -43,21 +43,14 @@ const MatchHistory = () => {
     fetchData({});
   };
 
-  // ✅ Format overs with 1 decimal
   const formatOvers = (overs) => {
     return Number(overs).toFixed(1);
   };
 
-  // ✅ Compute total runs, overs, wickets for Test matches
-  const getDisplayScore = (match, team = 1) => {
-    if (match.match_type === "Test") {
-      const runs = Number(match[`runs${team}`] || 0) + Number(match[`runs${team}_2`] || 0);
-      const overs = Number(match[`overs${team}`] || 0) + Number(match[`overs${team}_2`] || 0);
-      const wickets = 10;
-      return `${runs}/10 (${formatOvers(overs)} ov)`;
-    } else {
-      return `${match[`runs${team}`]}/${match[`wickets${team}`]} (${formatOvers(match[`overs${team}`])} ov)`;
-    }
+  const getTotal = (primary, secondary) => {
+    const p = parseFloat(primary || 0);
+    const s = parseFloat(secondary || 0);
+    return (p + s).toFixed(1);
   };
 
   return (
@@ -129,19 +122,33 @@ const MatchHistory = () => {
             </thead>
             <tbody>
               {matches.length > 0 ? (
-                matches.map((match, index) => (
-                  <tr key={match.id}>
-                    <td>{index + 1}</td>
-                    <td>{match.match_name}</td>
-                    <td>{match.match_type}</td>
-                    <td>{match.team1}</td>
-                    <td>{getDisplayScore(match, 1)}</td>
-                    <td>{match.team2}</td>
-                    <td>{getDisplayScore(match, 2)}</td>
-                    <td>{match.winner}</td>
-                    <td>{new Date(match.match_time).toLocaleString()}</td>
-                  </tr>
-                ))
+                matches.map((match, index) => {
+                  const isTest = match.match_type === "Test";
+
+                  // Team 1 scores
+                  const runs1 = isTest ? (parseInt(match.runs1 || 0) + parseInt(match.runs1_2 || 0)) : match.runs1;
+                  const overs1 = isTest ? getTotal(match.overs1, match.overs1_2) : formatOvers(match.overs1);
+                  const wickets1 = isTest ? (parseInt(match.wickets1 || 0) + parseInt(match.wickets1_2 || 0)) : match.wickets1;
+
+                  // Team 2 scores
+                  const runs2 = isTest ? (parseInt(match.runs2 || 0) + parseInt(match.runs2_2 || 0)) : match.runs2;
+                  const overs2 = isTest ? getTotal(match.overs2, match.overs2_2) : formatOvers(match.overs2);
+                  const wickets2 = isTest ? (parseInt(match.wickets2 || 0) + parseInt(match.wickets2_2 || 0)) : match.wickets2;
+
+                  return (
+                    <tr key={match.id}>
+                      <td>{index + 1}</td>
+                      <td>{match.match_name}</td>
+                      <td>{match.match_type}</td>
+                      <td>{match.team1}</td>
+                      <td>{runs1}/{wickets1} ({overs1} ov)</td>
+                      <td>{match.team2}</td>
+                      <td>{runs2}/{wickets2} ({overs2} ov)</td>
+                      <td>{match.winner}</td>
+                      <td>{new Date(match.match_time).toLocaleString()}</td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan="9">No match history available.</td>
