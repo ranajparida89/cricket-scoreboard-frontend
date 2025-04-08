@@ -19,7 +19,7 @@ const MatchHistory = () => {
   };
 
   useEffect(() => {
-    fetchData(); // ✅ Initial load
+    fetchData();
   }, []);
 
   const handleChange = (e) => {
@@ -43,12 +43,21 @@ const MatchHistory = () => {
     fetchData({});
   };
 
+  // ✅ Format overs with 1 decimal
   const formatOvers = (overs) => {
-    if (!overs && overs !== 0) return "-";
-    const floatVal = parseFloat(overs);
-    const full = Math.floor(floatVal);
-    const balls = Math.round((floatVal - full) * 6);
-    return `${full}.${balls}`;
+    return Number(overs).toFixed(1);
+  };
+
+  // ✅ Compute total runs, overs, wickets for Test matches
+  const getDisplayScore = (match, team = 1) => {
+    if (match.match_type === "Test") {
+      const runs = Number(match[`runs${team}`] || 0) + Number(match[`runs${team}_2`] || 0);
+      const overs = Number(match[`overs${team}`] || 0) + Number(match[`overs${team}_2`] || 0);
+      const wickets = 10;
+      return `${runs}/10 (${formatOvers(overs)} ov)`;
+    } else {
+      return `${match[`runs${team}`]}/${match[`wickets${team}`]} (${formatOvers(match[`overs${team}`])} ov)`;
+    }
   };
 
   return (
@@ -68,7 +77,7 @@ const MatchHistory = () => {
               <option value="">All Match Types</option>
               <option value="T20">T20</option>
               <option value="ODI">ODI</option>
-              <option value="Test">Test</option> {/* ✅ Added Test option */}
+              <option value="Test">Test</option> {/* ✅ Added Test */}
             </select>
           </div>
 
@@ -120,39 +129,19 @@ const MatchHistory = () => {
             </thead>
             <tbody>
               {matches.length > 0 ? (
-                matches.map((match, index) => {
-                  const isTest = match.match_type === "Test";
-
-                  const team1Runs = isTest
-                    ? (parseInt(match.runs1 || 0) + parseInt(match.runs1_2 || 0))
-                    : match.runs1;
-                  const team1Overs = isTest
-                    ? (parseFloat(match.overs1 || 0) + parseFloat(match.overs1_2 || 0))
-                    : match.overs1;
-                  const team1Wickets = isTest ? 10 : match.wickets1;
-
-                  const team2Runs = isTest
-                    ? (parseInt(match.runs2 || 0) + parseInt(match.runs2_2 || 0))
-                    : match.runs2;
-                  const team2Overs = isTest
-                    ? (parseFloat(match.overs2 || 0) + parseFloat(match.overs2_2 || 0))
-                    : match.overs2;
-                  const team2Wickets = isTest ? 10 : match.wickets2;
-
-                  return (
-                    <tr key={match.id}>
-                      <td>{index + 1}</td>
-                      <td>{match.match_name}</td>
-                      <td>{match.match_type}</td>
-                      <td>{match.team1}</td>
-                      <td>{team1Runs}/{team1Wickets} ({formatOvers(team1Overs)} ov)</td>
-                      <td>{match.team2}</td>
-                      <td>{team2Runs}/{team2Wickets} ({formatOvers(team2Overs)} ov)</td>
-                      <td>{match.winner}</td>
-                      <td>{new Date(match.match_time).toLocaleString()}</td>
-                    </tr>
-                  );
-                })
+                matches.map((match, index) => (
+                  <tr key={match.id}>
+                    <td>{index + 1}</td>
+                    <td>{match.match_name}</td>
+                    <td>{match.match_type}</td>
+                    <td>{match.team1}</td>
+                    <td>{getDisplayScore(match, 1)}</td>
+                    <td>{match.team2}</td>
+                    <td>{getDisplayScore(match, 2)}</td>
+                    <td>{match.winner}</td>
+                    <td>{new Date(match.match_time).toLocaleString()}</td>
+                  </tr>
+                ))
               ) : (
                 <tr>
                   <td colSpan="9">No match history available.</td>
