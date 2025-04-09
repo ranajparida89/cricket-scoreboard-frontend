@@ -13,6 +13,7 @@ import AboutCrickEdge from "./components/AboutCrickEdge";
 import ContactFeedback from "./components/ContactFeedback";
 import PageWrapper from "./components/PageWrapper";
 import TestMatchForm from "./components/TestMatchForm"; // ✅ Added for test match support
+import TestMatchHistory from "./components/TestMatchHistory"; // ✅ [Ranaj - 2025-04-09] Added for test match history
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -57,6 +58,16 @@ function App() {
           element={
             <PageWrapper>
               <TestMatchForm />
+            </PageWrapper>
+          }
+        />
+
+        {/* ✅ View Test Match History [Ranaj - 2025-04-09] */}
+        <Route
+          path="/test-history"
+          element={
+            <PageWrapper>
+              <TestMatchHistory />
             </PageWrapper>
           }
         />
