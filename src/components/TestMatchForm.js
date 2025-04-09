@@ -20,7 +20,6 @@ const normalizeTeamName = (name) => {
     UAE: "UAE", uae: "United Arab Emrites",
     NEP: "Nepal", NEPAL: "Nepal"
   };
-
   const upper = name?.trim().toUpperCase();
   return mapping[upper] || name.trim();
 };
@@ -52,9 +51,20 @@ const TestMatchForm = () => {
       const updated = { ...prev[key], [field]: value };
       let error = "";
 
-      if (field === "overs" && (parseFloat(value) > maxOvers || !isValidOver(value))) {
-        error = "Invalid overs (max 450, balls ≤ 5)";
+      const parsedOvers = parseFloat(field === "overs" ? value : updated.overs || 0);
+      const total = Object.entries(prev).reduce((acc, [k, inn]) => {
+        if (k === key) return acc; // we'll add this new one below
+        return acc + parseFloat(inn.overs || 0);
+      }, 0) + parseFloat(field === "overs" ? value : prev[key].overs || 0);
+
+      if (field === "overs") {
+        if (!isValidOver(value)) {
+          error = "Overs must have balls between 0 and 5";
+        } else if (total > maxOvers) {
+          error = `Input overs (${total}) exceed remaining (${maxOvers})`;
+        }
       }
+
       if (field === "wickets" && (parseInt(value) > 10 || parseInt(value) < 0)) {
         error = "Wickets must be between 0 and 10";
       }
@@ -146,6 +156,9 @@ const TestMatchForm = () => {
     </div>
   );
 
+  // ✅ Live error message if both teams are same
+  const isDuplicateTeam = normalizeTeamName(team1).toLowerCase() === normalizeTeamName(team2).toLowerCase();
+
   return (
     <div className="container mt-4">
       <div className="card shadow p-4">
@@ -153,9 +166,20 @@ const TestMatchForm = () => {
         <form onSubmit={handleSubmit}>
           <div className="mb-2"><label>Match Name:</label><input type="text" className="form-control" value={matchName} onChange={(e) => setMatchName(e.target.value)} required /></div>
           <div className="row mb-3">
-            <div className="col"><label>Team 1:</label><input type="text" className="form-control" value={team1} onChange={(e) => setTeam1(e.target.value)} required /></div>
-            <div className="col"><label>Team 2:</label><input type="text" className="form-control" value={team2} onChange={(e) => setTeam2(e.target.value)} required /></div>
+            <div className="col">
+              <label>Team 1:</label>
+              <input type="text" className="form-control" value={team1} onChange={(e) => setTeam1(e.target.value)} required />
+            </div>
+            <div className="col">
+              <label>Team 2:</label>
+              <input type="text" className="form-control" value={team2} onChange={(e) => setTeam2(e.target.value)} required />
+            </div>
           </div>
+          {isDuplicateTeam && (
+            <div className="alert alert-danger text-center py-2">
+              ❌ Team names must be different!
+            </div>
+          )}
           <div className="mb-3 row">
             <div className="col"><label>🗓️ Total Days</label><input className="form-control" value="5" disabled /></div>
             <div className="col"><label>🎯 Overs/Day</label><input className="form-control" value="90" disabled /></div>
@@ -167,7 +191,7 @@ const TestMatchForm = () => {
           {renderInning(`${team1 || "Team 1"} - 2nd Innings`, "t1i2")}
           {renderInning(`${team2 || "Team 2"} - 2nd Innings`, "t2i2")}
           <div className="d-grid mt-4">
-            <button className="btn btn-success" disabled={isSubmitting}>
+            <button className="btn btn-success" disabled={isSubmitting || isDuplicateTeam}>
               {isSubmitting ? "Submitting..." : "Submit Test Match"}
             </button>
           </div>
