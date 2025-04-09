@@ -39,3 +39,9 @@ export const getTestMatches = async () => {
   const response = await axios.get(`${API_URL}/test-matches`);
   return response.data;
 };
+
+// ✅ [Ranaj - 2025-04-09] Get Test Match History (combined for MatchHistory page)
+export const getTestMatchHistory = async () => {
+  const response = await axios.get(`${API_URL}/test-match-history`);
+  return response.data;
+};
