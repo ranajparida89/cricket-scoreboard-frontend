@@ -1,8 +1,29 @@
 // src/components/TestMatchForm.js
 import React, { useState } from "react";
-import { createMatch, submitTestMatchResult } from "../services/api"; // ✅ Centralized API import
+import { createMatch, submitTestMatchResult } from "../services/api";
 
-const normalizeTeamName = (name) => name ? name.trim().toUpperCase() : "";
+// ✅ Normalize official & custom team names
+const normalizeTeamName = (name) => {
+  const mapping = {
+    IND: "India", INDIA: "India",
+    AUS: "Australia", AUSTRALIA: "Australia",
+    ENG: "England", ENGLAND: "England",
+    PAK: "Pakistan", PAKISTAN: "Pakistan",
+    SA: "South Africa", "SOUTH AFRICA": "South Africa",
+    NZ: "New Zealand", "NEW ZEALAND": "New Zealand",
+    WI: "West Indies", "WEST INDIES": "West Indies",
+    SL: "Sri Lanka", "SRI LANKA": "Sri Lanka",
+    BAN: "Bangladesh", BANGLADESH: "Bangladesh",
+    AFG: "Afghanistan", AFGHANISTAN: "Afghanistan",
+    IRE: "Ireland", IRELAND: "Ireland",
+    SCO: "Scotland", SCOTLAND: "Scotland",
+    UAE: "UAE", uae: "United Arab Emrites",
+    NEP: "Nepal", NEPAL: "Nepal"
+  };
+
+  const upper = name?.trim().toUpperCase();
+  return mapping[upper] || name.trim();
+};
 
 const isValidOver = (over) => {
   const parts = over.toString().split(".");
@@ -59,8 +80,8 @@ const TestMatchForm = () => {
     const t2Wickets2 = parseInt(innings.t2i2.wickets || 0);
     const usedOvers = totalUsedOvers();
 
-    if (t2Runs > t1Runs) return { winner: team2, points: 12 };
-    if (t1Runs > t2Runs && t2Wickets2 === 10) return { winner: team1, points: 12 };
+    if (t2Runs > t1Runs) return { winner: normalizeTeamName(team2), points: 12 };
+    if (t1Runs > t2Runs && t2Wickets2 === 10) return { winner: normalizeTeamName(team1), points: 12 };
     if (usedOvers >= maxOvers) return { winner: "Draw", points: 4 };
 
     return { winner: "Draw", points: 4 };
@@ -72,21 +93,16 @@ const TestMatchForm = () => {
     const t2 = normalizeTeamName(team2);
 
     if (!matchName || !t1 || !t2) return alert("❌ Fill all required fields.");
-    if (t1 === t2) return alert("❌ Team names must be different.");
+    if (t1.toLowerCase() === t2.toLowerCase()) return alert("❌ Team names must be different.");
 
     const hasError = Object.values(innings).some((inn) => inn.error !== "");
     if (hasError) return alert("❌ Please fix validation errors before submitting.");
 
     try {
       setIsSubmitting(true);
-
-      // ✅ Create match in database
       const match = await createMatch({ match_name: matchName, match_type: "Test" });
-
-      // ✅ Determine result automatically
       const { winner, points } = calculateResult();
 
-      // ✅ Prepare payload for backend
       const payload = {
         match_id: match.match_id,
         match_type: "Test",
@@ -109,7 +125,6 @@ const TestMatchForm = () => {
         total_overs_used: totalUsedOvers()
       };
 
-      // ✅ Submit to backend via centralized API method
       const result = await submitTestMatchResult(payload);
       setResultMsg(result.message);
     } catch (err) {

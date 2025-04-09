@@ -58,7 +58,7 @@ const TestMatchHistory = () => {
                       <td>{match.team2}</td>
                       <td>{runs2}/{wickets2} ({overs2} ov)</td>
                       <td>{match.winner}</td>
-                      <td>{new Date(match.match_time).toLocaleString()}</td>
+                      <td>{new Date(match.created_at).toLocaleString()}</td>
                     </tr>
                   );
                 })
