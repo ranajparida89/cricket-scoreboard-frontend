@@ -18,6 +18,7 @@ const AppNavbar = () => {
 
             <NavDropdown title="More" id="navbarScrollingDropdown">
               <NavDropdown.Item as={Link} to="/match-history">Match History</NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/test-history">🧾 Test Match History</NavDropdown.Item> {/* ✅ [Ranaj - 2025-04-09] */}
               <NavDropdown.Item as={Link} to="/points">Point Table</NavDropdown.Item>
               <NavDropdown.Divider />
               <NavDropdown.Item as={Link} to="/graphs">Graphs & Charts</NavDropdown.Item>
