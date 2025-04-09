@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getMatchHistory } from "../services/api";
+import { getMatchHistory, getTestMatchHistory } from "../services/api"; // ✅ [Ranaj - 2025-04-09] Imported Test match history API
 
 const MatchHistory = () => {
   const [matches, setMatches] = useState([]);
@@ -9,9 +9,36 @@ const MatchHistory = () => {
     winner: ""
   });
 
+  // ✅ [Ranaj - 2025-04-09] Updated fetchData logic to support Test match history
   const fetchData = async (filterValues = {}) => {
     try {
-      const data = await getMatchHistory(filterValues);
+      let data = [];
+      if (filterValues.match_type === "Test") {
+        const testMatches = await getTestMatchHistory();
+        data = testMatches.map(match => ({
+          ...match,
+          match_type: "Test",
+          match_name: match.match_name,
+          match_time: match.match_time,
+          team1: match.team1,
+          team2: match.team2,
+          winner: match.winner,
+          runs1: match.runs1,
+          overs1: match.overs1,
+          wickets1: match.wickets1,
+          runs1_2: match.runs1_2,
+          overs1_2: match.overs1_2,
+          wickets1_2: match.wickets1_2,
+          runs2: match.runs2,
+          overs2: match.overs2,
+          wickets2: match.wickets2,
+          runs2_2: match.runs2_2,
+          overs2_2: match.overs2_2,
+          wickets2_2: match.wickets2_2
+        }));
+      } else {
+        data = await getMatchHistory(filterValues);
+      }
       setMatches(data);
     } catch (error) {
       console.error("Error fetching match history:", error);
@@ -136,7 +163,7 @@ const MatchHistory = () => {
                   const wickets2 = isTest ? (parseInt(match.wickets2 || 0) + parseInt(match.wickets2_2 || 0)) : match.wickets2;
 
                   return (
-                    <tr key={match.id}>
+                    <tr key={match.id || index}>
                       <td>{index + 1}</td>
                       <td>{match.match_name}</td>
                       <td>{match.match_type}</td>
