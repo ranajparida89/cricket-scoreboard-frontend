@@ -63,14 +63,15 @@ const MatchCards = () => {
           <p className="overs-info">Overs: {formatOvers(match.overs2)}</p>
         </div>
       </div>
-      <p className="text-light"><strong>🏆 {match.winner}</strong></p>
+      <p className="text-light"><strong>🏆 {match.winner === "Draw" ? "Match is drawn." : `${match.winner} won the match!`}</strong></p>
     </div>
   );
 
-  // ✅ New: Render Test Match Card with both innings
+  // ✅ Updated: Render Test Match Card with proper name and winner message
   const renderTestMatchCard = (match, index) => (
     <div className="match-card mb-4" key={index}>
-      <h5 className="text-white">{match.match_type} Match #{match.match_id}</h5>
+      {/* ✅ Show user-entered match name in UPPERCASE */}
+      <h5 className="text-white">{match.match_name?.toUpperCase()}</h5>
       <div>
         <h6 className="text-info">{getFlag(match.team1)} {match.team1?.toUpperCase()}</h6>
         <p className="overs-info mb-1">1st Innings: {match.runs1}/{match.wickets1} ({formatOvers(match.overs1)} ov)</p>
@@ -81,7 +82,10 @@ const MatchCards = () => {
         <p className="overs-info mb-1">1st Innings: {match.runs2}/{match.wickets2} ({formatOvers(match.overs2)} ov)</p>
         <p className="overs-info mb-1">2nd Innings: {match.runs2_2}/{match.wickets2_2} ({formatOvers(match.overs2_2)} ov)</p>
       </div>
-      <p className="text-light mt-2"><strong>🏆 {match.winner}</strong></p>
+      {/* ✅ Winner message enhancement */}
+      <p className="text-light mt-2">
+        <strong>🏆 {match.winner === "Draw" ? "Match is drawn." : `${match.winner} won the match!`}</strong>
+      </p>
     </div>
   );
 
@@ -104,7 +108,7 @@ const MatchCards = () => {
         }}>🧪 Test Matches {showTest ? "▼" : ""}</button>
       </div>
 
-      {/* ODI */}
+      {/* ✅ ODI */}
       {showOdi && (
         <>
           <h3 className="text-light mb-3">ODI Matches</h3>
@@ -122,7 +126,7 @@ const MatchCards = () => {
         </>
       )}
 
-      {/* T20 */}
+      {/* ✅ T20 */}
       {showT20 && (
         <>
           <h3 className="text-light mt-5 mb-3">T20 Matches</h3>
