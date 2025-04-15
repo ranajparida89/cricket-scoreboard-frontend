@@ -1,0 +1,12 @@
+.team-box {
+    background-color: #132c45;
+    color: white;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .team-box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0 12px rgba(0, 255, 255, 0.2);
+    background-color: #1b3e5a;
+  }
+  

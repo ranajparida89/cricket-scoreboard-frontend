@@ -1,0 +1,23 @@
+.ranking-table {
+    background-color: #1e1e2f;
+    color: white;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 2rem;
+  }
+  
+  .ranking-table th, .ranking-table td {
+    padding: 0.75rem;
+    text-align: center;
+  }
+  
+  .ranking-table .gold {
+    background-color: #ffd70022;
+  }
+  .ranking-table .silver {
+    background-color: #c0c0c022;
+  }
+  .ranking-table .bronze {
+    background-color: #cd7f3222;
+  }
+  

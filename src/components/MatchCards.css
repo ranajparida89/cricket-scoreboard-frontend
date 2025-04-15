@@ -1,0 +1,51 @@
+/* src/components/MatchCards.css */
+
+.match-card {
+    background-color: #132c45;
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+    border: 1px solid rgba(0, 255, 255, 0.1);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: fadeIn 0.4s ease-in;
+  }
+  
+  .match-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 0 18px rgba(0, 255, 255, 0.15);
+  }
+  
+  /* ✅ Updated color for readability */
+  .nrr-info,
+  .overs-info {
+    font-size: 14px;
+    color: #ffffff;
+    font-weight: 500;
+  }
+  
+  /* ✅ Fade-in animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* ✅ Match toggle buttons */
+  .toggle-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .toggle-buttons button {
+    min-width: 160px;
+    font-weight: 500;
+  }
+  
