@@ -68,3 +68,9 @@ export const getPointTable = async () => {
   const response = await axios.get(`${API_URL}/points`);
   return response.data;
 };
+
+// ✅ Match Ticker Headlines (Auto-scroll summary messages)
+export const getMatchTicker = async () => {
+  const response = await axios.get(`${API_URL}/match-ticker`);
+  return response.data;
+};
