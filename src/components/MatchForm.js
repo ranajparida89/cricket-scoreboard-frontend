@@ -1,12 +1,12 @@
 // ✅ src/components/MatchForm.js
-// ✅ [Ranaj Parida | 2025-04-19] Celebration Sound + Confetti + Animated Message
+// ✅ [Ranaj Parida | 2025-04-19] Celebration Enhanced: 4-sec Confetti, Popup, and Sound
 
 import React, { useState } from "react";
 import { createMatch, submitMatchResult } from "../services/api.js";
-import { playSound } from "../utils/playSound"; // ✅ Sound effect via utility
-import Confetti from "react-confetti"; // ✅ Fireworks effect
-import useWindowSize from "react-use/lib/useWindowSize"; // ✅ Full screen confetti
-import "./MatchForm.css"; // ✅ Celebration message animation
+import { playSound } from "../utils/playSound"; // ✅ Sound utility
+import Confetti from "react-confetti"; // ✅ Confetti effect
+import useWindowSize from "react-use/lib/useWindowSize"; // ✅ Full screen sizing
+import "./MatchForm.css"; // ✅ Celebration banner CSS
 
 const TEAM_MAP = {
   IND: "India", AUS: "Australia", ENG: "England", PAK: "Pakistan", SA: "South Africa",
@@ -41,10 +41,10 @@ const MatchForm = () => {
   const [overs1Error, setOvers1Error] = useState(""); const [overs2Error, setOvers2Error] = useState("");
   const [wickets1Error, setWickets1Error] = useState(""); const [wickets2Error, setWickets2Error] = useState("");
   const [resultMsg, setResultMsg] = useState(""); const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPopup, setShowPopup] = useState(false); // ✅ Controls celebration popup
-  const [winnerTeam, setWinnerTeam] = useState(""); // ✅ Winner for popup display
+  const [showPopup, setShowPopup] = useState(false);
+  const [winnerTeam, setWinnerTeam] = useState("");
 
-  const { width, height } = useWindowSize(); // ✅ Get screen size for confetti
+  const { width, height } = useWindowSize(); // ✅ Detect screen size for full-screen confetti
   const maxOvers = matchType === "T20" ? 20 : 50;
 
   const handleOversChange = (val, setOvers, setError, teamName) => {
@@ -79,7 +79,6 @@ const MatchForm = () => {
     try {
       setIsSubmitting(true);
 
-      // ✅ Create new match record
       const match = await createMatch({ match_name: matchName, match_type: matchType });
 
       const payload = {
@@ -98,16 +97,14 @@ const MatchForm = () => {
       const result = await submitMatchResult(payload);
       setResultMsg(result.message);
 
-      // ✅ Extract team name from result.message
+      // ✅ Celebration trigger
       const winner = result.message.split(" ")[0];
       setWinnerTeam(winner);
-
-      // ✅ Trigger fireworks + sound + popup
       playSound("celebration");
       setShowPopup(true);
 
-      // ⏱ Hide popup after 2.5 seconds
-      setTimeout(() => setShowPopup(false), 2500);
+      // ✅ Delay duration = 4 seconds (4000ms)
+      setTimeout(() => setShowPopup(false), 4000);
 
     } catch (err) {
       alert("❌ Error: " + err.message);
@@ -118,10 +115,10 @@ const MatchForm = () => {
 
   return (
     <div className="container mt-4">
-      {/* ✅ Confetti fireworks */}
+      {/* ✅ Confetti firework */}
       {showPopup && <Confetti width={width} height={height} numberOfPieces={300} recycle={false} />}
 
-      {/* ✅ Floating animated message */}
+      {/* ✅ Celebration floating banner */}
       {showPopup && (
         <div className="celebration-banner">
           🎉 Congratulations {winnerTeam}!
