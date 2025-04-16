@@ -1,8 +1,13 @@
-// src/components/TestMatchForm.js
+// ✅ src/components/TestMatchForm.js
+// ✅ [Ranaj Parida - 2025-04-19 | Final Enhanced Celebration: Sound + Confetti + Banner]
+
 import React, { useState } from "react";
 import { createMatch, submitTestMatchResult } from "../services/api";
+import { playSound } from "../utils/playSound";
+import Confetti from "react-confetti";
+import useWindowSize from "react-use/lib/useWindowSize";
+import "./MatchForm.css"; // ✅ reuse celebration styles
 
-// ✅ Normalize official & custom team names
 const normalizeTeamName = (name) => {
   const mapping = {
     IND: "India", INDIA: "India",
@@ -17,8 +22,7 @@ const normalizeTeamName = (name) => {
     AFG: "Afghanistan", AFGHANISTAN: "Afghanistan",
     IRE: "Ireland", IRELAND: "Ireland",
     SCO: "Scotland", SCOTLAND: "Scotland",
-    UAE: "UAE", uae: "United Arab Emrites",
-    NEP: "Nepal", NEPAL: "Nepal"
+    UAE: "United Arab Emirates", NEP: "Nepal"
   };
   const upper = name?.trim().toUpperCase();
   return mapping[upper] || name.trim();
@@ -36,6 +40,9 @@ const TestMatchForm = () => {
   const [team2, setTeam2] = useState("");
   const [resultMsg, setResultMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showFireworks, setShowFireworks] = useState(false);
+  const [celebrationText, setCelebrationText] = useState("");
+  const { width, height } = useWindowSize();
 
   const [innings, setInnings] = useState({
     t1i1: { runs: "", overs: "", wickets: "", error: "" },
@@ -53,7 +60,7 @@ const TestMatchForm = () => {
 
       const parsedOvers = parseFloat(field === "overs" ? value : updated.overs || 0);
       const total = Object.entries(prev).reduce((acc, [k, inn]) => {
-        if (k === key) return acc; // we'll add this new one below
+        if (k === key) return acc;
         return acc + parseFloat(inn.overs || 0);
       }, 0) + parseFloat(field === "overs" ? value : prev[key].overs || 0);
 
@@ -136,6 +143,19 @@ const TestMatchForm = () => {
       };
 
       const result = await submitTestMatchResult(payload);
+
+      // ✅ Trigger celebration
+      if (result.message && result.message.includes("won")) {
+        const winnerTeam = result.message.split(" won")[0];
+        playSound("celebration");
+        setCelebrationText(`🎉 Congratulations! ${winnerTeam} won the match!`);
+        setShowFireworks(true);
+        setTimeout(() => {
+          setShowFireworks(false);
+          setCelebrationText("");
+        }, 4000); // ✅ show for 4 sec
+      }
+
       setResultMsg(result.message);
     } catch (err) {
       alert("❌ Error: " + (err?.response?.data?.error || err.message));
@@ -156,11 +176,13 @@ const TestMatchForm = () => {
     </div>
   );
 
-  // ✅ Live error message if both teams are same
   const isDuplicateTeam = normalizeTeamName(team1).toLowerCase() === normalizeTeamName(team2).toLowerCase();
 
   return (
     <div className="container mt-4">
+      {showFireworks && <Confetti width={width} height={height} numberOfPieces={300} recycle={false} />}
+      {celebrationText && <div className="celebration-banner">{celebrationText}</div>}
+
       <div className="card shadow p-4">
         <h3 className="text-center mb-4 text-success">🏏 Test Match Form</h3>
         <form onSubmit={handleSubmit}>
@@ -176,9 +198,7 @@ const TestMatchForm = () => {
             </div>
           </div>
           {isDuplicateTeam && (
-            <div className="alert alert-danger text-center py-2">
-              ❌ Team names must be different!
-            </div>
+            <div className="alert alert-danger text-center py-2">❌ Team names must be different!</div>
           )}
           <div className="mb-3 row">
             <div className="col"><label>🗓️ Total Days</label><input className="form-control" value="5" disabled /></div>
@@ -190,12 +210,14 @@ const TestMatchForm = () => {
           {renderInning(`${team2 || "Team 2"} - 1st Innings`, "t2i1")}
           {renderInning(`${team1 || "Team 1"} - 2nd Innings`, "t1i2")}
           {renderInning(`${team2 || "Team 2"} - 2nd Innings`, "t2i2")}
+
           <div className="d-grid mt-4">
             <button className="btn btn-success" disabled={isSubmitting || isDuplicateTeam}>
               {isSubmitting ? "Submitting..." : "Submit Test Match"}
             </button>
           </div>
         </form>
+
         {resultMsg && <div className="alert alert-success mt-3 text-center">{resultMsg}</div>}
       </div>
     </div>
