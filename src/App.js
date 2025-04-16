@@ -17,7 +17,7 @@ import TestMatchHistory from "./components/TestMatchHistory"; // ✅ Test Match 
 import TeamRanking from "./components/TeamRanking"; // ✅ Team Ranking View
 import PointTable from "./components/PointTable"; // ✅ [Ranaj - 2025-04-14 | Test Match Point Table]
 import MatchTicker from "./components/MatchTicker"; // ✅ [Ranaj - 2025-04-19 | Auto-Ticker Header]
-import TypewriterHeading from "./components/TypewriterHeading"; // ✅ Optional page heading
+// import TypewriterHeading from "./components/TypewriterHeading"; // ✅ Optional page heading
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
