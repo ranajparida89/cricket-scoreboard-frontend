@@ -2,6 +2,9 @@
 import React, { useState } from "react";
 import { createMatch, submitMatchResult } from "../services/api.js";
 
+// ✅ [Ranaj Parida | 2025-04-19] Celebration sound effect
+import celebrationSound from "../sounds/celebration.mp3"; // ✅ celebration.mp3 must be inside /public/sounds
+
 const TEAM_MAP = {
   IND: "India", AUS: "Australia", ENG: "England", PAK: "Pakistan", SA: "South Africa",
   NZ: "New Zealand", SL: "Sri Lanka", BAN: "Bangladesh", AFG: "Afghanistan", WI: "West Indies",
@@ -35,6 +38,10 @@ const MatchForm = () => {
   const [overs1Error, setOvers1Error] = useState(""); const [overs2Error, setOvers2Error] = useState("");
   const [wickets1Error, setWickets1Error] = useState(""); const [wickets2Error, setWickets2Error] = useState("");
   const [resultMsg, setResultMsg] = useState(""); const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // ✅ Celebration popup toggle
+  const [showPopup, setShowPopup] = useState(false);
+  const [winnerTeam, setWinnerTeam] = useState("");
 
   const maxOvers = matchType === "T20" ? 20 : 50;
 
@@ -86,6 +93,18 @@ const MatchForm = () => {
 
       const result = await submitMatchResult(payload);
       setResultMsg(result.message);
+
+      // ✅ Extract winner team from result message
+      const winner = result.message.split(" ")[0];
+      setWinnerTeam(winner);
+
+      // ✅ Celebration logic: show popup + play sound
+      const audio = new Audio(celebrationSound);
+      audio.play().catch((e) => console.log("🔇 Audio blocked:", e));
+
+      setShowPopup(true);
+      setTimeout(() => setShowPopup(false), 2000); // Hide after 2s
+
     } catch (err) {
       alert("❌ Error: " + err.message);
     } finally {
@@ -97,6 +116,14 @@ const MatchForm = () => {
     <div className="container mt-4">
       <div className="card shadow p-4">
         <h3 className="text-center mb-4 text-primary">🏏 Enter Match Details</h3>
+
+        {/* ✅ Celebration popup message */}
+        {showPopup && (
+          <div className="alert alert-success text-center animate__animated animate__fadeInDown">
+            🎉 Congratulations {winnerTeam}!
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
             <label>Match Name:</label>
