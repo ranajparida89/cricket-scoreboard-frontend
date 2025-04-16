@@ -17,20 +17,13 @@ import TestMatchHistory from "./components/TestMatchHistory"; // ✅ Test Match 
 import TeamRanking from "./components/TeamRanking"; // ✅ Team Ranking View
 import PointTable from "./components/PointTable"; // ✅ [Ranaj - 2025-04-14 | Test Match Point Table]
 import MatchTicker from "./components/MatchTicker"; // ✅ [Ranaj - 2025-04-19 | Auto-Ticker Header]
-// import TypewriterHeading from "./components/TypewriterHeading"; // ✅ Optional page heading
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// ✅ Homepage = Typewriter + Ticker + Match Summary + Leaderboard
+// ✅ Homepage = Match Summary (ODI + T20) + Full Width Leaderboard
 function HomePage() {
   return (
     <div className="container mt-4">
-      {/* 🎯 Optional Animated Title */}
-      <TypewriterHeading />
-
-      {/* 📰 Ticker visible only on homepage */}
-      <MatchTicker />
-
       {/* 🏏 Match Summary Section */}
       <div className="mb-5">
         <MatchCards />
@@ -49,6 +42,7 @@ function App() {
   return (
     <Router>
       <AppNavbar />
+      <MatchTicker /> {/* ✅ Live auto-switching match ticker below Navbar */}
 
       <Routes>
         {/* ✅ Home Page */}
