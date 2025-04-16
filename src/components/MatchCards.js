@@ -63,7 +63,17 @@ const MatchCards = () => {
           <p className="overs-info">Overs: {formatOvers(match.overs2)}</p>
         </div>
       </div>
-      <p className="text-light"><strong>🏆 {match.winner === "Draw" ? "Match is drawn." : `${match.winner} won the match!`}</strong></p>
+
+      {/* ✅ [FIXED - Ranaj 2025-04-19] Prevent duplicate "won the match!" in winner string */}
+      <p className="text-light">
+        <strong>
+          🏆 {match.winner === "Draw"
+            ? "Match is drawn."
+            : match.winner.toLowerCase().includes("won the match")
+              ? match.winner
+              : `${match.winner} won the match!`}
+        </strong>
+      </p>
     </div>
   );
 
@@ -82,9 +92,16 @@ const MatchCards = () => {
         <p className="overs-info mb-1">1st Innings: {match.runs2}/{match.wickets2} ({formatOvers(match.overs2)} ov)</p>
         <p className="overs-info mb-1">2nd Innings: {match.runs2_2}/{match.wickets2_2} ({formatOvers(match.overs2_2)} ov)</p>
       </div>
-      {/* ✅ Winner message enhancement */}
+
+      {/* ✅ [FIXED - Ranaj 2025-04-19] Avoid duplicate win text in Test match cards */}
       <p className="text-light mt-2">
-        <strong>🏆 {match.winner === "Draw" ? "Match is drawn." : `${match.winner} won the match!`}</strong>
+        <strong>
+          🏆 {match.winner === "Draw"
+            ? "Match is drawn."
+            : match.winner.toLowerCase().includes("won the match")
+              ? match.winner
+              : `${match.winner} won the match!`}
+        </strong>
       </p>
     </div>
   );
