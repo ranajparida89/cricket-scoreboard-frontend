@@ -16,13 +16,21 @@ import TestMatchForm from "./components/TestMatchForm"; // ✅ Test Match Form
 import TestMatchHistory from "./components/TestMatchHistory"; // ✅ Test Match History
 import TeamRanking from "./components/TeamRanking"; // ✅ Team Ranking View
 import PointTable from "./components/PointTable"; // ✅ [Ranaj - 2025-04-14 | Test Match Point Table]
+import MatchTicker from "./components/MatchTicker"; // ✅ [Ranaj - 2025-04-19 | Auto-Ticker Header]
+import TypewriterHeading from "./components/TypewriterHeading"; // ✅ Optional page heading
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// ✅ Homepage = Match Summary (ODI + T20) + Full Width Leaderboard
+// ✅ Homepage = Typewriter + Ticker + Match Summary + Leaderboard
 function HomePage() {
   return (
     <div className="container mt-4">
+      {/* 🎯 Optional Animated Title */}
+      <TypewriterHeading />
+
+      {/* 📰 Ticker visible only on homepage */}
+      <MatchTicker />
+
       {/* 🏏 Match Summary Section */}
       <div className="mb-5">
         <MatchCards />
@@ -41,6 +49,7 @@ function App() {
   return (
     <Router>
       <AppNavbar />
+
       <Routes>
         {/* ✅ Home Page */}
         <Route path="/" element={<HomePage />} />
