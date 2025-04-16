@@ -1,11 +1,12 @@
 // ✅ src/components/MatchForm.js
-// ✅ [Ranaj Parida | 2025-04-19] Celebration Sound via playSound.js
+// ✅ [Ranaj Parida | 2025-04-19] Celebration Sound + Confetti + Animated Message
 
 import React, { useState } from "react";
 import { createMatch, submitMatchResult } from "../services/api.js";
-import { playSound } from "../utils/playSound"; // ✅ NEW: Use celebration from central utility
-import "./MatchForm.css"; // ✅ Required to load banner styles
-
+import { playSound } from "../utils/playSound"; // ✅ Sound effect via utility
+import Confetti from "react-confetti"; // ✅ Fireworks effect
+import useWindowSize from "react-use/lib/useWindowSize"; // ✅ Full screen confetti
+import "./MatchForm.css"; // ✅ Celebration message animation
 
 const TEAM_MAP = {
   IND: "India", AUS: "Australia", ENG: "England", PAK: "Pakistan", SA: "South Africa",
@@ -40,9 +41,10 @@ const MatchForm = () => {
   const [overs1Error, setOvers1Error] = useState(""); const [overs2Error, setOvers2Error] = useState("");
   const [wickets1Error, setWickets1Error] = useState(""); const [wickets2Error, setWickets2Error] = useState("");
   const [resultMsg, setResultMsg] = useState(""); const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPopup, setShowPopup] = useState(false);
-  const [winnerTeam, setWinnerTeam] = useState("");
+  const [showPopup, setShowPopup] = useState(false); // ✅ Controls celebration popup
+  const [winnerTeam, setWinnerTeam] = useState(""); // ✅ Winner for popup display
 
+  const { width, height } = useWindowSize(); // ✅ Get screen size for confetti
   const maxOvers = matchType === "T20" ? 20 : 50;
 
   const handleOversChange = (val, setOvers, setError, teamName) => {
@@ -76,6 +78,8 @@ const MatchForm = () => {
 
     try {
       setIsSubmitting(true);
+
+      // ✅ Create new match record
       const match = await createMatch({ match_name: matchName, match_type: matchType });
 
       const payload = {
@@ -94,16 +98,16 @@ const MatchForm = () => {
       const result = await submitMatchResult(payload);
       setResultMsg(result.message);
 
-      // ✅ Extract winner team
+      // ✅ Extract team name from result.message
       const winner = result.message.split(" ")[0];
       setWinnerTeam(winner);
 
-      // ✅ Play celebration.mp3 from playSound utility
+      // ✅ Trigger fireworks + sound + popup
       playSound("celebration");
-
-      // ✅ Show popup message for 2 seconds
       setShowPopup(true);
-      setTimeout(() => setShowPopup(false), 2000);
+
+      // ⏱ Hide popup after 2.5 seconds
+      setTimeout(() => setShowPopup(false), 2500);
 
     } catch (err) {
       alert("❌ Error: " + err.message);
@@ -114,15 +118,18 @@ const MatchForm = () => {
 
   return (
     <div className="container mt-4">
+      {/* ✅ Confetti fireworks */}
+      {showPopup && <Confetti width={width} height={height} numberOfPieces={300} recycle={false} />}
+
+      {/* ✅ Floating animated message */}
+      {showPopup && (
+        <div className="celebration-banner">
+          🎉 Congratulations {winnerTeam}!
+        </div>
+      )}
+
       <div className="card shadow p-4">
         <h3 className="text-center mb-4 text-primary">🏏 Enter Match Details</h3>
-
-        {/* ✅ Celebration popup */}
-        {showPopup && (
-          <div className="alert alert-success text-center animate__animated animate__fadeInDown">
-            🎉 Congratulations {winnerTeam}!
-          </div>
-        )}
 
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
