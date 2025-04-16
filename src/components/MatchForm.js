@@ -1,9 +1,11 @@
-// src/components/MatchForm.js
+// ✅ src/components/MatchForm.js
+// ✅ [Ranaj Parida | 2025-04-19] Celebration Sound via playSound.js
+
 import React, { useState } from "react";
 import { createMatch, submitMatchResult } from "../services/api.js";
+import { playSound } from "../utils/playSound"; // ✅ NEW: Use celebration from central utility
+import "./MatchForm.css"; // ✅ Required to load banner styles
 
-// ✅ [Ranaj Parida | 2025-04-19] Celebration sound effect
-import celebrationSound from "../sounds/celebration.mp3"; // ✅ celebration.mp3 must be inside /public/sounds
 
 const TEAM_MAP = {
   IND: "India", AUS: "Australia", ENG: "England", PAK: "Pakistan", SA: "South Africa",
@@ -38,8 +40,6 @@ const MatchForm = () => {
   const [overs1Error, setOvers1Error] = useState(""); const [overs2Error, setOvers2Error] = useState("");
   const [wickets1Error, setWickets1Error] = useState(""); const [wickets2Error, setWickets2Error] = useState("");
   const [resultMsg, setResultMsg] = useState(""); const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // ✅ Celebration popup toggle
   const [showPopup, setShowPopup] = useState(false);
   const [winnerTeam, setWinnerTeam] = useState("");
 
@@ -94,16 +94,16 @@ const MatchForm = () => {
       const result = await submitMatchResult(payload);
       setResultMsg(result.message);
 
-      // ✅ Extract winner team from result message
+      // ✅ Extract winner team
       const winner = result.message.split(" ")[0];
       setWinnerTeam(winner);
 
-      // ✅ Celebration logic: show popup + play sound
-      const audio = new Audio(celebrationSound);
-      audio.play().catch((e) => console.log("🔇 Audio blocked:", e));
+      // ✅ Play celebration.mp3 from playSound utility
+      playSound("celebration");
 
+      // ✅ Show popup message for 2 seconds
       setShowPopup(true);
-      setTimeout(() => setShowPopup(false), 2000); // Hide after 2s
+      setTimeout(() => setShowPopup(false), 2000);
 
     } catch (err) {
       alert("❌ Error: " + err.message);
@@ -117,7 +117,7 @@ const MatchForm = () => {
       <div className="card shadow p-4">
         <h3 className="text-center mb-4 text-primary">🏏 Enter Match Details</h3>
 
-        {/* ✅ Celebration popup message */}
+        {/* ✅ Celebration popup */}
         {showPopup && (
           <div className="alert alert-success text-center animate__animated animate__fadeInDown">
             🎉 Congratulations {winnerTeam}!
@@ -138,7 +138,7 @@ const MatchForm = () => {
             </select>
           </div>
 
-          {/* Team 1 */}
+          {/* 🏏 Team 1 Inputs */}
           <h5 className="mt-4">Team 1 (Bat First)</h5>
           <input type="text" className="form-control mb-2" placeholder="Team 1 Name" value={team1} onChange={(e) => setTeam1(e.target.value)} required />
           <div className="row">
@@ -155,7 +155,7 @@ const MatchForm = () => {
             </div>
           </div>
 
-          {/* Team 2 */}
+          {/* 🏏 Team 2 Inputs */}
           <h5 className="mt-4">Team 2</h5>
           <input type="text" className="form-control mb-2" placeholder="Team 2 Name" value={team2} onChange={(e) => setTeam2(e.target.value)} required />
           <div className="row">
