@@ -1,3 +1,6 @@
+/* src/components/MatchCards.css */
+
+/* ✅ Match Card Styles */
 .match-card {
   background-color: #132c45;
   padding: 20px;
@@ -40,16 +43,15 @@
   flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 20px;
-  justify-content: center;
-}
 
-/* ✅ Sticky position logic added */
-.toggle-buttons {
+  justify-content: flex-start; /* ✅ ALIGN TO LEFT INSTEAD OF CENTER */
+  align-items: center;
+
   position: sticky;
-  top: 60px; /* Adjust based on your Navbar height */
-  z-index: 1001;
-  background-color: #0c1c2c; /* Matches your theme */
-  padding: 12px 0;
+  top: 56px; /* ✅ Adjust this to match your Navbar height */
+  z-index: 1050; /* ✅ High enough to stay above all */
+  background-color: #0c1c2c; /* ✅ Theme match */
+  padding: 12px 20px; /* ✅ Added padding for smooth space */
   border-bottom: 2px solid #00bfff;
 }
 
@@ -60,7 +62,7 @@
   transition: transform 0.2s ease;
 }
 
-/* Optional: Button hover pop effect */
+/* ✅ Hover effect */
 .toggle-buttons button:hover {
   transform: scale(1.03);
 }
