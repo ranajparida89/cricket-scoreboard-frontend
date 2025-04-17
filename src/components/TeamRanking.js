@@ -10,7 +10,7 @@ const API_URL = "https://cricket-scoreboard-backend.onrender.com/api/team-rankin
 // ✅ Team flag emojis
 const flagMap = {
   india: "🇮🇳", australia: "🇦🇺", england: "🇼", "new zealand": "🇳🇿",
-  pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱�\udd f0", ireland: "🇮🇪",
+  pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱🇰", ireland: "🇮🇪",
   kenya: "🇰🇪", namibia: "🇳🇦", bangladesh: "🇧🇩", afghanistan: "🇦🇫",
   zimbabwe: "🇿🇼", "west indies": "🏴‍☠️", usa: "🇺🇸", uae: "🇦🇪",
   oman: "🇴🇲", scotland: "🇼", netherlands: "🇳🇱", nepal: "🇳🇵"
