@@ -1,5 +1,5 @@
 // ✅ src/components/TestRanking.js
-// ✅ [Ranaj Parida - 2025-04-21 | Final Fix: Accurate Test Ranking Display with API Integration]
+// ✅ [Ranaj Parida - 2025-04-21 | Debug Enhanced: Final Fix with Live API + Logs]
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -25,14 +25,20 @@ const TestRanking = () => {
   useEffect(() => {
     const fetchTestRankings = async () => {
       try {
-        const response = await axios.get(API_URL);
+        console.log("🚀 Fetching Test Rankings from:", API_URL);
+
+        // ✅ Append timestamp to force fresh data
+        const response = await axios.get(`${API_URL}?t=${Date.now()}`);
         const data = response.data || [];
+
+        console.log("✅ API Raw Data:", data);
 
         // ✅ Sort by backend-provided rating (already rounded)
         const sorted = [...data].sort(
           (a, b) => parseFloat(b.rating) - parseFloat(a.rating)
         );
 
+        console.log("📊 Sorted Test Rankings:", sorted);
         setTestRankings(sorted);
       } catch (error) {
         console.error("❌ Failed to fetch Test Rankings:", error.message);
