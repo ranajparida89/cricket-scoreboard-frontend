@@ -1,6 +1,5 @@
 // ✅ src/components/Navbar.js
-// ✅ [Ranaj Parida - 2025-04-18 | Mobile Menu Button Overlap Fix]
-// ✅ Hover Slide Emoji + Sound + Mobile Fix without breaking layout
+// ✅ [Ranaj Parida - 2025-04-21 | Final Fix: Add 📘 Test Rankings in More menu without affecting other menus]
 
 import React from "react";
 import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
@@ -105,6 +104,16 @@ const AppNavbar = () => {
                 onMouseEnter={() => playSound("hover")}
               >
                 Point Table
+              </NavDropdown.Item>
+
+              {/* ✅ [Added by Ranaj Parida | 21-Apr-2025] Test Ranking Route */}
+              <NavDropdown.Item
+                as={Link}
+                to="/test-ranking"
+                onClick={() => playSound("click")}
+                onMouseEnter={() => playSound("hover")}
+              >
+                📘 Test Rankings
               </NavDropdown.Item>
 
               <NavDropdown.Divider />
