@@ -6,7 +6,6 @@ import axios from "axios";
 import "./TeamRanking.css"; // ✅ Reuse ranking styles
 
 // ✅ API Base
-const API_URL1 = "https://cricket-scoreboard-backend.onrender.com/api/rankings/test";
 const BACKEND = "https://cricket-scoreboard-backend.onrender.com";
 const API_URL = `${BACKEND}/api/rankings/test`; // ✅ Correct Test Ranking Endpoint
 
