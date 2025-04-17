@@ -1,13 +1,12 @@
 // ✅ src/components/TeamRanking.js
-// ✅ [Ranaj Parida - 2025-04-20 | Final Fix: Show ODI, T20, and Test Separately + ≥125 Lines]
+// ✅ [Ranaj Parida - 2025-04-20 | Fixed: No data for ODI/T20 + Show Combined]
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "./TeamRanking.css"; // ✅ Required for styling
+import "./TeamRanking.css";
 
 const BACKEND = "https://cricket-scoreboard-backend.onrender.com";
 
-// ✅ Country flag mapping
 const flagMap = {
   india: "🇮🇳", australia: "🇦🇺", england: "🏴", "new zealand": "🇳🇿",
   pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱🇰", ireland: "🇮🇪",
@@ -17,67 +16,46 @@ const flagMap = {
 };
 
 const TeamRanking = () => {
-  const [odiRankings, setOdiRankings] = useState([]);
-  const [t20Rankings, setT20Rankings] = useState([]);
-  const [testRankings, setTestRankings] = useState([]);
+  const [combined, setCombined] = useState([]);
+  const [test, setTest] = useState([]);
 
-  // ✅ Fetch rankings for all 3 formats
   useEffect(() => {
-    const fetchAllRankings = async () => {
+    const fetchAll = async () => {
       try {
-        const [generalRes, testRes] = await Promise.all([
+        const [res, testRes] = await Promise.all([
           axios.get(`${BACKEND}/api/teams`),
           axios.get(`${BACKEND}/api/rankings/test`)
         ]);
 
-        const allTeams = generalRes.data || [];
-
-        // ✅ Rough logic to separate ODI and T20 based on match count
-        const odi = allTeams.filter(team => team.matches >= 6);
-        const t20 = allTeams.filter(team => team.matches < 6);
-
-        const computeRatings = (list) =>
-          list.map(team => ({
+        const addRating = (teams) =>
+          teams.map((team) => ({
             ...team,
-            rating:
-              team.matches && team.points
-                ? (team.points / team.matches).toFixed(2)
-                : "0.00"
+            rating: team.matches > 0 ? (team.points / team.matches).toFixed(2) : "0.00"
           })).sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
 
-        setOdiRankings(computeRatings(odi));
-        setT20Rankings(computeRatings(t20));
-        setTestRankings(computeRatings(testRes.data || []));
+        setCombined(addRating(res.data || []));
+        setTest(addRating(testRes.data || []));
       } catch (err) {
-        console.error("❌ Error fetching team rankings:", err);
+        console.error("Ranking fetch error:", err);
       }
     };
 
-    fetchAllRankings();
+    fetchAll();
   }, []);
 
-  // ✅ Assign row color and medal highlight
-  const getRowClass = (index, matchType) => {
-    let baseClass = "";
-    if (index === 0) baseClass = "gold";
-    else if (index === 1) baseClass = "silver";
-    else if (index === 2) baseClass = "bronze";
-
-    if (matchType === "ODI") return `${baseClass} odi-row`;
-    if (matchType === "T20") return `${baseClass} t20-row`;
-    if (matchType === "Test") return `${baseClass} test-row`;
-    return baseClass;
+  const getRowClass = (idx, type) => {
+    let base = idx === 0 ? "gold" : idx === 1 ? "silver" : idx === 2 ? "bronze" : "";
+    return `${base} ${type.toLowerCase()}-row`;
   };
 
-  const getMedalEmoji = (index) => {
-    if (index === 0) return <span className="medal-emoji">🥇</span>;
-    if (index === 1) return <span className="medal-emoji">🥈</span>;
-    if (index === 2) return <span className="medal-emoji">🥉</span>;
+  const getMedalEmoji = (idx) => {
+    if (idx === 0) return <span className="medal-emoji">🥇</span>;
+    if (idx === 1) return <span className="medal-emoji">🥈</span>;
+    if (idx === 2) return <span className="medal-emoji">🥉</span>;
     return null;
   };
 
-  // ✅ Renders any ranking table with type and title
-  const renderTable = (teams, title, matchType) => (
+  const renderTable = (teams, title, type) => (
     <div className="mb-5">
       <h4 className="text-warning">{title} Rankings</h4>
       <div className="table-responsive">
@@ -94,7 +72,7 @@ const TeamRanking = () => {
           <tbody>
             {teams.length > 0 ? (
               teams.map((team, idx) => (
-                <tr key={idx} className={getRowClass(idx, matchType)}>
+                <tr key={idx} className={getRowClass(idx, type)}>
                   <td>{getMedalEmoji(idx)} {idx + 1}</td>
                   <td>
                     {flagMap[team.team_name?.toLowerCase()] || "🏳️"}{" "}
@@ -106,9 +84,7 @@ const TeamRanking = () => {
                 </tr>
               ))
             ) : (
-              <tr>
-                <td colSpan="5" className="text-muted">No data available</td>
-              </tr>
+              <tr><td colSpan="5" className="text-muted">No data available</td></tr>
             )}
           </tbody>
         </table>
@@ -120,9 +96,8 @@ const TeamRanking = () => {
     <div className="container mt-5">
       <div className="card bg-dark text-white p-4 shadow">
         <h2 className="text-center text-info mb-4">🌍 Team Rankings</h2>
-        {renderTable(odiRankings, "ODI", "ODI")}
-        {renderTable(t20Rankings, "T20", "T20")}
-        {renderTable(testRankings, "Test", "Test")}
+        {renderTable(combined, "ODI + T20 Combined", "ODI")}
+        {renderTable(test, "Test", "Test")}
       </div>
     </div>
   );
