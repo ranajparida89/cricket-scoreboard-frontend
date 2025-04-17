@@ -254,3 +254,24 @@ h2, h3, h4 {
   50% { text-shadow: 0 0 15px #fff176; transform: scale(1.2); }
   100% { text-shadow: 0 0 5px #ffd700; transform: scale(1); }
 }
+
+/* ✅ 🏏 Navbar Emoji Slide Animation - [Ranaj Parida - 2025-04-17 | 10:20 PM] */
+.hover-slide-emoji {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+}
+.hover-slide-emoji::after {
+  content: '🏏';
+  position: absolute;
+  right: -22px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: right 0.3s ease, opacity 0.3s ease;
+  font-size: 1rem;
+}
+.hover-slide-emoji:hover::after {
+  right: 0px;
+  opacity: 1;
+}

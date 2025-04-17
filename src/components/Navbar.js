@@ -1,11 +1,12 @@
 // ✅ src/components/Navbar.js
-// ✅ [Ranaj Parida - 2025-04-16 | Sound Effect Enhancement]
+// ✅ [Ranaj Parida - 2025-04-17 | Hover Slide Emoji Enhancement]
 // ✅ Click & Hover sound on ALL nav elements without breaking logic
 
 import React from "react";
 import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { playSound } from "../utils/playSound"; // ✅ Sound utility
+import "../theme.css"; // ✅ [Added for emoji hover styles]
 
 const AppNavbar = () => {
   return (
@@ -20,7 +21,7 @@ const AppNavbar = () => {
         <Navbar.Brand
           as={Link}
           to="/"
-          className="fw-bold fs-4"
+          className="fw-bold fs-4 hover-slide-emoji" // ✅ [Hover emoji effect]
           onClick={() => playSound("click")}
           onMouseEnter={() => playSound("hover")}
         >
@@ -31,10 +32,11 @@ const AppNavbar = () => {
 
         <Navbar.Collapse id="navbarScroll">
           <Nav className="me-auto my-2 my-lg-0" navbarScroll>
-            {/* ✅ Sound added to all main nav links */}
+            {/* ✅ Sound + Emoji Hover Enhancement */}
             <Nav.Link
               as={Link}
               to="/matches"
+              className="hover-slide-emoji" // ✅ Emoji hover
               onClick={() => playSound("click")}
               onMouseEnter={() => playSound("hover")}
             >
@@ -44,6 +46,7 @@ const AppNavbar = () => {
             <Nav.Link
               as={Link}
               to="/leaderboard"
+              className="hover-slide-emoji"
               onClick={() => playSound("click")}
               onMouseEnter={() => playSound("hover")}
             >
@@ -53,26 +56,29 @@ const AppNavbar = () => {
             <Nav.Link
               as={Link}
               to="/teams"
+              className="hover-slide-emoji"
               onClick={() => playSound("click")}
               onMouseEnter={() => playSound("hover")}
             >
               Teams
             </Nav.Link>
 
-            {/* ✅ [Ranaj - 2025-04-11] Ranking Tab */}
+            {/* ✅ Ranking Tab */}
             <Nav.Link
               as={Link}
               to="/ranking"
+              className="hover-slide-emoji"
               onClick={() => playSound("click")}
               onMouseEnter={() => playSound("hover")}
             >
               Ranking
             </Nav.Link>
 
-            {/* ✅ Dropdown with sound on each item */}
+            {/* ✅ Dropdown menu with hover sound */}
             <NavDropdown
               title="More"
               id="navbarScrollingDropdown"
+              className="hover-slide-emoji"
               onMouseEnter={() => playSound("hover")}
             >
               <NavDropdown.Item
@@ -133,13 +139,13 @@ const AppNavbar = () => {
             </NavDropdown>
           </Nav>
 
-          {/* ✅ Sound on top-right action buttons */}
+          {/* ✅ Top-right action buttons */}
           <div className="d-flex gap-2">
             <Button
               as={Link}
               to="/add-match"
               variant="success"
-              className="fw-bold"
+              className="fw-bold hover-slide-emoji"
               onClick={() => playSound("click")}
               onMouseEnter={() => playSound("hover")}
             >
@@ -150,7 +156,7 @@ const AppNavbar = () => {
               as={Link}
               to="/add-test-match"
               variant="warning"
-              className="fw-bold text-dark"
+              className="fw-bold text-dark hover-slide-emoji"
               onClick={() => playSound("click")}
               onMouseEnter={() => playSound("hover")}
             >
