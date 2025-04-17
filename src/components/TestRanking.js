@@ -1,13 +1,14 @@
 // ✅ src/components/TestRanking.js
-// ✅ [Ranaj Parida - 2025-04-21 | Final Fix: Accurate Test Ranking Display with Full Comments]
+// ✅ [Ranaj Parida - 2025-04-21 | Final Fix: Accurate Test Ranking Display using /api/rankings/test]
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "./TeamRanking.css"; // ✅ Reuse existing global styles for table layout
+import "./TeamRanking.css"; // ✅ Reuse styles from TeamRanking
 
-const BACKEND = "https://cricket-scoreboard-backend.onrender.com";
+// ✅ Dedicated API endpoint for Test Match Ranking
+const API_URL = "https://cricket-scoreboard-backend.onrender.com/api/rankings/test";
 
-// ✅ Mapping team names to their flag emojis
+// ✅ Mapping team names to their corresponding flag emojis
 const flagMap = {
   india: "🇮🇳", australia: "🇦🇺", england: "🏴", "new zealand": "🇳🇿",
   pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱🇰", ireland: "🇮🇪",
@@ -19,32 +20,31 @@ const flagMap = {
 const TestRanking = () => {
   const [testRankings, setTestRankings] = useState([]);
 
-  // ✅ Fetch Test Rankings on initial render
+  // ✅ Fetch rankings from /api/rankings/test when component mounts
   useEffect(() => {
     const fetchTestRankings = async () => {
       try {
-        const res = await axios.get(`${BACKEND}/api/rankings/test`);
+        const res = await axios.get(API_URL);
         const data = res.data || [];
 
-        // ✅ Compute rating safely in frontend (even though backend provides it)
+        // ✅ Add frontend fallback calculation for safety
         const withRating = data.map((team) => ({
           ...team,
           rating: team.matches > 0 ? (team.points / team.matches).toFixed(2) : "0.00"
         }));
 
-        // ✅ Sort teams by rating (highest first)
+        // ✅ Sort teams by rating descending
         const sorted = withRating.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
-
         setTestRankings(sorted);
       } catch (err) {
-        console.error("❌ Error fetching Test rankings:", err);
+        console.error("❌ Failed to load Test Match Rankings:", err);
       }
     };
 
     fetchTestRankings();
   }, []);
 
-  // ✅ Get row styling class based on rank
+  // ✅ Medal color class logic
   const getRowClass = (idx) => {
     if (idx === 0) return "gold test-row";
     if (idx === 1) return "silver test-row";
@@ -52,7 +52,7 @@ const TestRanking = () => {
     return "test-row";
   };
 
-  // ✅ Glowing medal emojis for top 3 teams
+  // ✅ Glowing medal emojis for top 3 ranks
   const getMedalEmoji = (idx) => {
     if (idx === 0) return <span className="medal-emoji">🥇</span>;
     if (idx === 1) return <span className="medal-emoji">🥈</span>;
@@ -60,7 +60,7 @@ const TestRanking = () => {
     return null;
   };
 
-  // ✅ Render full table with test rankings
+  // ✅ Render Test Match Rankings Table
   return (
     <div className="container mt-5">
       <div className="card bg-dark text-white p-4 shadow">
@@ -91,10 +91,12 @@ const TestRanking = () => {
                 </tr>
               ))}
 
-              {/* ✅ Fallback if no data */}
+              {/* ✅ If no data */}
               {testRankings.length === 0 && (
                 <tr>
-                  <td colSpan="5" className="text-muted">No Test match rankings available</td>
+                  <td colSpan="5" className="text-muted">
+                    No Test match rankings available
+                  </td>
                 </tr>
               )}
             </tbody>
