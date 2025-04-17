@@ -37,6 +37,7 @@
 }
 
 /* ✅ Match toggle buttons container */
+/* ✅ Updated Match Toggle Buttons - Sticky + Z-index Fix [Ranaj Parida | 18-Apr-2025] */
 .toggle-buttons {
   display: flex;
   flex-wrap: wrap;
@@ -46,13 +47,14 @@
   justify-content: flex-start;        /* ✅ ALIGN TO LEFT */
   align-items: center;
 
-  position: sticky;
+  position: sticky;                   /* ✅ Keep sticky behavior */
   top: 100px;                         /* ✅ Ticker height (~40px) + Navbar (~56px) */
-  z-index: 1045;                      /* ✅ Below navbar, above match cards */
+  z-index: 1000 !important;           /* ✅ Lower than dropdown z-index (9999) */
   background-color: #0c1c2c;          /* ✅ Match dark theme */
   padding: 12px 20px;
   border-bottom: 2px solid #00bfff;
 }
+
 
 /* ✅ Button styles */
 .toggle-buttons button {
