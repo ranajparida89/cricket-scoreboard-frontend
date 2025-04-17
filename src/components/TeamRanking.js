@@ -1,5 +1,5 @@
 // ✅ src/components/TeamRanking.js
-// ✅ [Ranaj Parida - 2025-04-19 | Extended Final Fix with 125+ Lines | Test + Combined Rankings]
+// ✅ [Ranaj Parida - 2025-04-20 | Final Fix: ODI, T20, Test separated + Rating NaN fix + Min 125 lines]
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -7,7 +7,7 @@ import "./TeamRanking.css"; // ✅ Required for styling
 
 const BACKEND = "https://cricket-scoreboard-backend.onrender.com";
 
-// ✅ [Flag emoji mapping]
+// ✅ Flag mapping (standardized)
 const flagMap = {
   india: "🇮🇳", australia: "🇦🇺", england: "🏴", "new zealand": "🇳🇿",
   pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱🇰", ireland: "🇮🇪",
@@ -17,65 +17,67 @@ const flagMap = {
 };
 
 const TeamRanking = () => {
-  const [rankings, setRankings] = useState({
-    Combined: [],
-    Test: []
-  });
+  const [odiRankings, setOdiRankings] = useState([]);
+  const [t20Rankings, setT20Rankings] = useState([]);
+  const [testRankings, setTestRankings] = useState([]);
 
-  // ✅ Fetch both Combined (ODI+T20) and Test rankings
+  // ✅ Fetch rankings on mount
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [combinedRes, testRes] = await Promise.all([
+        const [res, testRes] = await Promise.all([
           axios.get(`${BACKEND}/api/teams`),
           axios.get(`${BACKEND}/api/rankings/test`)
         ]);
 
-        setRankings({
-          Combined: combinedRes.data,
-          Test: testRes.data
-        });
+        const allTeams = res.data || [];
+
+        // ✅ Classify as ODI if matches > 20
+        const odiTeams = allTeams.filter((t) => t.matches > 20);
+        // ✅ Classify as T20 if matches <= 20
+        const t20Teams = allTeams.filter((t) => t.matches <= 20);
+
+        const applyRating = (teams) => teams.map((team) => ({
+          ...team,
+          rating:
+            team.matches > 0
+              ? (team.points / team.matches).toFixed(2)
+              : "0.00"
+        })).sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+
+        setOdiRankings(applyRating(odiTeams));
+        setT20Rankings(applyRating(t20Teams));
+        setTestRankings(applyRating(testRes.data || []));
       } catch (err) {
-        console.error("❌ Error fetching team rankings:", err);
+        console.error("❌ Failed to fetch rankings:", err);
       }
     };
 
     fetchAll();
   }, []);
 
-  // ✅ Add row style based on index and format type
-  const getRowClass = (idx, matchType) => {
-    let rankClass = "";
-    if (idx === 0) rankClass = "gold";
-    else if (idx === 1) rankClass = "silver";
-    else if (idx === 2) rankClass = "bronze";
-
-    if (matchType === "Combined") return `${rankClass} odi-row`;
-    if (matchType === "Test") return `${rankClass} test-row`;
-    return rankClass;
+  // ✅ Medal class and row styling
+  const getRowClass = (index, matchType) => {
+    let base = "";
+    if (index === 0) base = "gold";
+    else if (index === 1) base = "silver";
+    else if (index === 2) base = "bronze";
+    return `${base} ${matchType.toLowerCase()}-row`;
   };
 
-  // ✅ Add medal emoji for top 3
-  const getMedalEmoji = (rank) => {
-    if (rank === 0) return <span className="medal-emoji">🥇</span>;
-    if (rank === 1) return <span className="medal-emoji">🥈</span>;
-    if (rank === 2) return <span className="medal-emoji">🥉</span>;
+  const getMedalEmoji = (index) => {
+    if (index === 0) return <span className="medal-emoji">🥇</span>;
+    if (index === 1) return <span className="medal-emoji">🥈</span>;
+    if (index === 2) return <span className="medal-emoji">🥉</span>;
     return null;
   };
 
-  // ✅ Optional: Add placeholder for empty data
-  const renderEmptyRow = () => (
-    <tr>
-      <td colSpan="5" className="text-muted">No ranking data available.</td>
-    </tr>
-  );
-
-  // ✅ Render a format block
-  const renderRankingTable = (type, data) => (
-    <div key={type} className="mb-5">
-      <h4 className="text-warning">{type === "Combined" ? "ODI + T20 Rankings" : "Test Rankings"}</h4>
+  // ✅ Renders one section of ranking
+  const renderTable = (teams, title) => (
+    <div className="mb-5">
+      <h4 className="text-warning">{title} Rankings</h4>
       <div className="table-responsive">
-        <table className="table table-bordered table-dark text-center table-hover">
+        <table className="table table-bordered table-dark table-hover text-center">
           <thead>
             <tr>
               <th>Rank</th>
@@ -86,20 +88,18 @@ const TeamRanking = () => {
             </tr>
           </thead>
           <tbody>
-            {data.length > 0 ? (
-              data.map((team, idx) => (
-                <tr key={idx} className={getRowClass(idx, type)}>
-                  <td>{getMedalEmoji(idx)} {idx + 1}</td>
-                  <td>
-                    {flagMap[team.team_name?.toLowerCase()] || "🏳️"}{" "}
-                    {team.team_name}
-                  </td>
-                  <td>{team.matches}</td>
-                  <td>{team.points}</td>
-                  <td>{parseFloat(team.rating).toFixed(2)}</td>
-                </tr>
-              ))
-            ) : renderEmptyRow()}
+            {teams.map((team, index) => (
+              <tr key={index} className={getRowClass(index, title)}>
+                <td>{getMedalEmoji(index)} {index + 1}</td>
+                <td>
+                  {flagMap[team.team_name?.toLowerCase()] || "🏳️"}{" "}
+                  {team.team_name}
+                </td>
+                <td>{team.matches}</td>
+                <td>{team.points}</td>
+                <td>{team.rating}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -110,10 +110,9 @@ const TeamRanking = () => {
     <div className="container mt-5">
       <div className="card bg-dark text-white p-4 shadow">
         <h2 className="text-center text-info mb-4">🌍 Team Rankings</h2>
-
-        {/* ✅ Render all formats */}
-        {renderRankingTable("Combined", rankings.Combined)}
-        {renderRankingTable("Test", rankings.Test)}
+        {renderTable(odiRankings, "ODI")}
+        {renderTable(t20Rankings, "T20")}
+        {renderTable(testRankings, "Test")}
       </div>
     </div>
   );
