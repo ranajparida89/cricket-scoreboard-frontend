@@ -1,5 +1,5 @@
 // ✅ src/components/TeamRanking.js
-// ✅ [Ranaj Parida - 2025-04-13 | 9:30 PM] Team-wise ICC-style ranking component by match_type (Final Fix with Test)
+// ✅ [Ranaj Parida - 2025-04-22 | Removed Test Match Rankings from main table display]
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -7,13 +7,13 @@ import "./TeamRanking.css"; // ✅ Required for styling
 
 const API_URL = "https://cricket-scoreboard-backend.onrender.com/api/team-rankings";
 
-// ✅ [Ranaj Parida - 2025-04-13 | 9:31 PM] Team flag emojis
+// ✅ Team flag emojis
 const flagMap = {
-  india: "🇮🇳", australia: "🇦🇺", england: "🏴", "new zealand": "🇳🇿",
-  pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱🇰", ireland: "🇮🇪",
+  india: "🇮🇳", australia: "🇦🇺", england: "🇼", "new zealand": "🇳🇿",
+  pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱�\udd f0", ireland: "🇮🇪",
   kenya: "🇰🇪", namibia: "🇳🇦", bangladesh: "🇧🇩", afghanistan: "🇦🇫",
   zimbabwe: "🇿🇼", "west indies": "🏴‍☠️", usa: "🇺🇸", uae: "🇦🇪",
-  oman: "🇴🇲", scotland: "🏴", netherlands: "🇳🇱", nepal: "🇳🇵"
+  oman: "🇴🇲", scotland: "🇼", netherlands: "🇳🇱", nepal: "🇳🇵"
 };
 
 const TeamRanking = () => {
@@ -32,7 +32,7 @@ const TeamRanking = () => {
     fetchRankings();
   }, []);
 
-  // ✅ Group rankings by match_type (ODI, T20, Test)
+  // ✅ Group rankings by match_type (ODI, T20) — Removed Test
   const groupByMatchType = (data) => {
     return data.reduce((acc, team) => {
       if (!acc[team.match_type]) acc[team.match_type] = [];
@@ -52,7 +52,6 @@ const TeamRanking = () => {
 
     if (matchType === "ODI") return `${rankClass} odi-row`;
     if (matchType === "T20") return `${rankClass} t20-row`;
-    if (matchType === "Test") return `${rankClass} test-row`;    
     return rankClass;
   };
 
@@ -67,10 +66,10 @@ const TeamRanking = () => {
   return (
     <div className="container mt-5">
       <div className="card bg-dark text-white p-4 shadow">
-        <h2 className="text-center text-info mb-4">🌍 Team Rankings</h2>
+        <h2 className="text-center text-info mb-4">🌍 ODI and T20 Team Rankings</h2>
 
-        {/* ✅ Loop through ODI, T20, Test groupings */}
-        {["ODI", "T20", "Test"].map((type) => (
+        {/* ✅ Loop only through ODI and T20 groupings (Test Removed) */}
+        {["ODI", "T20"].map((type) => (
           grouped[type] && (
             <div key={type} className="mb-5">
               <h4 className="text-warning">{type.toUpperCase()} Rankings</h4>
@@ -90,7 +89,7 @@ const TeamRanking = () => {
                       <tr key={idx} className={getRowClass(idx, type)}>
                         <td>{getMedalEmoji(idx)} {idx + 1}</td>
                         <td>
-                          {flagMap[team.team_name?.toLowerCase()] || "🏳️"}{" "}
+                          {flagMap[team.team_name?.toLowerCase()] || "🏳️"} {" "}
                           {team.team_name}
                         </td>
                         <td>{team.matches}</td>
@@ -109,4 +108,4 @@ const TeamRanking = () => {
   );
 };
 
-export default TeamRanking
+export default TeamRanking;
