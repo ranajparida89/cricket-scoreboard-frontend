@@ -1,6 +1,6 @@
 // ✅ src/components/Navbar.js
-// ✅ [Ranaj Parida - 2025-04-17 | Hover Slide Emoji Enhancement]
-// ✅ Click & Hover sound on ALL nav elements without breaking logic
+// ✅ [Ranaj Parida - 2025-04-18 | Mobile Menu Button Overlap Fix]
+// ✅ Hover Slide Emoji + Sound + Mobile Fix without breaking layout
 
 import React from "react";
 import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
@@ -36,7 +36,7 @@ const AppNavbar = () => {
             <Nav.Link
               as={Link}
               to="/matches"
-              className="hover-slide-emoji" // ✅ Emoji hover
+              className="hover-slide-emoji"
               onClick={() => playSound("click")}
               onMouseEnter={() => playSound("hover")}
             >
@@ -63,7 +63,6 @@ const AppNavbar = () => {
               Teams
             </Nav.Link>
 
-            {/* ✅ Ranking Tab */}
             <Nav.Link
               as={Link}
               to="/ranking"
@@ -74,14 +73,13 @@ const AppNavbar = () => {
               Ranking
             </Nav.Link>
 
-                    <NavDropdown
-                    title="More"
-                    id="navbarScrollingDropdown"
-                    menuVariant="dark" // ✅ Enables native Bootstrap dark dropdown
-                    className="more-dropdown" // ✅ Custom class for additional dark styling
-                    onMouseEnter={() => playSound("hover")}
-                    >
-
+            <NavDropdown
+              title="More"
+              id="navbarScrollingDropdown"
+              menuVariant="dark"
+              className="more-dropdown"
+              onMouseEnter={() => playSound("hover")}
+            >
               <NavDropdown.Item
                 as={Link}
                 to="/match-history"
@@ -140,13 +138,13 @@ const AppNavbar = () => {
             </NavDropdown>
           </Nav>
 
-          {/* ✅ Top-right action buttons */}
-          <div className="d-flex gap-2">
+          {/* ✅ Moved inside Navbar.Collapse for Mobile View Fix */}
+          <div className="d-flex gap-2 mt-2 mt-lg-0">
             <Button
               as={Link}
               to="/add-match"
               variant="success"
-              className="fw-bold hover-slide-emoji"
+              className="fw-bold hover-slide-emoji w-100 w-lg-auto"
               onClick={() => playSound("click")}
               onMouseEnter={() => playSound("hover")}
             >
@@ -157,7 +155,7 @@ const AppNavbar = () => {
               as={Link}
               to="/add-test-match"
               variant="warning"
-              className="fw-bold text-dark hover-slide-emoji"
+              className="fw-bold text-dark hover-slide-emoji w-100 w-lg-auto"
               onClick={() => playSound("click")}
               onMouseEnter={() => playSound("hover")}
             >
