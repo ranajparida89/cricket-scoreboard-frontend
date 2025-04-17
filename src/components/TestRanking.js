@@ -25,7 +25,7 @@ const TestRanking = () => {
   useEffect(() => {
     const fetchTestRankings = async () => {
       try {
-        console.log("🚀 Fetching Test Rankings from:", API_URL);
+        console.log("🚀 Fetching Test for Rankings from:", API_URL);
 
         // ✅ Append timestamp to force fresh data
         const response = await axios.get(`${API_URL}?t=${Date.now()}`);
