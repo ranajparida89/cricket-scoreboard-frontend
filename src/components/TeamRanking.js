@@ -1,15 +1,13 @@
-// ✅ src/components/TestRanking.js
-// ✅ [Ranaj Parida - 2025-04-21 | Final Fix: Accurate Test Ranking Display with API Integration]
+// ✅ src/components/TeamRanking.js
+// ✅ [Ranaj Parida - 2025-04-13 | 9:30 PM] Team-wise ICC-style ranking component by match_type (Final Fix with Test)
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "./TeamRanking.css"; // ✅ Reuse ranking styles
+import "./TeamRanking.css"; // ✅ Required for styling
 
-// ✅ API Base
-const BACKEND = "https://cricket-scoreboard-backend.onrender.com";
-const API_URL = `${BACKEND}/api/rankings/test`; // ✅ Correct Test Ranking Endpoint
+const API_URL = "https://cricket-scoreboard-backend.onrender.com/api/team-rankings";
 
-// ✅ Map team names to emoji flags
+// ✅ [Ranaj Parida - 2025-04-13 | 9:31 PM] Team flag emojis
 const flagMap = {
   india: "🇮🇳", australia: "🇦🇺", england: "🏴", "new zealand": "🇳🇿",
   pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱🇰", ireland: "🇮🇪",
@@ -18,88 +16,97 @@ const flagMap = {
   oman: "🇴🇲", scotland: "🏴", netherlands: "🇳🇱", nepal: "🇳🇵"
 };
 
-const TestRanking = () => {
-  const [testRankings, setTestRankings] = useState([]);
+const TeamRanking = () => {
+  const [rankings, setRankings] = useState([]);
 
-  // ✅ Fetch accurate Test Rankings from backend
+  // ✅ Fetch team rankings on component mount
   useEffect(() => {
-    const fetchTestRankings = async () => {
+    const fetchRankings = async () => {
       try {
-        const response = await axios.get(API_URL);
-        const data = response.data || [];
-
-        // ✅ Sort by backend-provided rating (already rounded)
-        const sorted = [...data].sort(
-          (a, b) => parseFloat(b.rating) - parseFloat(a.rating)
-        );
-
-        setTestRankings(sorted);
-      } catch (error) {
-        console.error("❌ Failed to fetch Test Rankings:", error.message);
+        const res = await axios.get(API_URL);
+        setRankings(res.data);
+      } catch (err) {
+        console.error("Error fetching rankings:", err);
       }
     };
-
-    fetchTestRankings();
+    fetchRankings();
   }, []);
 
-  // ✅ Style table rows based on rank
-  const getRowClass = (idx) => {
-    if (idx === 0) return "gold test-row";
-    if (idx === 1) return "silver test-row";
-    if (idx === 2) return "bronze test-row";
-    return "test-row";
+  // ✅ Group rankings by match_type (ODI, T20, Test)
+  const groupByMatchType = (data) => {
+    return data.reduce((acc, team) => {
+      if (!acc[team.match_type]) acc[team.match_type] = [];
+      acc[team.match_type].push(team);
+      return acc;
+    }, {});
   };
 
-  // ✅ Show 🥇🥈🥉 for top 3
-  const getMedalEmoji = (idx) => {
-    if (idx === 0) return <span className="medal-emoji">🥇</span>;
-    if (idx === 1) return <span className="medal-emoji">🥈</span>;
-    if (idx === 2) return <span className="medal-emoji">🥉</span>;
+  const grouped = groupByMatchType(rankings);
+
+  // ✅ Add medal-based row styling and match-type coloring
+  const getRowClass = (idx, matchType) => {
+    let rankClass = "";
+    if (idx === 0) rankClass = "gold";
+    else if (idx === 1) rankClass = "silver";
+    else if (idx === 2) rankClass = "bronze";
+
+    if (matchType === "ODI") return `${rankClass} odi-row`;
+    if (matchType === "T20") return `${rankClass} t20-row`;
+    if (matchType === "Test") return `${rankClass} test-row`;    
+    return rankClass;
+  };
+
+  // ✅ Glowing medal emoji wrapper
+  const getMedalEmoji = (rank) => {
+    if (rank === 0) return <span className="medal-emoji">🥇</span>;
+    if (rank === 1) return <span className="medal-emoji">🥈</span>;
+    if (rank === 2) return <span className="medal-emoji">🥉</span>;
     return null;
   };
 
-  // ✅ Render the table
   return (
     <div className="container mt-5">
       <div className="card bg-dark text-white p-4 shadow">
-        <h2 className="text-center text-info mb-4">📘 ICC Test Match Rankings</h2>
-        <div className="table-responsive">
-          <table className="table table-bordered table-dark table-hover text-center">
-            <thead>
-              <tr>
-                <th>Rank</th>
-                <th>Team</th>
-                <th>Matches</th>
-                <th>Points</th>
-                <th>Rating</th>
-              </tr>
-            </thead>
-            <tbody>
-              {testRankings.map((team, idx) => (
-                <tr key={idx} className={getRowClass(idx)}>
-                  <td>{getMedalEmoji(idx)} {idx + 1}</td>
-                  <td>
-                    {flagMap[team.team_name?.toLowerCase()] || "🏳️"}{" "}
-                    {team.team_name}
-                  </td>
-                  <td>{team.matches}</td>
-                  <td>{team.points}</td>
-                  <td><strong>{team.rating}</strong></td>
-                </tr>
-              ))}
-              {testRankings.length === 0 && (
-                <tr>
-                  <td colSpan="5" className="text-muted">
-                    No Test match ranking data available.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <h2 className="text-center text-info mb-4">🌍 Team Rankings</h2>
+
+        {/* ✅ Loop through ODI, T20, Test groupings */}
+        {["ODI", "T20", "Test"].map((type) => (
+          grouped[type] && (
+            <div key={type} className="mb-5">
+              <h4 className="text-warning">{type.toUpperCase()} Rankings</h4>
+              <div className="table-responsive">
+                <table className="table table-bordered text-center table-dark table-hover">
+                  <thead>
+                    <tr>
+                      <th>Rank</th>
+                      <th>Team</th>
+                      <th>Matches</th>
+                      <th>Points</th>
+                      <th>Rating</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {grouped[type].map((team, idx) => (
+                      <tr key={idx} className={getRowClass(idx, type)}>
+                        <td>{getMedalEmoji(idx)} {idx + 1}</td>
+                        <td>
+                          {flagMap[team.team_name?.toLowerCase()] || "🏳️"}{" "}
+                          {team.team_name}
+                        </td>
+                        <td>{team.matches}</td>
+                        <td>{team.points}</td>
+                        <td>{team.rating}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )
+        ))}
       </div>
     </div>
   );
 };
 
-export default TestRanking;
+export default TeamRanking
