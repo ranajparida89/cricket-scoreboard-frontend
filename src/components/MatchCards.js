@@ -46,8 +46,12 @@ const MatchCards = () => {
     return flags[normalized] || "🏳️";
   };
 
+  // ✅ [UPDATED: Added live badge on latest match]
   const renderMatchCard = (match, index) => (
     <div className="match-card mb-4" key={index}>
+      {/* ✅ LIVE PULSE BADGE only for first/latest match */}
+      {index === 0 && <div className="live-badge">🔴 LIVE</div>}
+
       <h5 className="text-white">{match.match_name}</h5>
       <div className="d-flex justify-content-between align-items-center mb-2">
         <div>
@@ -77,10 +81,8 @@ const MatchCards = () => {
     </div>
   );
 
-  // ✅ Updated: Render Test Match Card with proper name and winner message
   const renderTestMatchCard = (match, index) => (
     <div className="match-card mb-4" key={index}>
-      {/* ✅ Show user-entered match name in UPPERCASE */}
       <h5 className="text-white">{match.match_name?.toUpperCase()}</h5>
       <div>
         <h6 className="text-info">{getFlag(match.team1)} {match.team1?.toUpperCase()}</h6>
