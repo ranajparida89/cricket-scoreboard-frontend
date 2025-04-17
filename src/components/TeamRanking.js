@@ -50,9 +50,9 @@ const TeamRanking = () => {
     else if (idx === 1) rankClass = "silver";
     else if (idx === 2) rankClass = "bronze";
 
-    if (matchType === "ODI") return ${rankClass} odi-row;
-    if (matchType === "T20") return ${rankClass} t20-row;
-    if (matchType === "Test") return ${rankClass} test-row;
+    if (matchType === "ODI") return `${rankClass} odi-row`;
+    if (matchType === "T20") return `${rankClass} t20-row`;
+    if (matchType === "Test") return `${rankClass} test-row`;    
     return rankClass;
   };
 
