@@ -275,3 +275,23 @@ h2, h3, h4 {
   right: 0px;
   opacity: 1;
 }
+
+/* ✅ Dark Theme for "More" Dropdown - [Ranaj Parida - 2025-04-18 | Final Fix] */
+.more-dropdown .dropdown-menu {
+  background-color: #132c45 !important;
+  border: 1px solid #00bfff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 255, 255, 0.1);
+}
+
+.more-dropdown .dropdown-item {
+  color: #ffffff;
+  font-weight: 500;
+  padding: 10px 16px;
+  transition: background-color 0.3s ease;
+}
+
+.more-dropdown .dropdown-item:hover {
+  background-color: #0e1f33;
+  color: #00d2ff;
+}

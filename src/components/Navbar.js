@@ -74,11 +74,13 @@ const AppNavbar = () => {
               Ranking
             </Nav.Link>
 
-            <NavDropdown
-                  title="More"
-                  id="navbarScrollingDropdown"
-                  onMouseEnter={() => playSound("hover")}
->
+                    <NavDropdown
+                    title="More"
+                    id="navbarScrollingDropdown"
+                    menuVariant="dark" // ✅ Enables native Bootstrap dark dropdown
+                    className="more-dropdown" // ✅ Custom class for additional dark styling
+                    onMouseEnter={() => playSound("hover")}
+                    >
 
               <NavDropdown.Item
                 as={Link}
