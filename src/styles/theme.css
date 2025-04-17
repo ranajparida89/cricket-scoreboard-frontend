@@ -282,9 +282,10 @@ h2, h3, h4 {
   border: 1px solid #00bfff;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 255, 255, 0.1);
+  position: absolute !important;
+  z-index: 9999 !important;
 }
 
-/* ✅ More Dropdown Items */
 .more-dropdown .dropdown-item {
   color: #ffffff;
   font-weight: 500;
@@ -297,8 +298,10 @@ h2, h3, h4 {
   color: #00d2ff;
 }
 
-/* ✅ Force Visibility for "More" Dropdown Above Buttons - [Ranaj Parida - 2025-04-18 | Z-index Fix] */
-.more-dropdown .dropdown-menu {
-  position: absolute !important;
-  z-index: 9999 !important;
+/* ✅ Prevent Navbar Collapse from Clipping Dropdowns (Mobile Fix) - [Ranaj Parida | 2025-04-18] */
+.navbar,
+.navbar-collapse,
+.navbar-nav {
+  overflow: visible !important;
+  z-index: auto;
 }

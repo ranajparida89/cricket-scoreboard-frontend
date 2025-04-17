@@ -21,7 +21,7 @@ const AppNavbar = () => {
         <Navbar.Brand
           as={Link}
           to="/"
-          className="fw-bold fs-4 hover-slide-emoji" // ✅ [Hover emoji effect]
+          className="fw-bold fs-4 hover-slide-emoji"
           onClick={() => playSound("click")}
           onMouseEnter={() => playSound("hover")}
         >
@@ -30,9 +30,9 @@ const AppNavbar = () => {
 
         <Navbar.Toggle aria-controls="navbarScroll" />
 
-        <Navbar.Collapse id="navbarScroll">
+        {/* ✅ FIX: Allow dropdown to overflow in mobile */}
+        <Navbar.Collapse id="navbarScroll" style={{ overflow: "visible" }}>
           <Nav className="me-auto my-2 my-lg-0" navbarScroll>
-            {/* ✅ Sound + Emoji Hover Enhancement */}
             <Nav.Link
               as={Link}
               to="/matches"
@@ -138,8 +138,8 @@ const AppNavbar = () => {
             </NavDropdown>
           </Nav>
 
-          {/* ✅ Moved inside Navbar.Collapse for Mobile View Fix */}
-          <div className="d-flex gap-2 mt-2 mt-lg-0">
+          {/* ✅ FIXED: Wrapped in flex-column and responsive width to avoid dropdown clipping */}
+          <div className="d-flex flex-column flex-lg-row gap-2 mt-2 mt-lg-0 w-100 position-relative z-1">
             <Button
               as={Link}
               to="/add-match"
