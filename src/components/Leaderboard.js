@@ -67,6 +67,13 @@ const Leaderboard = () => {
     return nrr === null ? "—" : nrr.toFixed(2);
   };
 
+  // ✅ Compute Draws: Matches - Wins - Losses
+  const calculateDraws = (team) => {
+    const { matches_played, wins, losses } = team;
+    const draws = matches_played - wins - losses;
+    return draws >= 0 ? draws : 0;
+  };
+
   return (
     <div className="table-responsive leaderboard-table-wrapper">
       <table className="table table-bordered table-dark table-sm text-center mb-0">
@@ -77,6 +84,7 @@ const Leaderboard = () => {
             <th>Matches</th>
             <th>Wins</th>
             <th>Losses</th>
+            <th>Draws</th> {/* ✅ New Draws Column */}
             <th>Points</th>
             <th>NRR</th>
           </tr>
@@ -89,13 +97,14 @@ const Leaderboard = () => {
               <td>{team.matches_played}</td>
               <td>{team.wins}</td>
               <td>{team.losses}</td>
+              <td>{calculateDraws(team)}</td> {/* ✅ New Draws Cell */}
               <td>{team.points}</td>
               <td>{renderNRR(team.nrr)}</td>
             </tr>
           ))}
           {teams.length === 0 && (
             <tr>
-              <td colSpan="7" className="text-muted">
+              <td colSpan="8" className="text-muted">
                 No match data available.
               </td>
             </tr>
