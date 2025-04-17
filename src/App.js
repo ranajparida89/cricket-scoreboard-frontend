@@ -1,4 +1,3 @@
-// ✅ src/App.js
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AppNavbar from "./components/Navbar";
@@ -12,11 +11,12 @@ import TeamDetails from "./components/TeamDetails";
 import AboutCrickEdge from "./components/AboutCrickEdge";
 import ContactFeedback from "./components/ContactFeedback";
 import PageWrapper from "./components/PageWrapper";
-import TestMatchForm from "./components/TestMatchForm"; // ✅ Test Match Form
-import TestMatchHistory from "./components/TestMatchHistory"; // ✅ Test Match History
-import TeamRanking from "./components/TeamRanking"; // ✅ Team Ranking View
-import PointTable from "./components/PointTable"; // ✅ [Ranaj - 2025-04-14 | Test Match Point Table]
-import MatchTicker from "./components/MatchTicker"; // ✅ [Ranaj - 2025-04-19 | Auto-Ticker Header]
+import TestMatchForm from "./components/TestMatchForm";
+import TestMatchHistory from "./components/TestMatchHistory";
+import TeamRanking from "./components/TeamRanking";
+import TestRanking from "./components/TestRanking"; // ✅ [Ranaj Parida - 2025-04-21 | Test Ranking Page]
+import PointTable from "./components/PointTable";
+import MatchTicker from "./components/MatchTicker";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -42,13 +42,11 @@ function App() {
   return (
     <Router>
       <AppNavbar />
-      <MatchTicker /> {/* ✅ Live auto-switching match ticker below Navbar */}
+      <MatchTicker />
 
       <Routes>
-        {/* ✅ Home Page */}
         <Route path="/" element={<HomePage />} />
 
-        {/* ✅ Add Match (ODI/T20) */}
         <Route
           path="/add-match"
           element={
@@ -58,7 +56,6 @@ function App() {
           }
         />
 
-        {/* ✅ Add Test Match */}
         <Route
           path="/add-test-match"
           element={
@@ -68,7 +65,6 @@ function App() {
           }
         />
 
-        {/* ✅ Test Match History */}
         <Route
           path="/test-history"
           element={
@@ -78,7 +74,6 @@ function App() {
           }
         />
 
-        {/* ✅ Leaderboard */}
         <Route
           path="/leaderboard"
           element={
@@ -88,7 +83,6 @@ function App() {
           }
         />
 
-        {/* ✅ Match History */}
         <Route
           path="/match-history"
           element={
@@ -98,7 +92,6 @@ function App() {
           }
         />
 
-        {/* ✅ Graphs and Charts */}
         <Route
           path="/graphs"
           element={
@@ -108,7 +101,6 @@ function App() {
           }
         />
 
-        {/* ✅ Teams Overview */}
         <Route
           path="/teams"
           element={
@@ -118,7 +110,6 @@ function App() {
           }
         />
 
-        {/* ✅ Team Details */}
         <Route
           path="/teams/:teamName"
           element={
@@ -128,7 +119,6 @@ function App() {
           }
         />
 
-        {/* ✅ About CrickEdge */}
         <Route
           path="/about"
           element={
@@ -138,7 +128,6 @@ function App() {
           }
         />
 
-        {/* ✅ Contact Feedback */}
         <Route
           path="/contact"
           element={
@@ -148,7 +137,6 @@ function App() {
           }
         />
 
-        {/* ✅ Test Match Points Table */}
         <Route
           path="/points"
           element={
@@ -158,15 +146,23 @@ function App() {
           }
         />
 
-        {/* ✅ Matches (same as home) */}
         <Route path="/matches" element={<HomePage />} />
 
-        {/* ✅ Team Rankings */}
         <Route
           path="/ranking"
           element={
             <PageWrapper>
               <TeamRanking />
+            </PageWrapper>
+          }
+        />
+
+        {/* ✅ Separate Test Ranking Route */}
+        <Route
+          path="/test-ranking"
+          element={
+            <PageWrapper>
+              <TestRanking />
             </PageWrapper>
           }
         />
