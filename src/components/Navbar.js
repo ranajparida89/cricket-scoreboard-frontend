@@ -74,13 +74,12 @@ const AppNavbar = () => {
               Ranking
             </Nav.Link>
 
-            {/* ✅ Dropdown menu with hover sound */}
             <NavDropdown
-              title="More"
-              id="navbarScrollingDropdown"
-              className="hover-slide-emoji"
-              onMouseEnter={() => playSound("hover")}
-            >
+                  title="More"
+                  id="navbarScrollingDropdown"
+                  onMouseEnter={() => playSound("hover")}
+>
+
               <NavDropdown.Item
                 as={Link}
                 to="/match-history"
