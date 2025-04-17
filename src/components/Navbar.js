@@ -6,7 +6,7 @@ import React from "react";
 import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { playSound } from "../utils/playSound"; // ✅ Sound utility
-import "../theme.css"; // ✅ [Added for emoji hover styles]
+import "../styles/theme.css"; // ✅ [Added for emoji hover styles]
 
 const AppNavbar = () => {
   return (
