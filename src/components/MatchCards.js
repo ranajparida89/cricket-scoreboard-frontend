@@ -50,7 +50,7 @@ const MatchCards = () => {
   const renderMatchCard = (match, index) => (
     <div className="match-card mb-4" key={index}>
       {/* ✅ LIVE PULSE BADGE only for first/latest match */}
-      {index === 0 && <div className="live-badge">🔴 Recent</div>}
+      {index === 0 && <div className="live-badge">🟢 Recent</div>}
 
       <h5 className="text-white">{match.match_name}</h5>
       <div className="d-flex justify-content-between align-items-center mb-2">
