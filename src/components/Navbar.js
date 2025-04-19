@@ -184,6 +184,38 @@ const AppNavbar = () => {
 
             </div>
           )}
+            {/* ✅ Show Auth Buttons Based on Login State */}
+{loggedInUser && (
+  <div className="d-flex align-items-center me-lg-3 mt-2 mt-lg-0">
+    <img
+      src="/verified-badge.png"
+      alt="Verified"
+      style={{ width: "26px", height: "26px", marginRight: "8px" }}
+    />
+    <span className="text-white fw-bold small">{loggedInUser}</span>
+    <Button
+      size="sm"
+      variant="outline-light"
+      className="ms-2 py-0 px-2 fw-bold"
+      onClick={() => {
+        localStorage.clear();
+        window.location.reload();
+      }}
+    >
+      🔓 Logout
+    </Button>
+  </div>
+)}
+
+{!loggedInUser && (
+  <Button
+    variant="info"
+    className="fw-bold hover-slide-emoji ms-lg-3 mt-2 mt-lg-0"
+    onClick={onAuthClick}
+  >
+    🔐 Sign In / Create User
+  </Button>
+)}
 
           {/* ✅ Button Section for Matches */}
           <div className="d-flex flex-column flex-lg-row gap-2 mt-2 mt-lg-0 w-100 position-relative z-1">
