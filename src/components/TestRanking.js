@@ -19,29 +19,18 @@ const TestRanking = () => {
 
   // ✅ Fetch accurate Test Rankings from backend
   useEffect(() => {
-    const fetchTestRankings = async () => {
+    const fetchData = async () => {
       try {
-        console.log("🚀 Fetching Test for Rankings from:", API_URL);
-
-        // ✅ Append timestamp to force fresh data
         const data = await getTestRankings();
-
-        console.log("✅ API Raw Data:", data);
-
-        // ✅ Sort by backend-provided rating (already rounded)
-        const sorted = [...data].sort(
-          (a, b) => parseFloat(b.rating) - parseFloat(a.rating)
-        );
-
-        console.log("📊 Sorted Test Rankings:", sorted);
+        const sorted = [...data].sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
         setTestRankings(sorted);
-      } catch (error) {
-        console.error("❌ Failed to fetch Test Rankings:", error.message);
+      } catch (err) {
+        console.error("Failed to load Test Rankings:", err.message);
       }
     };
-
-    fetchTestRankings();
+    fetchData();
   }, []);
+  
 
   // ✅ Style table rows based on rank
   const getRowClass = (idx) => {
