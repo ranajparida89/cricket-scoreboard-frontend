@@ -2,10 +2,10 @@
 // ✅ [Ranaj Parida - 2025-04-14 | 8:45 AM] Unified point table with glowing medals, total matches & draws
 
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { getPointTable } from "../services/api"; // ✅ Centralized Point Table API
 
 // ✅ API endpoint for unified point table (with draws)
-const API_URL = "https://cricket-scoreboard-backend.onrender.com/api/points";
+// const API_URL = "https://cricket-scoreboard-backend.onrender.com/api/points";
 
 const PointTable = () => {
   const [points, setPoints] = useState([]);
@@ -13,8 +13,8 @@ const PointTable = () => {
   useEffect(() => {
     const fetchPoints = async () => {
       try {
-        const res = await axios.get(API_URL);
-        setPoints(res.data);
+        const data = await getPointTable();
+        setPoints(data);        
       } catch (error) {
         console.error("Error fetching point table:", error);
       }

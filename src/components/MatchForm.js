@@ -7,6 +7,8 @@ import { playSound } from "../utils/playSound"; // ✅ Sound utility
 import Confetti from "react-confetti"; // ✅ Confetti effect
 import useWindowSize from "react-use/lib/useWindowSize"; // ✅ Full screen sizing
 import "./MatchForm.css"; // ✅ Celebration banner CSS
+import { submitMatchResult } from "../services/api"; // ✅ adjust path if needed
+
 
 const TEAM_MAP = {
   IND: "India", AUS: "Australia", ENG: "England", PAK: "Pakistan", SA: "South Africa",
@@ -74,6 +76,29 @@ const MatchForm = () => {
     if (overs1Error || overs2Error || wickets1Error || wickets2Error) {
       alert("❌ Please fix all validation errors before submitting.");
       return;
+    }
+
+    const matchData = {
+      match_type,
+      match_name,
+      team1,
+      team2,
+      runs1,
+      runs2,
+      overs1,
+      overs2,
+      wickets1,
+      wickets2,
+      winner,
+    };
+  
+    try {
+      await submitMatchResult(matchData);
+      setMessage("✅ Match submitted successfully");
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (err) {
+      console.error(err);
+      setMessage("❌ Submission failed");
     }
 
     try {

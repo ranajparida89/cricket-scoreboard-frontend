@@ -1,7 +1,7 @@
 // src/components/TeamDetails.js
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { getMatchesByTeam } from "../services/api";
 import "./TeamDetails.css";
 
 const trophyData = {
@@ -174,16 +174,16 @@ const TeamDetails = () => {
   useEffect(() => {
     const fetchMatches = async () => {
       try {
-        const res = await axios.get(`/api/match-history?team=${normalized}`);
-        if (Array.isArray(res.data)) {
-          setMatches(res.data);
+        const res = await getMatchesByTeam(normalized);
+        if (Array.isArray(res)) {
+          setMatches(res);
         }
       } catch (err) {
-        console.error("Error fetching matches:", err);
+        console.error("Error fetching team matches:", err);
       }
     };
     fetchMatches();
-  }, [normalized]);
+  }, [normalized]);  
 
   useEffect(() => {
     if (!matches?.length) return;

@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../styles/AuthModal.css"; // ✅ Custom floating modal styles
+import { API_URL } from "../services/api"; // ✅ Base URL for backend
 
 const AuthModal = ({ show, onClose, mode = "login" }) => {
   const [step, setStep] = useState(mode); // login | signup | otp | reset-request | reset-form
@@ -64,7 +65,7 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
       return setMessage("Passwords do not match");
 
     try {
-      await axios.post("/api/signup", { first_name, last_name, email, password });
+        await axios.post(`${API_URL}/signup`, { first_name, last_name, email, password });
       setStep("otp");
       setTimer(25);
       setMessage("OTP sent to your email");

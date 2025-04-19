@@ -2,12 +2,8 @@
 // ✅ [Ranaj Parida - 2025-04-21 | Debug Enhanced: Final Fix with Live API + Logs]
 
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { getTestRankings } from "../services/api"; // ✅ Centralized API call
 import "./TeamRanking.css"; // ✅ Reuse ranking styles
-
-// ✅ API Base
-const BACKEND = "https://cricket-scoreboard-backend.onrender.com";
-const API_URL = `${BACKEND}/api/rankings/test`; // ✅ Correct Test Ranking Endpoint
 
 // ✅ Map team names to emoji flags
 const flagMap = {
@@ -28,8 +24,7 @@ const TestRanking = () => {
         console.log("🚀 Fetching Test for Rankings from:", API_URL);
 
         // ✅ Append timestamp to force fresh data
-        const response = await axios.get(`${API_URL}?t=${Date.now()}`);
-        const data = response.data || [];
+        const data = await getTestRankings();
 
         console.log("✅ API Raw Data:", data);
 

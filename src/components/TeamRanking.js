@@ -2,10 +2,8 @@
 // ✅ [Ranaj Parida - 2025-04-22 | Removed Test Match Rankings from main table display]
 
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import "./TeamRanking.css"; // ✅ Required for styling
-
-const API_URL = "https://cricket-scoreboard-backend.onrender.com/api/team-rankings";
+import { getTeamChartData } from "../services/api"; // ✅ Centralized API call
 
 // ✅ Team flag emojis
 const flagMap = {
@@ -23,7 +21,7 @@ const TeamRanking = () => {
   useEffect(() => {
     const fetchRankings = async () => {
       try {
-        const res = await axios.get(API_URL);
+        const res = await getTeamChartData();
         setRankings(res.data);
       } catch (err) {
         console.error("Error fetching rankings:", err);

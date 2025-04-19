@@ -74,3 +74,9 @@ export const getMatchTicker = async () => {
   const response = await axios.get(`${API_URL}/match-ticker`);
   return response.data;
 };
+
+// ✅ [NEW] Team-wise Match History by Team Name (used in TeamDetails.js)
+export const getMatchesByTeam = async (teamName) => {
+  const response = await axios.get(`${API_URL}/match-history?team=${encodeURIComponent(teamName)}`);
+  return response.data;
+};
