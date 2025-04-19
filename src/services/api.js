@@ -80,3 +80,10 @@ export const getMatchesByTeam = async (teamName) => {
   const response = await axios.get(`${API_URL}/match-history?team=${encodeURIComponent(teamName)}`);
   return response.data;
 };
+
+// ✅ Test Match Rankings (for TestRanking.js)
+export const getTestRankings = async () => {
+  const response = await axios.get(`${API_URL}/rankings/test`);
+  return response.data;
+};
+
