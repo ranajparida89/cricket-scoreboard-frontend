@@ -2,7 +2,7 @@
 // ✅ [Ranaj Parida | 2025-04-19] Celebration Enhanced: 4-sec Confetti, Popup, and Sound
 
 import React, { useState } from "react";
-import { createMatch, submitMatchResult } from "../services/api.js";
+import { createMatch, submitMatchResult } from "../services/api";
 import { playSound } from "../utils/playSound"; // ✅ Sound utility
 import Confetti from "react-confetti"; // ✅ Confetti effect
 import useWindowSize from "react-use/lib/useWindowSize"; // ✅ Full screen sizing
@@ -92,15 +92,6 @@ const MatchForm = () => {
       winner,
     };
   
-    try {
-      await submitMatchResult(matchData);
-      setMessage("✅ Match submitted successfully");
-      setTimeout(() => window.location.reload(), 1500);
-    } catch (err) {
-      console.error(err);
-      setMessage("❌ Submission failed");
-    }
-
     try {
       setIsSubmitting(true);
 
