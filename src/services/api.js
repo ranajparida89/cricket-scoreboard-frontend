@@ -6,7 +6,7 @@
 import axios from "axios";
 
 // ✅ LIVE BACKEND BASE URL (Render)
-const API_URL = "https://cricket-scoreboard-backend.onrender.com/api";
+export const API_URL = "https://cricket-scoreboard-backend.onrender.com/api";
 
 // ✅ Match Creation (for all types)
 export const createMatch = async (matchDetails) => {
