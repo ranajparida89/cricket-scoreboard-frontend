@@ -78,20 +78,6 @@ const MatchForm = () => {
       return;
     }
 
-    const matchData = {
-      match_type,
-      match_name,
-      team1,
-      team2,
-      runs1,
-      runs2,
-      overs1,
-      overs2,
-      wickets1,
-      wickets2,
-      winner,
-    };
-  
     try {
       setIsSubmitting(true);
 
