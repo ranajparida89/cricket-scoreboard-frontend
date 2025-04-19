@@ -1,20 +1,35 @@
 // ✅ src/components/Navbar.js
 // ✅ [Ranaj Parida - 2025-04-21 | Final Fix: Add 📘 Test Rankings in More menu without affecting other menus]
+// ✅ [Ranaj Parida - 2025-04-22 | Show Logged-in Username with Ribbon Badge in Navbar (All Devices)]
 
-import React from "react";
+import React, { useEffect, useState } from "react"; // ✅ Added useEffect/useState for login detection
 import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { playSound } from "../utils/playSound"; // ✅ Sound utility
 import "../styles/theme.css"; // ✅ [Added for emoji hover styles]
 
 const AppNavbar = () => {
+  const [loggedInUser, setLoggedInUser] = useState(null); // ✅ [2025-04-22] For showing user name on top-right
+
+  // ✅ Fetch from localStorage (on mount)
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      const parsed = JSON.parse(user);
+      setLoggedInUser(parsed.first_name || parsed.email?.split("@")[0]);
+    }
+  }, []);
+      // ✅ [Ranaj Parida - 22-Apr-2025 | Show Logged-in Username with Verified Ribbon]
+        const user = JSON.parse(localStorage.getItem("user"));
+        const firstName = user?.first_name || null;
+
   return (
     <Navbar
       bg="dark"
       variant="dark"
       expand="lg"
-      className="px-3 py-2 shadow-sm sticky-top" // ✅ Sticky nav
-      style={{ zIndex: 1030 }} // ✅ Ensure nav stays above content
+      className="px-3 py-2 shadow-sm sticky-top"
+      style={{ zIndex: 1030 }}
     >
       <Container fluid>
         <Navbar.Brand
@@ -29,7 +44,6 @@ const AppNavbar = () => {
 
         <Navbar.Toggle aria-controls="navbarScroll" />
 
-        {/* ✅ FIX: Allow dropdown to overflow in mobile */}
         <Navbar.Collapse id="navbarScroll" style={{ overflow: "visible" }}>
           <Nav className="me-auto my-2 my-lg-0" navbarScroll>
             <Nav.Link
@@ -147,7 +161,31 @@ const AppNavbar = () => {
             </NavDropdown>
           </Nav>
 
-          {/* ✅ FIXED: Wrapped in flex-column and responsive width to avoid dropdown clipping */}
+          {/* ✅ [22-April-2025] User Ribbon Badge Display on Top-Right */}
+          {loggedInUser && (
+            <div className="d-flex align-items-center me-lg-3 mt-2 mt-lg-0">
+              <img
+                src="/verified-badge.png"
+                alt="Verified"
+                style={{ width: "26px", height: "26px", marginRight: "8px" }}
+              />
+              <span className="text-white fw-bold small">{loggedInUser}</span>
+              <Button
+                size="sm"
+                variant="outline-light"
+                className="ms-2 py-0 px-2 fw-bold"
+                 onClick={() => {
+                 localStorage.clear();
+                   window.location.reload();
+                   }}
+              >
+                  🔓 Logout
+                </Button>
+
+            </div>
+          )}
+
+          {/* ✅ Button Section for Matches */}
           <div className="d-flex flex-column flex-lg-row gap-2 mt-2 mt-lg-0 w-100 position-relative z-1">
             <Button
               as={Link}

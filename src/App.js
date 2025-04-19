@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AppNavbar from "./components/Navbar";
 import MatchForm from "./components/MatchForm";
@@ -17,11 +17,25 @@ import TeamRanking from "./components/TeamRanking";
 import TestRanking from "./components/TestRanking"; // ✅ [Ranaj Parida - 2025-04-21 | Test Ranking Page]
 import PointTable from "./components/PointTable";
 import MatchTicker from "./components/MatchTicker";
+import AuthModal from "./components/AuthModal"; // ✅ [Ranaj Parida - 2025-04-22 | User Auth Modal]
+import ProtectedRoute from "./components/ProtectedRoute"; // ✅ [Ranaj Parida - 22-Apr-2025 | Route Guard for login-only pages]
+
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// ✅ Homepage = Match Summary (ODI + T20) + Full Width Leaderboard
+// ✅ Homepage = Match Summary (ODI + T20) + Leaderboard (Restricted for guests)
 function HomePage() {
+  const user = JSON.parse(localStorage.getItem("user")); // ✅ Detect login
+
+  if (!user) {
+    return (
+      <div className="container mt-5 text-center text-warning">
+        <h4>🚫 Please log in to access Match Summary and Leaderboard.</h4>
+        <p>Click the top-right Sign In button to get started 🏏</p>
+      </div>
+    );
+  }
+
   return (
     <div className="container mt-4">
       {/* 🏏 Match Summary Section */}
@@ -39,10 +53,13 @@ function HomePage() {
 }
 
 function App() {
+  const [showAuthModal, setShowAuthModal] = useState(false); // ✅ [Added for Auth Modal Toggle]
+
   return (
     <Router>
-      <AppNavbar />
+      <AppNavbar onAuthClick={() => setShowAuthModal(true)} /> {/* ✅ Trigger modal */}
       <MatchTicker />
+      <AuthModal show={showAuthModal} onClose={() => setShowAuthModal(false)} /> {/* ✅ Auth Modal Entry */}
 
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -65,14 +82,16 @@ function App() {
           }
         />
 
-        <Route
-          path="/test-history"
-          element={
-            <PageWrapper>
-              <TestMatchHistory />
-            </PageWrapper>
-          }
-        />
+<Route
+  path="/test-history"
+  element={
+    <ProtectedRoute> {/* ✅ [Protected | Requires Login] */}
+      <PageWrapper>
+        <TestMatchHistory />
+      </PageWrapper>
+    </ProtectedRoute>
+  }
+/>
 
         <Route
           path="/leaderboard"
@@ -83,23 +102,26 @@ function App() {
           }
         />
 
-        <Route
-          path="/match-history"
-          element={
-            <PageWrapper>
-              <MatchHistory />
-            </PageWrapper>
-          }
-        />
-
-        <Route
-          path="/graphs"
-          element={
-            <PageWrapper>
-              <TeamChart />
-            </PageWrapper>
-          }
-        />
+<Route
+  path="/match-history"
+  element={
+    <ProtectedRoute> {/* ✅ [Protected | Requires Login] */}
+      <PageWrapper>
+        <MatchHistory />
+      </PageWrapper>
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/graphs"
+  element={
+    <ProtectedRoute> {/* ✅ [Protected | Requires Login] */}
+      <PageWrapper>
+        <TeamChart />
+      </PageWrapper>
+    </ProtectedRoute>
+  }
+/>
 
         <Route
           path="/teams"
@@ -137,35 +159,41 @@ function App() {
           }
         />
 
-        <Route
-          path="/points"
-          element={
-            <PageWrapper>
-              <PointTable />
-            </PageWrapper>
-          }
-        />
+<Route
+  path="/points"
+  element={
+    <ProtectedRoute> {/* ✅ [Protected | Requires Login] */}
+      <PageWrapper>
+        <PointTable />
+      </PageWrapper>
+    </ProtectedRoute>
+  }
+/>
 
         <Route path="/matches" element={<HomePage />} />
 
         <Route
-          path="/ranking"
-          element={
-            <PageWrapper>
-              <TeamRanking />
-            </PageWrapper>
-          }
-        />
+  path="/ranking"
+  element={
+    <ProtectedRoute> {/* ✅ [Protected | Requires Login] */}
+      <PageWrapper>
+        <TeamRanking />
+      </PageWrapper>
+    </ProtectedRoute>
+  }
+/>
 
         {/* ✅ Separate Test Ranking Route */}
         <Route
-          path="/test-ranking"
-          element={
-            <PageWrapper>
-              <TestRanking />
-            </PageWrapper>
-          }
-        />
+  path="/test-ranking"
+  element={
+    <ProtectedRoute> {/* ✅ [Protected | Requires Login] */}
+      <PageWrapper>
+        <TestRanking />
+      </PageWrapper>
+    </ProtectedRoute>
+  }
+/>
       </Routes>
     </Router>
   );
