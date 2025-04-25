@@ -1,0 +1,110 @@
+/* ✅ src/styles/SquadLineup.css */
+/* ✅ [Ranaj Parida - 2025-04-25 | CrickEdge Squad Lineup Styles] */
+
+.squad-lineup-container {
+    padding: 2rem;
+    background-color: #0e1a2b;
+    color: white;
+    min-height: 100vh;
+  }
+  
+  .squad-title {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    color: #00cfff;
+  }
+  
+  .lineup-section {
+    background-color: #132c45;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+  }
+  
+  .lineup-section h3 {
+    color: #00ffc6;
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+    border-bottom: 1px solid #00ffc68a;
+    padding-bottom: 0.5rem;
+  }
+  
+  .player-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .player-card {
+    flex: 1 1 200px;
+    background-color: #1b2f45;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #00cfff;
+    transition: transform 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .player-card:hover {
+    transform: scale(1.02);
+    background-color: #203652;
+  }
+  
+  .player-name {
+    font-weight: bold;
+    color: #fff;
+  }
+  
+  .player-icons {
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .player-icons span {
+    display: inline-block;
+  }
+  
+  @media (max-width: 768px) {
+    .player-card {
+      flex: 1 1 100%;
+    }
+  
+    .squad-lineup-container {
+      padding: 1rem;
+    }
+  }
+  /* ✅ Optional: Show grab cursor during drag for reorder */
+.list-group-item {
+    cursor: grab;
+  }
+  
+  /* ✅ Edit Modal Styling */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+  }
+  
+  .modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  }
+  

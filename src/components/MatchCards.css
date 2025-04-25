@@ -1,0 +1,102 @@
+/* ✅ Match Card Styles */
+.match-card {
+  background-color: #132c45;
+  padding: 20px;
+  border-radius: 10px;
+  color: white;
+  border: 1px solid rgba(0, 255, 255, 0.1);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: fadeIn 0.4s ease-in;
+  position: relative; /* ✅ [Added for Live badge positioning] */
+}
+
+.match-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 0 18px rgba(0, 255, 255, 0.15);
+}
+
+/* ✅ Info Text Styles */
+.nrr-info,
+.overs-info {
+  font-size: 14px;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+/* ✅ Smooth fade-in */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ✅ Match toggle buttons container */
+/* ✅ Updated Match Toggle Buttons - Sticky + Z-index Fix [Ranaj Parida | 18-Apr-2025] */
+.toggle-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+
+  justify-content: flex-start;        /* ✅ ALIGN TO LEFT */
+  align-items: center;
+
+  position: sticky;                   /* ✅ Keep sticky behavior */
+  top: 100px;                         /* ✅ Ticker height (~40px) + Navbar (~56px) */
+  z-index: 1000 !important;           /* ✅ Lower than dropdown z-index (9999) */
+  background-color: #0c1c2c;          /* ✅ Match dark theme */
+  padding: 12px 20px;
+  border-bottom: 2px solid #00bfff;
+}
+
+
+/* ✅ Button styles */
+.toggle-buttons button {
+  min-width: 160px;
+  font-weight: 500;
+  transition: transform 0.2s ease;
+}
+
+/* ✅ Button hover pop effect */
+.toggle-buttons button:hover {
+  transform: scale(1.03);
+}
+
+/* ✅ [New Section: Live Score Pulse Badge] */
+/* ✅ Added by Ranaj Parida - 17-April-2025 */
+.live-badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background-color: red;
+  color: white;
+  padding: 3px 12px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: bold;
+  animation: pulse 1.2s infinite;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.6);
+  z-index: 10;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 8px rgba(255, 0, 0, 0.5);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 16px rgba(255, 0, 0, 0.9);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 8px rgba(255, 0, 0, 0.5);
+  }
+}
+/* ✅ End of Live Score Pulse Section */

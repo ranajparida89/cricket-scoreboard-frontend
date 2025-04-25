@@ -1,0 +1,66 @@
+/* ✅ src/components/SidebarMenu.css */
+
+.sidebar-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100%;
+    padding: 20px;
+    z-index: 2000;
+    backdrop-filter: blur(10px); /* ✅ Add translucent background */
+    background-color: rgba(0, 0, 0, 0.3); /* ✅ More transparent (0.3 instead of 0.6) */ /* ✅ Semi-transparent black */
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.6); /* ✅ Soft sidebar glow */
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+  }
+  
+  .sidebar-menu.open {
+    transform: translateX(0); /* ✅ Slide in */
+  }
+  
+  .sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+  }
+  
+  .sidebar-menu ul {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 20px;
+  }
+  
+  .sidebar-menu li {
+    margin: 20px 0;
+  }
+  
+  .sidebar-menu a {
+    text-decoration: none;
+    color: white;
+    font-size: 16px;
+  }
+  
+  .sidebar-menu a:hover {
+    color: cyan;
+  }
+  
+  .close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  
+  /* ✅ Optional tweak: full-height translucent sidebar on larger screens too */
+  @media (min-width: 768px) {
+    .sidebar-menu {
+        background-color: rgba(0, 0, 0, 0.25); /* ✅ Even lighter on large screens */
+      backdrop-filter: blur(10px);
+    }
+  }
+  

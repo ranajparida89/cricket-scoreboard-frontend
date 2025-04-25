@@ -1,0 +1,59 @@
+/* ✅ MatchTicker.css */
+/* 🏏 Ranaj Parida - 2025-04-19 | Ticker Banner Styles */
+
+/* ⬛️ Full Width Ticker Wrapper */
+.ticker-wrapper {
+    width: 100%;
+    background: linear-gradient(to right, #102a43, #0c1c2c);
+    color: #00d2ff;
+    font-weight: 600;
+    font-size: 16px;
+    padding: 10px 0;
+    overflow: hidden;
+    border-bottom: 2px solid #00d2ff;
+    position: sticky;
+    top: 56px;
+    z-index: 1020;
+  }
+  
+  /* 🚀 Smooth scroll animation */
+  .ticker-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: slideFade 0.6s ease-in-out;
+  }
+  
+  /* 🪄 Fade & Slide */
+  @keyframes slideFade {
+    0% {
+      transform: translateY(20%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0%);
+      opacity: 1;
+    }
+  }
+  
+  /* ✨ Text Styling */
+  .ticker-item {
+    white-space: nowrap;
+    text-align: center;
+    padding: 0 16px;
+    animation: blinkIn 0.5s ease-in-out;
+  }
+  
+  /* ✨ Optional blink (can be removed) */
+  @keyframes blinkIn {
+    0% { opacity: 0.3; }
+    100% { opacity: 1; }
+  }
+  
+  /* 🧱 Responsive Font Size */
+  @media (max-width: 768px) {
+    .ticker-wrapper {
+      font-size: 14px;
+    }
+  }
+  

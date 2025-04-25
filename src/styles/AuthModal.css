@@ -1,0 +1,57 @@
+/* ✅ AuthModal.css | [Ranaj Parida - 22-Apr-2025] Floating Auth Modal Styling */
+
+.auth-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .auth-modal-card {
+    background: #112233;
+    padding: 30px;
+    border-radius: 12px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+  }
+  
+  .auth-modal-card input {
+    margin-bottom: 10px;
+    padding: 10px;
+    width: 100%;
+    border: none;
+    border-radius: 6px;
+    outline: none;
+    background: #0b1a2a;
+    color: #fff;
+  }
+  
+  .auth-modal-card button {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    background: #00cc88;
+    color: #000;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+  }
+  
+  .auth-modal-card .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    background: transparent;
+    color: #fff;
+    border: none;
+    font-size: 20px;
+  }
+  
