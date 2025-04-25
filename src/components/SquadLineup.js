@@ -94,7 +94,7 @@ const handleDelete = async (playerId) => {
     if (!window.confirm("Are you sure you want to delete this player?")) return;
   
     try {
-      await axios.delete(`https://cricket-scoreboard-backend.onrender.com/api/players/${playerId}`);
+      await axios.delete(`https://cricket-scoreboard-backend.onrender.com/api/delete-player/${playerId}`); //-- handled for delete 
       setPlayers((prev) => prev.filter((p) => p.id !== playerId));
       alert("✅ Player deleted successfully.");
     } catch (err) {
