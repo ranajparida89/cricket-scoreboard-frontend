@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify"; // ✅ Added
 import "react-toastify/dist/ReactToastify.css"; // ✅ Added
-// import "../styles/PlayerPerformance.css";
+import "../styles/PlayerPerformance.css";
 
 
 const PlayerPerformance = () => {
