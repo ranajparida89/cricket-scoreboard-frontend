@@ -23,6 +23,8 @@ import AddPlayers from "./components/AddPlayers"; // AddPlayer Ranaj Parida 23-0
 import SidebarMenu from "./components/SidebarMenu"; // ✅ Import sidebar Ranaj Parida 23-04-2025
 import PlayerRouteWrapper from "./components/PlayerRouteWrapper"; // ✅ Import this
 import SquadLineup from "./components/SquadLineup"; // ✅ Squad Page
+import PlayerStats from "./components/PlayerStats"; // PlayerStats page 
+
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -226,6 +228,11 @@ function App() {
     </ProtectedRoute>
   }
 />
+<Route path="/player-stats" element={
+  <ProtectedRoute>
+    <PlayerStats />
+  </ProtectedRoute>
+} />
 
 <Route
   path="/squad-lineup"
