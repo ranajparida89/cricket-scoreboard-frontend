@@ -24,7 +24,7 @@ import SidebarMenu from "./components/SidebarMenu"; // ✅ Import sidebar Ranaj 
 import PlayerRouteWrapper from "./components/PlayerRouteWrapper"; // ✅ Import this
 import SquadLineup from "./components/SquadLineup"; // ✅ Squad Page
 import PlayerStats from "./components/PlayerStats"; // PlayerStats page 
-
+import PlayerPerformance from "./components/PlayerPerformance"; // Playerperformance page
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -233,6 +233,13 @@ function App() {
     <PlayerStats />
   </ProtectedRoute>
 } />
+
+<Route path="/player-performance" element={
+  <ProtectedRoute>
+    <PlayerPerformance />
+  </ProtectedRoute>
+} />
+
 
 <Route
   path="/squad-lineup"
