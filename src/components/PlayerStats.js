@@ -21,7 +21,7 @@ const PlayerStats = () => {
   const fetchPerformances = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("https://cricket-scoreboard-backend.onrender.com/api/player-performance");
+      const res = await axios.get("https://cricket-scoreboard-backend.onrender.com/api/player-stats");
       setPerformances(res.data);
       setLoading(false);
     } catch (err) {
