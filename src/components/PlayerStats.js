@@ -162,7 +162,7 @@ const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.tot
 </table>
         </div>
       )}
- {sortedCombinedData.length > 0 && (
+ {combinedData.length > 0 && (
   <>
     <h4 className="text-center text-info mt-5">Player Overall Performance Summary</h4>
     <table className="table table-dark table-striped table-hover">
