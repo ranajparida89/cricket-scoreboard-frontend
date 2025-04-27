@@ -22,6 +22,7 @@ const PlayerPerformance = () => {
     runs_given: 0,
     fifties: 0,
     hundreds: 0,
+    dismissed: "",
   });
 
   useEffect(() => {
@@ -123,6 +124,22 @@ const PlayerPerformance = () => {
             ))}
           </select>
         </div>
+
+        {/* Dismissed (Out/Not Out) */}
+          <div className="mb-2">
+          <label>Dismissed Status</label>
+          <select
+          className="form-select"
+          value={form.dismissed}
+          onChange={(e) => setForm({ ...form, dismissed: e.target.value })}
+           required
+          >
+            <option value="">-- Select Status --</option>
+            <option value="Out">Out</option>
+            <option value="Not Out">Not Out</option>
+          </select>
+        </div>
+
 
         {/* Match Type */}
         <div className="mb-2">

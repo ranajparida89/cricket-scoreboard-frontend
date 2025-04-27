@@ -87,36 +87,52 @@ const PlayerStats = () => {
         <div className="text-center text-warning mt-4">⚠️ No performances found for selected filters.</div>
       ) : (
         <div className="table-responsive">
-          <table className="table table-dark table-striped table-hover">
-            <thead>
-              <tr>
-                <th>Player Name</th>
-                <th>Team Name</th>
-                <th>Match Type</th>
-                <th>Against Team</th>
-                <th>Runs Scored</th>
-                <th>Wickets Taken</th>
-                <th>Runs Given</th>
-                <th>Fifties</th>
-                <th>Hundreds</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPerformances.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.player_name}</td>
-                  <td>{p.team_name}</td>
-                  <td>{p.match_type}</td>
-                  <td>{p.against_team}</td>
-                  <td>{p.run_scored}</td>
-                  <td>{p.wickets_taken}</td>
-                  <td>{p.runs_given}</td>
-                  <td>{p.fifties}</td>
-                  <td>{p.hundreds}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+<table className="table table-dark table-striped table-hover">
+  <thead>
+    <tr>
+      <th>Player Name</th>
+      <th>Team Name</th>
+      <th>Match Type</th>
+      <th>Against Team</th>
+      <th>Runs Scored</th>
+      <th>Highest Score</th> {/* 🆕 Added */}
+      <th>Batting Avg</th> {/* 🆕 Added */}
+      <th>Wickets Taken</th>
+      <th>Runs Given</th>
+      <th>Fifties</th>
+      <th>Hundreds</th>
+    </tr>
+  </thead>
+  <tbody>
+    {filteredPerformances.map((p, index) => {
+      // 🧠 Calculate Batting Average
+      const battingAverage = p.dismissed_status === "out"
+        ? (p.run_scored / 1).toFixed(2) // if out, divide normally
+        : (p.run_scored / 0.5).toFixed(2); // if not out, weight less (fake average to handle 0 dismissal)
+
+      // 🧠 Highest Score is same as run_scored (for now)
+      const highestScore = p.dismissed_status === "not out"
+        ? `${p.run_scored}*`
+        : `${p.run_scored}`;
+
+      return (
+        <tr key={p.id || index}>
+          <td>{p.player_name}</td>
+          <td>{p.team_name}</td>
+          <td>{p.match_type}</td>
+          <td>{p.against_team}</td>
+          <td>{p.run_scored}</td>
+          <td>{highestScore}</td> {/* 🆕 Highest Score displayed */}
+          <td>{battingAverage}</td> {/* 🆕 Batting Avg displayed */}
+          <td>{p.wickets_taken}</td>
+          <td>{p.runs_given}</td>
+          <td>{p.fifties}</td>
+          <td>{p.hundreds}</td>
+        </tr>
+      );
+    })}
+  </tbody>
+</table>
         </div>
       )}
     </div>
