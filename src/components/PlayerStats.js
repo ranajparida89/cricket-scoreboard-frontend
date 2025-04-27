@@ -126,6 +126,7 @@ const PlayerStats = () => {
     );
   })}
 </tbody>
+</table>
         </div>
       )}
     </div>
