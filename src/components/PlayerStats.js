@@ -104,34 +104,29 @@ const PlayerStats = () => {
     </tr>
   </thead>
   <tbody>
-    {filteredPerformances.map((p, index) => {
-      // 🧠 Calculate Batting Average
-      const battingAverage = p.dismissed_status === "out"
-        ? (p.run_scored / 1).toFixed(2) // if out, divide normally
-        : (p.run_scored / 0.5).toFixed(2); // if not out, weight less (fake average to handle 0 dismissal)
+  {filteredPerformances.map((p, index) => {
+    // 🎯 Batting Average calculation for each player
+    const battingAverage = p.dismissed_status === "out"
+      ? (p.run_scored / 1).toFixed(2)
+      : (p.run_scored / 0.5).toFixed(2); // adjust if not out
 
-      // 🧠 Highest Score is same as run_scored (for now)
-      const highestScore = p.dismissed_status === "not out"
-        ? `${p.run_scored}*`
-        : `${p.run_scored}`;
-
-      return (
-        <tr key={p.id || index}>
-          <td>{p.player_name}</td>
-          <td>{p.team_name}</td>
-          <td>{p.match_type}</td>
-          <td>{p.against_team}</td>
-          <td>{p.formatted_run_scored}</td>
-          <td>{highestScore}</td> {/* 🆕 Highest Score displayed */}
-          <td>{battingAverage}</td> {/* 🆕 Batting Avg displayed */}
-          <td>{p.wickets_taken}</td>
-          <td>{p.runs_given}</td>
-          <td>{p.fifties}</td>
-          <td>{p.hundreds}</td>
-        </tr>
-      );
-    })}
-  </tbody>
+    return (
+      <tr key={p.id || index}>
+        <td>{p.player_name}</td>
+        <td>{p.team_name}</td>
+        <td>{p.match_type}</td>
+        <td>{p.against_team}</td>
+        <td>{p.formatted_run_scored}</td> {/* ✅ Runs Scored with * if Not Out */}
+        <td>{p.highest_score}</td>         {/* ✅ Correct Highest Score */}
+        <td>{battingAverage}</td>           {/* ✅ Correct Batting Avg */}
+        <td>{p.wickets_taken}</td>
+        <td>{p.runs_given}</td>
+        <td>{p.fifties}</td>
+        <td>{p.hundreds}</td>
+      </tr>
+    );
+  })}
+</tbody>
 </table>
         </div>
       )}
