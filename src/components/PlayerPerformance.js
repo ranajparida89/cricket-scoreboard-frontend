@@ -22,7 +22,7 @@ const PlayerPerformance = () => {
     runs_given: 0,
     fifties: 0,
     hundreds: 0,
-    dismissed: "",
+    dismissed_status: 'Out'  // added for dismissed column 
   });
 
   useEffect(() => {
@@ -75,6 +75,7 @@ const PlayerPerformance = () => {
       runs_given: 0,
       fifties: 0,
       hundreds: 0,
+      dismissed_status: "Out",
     });
   };
 
@@ -125,22 +126,7 @@ const PlayerPerformance = () => {
           </select>
         </div>
 
-        {/* Dismissed (Out/Not Out) */}
-          <div className="mb-2">
-          <label>Dismissed Status</label>
-          <select
-          className="form-select"
-          value={form.dismissed}
-          onChange={(e) => setForm({ ...form, dismissed: e.target.value })}
-           required
-          >
-            <option value="">-- Select Status --</option>
-            <option value="Out">Out</option>
-            <option value="Not Out">Not Out</option>
-          </select>
-        </div>
-
-
+     
         {/* Match Type */}
         <div className="mb-2">
           <label>Match Type</label>
@@ -186,6 +172,20 @@ const PlayerPerformance = () => {
                 onChange={(e) => setForm({ ...form, [field.key]: Math.max(0, e.target.value) })}
                 required
               />
+                 {/* dismissed_status (Out/Not Out) */}
+          <div className="mb-2">
+          <label>dismissed_status Status</label>
+          <select
+          className="form-select"
+          value={form.dismissed_status}
+          onChange={(e) => setForm({ ...form, dismissed_status: e.target.value })}
+           required
+          >
+            <option value="">-- Select Status --</option>
+            <option value="Out">Out</option>
+            <option value="Not Out">Not Out</option>
+          </select>
+        </div>
             </div>
           ))}
         </div>
