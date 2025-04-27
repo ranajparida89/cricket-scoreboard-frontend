@@ -110,10 +110,9 @@ const PlayerStats = () => {
       ? (p.run_scored / 1).toFixed(2)
       : (p.run_scored / 0.5).toFixed(2);
 
-       // ✅ New: Calculate Bowling Average
-  const bowlingAverage = p.wickets_taken > 0
-  ? (p.runs_given / p.wickets_taken).toFixed(2)
-  : '-'; // If 0 wickets, show dash
+    const bowlingAverage = p.wickets_taken > 0
+      ? (p.runs_given / p.wickets_taken).toFixed(2)
+      : "-";
 
     return (
       <tr key={p.id || index}>
@@ -121,13 +120,14 @@ const PlayerStats = () => {
         <td>{p.team_name}</td>
         <td>{p.match_type}</td>
         <td>{p.against_team}</td>
-        <td>{p.formatted_run_scored}</td> {/* ✅ Runs Scored */}
-        <td>{p.highest_score}</td> {/* ✅ Highest Score with * */}
+        <td>{p.formatted_run_scored}</td> {/* ✅ Runs Scored with * if Not Out */}
+        <td>{p.highest_score}</td> {/* ✅ Highest Score */}
         <td>{battingAverage}</td> {/* ✅ Batting Average */}
+        <td>{bowlingAverage}</td> {/* ✅ Bowling Average */}
         <td>{p.wickets_taken}</td>
         <td>{p.runs_given}</td>
         <td>{p.fifties}</td>
-        <td>{p.hundreds}</td>
+        <td>{p.hundreds}</td> {/* ✅ Hundreds will now come correctly */}
       </tr>
     );
   })}
