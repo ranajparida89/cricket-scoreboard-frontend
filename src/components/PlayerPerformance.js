@@ -174,7 +174,7 @@ const PlayerPerformance = () => {
               />
                  {/* dismissed_status (Out/Not Out) */}
           <div className="mb-2">
-          <label>dismissed_status Status</label>
+          <label>Dismissed Status Status</label>
           <select
           className="form-select"
           value={form.dismissed_status}
