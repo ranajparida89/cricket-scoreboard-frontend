@@ -105,10 +105,9 @@ const PlayerStats = () => {
   </thead>
   <tbody>
   {filteredPerformances.map((p, index) => {
-    // 🎯 Batting Average calculation for each player
     const battingAverage = p.dismissed_status === "out"
       ? (p.run_scored / 1).toFixed(2)
-      : (p.run_scored / 0.5).toFixed(2); // adjust if not out
+      : (p.run_scored / 0.5).toFixed(2);
 
     return (
       <tr key={p.id || index}>
@@ -116,9 +115,9 @@ const PlayerStats = () => {
         <td>{p.team_name}</td>
         <td>{p.match_type}</td>
         <td>{p.against_team}</td>
-        <td>{p.formatted_run_scored}</td> {/* ✅ Runs Scored with * if Not Out */}
-        <td>{p.highest_score}</td>         {/* ✅ Correct Highest Score */}
-        <td>{battingAverage}</td>           {/* ✅ Correct Batting Avg */}
+        <td>{p.formatted_run_scored}</td> {/* ✅ Runs Scored */}
+        <td>{p.highest_score}</td> {/* ✅ Highest Score with * */}
+        <td>{battingAverage}</td> {/* ✅ Batting Average */}
         <td>{p.wickets_taken}</td>
         <td>{p.runs_given}</td>
         <td>{p.fifties}</td>
@@ -127,7 +126,6 @@ const PlayerStats = () => {
     );
   })}
 </tbody>
-</table>
         </div>
       )}
     </div>
