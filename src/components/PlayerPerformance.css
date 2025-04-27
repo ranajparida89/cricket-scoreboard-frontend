@@ -94,3 +94,22 @@ h4 {
 .table-striped tbody tr:nth-of-type(even) {
   background-color: #0d2742;
 }
+
+/* 🏆 Medal Row Colors for Top 3 Players */
+.gold-row {
+  background-color: #ffd700 !important; /* Gold */
+  color: #000;
+  font-weight: bold;
+}
+
+.silver-row {
+  background-color: #c0c0c0 !important; /* Silver */
+  color: #000;
+  font-weight: bold;
+}
+
+.bronze-row {
+  background-color: #cd7f32 !important; /* Bronze */
+  color: #000;
+  font-weight: bold;
+}
