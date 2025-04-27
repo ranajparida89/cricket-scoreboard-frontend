@@ -41,6 +41,33 @@ const PlayerStats = () => {
   if (loading) {
     return <div className="text-center text-light mt-5">⏳ Loading performances...</div>;
   }
+  const combinedData = [];
+
+filteredPerformances.forEach((perf) => {
+  const existing = combinedData.find(
+    (p) =>
+      p.player_name === perf.player_name &&
+      p.team_name === perf.team_name &&
+      p.match_type === perf.match_type
+  );
+
+  if (existing) {
+    existing.total_runs += parseInt(perf.run_scored) || 0;
+    existing.total_wickets += parseInt(perf.wickets_taken) || 0;
+    existing.total_fifties += parseInt(perf.fifties) || 0;
+    existing.total_hundreds += parseInt(perf.hundreds) || 0;
+  } else {
+    combinedData.push({
+      player_name: perf.player_name,
+      team_name: perf.team_name,
+      match_type: perf.match_type,
+      total_runs: parseInt(perf.run_scored) || 0,
+      total_wickets: parseInt(perf.wickets_taken) || 0,
+      total_fifties: parseInt(perf.fifties) || 0,
+      total_hundreds: parseInt(perf.hundreds) || 0,
+    });
+  }
+});
 
   return (
     <div className="container mt-4 text-white">
@@ -135,6 +162,37 @@ const PlayerStats = () => {
 </table>
         </div>
       )}
+ {combinedData.length > 0 && (
+  <>
+    <h4 className="text-center text-info mt-5">Player Overall Performance Summary</h4>
+    <table className="table table-dark table-striped table-hover">
+      <thead>
+        <tr>
+          <th>Player Name</th>
+          <th>Team Name</th>
+          <th>Match Type</th>
+          <th>Total Runs</th>
+          <th>Total Wickets</th>
+          <th>Total Fifty(s)</th>
+          <th>Total Hundred(s)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {combinedData.map((p, index) => (
+          <tr key={index}>
+            <td>{p.player_name}</td>
+            <td>{p.team_name}</td>
+            <td>{p.match_type}</td>
+            <td>{p.total_runs}</td>
+            <td>{p.total_wickets}</td>
+            <td>{p.total_fifties}</td>
+            <td>{p.total_hundreds}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </>
+)}
     </div>
   );
 };

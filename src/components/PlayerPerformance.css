@@ -1,65 +1,96 @@
 /* ✅ PlayerPerformance.css - Beautiful Upgrade */
 
+/* ✅ Form Card Styling */
 .performance-card {
-    background: linear-gradient(145deg, #132c45, #0f1e2c);
-    border-radius: 20px;
-    padding: 30px;
-    max-width: 800px;
-    margin: 40px auto;
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
-    color: white;
-    animation: fadeIn 0.5s ease-in;
-  }
-  
-  .performance-card h3 {
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 28px;
-    color: #00ffff;
-  }
-  
-  .performance-card label {
-    font-weight: 600;
-    margin-bottom: 6px;
-  }
-  
-  .performance-card .form-control,
-  .performance-card .form-select {
-    border-radius: 10px;
-    padding: 10px;
-    background-color: #0f1e2c;
-    color: #ffffff;
-    border: 1px solid #00ffff;
-  }
-  
-  .performance-card .form-control::placeholder {
-    color: #aaa;
-  }
-  
-  .performance-card .form-select:focus,
-  .performance-card .form-control:focus {
-    border-color: #00ffff;
-    box-shadow: 0 0 8px #00ffff;
-  }
-  
-  .performance-card .submit-btn {
-    margin-top: 25px;
-    background-color: #00ff99;
-    color: #0f1e2c;
-    font-weight: bold;
-    border-radius: 12px;
-    padding: 12px 20px;
-    border: none;
-    transition: background 0.3s ease;
-  }
-  
-  .performance-card .submit-btn:hover {
-    background-color: #00ffcc;
-    transform: scale(1.05);
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
+  background: linear-gradient(145deg, #132c45, #0f1e2c);
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 800px;
+  margin: 40px auto;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+  color: white;
+  animation: fadeIn 0.5s ease-in;
+}
+
+.performance-card h3 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 28px;
+  color: #00ffff;
+}
+
+.performance-card label {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.performance-card .form-control,
+.performance-card .form-select {
+  border-radius: 10px;
+  padding: 10px;
+  background-color: #0f1e2c;
+  color: #ffffff;
+  border: 1px solid #00ffff;
+}
+
+.performance-card .form-control::placeholder {
+  color: #aaa;
+}
+
+.performance-card .form-select:focus,
+.performance-card .form-control:focus {
+  border-color: #00ffff;
+  box-shadow: 0 0 8px #00ffff;
+}
+
+.performance-card .submit-btn {
+  margin-top: 25px;
+  background-color: #00ff99;
+  color: #0f1e2c;
+  font-weight: bold;
+  border-radius: 12px;
+  padding: 12px 20px;
+  border: none;
+  transition: background 0.3s ease;
+}
+
+.performance-card .submit-btn:hover {
+  background-color: #00ffcc;
+  transform: scale(1.05);
+}
+
+/* ✅ Animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ✅ Table Enhancements (NEW - For Player Stats Tables) */
+.table {
+  margin-bottom: 2rem;
+}
+
+h4 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+  color: #00cfff;
+}
+
+.table th {
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.table td {
+  font-size: 0.9rem;
+  vertical-align: middle;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: #0b2239;
+}
+
+.table-striped tbody tr:nth-of-type(even) {
+  background-color: #0d2742;
+}
