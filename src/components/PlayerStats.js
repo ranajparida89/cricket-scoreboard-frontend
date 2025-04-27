@@ -121,7 +121,7 @@ const PlayerStats = () => {
           <td>{p.team_name}</td>
           <td>{p.match_type}</td>
           <td>{p.against_team}</td>
-          <td>{p.run_scored}</td>
+          <td>{p.dismissed_status?.toLowerCase() === "not out" ? `${p.run_scored}*` : p.run_scored}</td>
           <td>{highestScore}</td> {/* 🆕 Highest Score displayed */}
           <td>{battingAverage}</td> {/* 🆕 Batting Avg displayed */}
           <td>{p.wickets_taken}</td>
