@@ -97,6 +97,7 @@ const PlayerStats = () => {
       <th>Runs Scored</th>
       <th>Highest Score</th> {/* 🆕 Added */}
       <th>Batting Avg</th> {/* 🆕 Added */}
+      <th>Bowling Avg</th> {/* ✅ New Column */}
       <th>Wickets Taken</th>
       <th>Runs Given</th>
       <th>Fifties</th>
@@ -108,6 +109,11 @@ const PlayerStats = () => {
     const battingAverage = p.dismissed_status === "out"
       ? (p.run_scored / 1).toFixed(2)
       : (p.run_scored / 0.5).toFixed(2);
+
+       // ✅ New: Calculate Bowling Average
+  const bowlingAverage = p.wickets_taken > 0
+  ? (p.runs_given / p.wickets_taken).toFixed(2)
+  : '-'; // If 0 wickets, show dash
 
     return (
       <tr key={p.id || index}>
