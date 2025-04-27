@@ -156,40 +156,44 @@ const PlayerPerformance = () => {
 
         {/* Performance Inputs */}
         <div className="row">
-          {[
-            { label: "Runs Scored", key: "run_scored" },
-            { label: "Wickets Taken", key: "wickets_taken" },
-            { label: "Runs Given", key: "runs_given" },
-            { label: "Fifties", key: "fifties" },
-            { label: "Hundreds", key: "hundreds" },
-          ].map((field) => (
-            <div className="col-md-4 mb-2" key={field.key}>
-              <label>{field.label}</label>
-              <input
-                type="number"
-                className="form-control"
-                value={form[field.key]}
-                onChange={(e) => setForm({ ...form, [field.key]: Math.max(0, e.target.value) })}
-                required
-              />
-                 {/* dismissed_status (Out/Not Out) */}
-          <div className="mb-2">
-          <label>Dismissed Status Status</label>
-          <select
-          className="form-select"
-          value={form.dismissed_status}
-          onChange={(e) => setForm({ ...form, dismissed_status: e.target.value })}
-           required
-          >
-            <option value="">-- Select Status --</option>
-            <option value="Out">Out</option>
-            <option value="Not Out">Not Out</option>
-          </select>
-        </div>
-            </div>
-          ))}
-        </div>
+       {/* ✅ Performance Inputs */}
+<div className="row">
+  {/* Performance Fields */}
+  {[
+    { label: "Runs Scored", key: "run_scored" },
+    { label: "Wickets Taken", key: "wickets_taken" },
+    { label: "Runs Given", key: "runs_given" },
+    { label: "Fifties", key: "fifties" },
+    { label: "Hundreds", key: "hundreds" },
+  ].map((field) => (
+    <div className="col-md-4 mb-2" key={field.key}>
+      <label>{field.label}</label>
+      <input
+        type="number"
+        className="form-control"
+        value={form[field.key]}
+        onChange={(e) => setForm({ ...form, [field.key]: Math.max(0, e.target.value) })}
+        required
+      />
+    </div>
+  ))}
 
+  {/* ✅ Dismissed Status Field */}
+  <div className="col-md-4 mb-2">
+    <label>Dismissed Status</label>
+    <select
+      className="form-select"
+      value={form.dismissed_status}
+      onChange={(e) => setForm({ ...form, dismissed_status: e.target.value })}
+      required
+    >
+      <option value="">-- Select Status --</option>
+      <option value="Out">Out</option>
+      <option value="Not Out">Not Out</option>
+    </select>
+  </div>
+</div>
+</div>
         {/* Submit Button */}
         <div className="d-flex justify-content-end">
           <button type="submit" className="btn btn-success mt-3">
