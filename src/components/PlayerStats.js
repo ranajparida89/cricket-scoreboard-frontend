@@ -37,7 +37,7 @@ const PlayerStats = () => {
     const matchTypeMatch = filters.matchType ? p.match_type === filters.matchType : true;
     return playerMatch && teamMatch && matchTypeMatch;
   });
-
+// I have to add sort here?
   if (loading) {
     return <div className="text-center text-light mt-5">⏳ Loading performances...</div>;
   }
@@ -50,7 +50,7 @@ filteredPerformances.forEach((perf) => {
       p.team_name === perf.team_name &&
       p.match_type === perf.match_type
   );
-
+     // Do I have to add sort here?
   if (existing) {
     existing.total_runs += parseInt(perf.run_scored) || 0;
     existing.total_wickets += parseInt(perf.wickets_taken) || 0;
@@ -68,7 +68,7 @@ filteredPerformances.forEach((perf) => {
     });
   }
 });
-
+const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.total_runs);  // sort logic
   return (
     <div className="container mt-4 text-white">
       <ToastContainer position="top-center" />
