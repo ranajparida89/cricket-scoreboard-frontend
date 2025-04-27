@@ -22,7 +22,7 @@ const PlayerPerformance = () => {
     runs_given: 0,
     fifties: 0,
     hundreds: 0,
-    dismissed_status: 'Out'  // added for dismissed column 
+    dismissed: 'Out'  // added for dismissed column 
   });
 
   useEffect(() => {
@@ -75,7 +75,7 @@ const PlayerPerformance = () => {
       runs_given: 0,
       fifties: 0,
       hundreds: 0,
-      dismissed_status: "Out",
+      dismissed: "Out",
     });
   };
 
@@ -183,8 +183,8 @@ const PlayerPerformance = () => {
     <label>Dismissed Status</label>
     <select
       className="form-select"
-      value={form.dismissed_status}
-      onChange={(e) => setForm({ ...form, dismissed_status: e.target.value })}
+      value={form.dismissed}
+      onChange={(e) => setForm({ ...form, dismissed: e.target.value })}
       required
     >
       <option value="">-- Select Status --</option>
