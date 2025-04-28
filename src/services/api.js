@@ -51,19 +51,15 @@ export const getMatchHistory = async (filters = {}) => {
   return response.data;
 };
 
-// ✅ [NEW] Upcoming Matches Fetcher (for Qualification Scenario)
+// ✅ [UPDATED] Fetch All Matches for Qualification Scenario (Ignore future match filtering temporarily)
 export const getUpcomingMatches = async () => {
   const response = await axios.get(`${API_URL}/match-history`);
   const matches = response.data;
 
-  const now = new Date();
-  const upcoming = matches.filter(match => {
-    const matchTime = new Date(match.match_time);
-    return matchTime > now; // Only future matches
-  });
-
-  return upcoming;
+  // 🔁 For now, return all matches (skip filtering by match_time)
+  return matches;
 };
+
 
 
 // ✅ Test Matches (raw fetch - optional use)
