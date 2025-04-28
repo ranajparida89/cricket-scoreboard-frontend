@@ -15,7 +15,8 @@ export function oversToDecimal(overs) {
     const scenarios = [];
   
     // Find target team (the team trying to qualify)
-    const targetTeam = teamsData.find(team => team.name.toLowerCase() === targetTeamName.toLowerCase());
+       const targetTeam = teamsData.find(team => (team.name || "").toLowerCase() === targetTeamName.toLowerCase());
+
   
     if (!targetTeam) {
       return [`Team ${targetTeamName} not found in teams list.`];
