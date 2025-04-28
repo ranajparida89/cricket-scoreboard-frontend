@@ -9,7 +9,8 @@ const QualificationScenario = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const targetTeamName = "India"; // Later can be dynamically changed based on login
+  // ❌ REMOVE hardcoded targetTeamName = "India"
+  // We will now dynamically process all matches, not only for India
 
   const fetchData = async () => {
     try {
@@ -26,13 +27,17 @@ const QualificationScenario = () => {
         throw new Error("No upcoming matches found");
       }
 
-      const result = calculateQualificationScenario(teamsData, upcomingMatches, targetTeamName);
+      // ✅ UPDATED LOGIC: Calculate scenarios for ALL matches (dynamic, not only for India)
+      const results = upcomingMatches.map(match => {
+        const scenario = calculateQualificationScenario(teamsData, [match], match.team1);
+        return scenario[0]; // take first scenario always
+      });
 
-      if (!result || result.length === 0) {
+      if (!results || results.length === 0) {
         throw new Error("No qualification scenarios generated");
       }
 
-      setScenarios(result);
+      setScenarios(results);
     } catch (err) {
       console.error("Error fetching or calculating scenarios:", err);
       setError(true);
@@ -77,9 +82,9 @@ const QualificationScenario = () => {
         <ul style={styles.list}>
           {scenarios.map((s, index) => (
             <li key={index} style={styles.listItem}>
-              <h3>Match: {s.match}</h3>
-              <p>🚀 {s.battingFirstScenario}</p>
-              <p>⚡ {s.chasingScenario}</p>
+              <h3>Match: {s?.match || "N/A"}</h3> {/* ✅ Added safe null check */}
+              <p>🚀 {s?.battingFirstScenario || "Scenario not available"}</p> {/* ✅ Added safe null check */}
+              <p>⚡ {s?.chasingScenario || "Scenario not available"}</p> {/* ✅ Added safe null check */}
             </li>
           ))}
         </ul>
