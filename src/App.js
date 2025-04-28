@@ -25,6 +25,7 @@ import PlayerRouteWrapper from "./components/PlayerRouteWrapper"; // ✅ Import 
 import SquadLineup from "./components/SquadLineup"; // ✅ Squad Page
 import PlayerStats from "./components/PlayerStats"; // PlayerStats page 
 import PlayerPerformance from "./components/PlayerPerformance"; // Playerperformance page
+import QualificationScenario from './components/QualificationScenario';
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -251,6 +252,7 @@ function App() {
     </ProtectedRoute>
   }
 />
+<Route path="/qualification-scenario" element={<QualificationScenario />} />
       </Routes>
     </Router>
   );

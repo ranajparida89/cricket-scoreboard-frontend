@@ -31,6 +31,7 @@ const SidebarMenu = () => {
         <li><Link to="/player-performance" onClick={handleClose}><FaUserCheck className="me-2" /> Player Performance</Link></li>
         <li><Link to="/player-stats" onClick={handleClose}><FaChartLine className="me-2" /> Player Stats</Link></li>
         <li><Link to="/squad-lineup" onClick={handleClose}><FaUsers className="me-2" /> Squad / Lineup</Link></li>
+        <li><Link to="/qualification-scenario" onClick={handleClose}><FaChartLine className="me-2" /> Qualification Scenario</Link> {/* NEW */}</li>
       </ul>
     </div>
   );
