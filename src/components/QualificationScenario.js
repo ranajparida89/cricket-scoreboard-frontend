@@ -81,14 +81,18 @@ const QualificationScenario = () => {
           <p>No qualification scenarios available currently. Matches are being updated live!</p>
         </div>
       ) : (
-                  <ul style={styles.list}>
-                  {scenarios.map((s, index) => (
-            <li key={index} style={styles.listItem}>
-              <h3>Match: {s.match}</h3>
-              <p>🚀 {s.battingFirstScenario}</p>
-              <p>⚡ {s.chasingScenario}</p>
-            </li>
-          ))}
+                            <ul style={styles.list}>
+                          {scenarios.map((s, index) => {
+            if (!s || !s.match) return null; // skip broken data
+            return (
+              <li key={index} style={styles.listItem}>
+                <h3>Match: {s.match}</h3>
+                <p>🚀 {s.battingFirstScenario}</p>
+                <p>⚡ {s.chasingScenario}</p>
+              </li>
+            );
+          })}
+
         </ul>
       )}
     </div>
