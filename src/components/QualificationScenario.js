@@ -30,18 +30,30 @@ const QualificationScenario = () => {
       }
 
       // ✅ UPDATED LOGIC: Calculate scenarios for ALL matches (dynamic, not only for India)
-      const results = upcomingMatches
-      .map(match => calculateQualificationScenario(teamsData, [match], match.team1))
-      .filter(Boolean)         // remove null or undefined results
-      .map(res => res[0])      // take first scenario
-      .filter(Boolean);        // remove any leftover falsy values
-    
+// ✅ Final Scenario Evaluation Logic with Safeguards
+const results = [];
 
-      if (!results || results.length === 0) {
-        throw new Error("No qualification scenarios generated");
-      }
+upcomingMatches.forEach(match => {
+  if (!match || !match.team1 || !match.team2) return; // safety check
 
-      setScenarios(results);
+  try {
+    const scenarios = calculateQualificationScenario(teamsData, [match], match.team1);
+    if (Array.isArray(scenarios) && scenarios.length > 0 && scenarios[0]?.match) {
+      results.push(scenarios[0]); // push only valid scenario
+    } else {
+      console.warn("⚠️ No scenario generated for match:", match.match_name || match);
+    }
+  } catch (e) {
+    console.error("❌ Error while generating scenario for match:", match.match_name || match, e);
+  }
+});
+
+if (results.length === 0) {
+  throw new Error("No qualification scenarios generated");
+}
+
+setScenarios(results);
+
     } catch (err) {
       console.error("Error fetching or calculating scenarios:", err);
       setError(true);

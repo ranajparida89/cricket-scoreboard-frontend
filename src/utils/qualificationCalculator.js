@@ -20,10 +20,12 @@ const cutoffTeam = sortedTeams[3]; // 4th position cutoff (index 3)
 const requiredNRR = cutoffTeam.nrr;
 
 teamsData.forEach(targetTeam => {
+  if (!targetTeam || !targetTeam.name) return;  // newly added
   if (!targetTeam || targetTeam.points >= cutoffTeam.points) return;
 
   // Loop through upcoming matches where targetTeam is playing
   upcomingMatches.forEach((match) => {
+    if (!match || !match.team1 || !match.team2) return; // added new line
     const team1 = (match.team1 || "").toLowerCase();
     const team2 = (match.team2 || "").toLowerCase();
     const targetName = (targetTeam?.name || "").toLowerCase();
