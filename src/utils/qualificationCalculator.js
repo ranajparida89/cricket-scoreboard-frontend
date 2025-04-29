@@ -24,16 +24,18 @@ teamsData.forEach(targetTeam => {
 
   // Loop through upcoming matches where targetTeam is playing
   upcomingMatches.forEach((match) => {
-    const team1 = match.team1.toLowerCase();
-    const team2 = match.team2.toLowerCase();
-    const targetName = targetTeam.name.toLowerCase();
-
+    const team1 = (match.team1 || "").toLowerCase();
+    const team2 = (match.team2 || "").toLowerCase();
+    const targetName = (targetTeam?.name || "").toLowerCase();
+  
     if (team1 === targetName || team2 === targetName) {
       const opponent = team1 === targetName ? match.team2 : match.team1;
-
+  
+      if (!opponent) return; // skip if opponent is undefined
+  
       const battingFirstScenario = generateBattingFirstScenario(targetTeam, opponent, requiredNRR);
       const chasingScenario = generateChasingScenario(targetTeam, opponent, requiredNRR);
-
+  
       scenarios.push({
         match: `${targetTeam.name} vs ${opponent}`,
         battingFirstScenario,
@@ -41,6 +43,7 @@ teamsData.forEach(targetTeam => {
       });
     }
   });
+  
 });
 
   
