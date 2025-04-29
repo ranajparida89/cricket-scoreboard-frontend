@@ -1,9 +1,9 @@
 // src/components/QualificationScenario.js
 import React, { useEffect, useState } from "react";
 import { calculateQualificationScenario } from "../utils/qualificationCalculator";
-import { getTeams, getUpcomingMatches } from "../services/api"; // Existing API service assumed
-import { FaRedo } from "react-icons/fa"; // For Retry button
 import { getTeams, getUpcomingMatchList } from "../services/api";
+import { FaRedo } from "react-icons/fa"; // For Retry button
+
 
 
 const QualificationScenario = () => {
