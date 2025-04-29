@@ -104,3 +104,8 @@ export const addUpcomingMatch = async (matchData) => {
   return response.data;
 };
 
+// ✅ [Upcoming Matches] Get list of all upcoming matches
+export const getUpcomingMatchList = async () => {
+  const response = await axios.get(`${API_URL}/upcoming-matches`);
+  return response.data;
+};
