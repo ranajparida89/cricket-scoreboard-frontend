@@ -14,38 +14,35 @@ export function oversToDecimal(overs) {
   
     const scenarios = [];
   
-    // Find target team (the team trying to qualify)
-       const targetTeam = teamsData.find(team => (team.name || "").toLowerCase() === targetTeamName.toLowerCase());
+  // ✅ Loop through every team (except top 4) to generate scenario
+const sortedTeams = [...teamsData].sort((a, b) => b.points - a.points || b.nrr - a.nrr);
+const cutoffTeam = sortedTeams[3]; // 4th position cutoff (index 3)
+const requiredNRR = cutoffTeam.nrr;
 
-  
-    if (!targetTeam) {
-      return [`Team ${targetTeamName} not found in teams list.`];
+teamsData.forEach(targetTeam => {
+  if (!targetTeam || targetTeam.points >= cutoffTeam.points) return;
+
+  // Loop through upcoming matches where targetTeam is playing
+  upcomingMatches.forEach((match) => {
+    const team1 = match.team1.toLowerCase();
+    const team2 = match.team2.toLowerCase();
+    const targetName = targetTeam.name.toLowerCase();
+
+    if (team1 === targetName || team2 === targetName) {
+      const opponent = team1 === targetName ? match.team2 : match.team1;
+
+      const battingFirstScenario = generateBattingFirstScenario(targetTeam, opponent, requiredNRR);
+      const chasingScenario = generateChasingScenario(targetTeam, opponent, requiredNRR);
+
+      scenarios.push({
+        match: `${targetTeam.name} vs ${opponent}`,
+        battingFirstScenario,
+        chasingScenario,
+      });
     }
-  
-    // Identify the "cut-off" NRR to beat (e.g., NRR of 4th ranked team if top 4 qualify)
-    const sortedTeams = [...teamsData].sort((a, b) => b.points - a.points || b.nrr - a.nrr);
-    const cutoffTeam = sortedTeams[3]; // 4th position cutoff (index 3)
-  
-    const requiredNRR = cutoffTeam.nrr; // Target NRR to beat
-  
-    // Simulate matches
-    upcomingMatches.forEach((match) => {
-      if (match.team1.toLowerCase() === targetTeamName.toLowerCase() || match.team2.toLowerCase() === targetTeamName.toLowerCase()) {
-        const opponent = match.team1.toLowerCase() === targetTeamName.toLowerCase() ? match.team2 : match.team1;
-  
-        // Batting First Scenario
-        const battingFirstScenario = generateBattingFirstScenario(targetTeam, opponent, requiredNRR);
-  
-        // Chasing Scenario
-        const chasingScenario = generateChasingScenario(targetTeam, opponent, requiredNRR);
-  
-        scenarios.push({
-          match: `${targetTeam.name} vs ${opponent}`,
-          battingFirstScenario,
-          chasingScenario,
-        });
-      }
-    });
+  });
+});
+
   
     return scenarios;
   }

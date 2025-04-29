@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import { calculateQualificationScenario } from "../utils/qualificationCalculator";
 import { getTeams, getUpcomingMatches } from "../services/api"; // Existing API service assumed
 import { FaRedo } from "react-icons/fa"; // For Retry button
+import { getTeams, getUpcomingMatchList } from "../services/api";
+
 
 const QualificationScenario = () => {
   const [scenarios, setScenarios] = useState([]);
@@ -18,7 +20,7 @@ const QualificationScenario = () => {
       setError(false);
 
       const teamsData = await getTeams();
-      const upcomingMatches = await getUpcomingMatches();
+      const upcomingMatches = await getUpcomingMatchList();
 
       if (!teamsData || teamsData.length === 0) {
         throw new Error("No teams data found");
@@ -79,12 +81,12 @@ const QualificationScenario = () => {
           <p>No qualification scenarios available currently. Matches are being updated live!</p>
         </div>
       ) : (
-        <ul style={styles.list}>
-          {scenarios.map((s, index) => (
+                  <ul style={styles.list}>
+                  {scenarios.map((s, index) => (
             <li key={index} style={styles.listItem}>
-              <h3>Match: {s?.match || "N/A"}</h3> {/* ✅ Added safe null check */}
-              <p>🚀 {s?.battingFirstScenario || "Scenario not available"}</p> {/* ✅ Added safe null check */}
-              <p>⚡ {s?.chasingScenario || "Scenario not available"}</p> {/* ✅ Added safe null check */}
+              <h3>Match: {s.match}</h3>
+              <p>🚀 {s.battingFirstScenario}</p>
+              <p>⚡ {s.chasingScenario}</p>
             </li>
           ))}
         </ul>
