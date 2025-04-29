@@ -98,3 +98,9 @@ export const getTestRankings = async () => {
   return response.data;
 };
 
+// ✅ Add Upcoming Match (used in AddUpcomingMatch.js)
+export const addUpcomingMatch = async (matchData) => {
+  const response = await axios.post(`${API_URL}/upcoming-match`, matchData);
+  return response.data;
+};
+
