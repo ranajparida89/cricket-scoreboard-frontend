@@ -30,10 +30,12 @@ const QualificationScenario = () => {
       }
 
       // ✅ UPDATED LOGIC: Calculate scenarios for ALL matches (dynamic, not only for India)
-      const results = upcomingMatches.map(match => {
-        const scenario = calculateQualificationScenario(teamsData, [match], match.team1);
-        return scenario[0]; // take first scenario always
-      });
+      const results = upcomingMatches
+      .map(match => calculateQualificationScenario(teamsData, [match], match.team1))
+      .filter(Boolean)         // remove null or undefined results
+      .map(res => res[0])      // take first scenario
+      .filter(Boolean);        // remove any leftover falsy values
+    
 
       if (!results || results.length === 0) {
         throw new Error("No qualification scenarios generated");
