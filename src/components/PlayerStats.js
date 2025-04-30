@@ -168,6 +168,7 @@ const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.tot
     <table className="table table-dark table-striped table-hover">
       <thead>
         <tr>
+        <th>Rank</th> {/* ✅ New Rank column */}
           <th>Player Name</th>
           <th>Team Name</th>
           <th>Match Type</th>
@@ -179,23 +180,23 @@ const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.tot
       </thead>
       <tbody>
   {sortedCombinedData.map((p, index) => (
-    <tr 
-      key={index}
-      className={
-        index === 0 ? 'gold-row' :
-        index === 1 ? 'silver-row' :
-        index === 2 ? 'bronze-row' :
-        ''
-      }
-    >
-      <td>{p.player_name}</td>
-      <td>{p.team_name}</td>
-      <td>{p.match_type}</td>
-      <td>{p.total_runs}</td>
-      <td>{p.total_wickets}</td>
-      <td>{p.total_fifties}</td>
-      <td>{p.total_hundreds}</td>
-    </tr>
+    <tr
+    key={index}
+    className={
+      index === 0 ? 'gold-row' :
+      index === 1 ? 'silver-row' :
+      index === 2 ? 'bronze-row' : ''
+    }
+  >
+    <td>{index + 1}</td> {/* ✅ Rank shown by index */}
+    <td>{p.player_name}</td>
+    <td>{p.team_name}</td>
+    <td>{p.match_type}</td>
+    <td>{p.total_runs}</td>
+    <td>{p.total_wickets}</td>
+    <td>{p.total_fifties}</td>
+    <td>{p.total_hundreds}</td>
+  </tr>  
   ))} {/* ✅ close the map */}
 </tbody>
     </table>
