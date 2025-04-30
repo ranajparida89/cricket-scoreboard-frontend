@@ -40,6 +40,7 @@ teamsData.forEach(targetTeam => {
     const targetName = (targetTeam?.team_name || "").trim().toLowerCase();
   
     if (team1 === targetName || team2 === targetName) {
+      console.log("🎯 Match found! Target team:", targetTeamName, "vs", opponent);
       console.log("🧪 Comparing:", {
         team1,
         team2,
@@ -50,14 +51,17 @@ teamsData.forEach(targetTeam => {
       const opponent = team1 === targetName ? match.team_2 : match.team_1;
 
   
-      if (!opponent) return; // skip if opponent is undefined
-                          // 🔽 ADD THIS
-                console.log("📊 Scenario calc call with:", {
-                  targetTeam,
-                  opponent,
-                  requiredNRR
-                });
-      console.warn("⚠️ Skipping scenario, opponent not found for match:", match.match_name);
+      if (!opponent) {
+        console.warn("⚠️ Skipping scenario, opponent not found for match:", match.match_name);
+        return;
+      }
+      
+      // ✅ Only runs if opponent is valid
+      console.log("📊 Scenario calc call with:", {
+        targetTeam,
+        opponent,
+        requiredNRR
+      });      
       const battingFirstScenario = generateBattingFirstScenario(targetTeam, opponent, requiredNRR);
       const chasingScenario = generateChasingScenario(targetTeam, opponent, requiredNRR);
       console.log("✅ Scenario generated for:", targetTeam.team_name, "vs", opponent);
