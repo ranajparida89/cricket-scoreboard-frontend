@@ -82,12 +82,6 @@ teamsData.forEach(targetTeam => {
   
   function generateChasingScenario(team, opponent, requiredNRR) {
     // Assume opponent scores 250 in 50 overs
-     // 🔽 ADD THIS
-            console.log("📊 Scenario calc call with:", {
-              targetTeam,
-              opponent,
-              requiredNRR
-            });
     const opponentRuns = 250;
     const opponentOversFaced = 50;
   
