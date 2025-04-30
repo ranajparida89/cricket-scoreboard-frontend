@@ -21,6 +21,7 @@ const QualificationScenario = () => {
 
       const teamsData = await getTeams();
       const upcomingMatches = await getUpcomingMatchList();
+      console.log("✅ Upcoming Matches from API:", upcomingMatches);
 
       if (!teamsData || teamsData.length === 0) {
         throw new Error("No teams data found");
