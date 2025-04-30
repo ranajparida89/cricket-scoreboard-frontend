@@ -77,7 +77,7 @@ const AddUpcomingMatch = () => {
         ...formData,
         team_playing: teamPlaying,
       };
-
+      console.log("🛰️ Sending match payload to backend:", payload); // handle error log
       const response = await addUpcomingMatch(payload);
       alert("Match Scheduled Successfully!");
       // Reset form
