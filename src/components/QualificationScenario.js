@@ -37,21 +37,23 @@ const QualificationScenario = () => {
 const results = [];
 
 upcomingMatches.forEach(match => {
-          console.log(
-            "🔍 Checking match:",
-            match.match_name,
-            "| team1:", match.team1,
-            "| team2:", match.team2
-          );
+        console.log(
+          "🔍 Checking match:",
+          match.match_name,
+          "| team1:", match.team_1,
+          "| team2:", match.team_2
+        );
+  
+          
   if (!match || !match.team_1 || !match.team_2) return; // safety check
 
   try {
-    console.log("📊 Running scenario calc for team:", match.team_1, "with full teamsData:", teamsData);
-  
     const team1 = match.team_1;
     const team2 = match.team_2;
-  
-    const scenarios = calculateQualificationScenario(teamsData, [match], team1);
+
+console.log("📊 Running scenario calc for team:", team1, "with full teamsData:", teamsData);
+const scenarios = calculateQualificationScenario(teamsData, [match], team1);
+
   
     if (Array.isArray(scenarios) && scenarios.length > 0 && scenarios[0]?.match) {
       results.push(scenarios[0]); // push only valid scenario
