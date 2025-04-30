@@ -36,7 +36,7 @@ const QualificationScenario = () => {
 // ✅ Final Scenario Evaluation Logic with Safeguards
 const results = [];
 
-upcomingMatches.forEach(match => {
+upcomingMatches.forEach(match, index => {
   console.log(`🔍 [${index}] Checking match:`, match);
         console.log(
           "🔍 Checking match:",
