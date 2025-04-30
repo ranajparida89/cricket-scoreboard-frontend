@@ -48,7 +48,7 @@ teamsData.forEach(targetTeam => {
         match
       });
       
-      const opponent = team1 === targetName ? match.team_2 : match.team_1;
+      const opponent = team1 === targetName ? match.team2 : match.team1;
 
   
       if (!opponent) {
@@ -67,7 +67,7 @@ teamsData.forEach(targetTeam => {
       console.log("✅ Scenario generated for:", targetTeam.team_name, "vs", opponent);
 
       scenarios.push({
-        match: `${targetTeam.team_name} vs ${opponent}`,
+        match: `${targetTeam.team_name} vs ${opponent?.trim?.() || "???"}`,
         battingFirstScenario,
         chasingScenario,
       });
