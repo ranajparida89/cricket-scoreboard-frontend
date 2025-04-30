@@ -24,9 +24,11 @@ const QualificationScenario = () => {
       console.log("✅ Upcoming Matches from API:", upcomingMatches);
 
       if (!teamsData || teamsData.length === 0) {
+        console.log("✅ Teams Data from DB:", teamsData);
         throw new Error("No teams data found");
       }
       if (!upcomingMatches || upcomingMatches.length === 0) {
+        console.log("✅ Upcoming Matches from API:", upcomingMatches);
         throw new Error("No upcoming matches found");
       }
 
@@ -35,9 +37,16 @@ const QualificationScenario = () => {
 const results = [];
 
 upcomingMatches.forEach(match => {
+          console.log(
+            "🔍 Checking match:",
+            match.match_name,
+            "| team1:", match.team1,
+            "| team2:", match.team2
+          );
   if (!match || !match.team1 || !match.team2) return; // safety check
 
   try {
+    console.log("📊 Running scenario calc for team:", match.team1, "with full teamsData:", teamsData);
     const scenarios = calculateQualificationScenario(teamsData, [match], match.team1);
     if (Array.isArray(scenarios) && scenarios.length > 0 && scenarios[0]?.match) {
       results.push(scenarios[0]); // push only valid scenario
