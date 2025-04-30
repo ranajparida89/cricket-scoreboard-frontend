@@ -26,12 +26,13 @@ teamsData.forEach(targetTeam => {
   // Loop through upcoming matches where targetTeam is playing
   upcomingMatches.forEach((match) => {
     if (!match || !match.team1 || !match.team2) return; // added new line
-    const team1 = (match.team1 || "").toLowerCase();
-    const team2 = (match.team2 || "").toLowerCase();
+    const team1 = (match.team_1 || "").toLowerCase();
+    const team2 = (match.team_2 || "").toLowerCase();    
     const targetName = (targetTeam?.name || "").toLowerCase();
   
     if (team1 === targetName || team2 === targetName) {
-      const opponent = team1 === targetName ? match.team2 : match.team1;
+      const opponent = team1 === targetName ? match.team_2 : match.team_1;
+
   
       if (!opponent) return; // skip if opponent is undefined
   
