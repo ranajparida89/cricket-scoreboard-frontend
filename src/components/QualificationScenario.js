@@ -37,6 +37,7 @@ const QualificationScenario = () => {
 const results = [];
 
 upcomingMatches.forEach(match => {
+  console.log(`🔍 [${index}] Checking match:`, match);
         console.log(
           "🔍 Checking match:",
           match.match_name,
