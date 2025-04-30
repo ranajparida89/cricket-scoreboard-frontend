@@ -21,6 +21,7 @@ const requiredNRR = cutoffTeam.nrr;
 
 teamsData.forEach(targetTeam => {
   console.log("🔬 Target Team in loop:", targetTeam?.name, "Looking for:", targetTeamName);
+  console.log("📦 targetTeam full object:", targetTeam);
   if (!targetTeam || !targetTeam.name) return;  // newly added
   if (!targetTeam || targetTeam.points >= cutoffTeam.points) return;
 
