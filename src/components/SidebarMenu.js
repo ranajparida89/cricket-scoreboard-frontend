@@ -33,7 +33,9 @@ const SidebarMenu = () => {
         <li><Link to="/squad-lineup" onClick={handleClose}><FaUsers className="me-2" /> Squad / Lineup</Link></li>
         <li><Link to="/add-upcoming-match" onClick={handleClose}><FaPlus className="me-2" /> Add Upcoming Match</Link></li>
         <li><Link to="/upcoming-matches" onClick={handleClose}><FaChartLine className="me-2" /> Upcoming Match Details</Link> {/* NEW */}</li>
-        <li><Link to="/player-rankings" onClick={handleClose}><FaChartLine className="me-2" /> 🏆 CrickEdge Rankings</Link></li>
+
+
+     
 
 
       </ul>
@@ -43,5 +45,6 @@ const SidebarMenu = () => {
 
 export default SidebarMenu;
 
+// <li><Link to="/player-rankings" onClick={handleClose}><FaChartLine className="me-2" /> 🏆 CrickEdge Rankings</Link></li>
 
 // <li><Link to="/qualification-scenario" onClick={handleClose}><FaChartLine className="me-2" /> Qualification Scenario</Link> {/* NEW */}</li>
