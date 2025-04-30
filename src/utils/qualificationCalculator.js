@@ -20,9 +20,9 @@ const cutoffTeam = sortedTeams[3]; // 4th position cutoff (index 3)
 const requiredNRR = cutoffTeam.nrr;
 
 teamsData.forEach(targetTeam => {
-  console.log("🔬 Target Team in loop:", targetTeam?.name, "Looking for:", targetTeamName);
+  console.log("🔁 Target Team in loop:", targetTeam?.team_name, "Looking for:", targetTeamName);
   console.log("📦 targetTeam full object:", targetTeam);
-  if (!targetTeam || !targetTeam.name) return;  // newly added
+  if (!targetTeam || !targetTeam.team_name) return;
   if (!targetTeam || targetTeam.points >= cutoffTeam.points) return;
 
   // Loop through upcoming matches where targetTeam is playing
@@ -30,7 +30,7 @@ teamsData.forEach(targetTeam => {
     if (!match || !match.team1 || !match.team2) return; // added new line
     const team1 = (match.team_1 || "").toLowerCase();
     const team2 = (match.team_2 || "").toLowerCase();    
-    const targetName = (targetTeam?.name || "").toLowerCase();
+    const targetName = (targetTeam?.team_name || "").toLowerCase();
   
     if (team1 === targetName || team2 === targetName) {
       const opponent = team1 === targetName ? match.team_2 : match.team_1;
@@ -40,10 +40,10 @@ teamsData.forEach(targetTeam => {
       console.warn("⚠️ Skipping scenario, opponent not found for match:", match.match_name);
       const battingFirstScenario = generateBattingFirstScenario(targetTeam, opponent, requiredNRR);
       const chasingScenario = generateChasingScenario(targetTeam, opponent, requiredNRR);
-      console.log("✅ Scenario generated for:", targetTeam.name, "vs", opponent);
+      console.log("✅ Scenario generated for:", targetTeam.team_name, "vs", opponent);
 
       scenarios.push({
-        match: `${targetTeam.name} vs ${opponent}`,
+        match: `${targetTeam.team_name} vs ${opponent}`,
         battingFirstScenario,
         chasingScenario,
       });
@@ -71,7 +71,7 @@ teamsData.forEach(targetTeam => {
   
     const newNRR = ((ownRunsScored / ownOversFaced) - (team.runsConceded + maxOpponentRuns) / opponentOversBowled).toFixed(3);
   
-    return `If ${team.name} scores 300+ and restricts ${opponent} under 150 in 30 overs, new NRR will be ~${newNRR}`;
+    return `If ${team.team_name} scores 300+ and restricts ${opponent} under 150 in 30 overs, new NRR will be ~${newNRR}`;
   }
   
   function generateChasingScenario(team, opponent, requiredNRR) {
@@ -92,6 +92,6 @@ teamsData.forEach(targetTeam => {
   
     const newNRR = ((newRunsScored / newOversFaced) - (newRunsConceded / newOversBowled)).toFixed(3);
   
-    return `If ${team.name} chases ${targetRuns} in under ${bestCaseOversToChase} overs, new NRR will be ~${newNRR}`;
+    return `If ${team.team_name} chases ${targetRuns} in under ${bestCaseOversToChase} overs, new NRR will be ~${newNRR}`;
   }
   
