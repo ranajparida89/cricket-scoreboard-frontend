@@ -20,6 +20,7 @@ const cutoffTeam = sortedTeams[3]; // 4th position cutoff (index 3)
 const requiredNRR = cutoffTeam.nrr;
 
 teamsData.forEach(targetTeam => {
+  console.log("🔬 Target Team in loop:", targetTeam?.name, "Looking for:", targetTeamName);
   if (!targetTeam || !targetTeam.name) return;  // newly added
   if (!targetTeam || targetTeam.points >= cutoffTeam.points) return;
 
@@ -35,10 +36,11 @@ teamsData.forEach(targetTeam => {
 
   
       if (!opponent) return; // skip if opponent is undefined
-  
+      console.warn("⚠️ Skipping scenario, opponent not found for match:", match.match_name);
       const battingFirstScenario = generateBattingFirstScenario(targetTeam, opponent, requiredNRR);
       const chasingScenario = generateChasingScenario(targetTeam, opponent, requiredNRR);
-  
+      console.log("✅ Scenario generated for:", targetTeam.name, "vs", opponent);
+
       scenarios.push({
         match: `${targetTeam.name} vs ${opponent}`,
         battingFirstScenario,
