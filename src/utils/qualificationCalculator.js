@@ -37,6 +37,12 @@ teamsData.forEach(targetTeam => {
 
   
       if (!opponent) return; // skip if opponent is undefined
+                          // 🔽 ADD THIS
+                console.log("📊 Scenario calc call with:", {
+                  targetTeam,
+                  opponent,
+                  requiredNRR
+                });
       console.warn("⚠️ Skipping scenario, opponent not found for match:", match.match_name);
       const battingFirstScenario = generateBattingFirstScenario(targetTeam, opponent, requiredNRR);
       const chasingScenario = generateChasingScenario(targetTeam, opponent, requiredNRR);
@@ -76,6 +82,12 @@ teamsData.forEach(targetTeam => {
   
   function generateChasingScenario(team, opponent, requiredNRR) {
     // Assume opponent scores 250 in 50 overs
+     // 🔽 ADD THIS
+            console.log("📊 Scenario calc call with:", {
+              targetTeam,
+              opponent,
+              requiredNRR
+            });
     const opponentRuns = 250;
     const opponentOversFaced = 50;
   
