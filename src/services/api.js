@@ -109,3 +109,11 @@ export const getUpcomingMatchList = async () => {
   const response = await axios.get(`${API_URL}/upcoming-matches`);
   return response.data;
 };
+
+// ✅ [NEW] Player Rankings by type & match format
+export const getPlayerRankings = async (type, matchType) => {
+  const response = await axios.get(
+    `${API_URL}/rankings/players?type=${type}&match_type=${matchType}`
+  );
+  return response.data;
+};

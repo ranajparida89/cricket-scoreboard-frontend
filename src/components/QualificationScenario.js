@@ -38,6 +38,7 @@ const results = [];
 
 upcomingMatches.forEach(match => {
         console.log(
+          
           "🔍 Checking match:",
           match.match_name,
           "| team1:", match.team_1,

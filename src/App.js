@@ -28,6 +28,8 @@ import PlayerPerformance from "./components/PlayerPerformance"; // Playerperform
 import QualificationScenario from './components/QualificationScenario'; // qualifiaction
 import AddUpcomingMatch from "./components/AddUpcomingMatch";// for Addupcoming match
 import UpcomingMatches from "./components/UpcomingMatches"; // upcoming match details
+import PlayerRankings from "./components/PlayerRankings"; // playerratings
+
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -257,6 +259,8 @@ function App() {
 <Route path="/qualification-scenario" element={<QualificationScenario />} />
 <Route path="/add-upcoming-match" element={<AddUpcomingMatch />} />
 <Route path="/upcoming-matches" element={<UpcomingMatches />} />
+<Route path="/player-rankings" element={<PlayerRankings />} />
+
 
 
       </Routes>
