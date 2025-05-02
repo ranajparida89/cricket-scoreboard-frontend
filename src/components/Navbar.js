@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 import { playSound } from "../utils/playSound"; // ✅ Sound utility
 import "../styles/theme.css"; // ✅ [Added for emoji hover styles]
 
-const AppNavbar = ({ onAuthClick }) => {
+const AppNavbar = ({ onAuthClick, toggleTheme }) => {
   const [loggedInUser, setLoggedInUser] = useState(null); // ✅ [2025-04-22] For showing user name on top-right
 
   // ✅ Fetch from localStorage (on mount)
@@ -54,7 +54,25 @@ const AppNavbar = ({ onAuthClick }) => {
           <span style={{ color: '#228B22' }}>Edge</span>
           <span style={{ color: '#FFFFFF' }}>.in</span>
         </span>
-        </Navbar.Brand>
+                          <button
+                    onClick={toggleTheme}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      marginLeft: '10px',
+                      fontSize: '20px',
+                    }}
+                  >
+                    🌙
+                  </button>
+              </Navbar.Brand>
+                  <div className="ms-auto">
+            <button onClick={toggleTheme} className="btn btn-light">  
+              {theme === 'dark' ? '🌞' : '🌙'}
+            </button>
+          </div>
+
         <Navbar.Toggle aria-controls="navbarScroll" />
 
         <Navbar.Collapse id="navbarScroll" style={{ overflow: "visible" }}>

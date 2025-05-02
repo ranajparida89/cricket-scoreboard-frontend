@@ -28,6 +28,27 @@
   color: #61dafb;
 }
 
+/* ✅ Add dark theme */
+.dark {
+  background-color: #121212;
+  color: #ffffff;
+}
+
+/* ✅ Add light theme */
+.light {
+  background-color: #f8f9fa;
+  color: #212529;
+}
+
+/* Optional: make sure links look good */
+.light a {
+  color: #0d6efd;
+}
+
+.dark a {
+  color: #61dafb;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

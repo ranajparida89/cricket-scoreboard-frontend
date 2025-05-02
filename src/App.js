@@ -73,7 +73,16 @@ function HomePage() {
 function App() {
   const [showAuthModal, setShowAuthModal] = useState(false); // ✅ [Added for Auth Modal Toggle]
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [theme, setTheme] = useState('dark');
 
+      useEffect(() => {
+        document.body.className = theme === 'dark' ? 'bg-dark text-light' : 'bg-light text-dark';
+      }, [theme]);
+      
+      const toggleTheme = () => {
+        setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+      };
+  
   // ✅ Listen for custom "toggleSidebar" event from Navbar's hamburger button
   useEffect(() => {
     const toggleHandler = () => {
@@ -84,8 +93,13 @@ function App() {
   }, []);
   
   return (
-    <Router>
-      <AppNavbar onAuthClick={() => setShowAuthModal(true)} /> {/* ✅ Trigger modal */}
+    <div className={theme}>
+      <Router>  
+                <AppNavbar 
+            onAuthClick={() => setShowAuthModal(true)} 
+            toggleTheme={toggleTheme}
+          />
+{/* ✅ Trigger modal */}
       <MatchTicker />
       <AuthModal show={showAuthModal} onClose={() => setShowAuthModal(false)} /> {/* ✅ Auth Modal Entry */}
       <SidebarMenu isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} /> {/* ✅ Sidebar Menu Entry */}
@@ -265,6 +279,7 @@ function App() {
 
       </Routes>
     </Router>
+    </div>
   );
 }
 
