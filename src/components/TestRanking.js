@@ -33,8 +33,8 @@ const TestRanking = () => {
 
         console.log("🛡️ Valid teams after filtering:", validTeams.length);
 
-        // ✅ Sort by rating (desc) – ensures correct leaderboard even with float precision
-        const sorted = validTeams.sort((a, b) => b.rating - a.rating);
+        // ✅ Sort by Points (desc) – ensures correct leaderboard even with float precision
+        const sorted = validTeams.sort((a, b) => b.points - a.points);
 
         console.log("✅ Sorted by rating:", sorted);             // Verify correct order
 
