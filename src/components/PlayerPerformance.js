@@ -18,7 +18,7 @@ const PlayerPerformance = () => {
     match_type: "ODI",
     against_team: "",
     run_scored: 0,
-    ball_faced: 0,  // ⬅️ ADD Ball faced new implimenataion 02-May-2025
+    balls_faced: 0,  // ⬅️ ADD Ball faced new implimenataion 02-May-2025
     wickets_taken: 0,
     runs_given: 0,
     fifties: 0,
@@ -73,7 +73,7 @@ const PlayerPerformance = () => {
       match_type: "ODI",
       against_team: "",
       run_scored: 0,
-      ball_faced: 0,    // ⬅️ ADD HERE in resetForm
+      balls_faced: 0,    // ⬅️ ADD HERE in resetForm
       wickets_taken: 0,
       runs_given: 0,
       fifties: 0,
@@ -165,7 +165,7 @@ const PlayerPerformance = () => {
   {/* Performance Fields */}
   {[
     { label: "Runs Scored", key: "run_scored" },
-    { label: "Ball Faced", key: "ball_faced" },  // ⬅️ ADD HERE
+    { label: "Ball Faced", key: "balls_faced" },  // ⬅️ ADD HERE
     { label: "Wickets Taken", key: "wickets_taken" },
     { label: "Runs Given", key: "runs_given" },
     { label: "Fifties", key: "fifties" },
