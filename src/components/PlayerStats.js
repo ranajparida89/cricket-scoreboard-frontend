@@ -122,6 +122,8 @@ const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.tot
       <th>Match Type</th>
       <th>Against Team</th>
       <th>Runs Scored</th>
+      <th>Ball Faced</th>
+      <th>Strike Rate</th>
       <th>Highest Score</th> {/* 🆕 Added */}
       <th>Batting Avg</th> {/* 🆕 Added */}
       <th>Bowling Avg</th> {/* ✅ New Column */}
@@ -143,19 +145,21 @@ const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.tot
 
     return (
       <tr key={p.id || index}>
-        <td>{p.player_name}</td>
-        <td>{p.team_name}</td>
-        <td>{p.match_type}</td>
-        <td>{p.against_team}</td>
-        <td>{p.formatted_run_scored}</td> {/* ✅ Runs Scored with * if Not Out */}
-        <td>{p.highest_score}</td> {/* ✅ Highest Score */}
-        <td>{battingAverage}</td> {/* ✅ Batting Average */}
-        <td>{bowlingAverage}</td> {/* ✅ Bowling Average */}
-        <td>{p.wickets_taken}</td>
-        <td>{p.runs_given}</td>
-        <td>{p.fifties}</td>
-        <td>{p.hundreds}</td> {/* ✅ Hundreds will now come correctly */}
-      </tr>
+      <td>{p.player_name}</td>
+      <td>{p.team_name}</td>
+      <td>{p.match_type}</td>
+      <td>{p.against_team}</td>
+      <td>{p.formatted_run_scored}</td> {/* ✅ Runs Scored with * if Not Out */}
+      <td>{p.ball_faced}</td>            {/* ✅ NEW: Ball Faced */}
+      <td>{p.strike_rate}</td>           {/* ✅ NEW: Strike Rate */}
+      <td>{p.highest_score}</td>         {/* ✅ Highest Score */}
+      <td>{battingAverage}</td>          {/* ✅ Batting Average */}
+      <td>{bowlingAverage}</td>          {/* ✅ Bowling Average */}
+      <td>{p.wickets_taken}</td>
+      <td>{p.runs_given}</td>
+      <td>{p.fifties}</td>
+      <td>{p.hundreds}</td>              {/* ✅ Hundreds will now come correctly */}
+    </tr>    
     );
   })}
 </tbody>
