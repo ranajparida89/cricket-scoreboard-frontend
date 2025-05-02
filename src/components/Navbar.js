@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 import { playSound } from "../utils/playSound"; // ✅ Sound utility
 import "../styles/theme.css"; // ✅ [Added for emoji hover styles]
 
-const AppNavbar = ({ onAuthClick, toggleTheme }) => {
+const AppNavbar = ({ onAuthClick, toggleTheme, theme }) => {
   const [loggedInUser, setLoggedInUser] = useState(null); // ✅ [2025-04-22] For showing user name on top-right
 
   // ✅ Fetch from localStorage (on mount)
