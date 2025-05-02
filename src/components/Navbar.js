@@ -49,8 +49,14 @@ const AppNavbar = ({ onAuthClick }) => {
           onClick={() => playSound("click")}
           onMouseEnter={() => playSound("hover")}
         >
-          🏏 CrickEdge
-        </Navbar.Brand>
+                <Navbar.Brand>
+            <span style={{ fontSize: '28px', fontWeight: 'bold' }}>
+              <span style={{ color: '#FFA500' }}>Crick</span>
+              <span style={{ color: '#228B22' }}>Edge</span>
+              <span style={{ color: '#FFFFFF' }}>.in</span>
+            </span>
+          </Navbar.Brand>
+
         <Navbar.Toggle aria-controls="navbarScroll" />
 
         <Navbar.Collapse id="navbarScroll" style={{ overflow: "visible" }}>
