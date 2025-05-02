@@ -49,7 +49,7 @@ const AppNavbar = ({ onAuthClick }) => {
           onClick={() => playSound("click")}
           onMouseEnter={() => playSound("hover")}
         >
-          <span style={{ fontSize: '28px', fontWeight: 'bold' }}>
+          <span style={{ fontSize: '32px', fontWeight: 'bold' }}>
           <span style={{ color: '#FFA500' }}>Crick</span>
           <span style={{ color: '#228B22' }}>Edge</span>
           <span style={{ color: '#FFFFFF' }}>.in</span>
