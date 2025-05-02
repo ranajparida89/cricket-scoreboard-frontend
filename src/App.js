@@ -95,9 +95,10 @@ function App() {
   return (
     <div className={theme}>
       <Router>  
-                <AppNavbar 
+            <AppNavbar 
             onAuthClick={() => setShowAuthModal(true)} 
             toggleTheme={toggleTheme}
+            theme={theme}
           />
 {/* ✅ Trigger modal */}
       <MatchTicker />
