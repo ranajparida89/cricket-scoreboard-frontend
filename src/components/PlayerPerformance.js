@@ -224,4 +224,6 @@ const PlayerPerformance = () => {
       </div>
     </div>
   )};
+
+  export default PlayerPerformance;
   
