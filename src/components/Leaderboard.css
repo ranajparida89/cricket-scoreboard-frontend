@@ -2,35 +2,38 @@
 
 /* 🔷 Full-width container with styling */
 .leaderboard-container {
-  background-color: rgba(12, 28, 44, 0.75); /* ✅ Dark translucent */
-  backdrop-filter: blur(6px);              /* ✅ Soft background blur */
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
-    width: 100%;
-    overflow-x: auto; /* allow scroll only if really needed */
-  }
-  
-  /* 🔷 Allow the table to adjust to content size */
-  .leaderboard-table-wrapper {
-    max-height: 500px;
-    overflow-y: auto;
-    width: 100%;
-  }
-  
-  /* 🔷 Full-width table with smart column sizing */
-  .table {
-    width: 100%;
-    table-layout: auto; /* lets columns expand based on content */
-  }
-  
-  /* 🔷 Prevent data overlap and keep it neat */
-  .table th,
-  .table td {
-    padding: 10px 14px;
-    font-size: 15px;
-    text-align: center;
-    vertical-align: middle;
-    white-space: nowrap; /* prevent breaking like "West Indies" */
-  }
-  
+  background-color: rgba(12, 28, 44, 0.75);   /* ✅ Dark translucent */
+  backdrop-filter: blur(6px);                /* ✅ Soft background blur */
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
+  width: 100%;
+
+  /* ✅ Prevent extra vertical scrollbar */
+  overflow-x: auto;
+  overflow-y: hidden; /* ✅ Prevent vertical scrollbar from parent */
+}
+
+/* 🔷 Table wrapper should scroll vertically */
+.leaderboard-table-wrapper {
+  max-height: 500px;
+  overflow-y: auto;
+  overflow-x: hidden; /* ✅ No need for horizontal scroll here */
+  width: 100%;
+}
+
+/* 🔷 Full-width table with smart column sizing */
+.table {
+  width: 100%;
+  table-layout: auto;
+}
+
+/* 🔷 Prevent data overlap and keep it neat */
+.table th,
+.table td {
+  padding: 10px 14px;
+  font-size: 15px;
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap; /* prevent breaking like "West Indies" */
+}
