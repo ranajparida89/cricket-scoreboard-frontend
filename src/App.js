@@ -32,6 +32,9 @@ import UpcomingMatches from "./components/UpcomingMatches"; // upcoming match de
 import PlayerRankings from "./components/PlayerRankings"; // playerratings
 
 
+
+
+import './styles/glassEffects.css';
 import "bootstrap/dist/css/bootstrap.min.css";
 
 // ✅ Homepage = Match Summary (ODI + T20) + Leaderboard (Restricted for guests)
