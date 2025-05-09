@@ -58,19 +58,24 @@
   }
 }
 
-/* ✅ Full-page stadium background with transparency */
 body {
-  background: url("/assets/images/stadium-bg.jpg") no-repeat center center fixed;
+  background-image: url("/assets/images/stadium-bg.jpg");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-attachment: fixed;
   background-size: cover;
   position: relative;
 }
 
-/* ✅ Transparent black overlay (adjust opacity via rgba alpha value) */
 body::after {
   content: "";
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.3); /* 0 = transparent, 1 = black */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3); /* Adjust for darkness */
   z-index: -1;
 }
+
 
