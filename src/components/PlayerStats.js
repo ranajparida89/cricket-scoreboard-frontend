@@ -120,6 +120,7 @@ const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.tot
       <th>Player Name</th>
       <th>Team Name</th>
       <th>Match Type</th>
+      <th>Match Name</th> {/* ✅ Add this */}
       <th>Against Team</th>
       <th>Runs Scored</th>
       <th>Ball Faced</th>
@@ -148,6 +149,7 @@ const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.tot
       <td>{p.player_name}</td>
       <td>{p.team_name}</td>
       <td>{p.match_type}</td>
+      <td>{p.match_name || "—"}</td> {/* ✅ Show Match Name or fallback */}
       <td>{p.against_team}</td>
       <td>{p.formatted_run_scored}</td> {/* ✅ Runs Scored with * if Not Out */}
       <td>{p.balls_faced}</td>            {/* ✅ NEW: Ball Faced */}

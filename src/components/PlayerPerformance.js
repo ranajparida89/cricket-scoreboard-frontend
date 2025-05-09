@@ -13,6 +13,7 @@ const PlayerPerformance = () => {
   const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
+    match_name: "", // ✅ ADD HERE IN useState
     player_id: "",
     team_name: "",
     match_type: "ODI",
@@ -56,6 +57,11 @@ const PlayerPerformance = () => {
     if (!window.confirm("Are you sure you want to submit this performance?")) {
       return;
     }
+                // ✅ Validate Match Name (Required Field)
+            if (!form.match_name.trim()) {
+              alert("⚠️ Please enter the Match Name.");
+              return;
+            }
     try {
       await axios.post("https://cricket-scoreboard-backend.onrender.com/api/player-performance", form);
       toast.success("✅ Player performance added successfully!");
@@ -68,6 +74,7 @@ const PlayerPerformance = () => {
 
   const resetForm = () => {
     setForm({
+      match_name: "", // ✅ Add here
       player_id: "",
       team_name: "",
       match_type: "ODI",
@@ -93,7 +100,19 @@ const PlayerPerformance = () => {
 
       <h3>📊 Add Player Performance</h3>
       <form onSubmit={handleSubmit} className="mt-3">
-
+            {/* Match Name Field */}
+            <div className="mb-3">
+              <label htmlFor="matchName" className="form-label text-light">🏟️ Match Name</label>
+              <input
+                type="text"
+                className="form-control"
+                id="matchName"
+                placeholder="Enter match name (e.g., Asia Cup Final)"
+                value={form.match_name}
+                onChange={(e) => setForm({ ...form, match_name: e.target.value })}
+                required
+              />
+            </div>
         {/* Player Name */}
         <div className="mb-2">
           <label>Player Name</label>

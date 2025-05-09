@@ -98,7 +98,7 @@ function App() {
             <AppNavbar 
             onAuthClick={() => setShowAuthModal(true)} 
             toggleTheme={toggleTheme}
-            theme={theme}
+            theme={theme} // added theme 
           />
 {/* ✅ Trigger modal */}
       <MatchTicker />
