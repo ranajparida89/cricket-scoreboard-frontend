@@ -57,34 +57,3 @@
     transform: rotate(360deg);
   }
 }
-
-body {
-  background: url("./assets/images/stadium.jpg") no-repeat center center fixed;
-  background-size: cover;
-  position: relative;
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.3); /* Adjust transparency */
-  z-index: -1;
-}
-/* ✅ Transparent Foreground Containers (Safe for Readability) */
-.transparent-card,
-.transparent-table,
-.transparent-header {
-  background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
-  color: #ffffff; /* Ensure text is still visible */
-  backdrop-filter: blur(6px); /* Optional blur for glass effect */
-  border-radius: 12px;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
-  padding: 1rem;
-}
-
-
-
-
-
-
