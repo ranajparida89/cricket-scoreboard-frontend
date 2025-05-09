@@ -71,6 +71,18 @@ body::after {
   background-color: rgba(0, 0, 0, 0.3); /* Adjust transparency */
   z-index: -1;
 }
+/* ✅ Transparent Foreground Containers (Safe for Readability) */
+.transparent-card,
+.transparent-table,
+.transparent-header {
+  background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
+  color: #ffffff; /* Ensure text is still visible */
+  backdrop-filter: blur(6px); /* Optional blur for glass effect */
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+  padding: 1rem;
+}
+
 
 
 
