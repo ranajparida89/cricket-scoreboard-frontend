@@ -59,7 +59,7 @@
 }
 
 body {
-  background: url("/assets/images/stadium-bg.jpg") no-repeat center center fixed;
+  background: url("/assets/images/stadium.jpg") no-repeat center center fixed;
   background-size: cover;
   position: relative;
 }
