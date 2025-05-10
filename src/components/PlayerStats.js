@@ -168,44 +168,46 @@ const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.tot
 </table>
         </div>
       )}
- {combinedData.length > 0 && (
+{combinedData.length > 0 && (
   <>
     <h4 className="text-center text-info mt-5">Player Overall Performance Summary</h4>
-    <table className="table table-dark table-striped table-hover">
-      <thead>
-        <tr>
-        <th>Rank</th> {/* ✅ New Rank column */}
-          <th>Player Name</th>
-          <th>Team Name</th>
-          <th>Match Type</th>
-          <th>Total Runs</th>
-          <th>Total Wickets</th>
-          <th>Total Fifty(s)</th>
-          <th>Total Hundred(s)</th>
-        </tr>
-      </thead>
-      <tbody>
-  {sortedCombinedData.map((p, index) => (
-    <tr
-    key={index}
-    className={
-      index === 0 ? 'gold-row' :
-      index === 1 ? 'silver-row' :
-      index === 2 ? 'bronze-row' : ''
-    }
-  >
-    <td>{index + 1}</td> {/* ✅ Rank shown by index */}
-    <td>{p.player_name}</td>
-    <td>{p.team_name}</td>
-    <td>{p.match_type}</td>
-    <td>{p.total_runs}</td>
-    <td>{p.total_wickets}</td>
-    <td>{p.total_fifties}</td>
-    <td>{p.total_hundreds}</td>
-  </tr>  
-  ))} {/* ✅ close the map */}
-</tbody>
-    </table>
+    <div className="table-responsive"> {/* ✅ wrap added */}
+      <table className="table table-dark table-striped table-hover">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Player Name</th>
+            <th>Team Name</th>
+            <th>Match Type</th>
+            <th>Total Runs</th>
+            <th>Total Wickets</th>
+            <th>Total Fifty(s)</th>
+            <th>Total Hundred(s)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sortedCombinedData.map((p, index) => (
+            <tr
+              key={index}
+              className={
+                index === 0 ? 'gold-row' :
+                index === 1 ? 'silver-row' :
+                index === 2 ? 'bronze-row' : ''
+              }
+            >
+              <td>{index + 1}</td>
+              <td>{p.player_name}</td>
+              <td>{p.team_name}</td>
+              <td>{p.match_type}</td>
+              <td>{p.total_runs}</td>
+              <td>{p.total_wickets}</td>
+              <td>{p.total_fifties}</td>
+              <td>{p.total_hundreds}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   </>
 )}
     </div>
