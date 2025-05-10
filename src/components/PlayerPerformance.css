@@ -2,8 +2,7 @@
 
 /* ✅ Form Card Styling */
 .performance-card {
-  background-color: rgba(15, 30, 44, 0.7); /* ✅ Transparent dark */
-  backdrop-filter: blur(6px);             /* ✅ Soft background blur */
+  background: linear-gradient(145deg, #132c45, #0f1e2c);
   border-radius: 20px;
   padding: 30px;
   max-width: 800px;
