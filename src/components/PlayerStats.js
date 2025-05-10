@@ -66,7 +66,7 @@ filteredPerformances.forEach((perf) => {
   total_fifties: parseInt(perf.fifties) || 0,
   total_hundreds: parseInt(perf.hundreds) || 0,
   match_count: perf.match_count,         // ✅ count of filtered match type
-  total_matches: perf.total_matches      // ✅ full match count across formats
+  total_matches: parseInt(perf.total_matches) || 0  // ✅ full match count parsed
 });
   }
 });
