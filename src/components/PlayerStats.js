@@ -57,15 +57,17 @@ filteredPerformances.forEach((perf) => {
     existing.total_fifties += parseInt(perf.fifties) || 0;
     existing.total_hundreds += parseInt(perf.hundreds) || 0;
   } else {
-    combinedData.push({
-      player_name: perf.player_name,
-      team_name: perf.team_name,
-      match_type: perf.match_type,
-      total_runs: parseInt(perf.run_scored) || 0,
-      total_wickets: parseInt(perf.wickets_taken) || 0,
-      total_fifties: parseInt(perf.fifties) || 0,
-      total_hundreds: parseInt(perf.hundreds) || 0,
-    });
+ combinedData.push({
+  player_name: perf.player_name,
+  team_name: perf.team_name,
+  match_type: perf.match_type,
+  total_runs: parseInt(perf.run_scored) || 0,
+  total_wickets: parseInt(perf.wickets_taken) || 0,
+  total_fifties: parseInt(perf.fifties) || 0,
+  total_hundreds: parseInt(perf.hundreds) || 0,
+  match_count: perf.match_count,         // ✅ count of filtered match type
+  total_matches: perf.total_matches      // ✅ full match count across formats
+});
   }
 });
 const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.total_runs);  // sort logic
@@ -173,39 +175,41 @@ const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.tot
     <h4 className="text-center text-info mt-5">Player Overall Performance Summary</h4>
     <div className="table-responsive"> {/* ✅ wrap added */}
       <table className="table table-dark table-striped table-hover">
-        <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Player Name</th>
-            <th>Team Name</th>
-            <th>Match Type</th>
-            <th>Total Runs</th>
-            <th>Total Wickets</th>
-            <th>Total Fifty(s)</th>
-            <th>Total Hundred(s)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedCombinedData.map((p, index) => (
-            <tr
-              key={index}
-              className={
-                index === 0 ? 'gold-row' :
-                index === 1 ? 'silver-row' :
-                index === 2 ? 'bronze-row' : ''
-              }
-            >
-              <td>{index + 1}</td>
-              <td>{p.player_name}</td>
-              <td>{p.team_name}</td>
-              <td>{p.match_type}</td>
-              <td>{p.total_runs}</td>
-              <td>{p.total_wickets}</td>
-              <td>{p.total_fifties}</td>
-              <td>{p.total_hundreds}</td>
-            </tr>
-          ))}
-        </tbody>
+<thead>
+  <tr>
+    <th>Rank</th>
+    <th>Player Name</th>
+    <th>Team Name</th>
+    <th>Match Type</th>
+    <th>Total Matches</th> {/* ✅ NEW TOTAL MATCHES*/}
+    <th>Total Runs</th>
+    <th>Total Wickets</th>
+    <th>Total Fifty(s)</th>
+    <th>Total Hundred(s)</th>
+  </tr>
+</thead>
+<tbody>
+  {sortedCombinedData.map((p, index) => (
+    <tr
+      key={index}
+      className={
+        index === 0 ? "gold-row" :
+        index === 1 ? "silver-row" :
+        index === 2 ? "bronze-row" : ""
+      }
+    >
+      <td>{index + 1}</td>
+      <td>{p.player_name}</td>
+      <td>{p.team_name}</td>
+      <td>{p.match_type}</td>
+      <td>{filters.matchType ? p.match_count : p.total_matches}</td> {/* ✅ logic */}
+      <td>{p.total_runs}</td>
+      <td>{p.total_wickets}</td>
+      <td>{p.total_fifties}</td>
+      <td>{p.total_hundreds}</td>
+    </tr>
+  ))}
+</tbody>
       </table>
     </div>
   </>
