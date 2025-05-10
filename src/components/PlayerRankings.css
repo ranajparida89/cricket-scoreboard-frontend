@@ -1,11 +1,14 @@
 .ranking-container {
-  padding: 20px;
-  color: #fff;
-  background-color: rgba(255, 255, 255, 0.05);  /* subtle white tint */
-  backdrop-filter: blur(6px);                  /* blur effect */
-  border: 1px solid rgba(255, 255, 255, 0.1);   /* optional soft border */
-  border-radius: 12px;
-}
+    padding: 20px;
+    color: #fff;
+    background: #0d1b2a;
+  }
+  
+  .ranking-container h2 {
+    text-align: center;
+    color: #00cfff;
+    margin-bottom: 20px;
+  }
   
   .tabs, .formats {
     text-align: center;

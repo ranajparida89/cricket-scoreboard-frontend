@@ -66,7 +66,6 @@ const TestRanking = () => {
   // ✅ Render Test Match Ranking Table
   return (
     <div className="container mt-5">
-  <div className="transparent-card p-4 mt-3">
       <div className="card bg-dark text-white p-4 shadow">
         <h2 className="text-center text-info mb-4">📘 ICC Test Match Rankings</h2>
         <div className="table-responsive">
@@ -108,7 +107,6 @@ const TestRanking = () => {
         </div>
       </div>
     </div>
-  </div>
   );
 };
 

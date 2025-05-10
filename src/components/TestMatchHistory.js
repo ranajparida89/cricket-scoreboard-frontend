@@ -39,7 +39,7 @@ const TestMatchHistory = () => {
 
   return (
     <div className="container mt-5">
-     <div className="transparent-card p-4 mt-3"> {/* ✅ transparent wrapper */}
+      <div className="card shadow p-4">
         <h2 className="text-center text-secondary mb-4">🧾 Test Match History</h2>
 
         {/* ✅ Sticky scrollable table */}

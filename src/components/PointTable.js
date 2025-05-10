@@ -31,7 +31,7 @@ const PointTable = () => {
 
   return (
     <div className="container mt-5">
-      <div className="transparent-card p-4 mt-3">
+      <div className="card bg-dark text-white p-4 shadow">
         <h2 className="text-center text-warning mb-4">🏆 Point Table</h2>
         <div className="table-responsive">
           <table className="table table-bordered text-center table-dark table-hover">

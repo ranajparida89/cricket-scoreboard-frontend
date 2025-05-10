@@ -1,7 +1,6 @@
 /* ✅ Match Card Styles */
 .match-card {
-  background-color: rgba(19, 44, 69, 0.75); /* ✅ Semi-transparent dark blue */
-  backdrop-filter: blur(4px);               /* ✅ Optional blur */
+  background-color: #132c45;
   padding: 20px;
   border-radius: 10px;
   color: white;

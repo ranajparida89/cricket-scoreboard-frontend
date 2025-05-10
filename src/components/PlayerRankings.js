@@ -39,7 +39,6 @@ const PlayerRankings = () => {
         <button onClick={() => setMatchType("T20")} className={matchType === "T20" ? "active" : ""}>T20</button>
       </div>
 
-      <div className="transparent-card mt-4">
       <table className="ranking-table">
         <thead>
           <tr>
@@ -60,7 +59,6 @@ const PlayerRankings = () => {
           ))}
         </tbody>
       </table>
-    </div>
     </div>
   );
 };

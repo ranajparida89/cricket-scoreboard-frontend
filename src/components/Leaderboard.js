@@ -75,7 +75,7 @@ const Leaderboard = () => {
   };
 
   return (
-    <div className="transparent-card leaderboard-container leaderboard-table-wrapper">
+    <div className="table-responsive leaderboard-table-wrapper">
       <table className="table table-bordered table-dark table-sm text-center mb-0">
         <thead>
           <tr>
