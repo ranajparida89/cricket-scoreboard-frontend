@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import PlayerDetailsModal from './PlayerDetailsModal'; // added here 11-MAY 2025 Ranaj Parida
+// import PlayerDetailsModal from './PlayerDetailsPopup'; // added here 11-MAY 2025 Ranaj Parida
 
 
 const PlayerStats = () => {
