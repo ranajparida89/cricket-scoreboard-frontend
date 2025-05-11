@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import './PlayerDetailsModal.css';
 // import PlayerDetailsModal from './PlayerDetailsPopup'; // added here 11-MAY 2025 Ranaj Parida
 
 
@@ -230,9 +231,7 @@ const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.tot
 </tbody>
       </table>
     </div>
-  </>
-)}
- // added render Ranaj Parida 11-MAY 2025
+    // added render Ranaj Parida 11-MAY 2025
 
 {/* Floating Modal for Player Match Details */}
 {showDetailsModal && selectedPlayer && (
@@ -271,6 +270,8 @@ const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.tot
       </ul>
     </div>
   </div>
+)}
+  </>
 )}
     </div>    
   );
