@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+// import PlayerDetailsModal from './PlayerDetailsModal';
+
 
 const PlayerStats = () => {
   const [performances, setPerformances] = useState([]);
@@ -13,6 +15,15 @@ const PlayerStats = () => {
     teamName: "",
     matchType: "",
   });
+
+  const [selectedPlayer, setSelectedPlayer] = useState(null); // added here 11-MAY Ranaj Parida
+  const [showDetailsModal, setShowDetailsModal] = useState(false);   // added here 11-MAY Ranaj Parida
+
+// ✅ Handle click on player row (Added 11-MAY by Ranaj Parida)
+const handlePlayerClick = (playerName) => {
+  setSelectedPlayer(playerName);
+  setShowDetailsModal(true);
+};
 
   useEffect(() => {
     fetchPerformances();
@@ -199,7 +210,14 @@ const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.tot
       }
     >
       <td>{index + 1}</td>
-      <td>{p.player_name}</td>
+      <td>
+      <span
+        className="clickable-player"
+        onClick={() => handlePlayerClick(p.player_name)}
+      >
+        {p.player_name}
+      </span>
+    </td>
       <td>{p.team_name}</td>
       <td>{p.match_type}</td>
       <td>{filters.matchType ? p.match_count : p.total_matches}</td> {/* ✅ logic */}
@@ -217,5 +235,47 @@ const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.tot
     </div>
   );
 };
+
+// added render Ranaj Parida 11-MAY 2025
+
+{/* Floating Modal for Player Match Details */}
+{showDetailsModal && selectedPlayer && (
+  <div className="floating-modal">
+    <div className="modal-content">
+      <span className="close-button" onClick={() => setShowDetailsModal(false)}>&times;</span>
+      <h3 className="text-center text-cyan-400 mb-3">
+        📄 Match-wise Performance of <span className="text-yellow-300">{selectedPlayer}</span>
+      </h3>
+      <ul>
+        {performances
+          .filter((p) => p.player_name === selectedPlayer)
+          .map((match, idx) => (
+            <li key={idx} className="match-block">
+              <h4 className="text-xl mb-1">{match.match_name} ({match.match_type})</h4>
+              <p><b>📅 Date:</b> {match.match_date.split("T")[0]}</p>
+              <p><b>🕒 Time:</b> {match.match_time} <b>🗓 Day:</b> {match.match_day}</p>
+              <hr className="my-2" />
+              <div><b>🏏 Batting:</b></div>
+              <p>• Scored <b>{match.formatted_run_scored}</b> runs off <b>{match.balls_faced}</b> balls</p>
+              <p>• Strike Rate: <b>{match.strike_rate}</b></p>
+              <p>• Fifties: <b>{match.fifties}</b> | Hundreds: <b>{match.hundreds}</b></p>
+              <p>• Dismissed: <b>{match.dismissed}</b></p>
+              <br />
+              <div><b>🎯 Bowling:</b></div>
+              <p>• Wickets: <b>{match.wickets_taken}</b></p>
+              <p>• Runs Given: <b>{match.runs_given}</b></p>
+              <p>• Economy: <b>
+                {match.runs_given > 0 && match.wickets_taken > 0
+                  ? (match.runs_given / (match.wickets_taken || 1)).toFixed(2)
+                  : "-"}
+              </b></p>
+              <hr />
+            </li>
+          ))}
+      </ul>
+    </div>
+  </div>
+)}
+
 
 export default PlayerStats;
