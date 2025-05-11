@@ -236,7 +236,7 @@ const PlayerStats = () => {
   <div className="player-modal-overlay">
     <div className="player-modal-content">
       <button className="player-modal-close" onClick={() => setShowDetailsModal(false)}>❌</button>
-      <h2 className="modal-header">📋 Match-wise Performance of {"  "}<span>  {selectedPlayer}</span></h2>
+      <h2 className="modal-header">📋 Match-wise Performance of {"  "}  <span>  {selectedPlayer}</span></h2>
 
       {performances
         .filter((p) => p.player_name === selectedPlayer)
