@@ -236,15 +236,15 @@ const PlayerStats = () => {
   <div className="player-modal-overlay">
     <div className="player-modal-content">
       <button className="player-modal-close" onClick={() => setShowDetailsModal(false)}>❌</button>
-      <h2 className="modal-header">📋 Match-wise Performance of <span>{selectedPlayer}</span></h2>
+      <h2 className="modal-header">📋 Match-wise Performance of{" "}<span>{selectedPlayer}</span></h2>
 
       {performances
         .filter((p) => p.player_name === selectedPlayer)
         .map((match, index) => (
           <div className="player-match-card" key={index}>
             <h4>🏏 {match.match_name} ({match.match_type})</h4>
-            <p><strong>📅 Date:</strong> {match.match_date ? new Date(match.match_date).toLocaleDateString() : "N/A"}</p>
-            <p><strong>🕒 Time:</strong> {match.match_time || "N/A"} <strong>🗓 Day:</strong> {match.match_day || "N/A"}</p>
+            <p><strong>📅 Date:</strong> {match.match_date && match.match_date.split("T")?.[0]}</p>
+            <p><strong>🕒 Time:</strong> {match.match_time?.trim() || "N/A"} <strong>🗓 Day:</strong> {match.match_day?.trim() || "N/A"}</p>
 
             <div className="section">
               <h5>🧢 Batting Performance</h5>
