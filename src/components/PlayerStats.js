@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-// import PlayerDetailsModal from './PlayerDetailsModal';
+import PlayerDetailsModal from './PlayerDetailsModal'; // added here 11-MAY 2025 Ranaj Parida
 
 
 const PlayerStats = () => {
@@ -229,14 +229,7 @@ const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.tot
   ))}
 </tbody>
       </table>
-    </div>
-  </>
-)}
-    </div>
-  );
-};
-
-// added render Ranaj Parida 11-MAY 2025
+      // added render Ranaj Parida 11-MAY 2025
 
 {/* Floating Modal for Player Match Details */}
 {showDetailsModal && selectedPlayer && (
@@ -276,6 +269,13 @@ const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.tot
     </div>
   </div>
 )}
-
+    </div>
+  </>
+)}
+    </div>
+    // Can I paste the code here??
+    
+  );
+};
 
 export default PlayerStats;
