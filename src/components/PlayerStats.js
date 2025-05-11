@@ -229,7 +229,10 @@ const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.tot
   ))}
 </tbody>
       </table>
-      // added render Ranaj Parida 11-MAY 2025
+    </div>
+  </>
+)}
+ // added render Ranaj Parida 11-MAY 2025
 
 {/* Floating Modal for Player Match Details */}
 {showDetailsModal && selectedPlayer && (
@@ -245,7 +248,7 @@ const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.tot
           .map((match, idx) => (
             <li key={idx} className="match-block">
               <h4 className="text-xl mb-1">{match.match_name} ({match.match_type})</h4>
-              <p><b>📅 Date:</b> {match.match_date.split("T")[0]}</p>
+              <p><b>📅 Date:</b> {match.match_date ? match.match_date.split("T")[0] : "N/A"}</p>  
               <p><b>🕒 Time:</b> {match.match_time} <b>🗓 Day:</b> {match.match_day}</p>
               <hr className="my-2" />
               <div><b>🏏 Batting:</b></div>
@@ -269,12 +272,7 @@ const sortedCombinedData = [...combinedData].sort((a, b) => b.total_runs - a.tot
     </div>
   </div>
 )}
-    </div>
-  </>
-)}
-    </div>
-    // Can I paste the code here??
-    
+    </div>    
   );
 };
 
