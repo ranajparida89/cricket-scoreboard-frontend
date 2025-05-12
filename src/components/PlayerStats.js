@@ -240,7 +240,7 @@ const PlayerStats = () => {
 
       {performances
         .filter((p) => p.player_name === selectedPlayer)
-        .map((match, index) => (
+        .map((match, idx) => (
                     <li key={idx} className="player-match-card">
             <h4 className="text-xl mb-2">🖊 {match.match_name} ({match.match_type})</h4>
             <p><strong>📅 Date:</strong> {match.match_date || "N/A"}</p>
