@@ -257,9 +257,7 @@ const PlayerStats = () => {
     <p>
        Milestones: <b>{match.fifties}</b> Fifties | <b>{match.hundreds}</b> Hundreds
     </p>
-    <p>
-       Dismissed: <b>{match.dismissed}</b>
-    </p>
+    
   </div>
 
   <div className="section mt-3">
