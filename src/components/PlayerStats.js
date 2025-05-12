@@ -244,12 +244,6 @@ const PlayerStats = () => {
          <li key={idx} className="player-match-card">
   <h5 className="text-info fw-bold mb-3">🖋️ {match.match_name} ({match.match_type})</h5>
 
-  <p><strong>📅 Date:</strong> {match.match_display_date}</p>
-  <p>
-    <strong>🕒 Time:</strong> {match.match_display_time}{" "}
-    <strong>📅 Day:</strong> {match.match_display_day}
-  </p>
-
   <p><strong>🧍‍♂️ Player:</strong> {match.player_name}</p>
   <p><strong>🏳️ Team:</strong> {match.team_name}</p>
   <p><strong>⚔️ Opposition:</strong> {match.against_team}</p>
@@ -257,24 +251,24 @@ const PlayerStats = () => {
   <div className="section mt-3">
     <h6 className="text-warning fw-bold"> Batting Performance</h6>
     <p>
-      • Scored <b>{match.formatted_run_scored}</b> runs from <b>{match.balls_faced}</b> balls 
+       Scored <b>{match.formatted_run_scored}</b> runs from <b>{match.balls_faced}</b> balls 
       with a strike rate of <b>{match.strike_rate}</b>
     </p>
     <p>
-      • Milestones: <b>{match.fifties}</b> Fifties | <b>{match.hundreds}</b> Hundreds
+       Milestones: <b>{match.fifties}</b> Fifties | <b>{match.hundreds}</b> Hundreds
     </p>
     <p>
-      • Dismissed: <b>{match.dismissed}</b>
+       Dismissed: <b>{match.dismissed}</b>
     </p>
   </div>
 
   <div className="section mt-3">
     <h6 className="text-warning fw-bold"> Bowling Performance</h6>
     <p>
-      • Took <b>{match.wickets_taken}</b> wicket(s) conceding <b>{match.runs_given}</b> runs
+       Took <b>{match.wickets_taken}</b> wicket(s) conceding <b>{match.runs_given}</b> runs
     </p>
     <p>
-      • Economy: <b>
+       Economy: <b>
         {match.runs_given > 0 && match.wickets_taken > 0
           ? (match.runs_given / (match.wickets_taken || 1)).toFixed(2)
           : "-"}
