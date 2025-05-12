@@ -232,25 +232,27 @@ const PlayerStats = () => {
       )}
 
       {/* ✅ Floating Modal should be placed at bottom of return but inside main div */}
-      {showDetailsModal && selectedPlayer && (
+    {showDetailsModal && selectedPlayer && (
   <div className="player-modal-overlay">
     <div className="player-modal-content">
-      <button className="player-modal-close" onClick={() => setShowDetailsModal(false)}>❌</button>
-      <h2 className="modal-header">📋 Match-wise Performance -   {"  "}  <span>  { selectedPlayer } </span></h2>
+      <button className="player-modal-close" onClick={() => setShowDetailsModal(false)}>✖</button>
+      <h2 className="modal-header">📋 Match-wise Performance of <span>{selectedPlayer}</span></h2>
 
       {performances
         .filter((p) => p.player_name === selectedPlayer)
         .map((match, idx) => (
-                    <li key={idx} className="player-match-card">
-            <h4 className="text-xl mb-2">🖊 {match.match_name} ({match.match_type})</h4>
+          <div className="player-match-card" key={idx}>
+            <h4>🖊 <b>{match.match_name}</b> <span>({match.match_type})</span></h4>
             <p><strong>📅 Date:</strong> {match.match_date || "N/A"}</p>
-            <p><strong>🕒 Time:</strong> {match.match_time?.trim() || "N/A"} <strong>📅 Day:</strong> {match.match_day?.trim() || "N/A"}</p>
+            <p><strong>🕒 Time:</strong> {match.match_time || "N/A"} <strong>📅 Day:</strong> {match.match_day || "N/A"}</p>
+            <p><strong>👤 Player:</strong> {match.player_name}</p>
+            <p><strong>🏳️ Team:</strong> {match.team_name}</p>
+            <p><strong>⚔️ Opposition:</strong> {match.against_team || "N/A"}</p>
 
             <div className="section">
-              <h5>🧢 Batting Performance</h5>
+              <h5>🏏 Batting Performance</h5>
               <p>• Scored <b>{match.formatted_run_scored}</b> runs from <b>{match.balls_faced}</b> balls with a strike rate of <b>{match.strike_rate}</b></p>
-              <p>• Milestones: <b>{match.fifties}</b> Fifties | <b>{match.hundreds}</b> Hundreds</p>
-              <p>• Dismissed: <b>{match.dismissed}</b></p>
+              <p>• Milestones: <b>{match.fifties}</b> Fifties | <b>{match.hundreds}</b> Hundreds | <b>{match.dismissed}</b></p>
             </div>
 
             <div className="section">
@@ -262,8 +264,8 @@ const PlayerStats = () => {
                   : "-"}
               </b></p>
             </div>
-          </li>
-        ))}
+          </div>
+      ))}
     </div>
   </div>
 )}
