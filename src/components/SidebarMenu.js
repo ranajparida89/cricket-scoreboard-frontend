@@ -37,7 +37,7 @@ const SidebarMenu = () => {
         <li><Link to="/upcoming-matches" onClick={handleClose}><FaChartLine className="me-2" /> Upcoming Match Details</Link> {/* NEW */}</li>
         <li><Link to="/player-rankings" onClick={handleClose}><FaChartLine className="me-2" /> 🏆 CrickEdge Rankings</Link></li>
         <li><Link to="/match-story" onClick={handleClose}><FaRegNewspaper className="me-2" /> Match Story</Link></li>  
-        <li><Link to="/h2h-records" onClick={handleClose}><FaHandshake className="me-2" /> H2H Records</Link></li> 
+        <li><Link to="/h2h-records" onClick={handleClose}><FaHandshake className="me-2" /> H2H Records</Link></li> {/* for h2h */}
 
 
      
