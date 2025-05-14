@@ -85,3 +85,55 @@
   margin-top: 30px;
   text-align: center;
 }
+/* 👤 Player Comparison Section */
+.player-comparison-section {
+  margin-top: 50px;
+}
+
+.player-comparison-card {
+  background: #1e293b;
+  padding: 20px;
+  border: 1px solid #475569;
+  border-radius: 12px;
+  margin-top: 20px;
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.3);
+}
+
+.player-columns {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.player-columns h4 {
+  color: #facc15;
+}
+
+.player-columns ul {
+  list-style: none;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.strength-meter {
+  margin-top: 30px;
+}
+
+.meter-bar {
+  background-color: #334155;
+  border-radius: 20px;
+  overflow: hidden;
+  height: 30px;
+  position: relative;
+}
+
+.meter-fill {
+  background: linear-gradient(to right, #4ade80, #22d3ee);
+  color: #0f172a;
+  font-weight: bold;
+  padding-left: 10px;
+  line-height: 30px;
+  height: 100%;
+}

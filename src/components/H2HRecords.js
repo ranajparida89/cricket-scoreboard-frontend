@@ -13,12 +13,18 @@ import {
 } from "recharts";
 
 const H2HRecords = () => {
+  // 🏏 Team Comparison States
   const [teams, setTeams] = useState([]);
   const [team1, setTeam1] = useState("");
   const [team2, setTeam2] = useState("");
   const [matchType, setMatchType] = useState("ODI");
 
-  // Temporary mock chart data
+  // 👤 Player Comparison States
+  const [players, setPlayers] = useState([]);
+  const [player1, setPlayer1] = useState("");
+  const [player2, setPlayer2] = useState("");
+
+  // 🧠 Chart dummy for now
   const dummyChartData = [
     { category: "Wins", [team1]: 3, [team2]: 5 },
     { category: "Losses", [team1]: 2, [team2]: 1 },
@@ -26,15 +32,22 @@ const H2HRecords = () => {
   ];
 
   useEffect(() => {
-    // Later fetch from API
+    // Fetch team list (static for now)
     setTeams([
       "India", "Pakistan", "Australia", "England",
       "South Africa", "New Zealand", "Sri Lanka", "Bangladesh"
     ]);
+
+    // Fetch real player list from backend
+    fetch("https://cricket-scoreboard-backend.onrender.com/api/players/list")
+      .then((res) => res.json())
+      .then((data) => setPlayers(data))
+      .catch((err) => console.error("Failed to load players:", err));
   }, []);
 
   return (
     <div className="h2h-container">
+      {/* 🏏 Team Comparison Section */}
       <h2 className="h2h-heading">🆚 Head-to-Head Records</h2>
 
       <div className="h2h-selectors">
@@ -109,6 +122,72 @@ const H2HRecords = () => {
           <p>📊 Please select two different teams to view Head-to-Head statistics.</p>
         </div>
       )}
+
+      {/* 👤 Player Comparison Section */}
+      <div className="player-comparison-section">
+        <h2 className="h2h-heading">👤 Player Comparison</h2>
+
+        <div className="h2h-selectors">
+          <select value={player1} onChange={(e) => setPlayer1(e.target.value)} className="h2h-dropdown">
+            <option value="">Select Player 1</option>
+            {players.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+
+          <select value={player2} onChange={(e) => setPlayer2(e.target.value)} className="h2h-dropdown">
+            <option value="">Select Player 2</option>
+            {players.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+        </div>
+
+        {(player1 && player2 && player1 !== player2) ? (
+          <div className="player-comparison-card">
+            <div className="player-columns">
+              <div>
+                <h4>{player1}</h4>
+                <ul>
+                  <li>Total Runs: 8902</li>
+                  <li>Centuries: 30</li>
+                  <li>Half-Centuries: 48</li>
+                  <li>Batting Avg: 54.3</li>
+                  <li>Highest Score: 183</li>
+                  <li>Wickets: 12</li>
+                  <li>Bowling Avg: 32.6</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4>{player2}</h4>
+                <ul>
+                  <li>Total Runs: 8104</li>
+                  <li>Centuries: 26</li>
+                  <li>Half-Centuries: 51</li>
+                  <li>Batting Avg: 49.2</li>
+                  <li>Highest Score: 158</li>
+                  <li>Wickets: 18</li>
+                  <li>Bowling Avg: 29.4</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="strength-meter">
+              <div className="meter-bar">
+                <div
+                  className="meter-fill"
+                  style={{ width: "65%" }}
+                >
+                  {player1} is stronger 💪
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p className="placeholder-text">⚖️ Please select two different players to compare.</p>
+        )}
+      </div>
     </div>
   );
 };
