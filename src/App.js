@@ -30,7 +30,7 @@ import QualificationScenario from './components/QualificationScenario'; // quali
 import AddUpcomingMatch from "./components/AddUpcomingMatch";// for Addupcoming match
 import UpcomingMatches from "./components/UpcomingMatches"; // upcoming match details
 import PlayerRankings from "./components/PlayerRankings"; // playerratings
-
+import MatchStory from "./components/MatchStory"; // for matchstory 14th MAY 2025 Ranaj Parida
 
 
 
@@ -278,6 +278,7 @@ function App() {
 <Route path="/add-upcoming-match" element={<AddUpcomingMatch />} />
 <Route path="/upcoming-matches" element={<UpcomingMatches />} />
 <Route path="/player-rankings" element={<PlayerRankings />} />
+<Route path="/match-story" element={<MatchStory />} />  
 
 
 
