@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react"; // ✅ Added useState/useEff
 import { Link } from "react-router-dom";
 import { FaUsers, FaPlus, FaChartLine, FaUserCheck, FaTimes } from "react-icons/fa";
 import { FaRegNewspaper } from "react-icons/fa"; // added for matchstory 14MAY2025 Ranaj Parida
+import { FaHandshake } from "react-icons/fa"; // for head to head comprision 15 MAY 2025 Ranaj Parida
 import "./SidebarMenu.css";
 
 const SidebarMenu = () => {
@@ -36,6 +37,7 @@ const SidebarMenu = () => {
         <li><Link to="/upcoming-matches" onClick={handleClose}><FaChartLine className="me-2" /> Upcoming Match Details</Link> {/* NEW */}</li>
         <li><Link to="/player-rankings" onClick={handleClose}><FaChartLine className="me-2" /> 🏆 CrickEdge Rankings</Link></li>
         <li><Link to="/match-story" onClick={handleClose}><FaRegNewspaper className="me-2" /> Match Story</Link></li>  
+        <li><Link to="/h2h-records" onClick={handleClose}><FaHandshake className="me-2" /> H2H Records</Link></li> 
 
 
      
