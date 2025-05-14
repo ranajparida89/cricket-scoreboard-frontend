@@ -6,26 +6,20 @@ import { FaRegNewspaper } from "react-icons/fa";
 const MatchStory = () => {
   const [matchStories, setMatchStories] = useState([]);
 
-  // Placeholder: We'll fetch real data from backend later
-  useEffect(() => {
-    const dummyData = [
-      {
-        id: 1,
-        title: "India vs Pakistan",
-        type: "ODI",
-        story: "India defeated Pakistan by 45 runs in a high-voltage ODI clash. Batting first, India posted 287/6, led by Rohit Sharma’s 102. In response, Pakistan fell short despite Babar Azam’s valiant 89.",
-        date: "2025-05-12",
-      },
-      {
-        id: 2,
-        title: "Australia vs England",
-        type: "T20",
-        story: "England chased down 192 with 2 balls to spare. Jos Buttler scored a fiery 74 off 38 balls. Earlier, Australia had set a strong total thanks to Warner’s 60.",
-        date: "2025-05-10",
-      },
-    ];
-    setMatchStories(dummyData);
-  }, []);
+useEffect(() => {
+  const fetchStories = async () => {
+    try {
+      const response = await fetch("https://cricket-scoreboard-backend.onrender.com/api/match-stories");
+      const data = await response.json();
+      setMatchStories(data);
+    } catch (error) {
+      console.error("Failed to fetch match stories:", error);
+    }
+  };
+
+  fetchStories();
+}, []);
+
 
   return (
     <div className="match-story-container">
