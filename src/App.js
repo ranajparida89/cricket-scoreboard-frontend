@@ -31,7 +31,7 @@ import AddUpcomingMatch from "./components/AddUpcomingMatch";// for Addupcoming 
 import UpcomingMatches from "./components/UpcomingMatches"; // upcoming match details
 import PlayerRankings from "./components/PlayerRankings"; // playerratings
 import MatchStory from "./components/MatchStory"; // for matchstory 14th MAY 2025 Ranaj Parida
-
+import H2HRecords from "./components/H2HRecords"; // H2H 15th May 2025 Ranaj Parida
 
 
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -279,6 +279,7 @@ function App() {
 <Route path="/upcoming-matches" element={<UpcomingMatches />} />
 <Route path="/player-rankings" element={<PlayerRankings />} />
 <Route path="/match-story" element={<MatchStory />} />  
+<Route path="/h2h-records" element={<H2HRecords />} />
 
 
 
