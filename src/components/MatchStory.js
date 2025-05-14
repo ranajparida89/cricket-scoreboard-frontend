@@ -1,6 +1,6 @@
 // MatchStory.js
 import React, { useEffect, useState } from "react";
-// import "./MatchStory.css"; // We’ll create this next
+import "./MatchStory.css"; 
 import { FaRegNewspaper } from "react-icons/fa";
 
 const MatchStory = () => {
