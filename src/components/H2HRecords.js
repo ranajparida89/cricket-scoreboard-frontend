@@ -1,4 +1,4 @@
-// H2HRecords.js (✅ FINAL with loading + chart-safe + auto-hide)
+// H2HRecords.js (✅ FINAL with normalized player chart)
 import React, { useState, useEffect } from "react";
 import "./H2HRecords.css";
 import {
@@ -10,7 +10,7 @@ const H2HRecords = () => {
   const [teams, setTeams] = useState([]);
   const [team1, setTeam1] = useState("");
   const [team2, setTeam2] = useState("");
-  const [matchType, setMatchType] = useState("ALL"); // default changed from "ODI"
+  const [matchType, setMatchType] = useState("ALL");
   const [summary, setSummary] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
 
@@ -77,15 +77,23 @@ const H2HRecords = () => {
     ];
   };
 
-  const getPlayerChartData = () => {
+  const getNormalizedPlayerChartData = () => {
     if (!playerStats || !playerStats[player1] || !playerStats[player2]) return [];
 
-    return [
-      { metric: "Runs", [player1]: playerStats[player1].runs, [player2]: playerStats[player2].runs },
-      { metric: "Centuries", [player1]: playerStats[player1].centuries, [player2]: playerStats[player2].centuries },
-      { metric: "Fifties", [player1]: playerStats[player1].fifties, [player2]: playerStats[player2].fifties },
-      { metric: "Wickets", [player1]: playerStats[player1].wickets, [player2]: playerStats[player2].wickets }
-    ];
+    const stats = ["runs", "centuries", "fifties", "wickets"];
+    const p1 = playerStats[player1];
+    const p2 = playerStats[player2];
+
+    const maxValues = {};
+    stats.forEach(key => {
+      maxValues[key] = Math.max(p1[key], p2[key], 1);
+    });
+
+    return stats.map(stat => ({
+      stat: stat.charAt(0).toUpperCase() + stat.slice(1),
+      [player1]: Math.round((p1[stat] / maxValues[stat]) * 100),
+      [player2]: Math.round((p2[stat] / maxValues[stat]) * 100),
+    }));
   };
 
   return (
@@ -201,14 +209,14 @@ const H2HRecords = () => {
             <div className="player-chart-comparison">
               <h3>📊 Stats Comparison Line Chart</h3>
               <ResponsiveContainer width="100%" height={280}>
-                <LineChart data={getPlayerChartData()}>
+                <LineChart data={getNormalizedPlayerChartData()}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="metric" />
-                  <YAxis allowDecimals={false} />
+                  <XAxis dataKey="stat" />
+                  <YAxis domain={[0, 100]} />
                   <Tooltip />
                   <Legend />
-                  <Line type="monotone" dataKey={player1} stroke="#3b82f6" strokeWidth={3} dot={{ r: 5 }} />
-                  <Line type="monotone" dataKey={player2} stroke="#ef4444" strokeWidth={3} dot={{ r: 5 }} />
+                  <Line type="basis" dataKey={player1} stroke="#3b82f6" strokeWidth={3} dot={{ r: 5 }} />
+                  <Line type="basis" dataKey={player2} stroke="#ef4444" strokeWidth={3} dot={{ r: 5 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
