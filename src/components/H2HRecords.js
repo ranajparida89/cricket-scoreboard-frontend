@@ -10,7 +10,7 @@ const H2HRecords = () => {
   const [teams, setTeams] = useState([]);
   const [team1, setTeam1] = useState("");
   const [team2, setTeam2] = useState("");
-  const [matchType, setMatchType] = useState("ODI");
+  const [matchType, setMatchType] = useState("ALL"); // default changed from "ODI"
   const [summary, setSummary] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
 
@@ -93,10 +93,11 @@ const H2HRecords = () => {
         </select>
 
         <select value={matchType} onChange={e => setMatchType(e.target.value)} className="h2h-dropdown match-type">
-          <option value="ODI">ODI</option>
-          <option value="T20">T20</option>
-          <option value="TEST">Test</option>
-        </select>
+            <option value="ALL">All</option>
+            <option value="ODI">ODI</option>
+            <option value="T20">T20</option>
+            <option value="TEST">Test</option>
+            </select>
       </div>
 
       {loadingSummary && <p className="loading-text">Loading summary...</p>}
@@ -104,7 +105,7 @@ const H2HRecords = () => {
       {summary && (
         <>
           <div className="h2h-summary-box">
-            <h3>📋 Summary (Format: {matchType})</h3>
+            <h3>📋 Summary (Format: {matchType === "ALL" ? "All Formats" : matchType})</h3>
             <ul>
               <li>Total Matches: <strong>{summary.total_matches}</strong></li>
               <li>{team1} Wins: <strong>{summary[team1]}</strong></li>
