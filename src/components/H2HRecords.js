@@ -18,25 +18,30 @@ const H2HRecords = () => {
   const [player2, setPlayer2] = useState("");
   const [playerStats, setPlayerStats] = useState(null);
 
-  // ✅ Fetch teams from database (not dummy)
+  // ✅ Fetch team list safely from DB
   useEffect(() => {
-    fetch("https://cricket-scoreboard-backend.onrender.com/api/teams")
-      .then(res => res.json())
-      .then(data => setTeams(data))
-      .catch(err => console.error("Failed to load team list", err));
+    fetch("https://cricket-scoreboard-backend.onrender.com/api/h2h/teams")
+      .then((res) => res.json())
+      .then((data) => {
+        const filtered = data
+          .filter((name) => /^[a-zA-Z ]+$/.test(name)) // allow only valid names
+          .sort((a, b) => a.localeCompare(b));
+        setTeams(filtered);
+      })
+      .catch((err) => console.error("Failed to load teams:", err));
   }, []);
 
-  // ✅ Fetch players for player comparison
+  // ✅ Fetch player list
   useEffect(() => {
     fetch("https://cricket-scoreboard-backend.onrender.com/api/players/list")
-      .then(res => res.json())
-      .then(data => setPlayers(data))
-      .catch(err => console.error("Failed to load players", err));
+      .then((res) => res.json())
+      .then((data) => setPlayers(data))
+      .catch((err) => console.error("Failed to load players:", err));
   }, []);
 
-  // ✅ Fetch H2H Summary on team change
+  // ✅ Fetch H2H summary
   useEffect(() => {
-    if (team1 && team2 && matchType && team1 !== team2) {
+    if (team1 && team2 && team1 !== team2) {
       fetch(`https://cricket-scoreboard-backend.onrender.com/api/h2h/summary?team1=${team1}&team2=${team2}&type=${matchType}`)
         .then(res => res.json())
         .then(data => setSummary(data))
@@ -44,7 +49,7 @@ const H2HRecords = () => {
     }
   }, [team1, team2, matchType]);
 
-  // ✅ Fetch Player Stats on player selection
+  // ✅ Fetch player comparison
   useEffect(() => {
     if (player1 && player2 && player1 !== player2) {
       fetch(`https://cricket-scoreboard-backend.onrender.com/api/players/compare?player1=${player1}&player2=${player2}`)
@@ -54,9 +59,14 @@ const H2HRecords = () => {
     }
   }, [player1, player2]);
 
+  const chartData = (summary && team1 && team2) ? [
+    { category: "Wins", [team1]: summary[team1], [team2]: summary[team2] },
+    { category: "Draws", [team1]: summary.draws, [team2]: summary.draws },
+  ] : [];
+
   return (
     <div className="h2h-container">
-      {/* TEAM COMPARISON */}
+      {/* 🏏 Team Comparison */}
       <h2 className="h2h-heading">🆚 Head-to-Head Records</h2>
       <div className="h2h-selectors">
         <select value={team1} onChange={(e) => setTeam1(e.target.value)} className="h2h-dropdown">
@@ -76,7 +86,7 @@ const H2HRecords = () => {
         </select>
       </div>
 
-      {summary && (
+      {(summary && team1 && team2) && (
         <>
           <div className="h2h-summary-box">
             <h3>📋 Summary (Format: {matchType})</h3>
@@ -90,29 +100,26 @@ const H2HRecords = () => {
             </ul>
           </div>
 
-          <div className="h2h-chart-container">
-            <h3>📈 Performance Comparison</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart
-                data={[
-                  { category: "Wins", [team1]: summary[team1], [team2]: summary[team2] },
-                  { category: "Draws", [team1]: summary.draws, [team2]: summary.draws },
-                ]}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="category" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey={team1} stroke="#34d399" strokeWidth={3} />
-                <Line type="monotone" dataKey={team2} stroke="#f87171" strokeWidth={3} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          {chartData.length > 0 && (
+            <div className="h2h-chart-container">
+              <h3>📈 Performance Comparison</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="category" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey={team1} stroke="#34d399" strokeWidth={3} />
+                  <Line type="monotone" dataKey={team2} stroke="#f87171" strokeWidth={3} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </>
       )}
 
-      {/* PLAYER COMPARISON */}
+      {/* 👤 Player Comparison */}
       <div className="player-comparison-section">
         <h2 className="h2h-heading">👤 Player Comparison</h2>
         <div className="h2h-selectors">
@@ -156,7 +163,6 @@ const H2HRecords = () => {
               </div>
             </div>
 
-            {/* Strength Meter */}
             <div className="strength-meter">
               <div className="meter-bar">
                 <div
