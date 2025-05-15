@@ -1,23 +1,16 @@
-// H2HRecords.js (✅ Mixed Chart Update with Bar + Line)
+// H2HRecords.js (✅ FINAL with loading + chart-safe + auto-hide)
 import React, { useState, useEffect } from "react";
 import "./H2HRecords.css";
 import {
-  Line,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  CartesianGrid,
-  ResponsiveContainer,
-  ComposedChart
+  LineChart, Line, XAxis, YAxis, Tooltip, Legend,
+  CartesianGrid, ResponsiveContainer
 } from "recharts";
 
 const H2HRecords = () => {
   const [teams, setTeams] = useState([]);
   const [team1, setTeam1] = useState("");
   const [team2, setTeam2] = useState("");
-  const [matchType, setMatchType] = useState("ALL");
+  const [matchType, setMatchType] = useState("ALL"); // default changed from "ODI"
   const [summary, setSummary] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
 
@@ -79,20 +72,10 @@ const H2HRecords = () => {
   const getChartData = () => {
     if (!summary || !team1 || !team2) return [];
     return [
-      { category: "Wins", [team1]: summary[team1] || 0, [team2]: summary[team2] || 0 },
-      { category: "Draws", [team1]: summary.draws || 0, [team2]: summary.draws || 0 }
-    ];
-  };
-
-  const getMixedChartData = () => {
-    if (!playerStats || !playerStats[player1] || !playerStats[player2]) return [];
-
-    return [
-      { metric: "Runs", [player1]: playerStats[player1].runs, [player2]: playerStats[player2].runs },
-      { metric: "Centuries", [player1]: playerStats[player1].centuries, [player2]: playerStats[player2].centuries },
-      { metric: "Fifties", [player1]: playerStats[player1].fifties, [player2]: playerStats[player2].fifties },
-      { metric: "Wickets", [player1]: playerStats[player1].wickets, [player2]: playerStats[player2].wickets }
-    ];
+  { category: "Wins", [team1]: summary[team1] || 0, [team2]: summary[team2] || 0 },
+  { category: "Draws", [team1]: summary.draws || 0, [team2]: summary.draws || 0 },
+ // { category: "Win %", [`${team1}_win_pct`]: summary.win_percentage_team1 || 0, [`${team2}_win_pct`]: summary.win_percentage_team2 || 0 }
+];
   };
 
   return (
@@ -111,11 +94,11 @@ const H2HRecords = () => {
         </select>
 
         <select value={matchType} onChange={e => setMatchType(e.target.value)} className="h2h-dropdown match-type">
-          <option value="ALL">All</option>
-          <option value="ODI">ODI</option>
-          <option value="T20">T20</option>
-          <option value="TEST">Test</option>
-        </select>
+            <option value="ALL">All</option>
+            <option value="ODI">ODI</option>
+            <option value="T20">T20</option>
+            <option value="TEST">Test</option>
+            </select>
       </div>
 
       {loadingSummary && <p className="loading-text">Loading summary...</p>}
@@ -131,13 +114,14 @@ const H2HRecords = () => {
               <li>Draws: <strong>{summary.draws}</strong></li>
               <li>{team1} Win %: <strong>{summary.win_percentage_team1 || 0}%</strong></li>
               <li>{team2} Win %: <strong>{summary.win_percentage_team2 || 0}%</strong></li>
+
             </ul>
           </div>
 
           <div className="h2h-chart-container">
             <h3>📈 Performance Comparison</h3>
             <ResponsiveContainer width="100%" height={300}>
-              <ComposedChart data={getChartData()}>
+              <LineChart data={getChartData()}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="category" />
                 <YAxis allowDecimals={false} />
@@ -145,7 +129,7 @@ const H2HRecords = () => {
                 <Legend />
                 <Line type="monotone" dataKey={team1} stroke="#34d399" strokeWidth={3} />
                 <Line type="monotone" dataKey={team2} stroke="#f87171" strokeWidth={3} />
-              </ComposedChart>
+              </LineChart>
             </ResponsiveContainer>
           </div>
         </>
@@ -196,28 +180,12 @@ const H2HRecords = () => {
                 </ul>
               </div>
             </div>
-
             <div className="strength-meter">
               <div className="meter-bar">
                 <div className="meter-fill" style={{ width: `${playerStats[player1].runs > playerStats[player2].runs ? 65 : 35}%` }}>
                   {(playerStats[player1].runs > playerStats[player2].runs ? player1 : player2)} is stronger 💪
                 </div>
               </div>
-            </div>
-
-            <div className="player-chart-comparison">
-              <h3>📊 Mixed Stats Chart</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <ComposedChart data={getMixedChartData()}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="metric" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey={player1} fill="#60a5fa" barSize={30} />
-                  <Line type="monotone" dataKey={player2} stroke="#f97316" strokeWidth={3} dot />
-                </ComposedChart>
-              </ResponsiveContainer>
             </div>
           </div>
         )}
