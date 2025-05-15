@@ -1,4 +1,4 @@
-// H2HRecords.js (✅ FINAL FIXED VERSION with crash fix + enhancements)
+// H2HRecords.js (✅ FINAL with loading + chart-safe + auto-hide)
 import React, { useState, useEffect } from "react";
 import "./H2HRecords.css";
 import {
@@ -40,7 +40,7 @@ const H2HRecords = () => {
   useEffect(() => {
     if (team1 && team2 && matchType && team1 !== team2) {
       setLoadingSummary(true);
-      fetch(`https://cricket-scoreboard-backend.onrender.com/api/h2h/summary?team1=${team1}&team2=${team2}&type=${matchType}`)
+      fetch(`https://cricket-scoreboard-backend.onrender.com/api/h2h/summary?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}&type=${matchType}`)
         .then(res => res.json())
         .then(data => {
           setSummary(data);
@@ -56,7 +56,7 @@ const H2HRecords = () => {
   useEffect(() => {
     if (player1 && player2 && player1 !== player2) {
       setLoadingPlayers(true);
-      fetch(`https://cricket-scoreboard-backend.onrender.com/api/players/compare?player1=${player1}&player2=${player2}`)
+      fetch(`https://cricket-scoreboard-backend.onrender.com/api/players/compare?player1=${encodeURIComponent(player1)}&player2=${encodeURIComponent(player2)}`)
         .then(res => res.json())
         .then(data => {
           setPlayerStats(data.players);
