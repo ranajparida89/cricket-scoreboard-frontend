@@ -1,4 +1,4 @@
-// H2HRecords.js (✅ FINAL with loading + chart-safe + auto-hide)
+// H2HRecords.js (✅ FINAL with team/player validation)
 import React, { useState, useEffect } from "react";
 import "./H2HRecords.css";
 import {
@@ -10,7 +10,7 @@ const H2HRecords = () => {
   const [teams, setTeams] = useState([]);
   const [team1, setTeam1] = useState("");
   const [team2, setTeam2] = useState("");
-  const [matchType, setMatchType] = useState("ALL"); // default changed from "ODI"
+  const [matchType, setMatchType] = useState("ALL");
   const [summary, setSummary] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
 
@@ -19,6 +19,9 @@ const H2HRecords = () => {
   const [player2, setPlayer2] = useState("");
   const [playerStats, setPlayerStats] = useState(null);
   const [loadingPlayers, setLoadingPlayers] = useState(false);
+
+  const [teamError, setTeamError] = useState("");
+  const [playerError, setPlayerError] = useState("");
 
   useEffect(() => {
     fetch("https://cricket-scoreboard-backend.onrender.com/api/h2h/teams")
@@ -38,7 +41,16 @@ const H2HRecords = () => {
   }, []);
 
   useEffect(() => {
-    if (team1 && team2 && matchType && team1 !== team2) {
+    if (team1 && team2) {
+      if (team1.toLowerCase() === team2.toLowerCase()) {
+        setTeamError("⚠️ Please select two different teams.");
+        return;
+      } else {
+        setTeamError("");
+      }
+    }
+
+    if (team1 && team2 && matchType) {
       setLoadingSummary(true);
       fetch(`https://cricket-scoreboard-backend.onrender.com/api/h2h/summary?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}&type=${matchType}`)
         .then(res => res.json())
@@ -54,6 +66,15 @@ const H2HRecords = () => {
   }, [team1, team2, matchType]);
 
   useEffect(() => {
+    if (player1 && player2) {
+      if (player1.toLowerCase() === player2.toLowerCase()) {
+        setPlayerError("⚠️ Please select two different players.");
+        return;
+      } else {
+        setPlayerError("");
+      }
+    }
+
     if (player1 && player2 && player1 !== player2) {
       setLoadingPlayers(true);
       fetch(`https://cricket-scoreboard-backend.onrender.com/api/players/compare?player1=${encodeURIComponent(player1)}&player2=${encodeURIComponent(player2)}`)
@@ -72,10 +93,9 @@ const H2HRecords = () => {
   const getChartData = () => {
     if (!summary || !team1 || !team2) return [];
     return [
-  { category: "Wins", [team1]: summary[team1] || 0, [team2]: summary[team2] || 0 },
-  { category: "Draws", [team1]: summary.draws || 0, [team2]: summary.draws || 0 },
- // { category: "Win %", [`${team1}_win_pct`]: summary.win_percentage_team1 || 0, [`${team2}_win_pct`]: summary.win_percentage_team2 || 0 }
-];
+      { category: "Wins", [team1]: summary[team1] || 0, [team2]: summary[team2] || 0 },
+      { category: "Draws", [team1]: summary.draws || 0, [team2]: summary.draws || 0 }
+    ];
   };
 
   return (
@@ -94,16 +114,17 @@ const H2HRecords = () => {
         </select>
 
         <select value={matchType} onChange={e => setMatchType(e.target.value)} className="h2h-dropdown match-type">
-            <option value="ALL">All</option>
-            <option value="ODI">ODI</option>
-            <option value="T20">T20</option>
-            <option value="TEST">Test</option>
-            </select>
+          <option value="ALL">All</option>
+          <option value="ODI">ODI</option>
+          <option value="T20">T20</option>
+          <option value="TEST">Test</option>
+        </select>
       </div>
 
+      {teamError && <p className="error-text">{teamError}</p>}
       {loadingSummary && <p className="loading-text">Loading summary...</p>}
 
-      {summary && (
+      {summary && !teamError && (
         <>
           <div className="h2h-summary-box">
             <h3>📋 Summary (Format: {matchType === "ALL" ? "All Formats" : matchType})</h3>
@@ -114,7 +135,6 @@ const H2HRecords = () => {
               <li>Draws: <strong>{summary.draws}</strong></li>
               <li>{team1} Win %: <strong>{summary.win_percentage_team1 || 0}%</strong></li>
               <li>{team2} Win %: <strong>{summary.win_percentage_team2 || 0}%</strong></li>
-
             </ul>
           </div>
 
@@ -150,9 +170,10 @@ const H2HRecords = () => {
           </select>
         </div>
 
+        {playerError && <p className="error-text">{playerError}</p>}
         {loadingPlayers && <p className="loading-text">Loading player comparison...</p>}
 
-        {playerStats && playerStats[player1] && playerStats[player2] && (
+        {playerStats && playerStats[player1] && playerStats[player2] && !playerError && (
           <div className="player-comparison-card">
             <div className="player-columns">
               <div>
@@ -180,6 +201,7 @@ const H2HRecords = () => {
                 </ul>
               </div>
             </div>
+
             <div className="strength-meter">
               <div className="meter-bar">
                 <div className="meter-fill" style={{ width: `${playerStats[player1].runs > playerStats[player2].runs ? 65 : 35}%` }}>
