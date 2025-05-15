@@ -1,9 +1,16 @@
-// H2HRecords.js (✅ FINAL with normalized player chart)
+// H2HRecords.js (✅ Mixed Chart Update with Bar + Line)
 import React, { useState, useEffect } from "react";
 import "./H2HRecords.css";
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip, Legend,
-  CartesianGrid, ResponsiveContainer
+  Line,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  CartesianGrid,
+  ResponsiveContainer,
+  ComposedChart
 } from "recharts";
 
 const H2HRecords = () => {
@@ -77,23 +84,15 @@ const H2HRecords = () => {
     ];
   };
 
-  const getNormalizedPlayerChartData = () => {
+  const getMixedChartData = () => {
     if (!playerStats || !playerStats[player1] || !playerStats[player2]) return [];
 
-    const stats = ["runs", "centuries", "fifties", "wickets"];
-    const p1 = playerStats[player1];
-    const p2 = playerStats[player2];
-
-    const maxValues = {};
-    stats.forEach(key => {
-      maxValues[key] = Math.max(p1[key], p2[key], 1);
-    });
-
-    return stats.map(stat => ({
-      stat: stat.charAt(0).toUpperCase() + stat.slice(1),
-      [player1]: Math.round((p1[stat] / maxValues[stat]) * 100),
-      [player2]: Math.round((p2[stat] / maxValues[stat]) * 100),
-    }));
+    return [
+      { metric: "Runs", [player1]: playerStats[player1].runs, [player2]: playerStats[player2].runs },
+      { metric: "Centuries", [player1]: playerStats[player1].centuries, [player2]: playerStats[player2].centuries },
+      { metric: "Fifties", [player1]: playerStats[player1].fifties, [player2]: playerStats[player2].fifties },
+      { metric: "Wickets", [player1]: playerStats[player1].wickets, [player2]: playerStats[player2].wickets }
+    ];
   };
 
   return (
@@ -138,7 +137,7 @@ const H2HRecords = () => {
           <div className="h2h-chart-container">
             <h3>📈 Performance Comparison</h3>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={getChartData()}>
+              <ComposedChart data={getChartData()}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="category" />
                 <YAxis allowDecimals={false} />
@@ -146,7 +145,7 @@ const H2HRecords = () => {
                 <Legend />
                 <Line type="monotone" dataKey={team1} stroke="#34d399" strokeWidth={3} />
                 <Line type="monotone" dataKey={team2} stroke="#f87171" strokeWidth={3} />
-              </LineChart>
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
         </>
@@ -207,17 +206,17 @@ const H2HRecords = () => {
             </div>
 
             <div className="player-chart-comparison">
-              <h3>📊 Stats Comparison Line Chart</h3>
-              <ResponsiveContainer width="100%" height={280}>
-                <LineChart data={getNormalizedPlayerChartData()}>
+              <h3>📊 Mixed Stats Chart</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <ComposedChart data={getMixedChartData()}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="stat" />
-                  <YAxis domain={[0, 100]} />
+                  <XAxis dataKey="metric" />
+                  <YAxis allowDecimals={false} />
                   <Tooltip />
                   <Legend />
-                  <Line type="basis" dataKey={player1} stroke="#3b82f6" strokeWidth={3} dot={{ r: 5 }} />
-                  <Line type="basis" dataKey={player2} stroke="#ef4444" strokeWidth={3} dot={{ r: 5 }} />
-                </LineChart>
+                  <Bar dataKey={player1} fill="#60a5fa" barSize={30} />
+                  <Line type="monotone" dataKey={player2} stroke="#f97316" strokeWidth={3} dot />
+                </ComposedChart>
               </ResponsiveContainer>
             </div>
           </div>
