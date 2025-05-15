@@ -129,8 +129,6 @@ const H2HRecords = () => {
                 <Legend />
                 <Line type="monotone" dataKey={team1} stroke="#34d399" strokeWidth={3} />
                 <Line type="monotone" dataKey={team2} stroke="#f87171" strokeWidth={3} />
-                <Line type="monotone" dataKey={`${team1}_win_pct`} stroke="#3b82f6" strokeWidth={2} strokeDasharray="5 5" />
-                <Line type="monotone" dataKey={`${team2}_win_pct`} stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" />
               </LineChart>
             </ResponsiveContainer>
           </div>
