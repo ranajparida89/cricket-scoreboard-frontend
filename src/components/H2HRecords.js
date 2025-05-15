@@ -74,7 +74,7 @@ const H2HRecords = () => {
     return [
   { category: "Wins", [team1]: summary[team1] || 0, [team2]: summary[team2] || 0 },
   { category: "Draws", [team1]: summary.draws || 0, [team2]: summary.draws || 0 },
-  { category: "Win %", [`${team1}_win_pct`]: summary.win_percentage_team1 || 0, [`${team2}_win_pct`]: summary.win_percentage_team2 || 0 }
+ // { category: "Win %", [`${team1}_win_pct`]: summary.win_percentage_team1 || 0, [`${team2}_win_pct`]: summary.win_percentage_team2 || 0 }
 ];
   };
 
