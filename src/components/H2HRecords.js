@@ -72,9 +72,10 @@ const H2HRecords = () => {
   const getChartData = () => {
     if (!summary || !team1 || !team2) return [];
     return [
-      { category: "Wins", [team1]: summary[team1] || 0, [team2]: summary[team2] || 0 },
-      { category: "Draws", [team1]: summary.draws || 0, [team2]: summary.draws || 0 }
-    ];
+  { category: "Wins", [team1]: summary[team1] || 0, [team2]: summary[team2] || 0 },
+  { category: "Draws", [team1]: summary.draws || 0, [team2]: summary.draws || 0 },
+  { category: "Win %", [`${team1}_win_pct`]: summary.win_percentage_team1 || 0, [`${team2}_win_pct`]: summary.win_percentage_team2 || 0 }
+];
   };
 
   return (
@@ -111,8 +112,9 @@ const H2HRecords = () => {
               <li>{team1} Wins: <strong>{summary[team1]}</strong></li>
               <li>{team2} Wins: <strong>{summary[team2]}</strong></li>
               <li>Draws: <strong>{summary.draws}</strong></li>
-              <li>Top Scorer: <strong>{summary.top_scorer || "N/A"}</strong></li>
-              <li>Top Bowler: <strong>{summary.top_bowler || "N/A"}</strong></li>
+              <li>{team1} Win %: <strong>{summary.win_percentage_team1 || 0}%</strong></li>
+              <li>{team2} Win %: <strong>{summary.win_percentage_team2 || 0}%</strong></li>
+
             </ul>
           </div>
 
@@ -127,6 +129,8 @@ const H2HRecords = () => {
                 <Legend />
                 <Line type="monotone" dataKey={team1} stroke="#34d399" strokeWidth={3} />
                 <Line type="monotone" dataKey={team2} stroke="#f87171" strokeWidth={3} />
+                <Line type="monotone" dataKey={`${team1}_win_pct`} stroke="#3b82f6" strokeWidth={2} strokeDasharray="5 5" />
+                <Line type="monotone" dataKey={`${team2}_win_pct`} stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" />
               </LineChart>
             </ResponsiveContainer>
           </div>
