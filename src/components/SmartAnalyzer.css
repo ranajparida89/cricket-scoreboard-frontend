@@ -1,114 +1,124 @@
-/* SmartAnalyzer.css - Advanced UI for Natural Language AI Queries (CrickEdge Theme) */
-
 .analyzer-container {
-  padding: 30px 20px;
-  max-width: 900px;
-  margin: 0 auto;
   background-color: #0f172a;
-  border-radius: 12px;
-  box-shadow: 0 0 12px rgba(30, 64, 175, 0.5);
-  color: #f1f5f9;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.2);
+  max-width: 960px;
+  margin: auto;
+  color: white;
 }
 
-.analyzer-container h2 {
-  font-size: 1.8rem;
-  margin-bottom: 1rem;
+.analyzer-title {
+  font-size: 28px;
+  font-weight: 700;
   color: #60a5fa;
-  text-align: center;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.analyzer-input-area {
+.query-section {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 20px;
 }
 
-.analyzer-textbox {
-  padding: 12px;
-  font-size: 1rem;
-  border-radius: 8px;
-  border: 1px solid #334155;
+.analyzer-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #1e3a8a;
+  border-radius: 12px;
+  font-size: 16px;
   background-color: #1e293b;
-  color: #f8fafc;
-  resize: none;
-  min-height: 100px;
-  transition: border-color 0.3s;
+  color: #e2e8f0;
+  outline: none;
 }
 
-.analyzer-textbox:focus {
-  outline: none;
+.analyzer-input:focus {
   border-color: #3b82f6;
   box-shadow: 0 0 5px #3b82f6;
 }
 
-.analyzer-button {
-  align-self: flex-end;
-  padding: 10px 20px;
-  font-weight: 600;
-  background-color: #3b82f6;
+.analyzer-btn {
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
   color: white;
-  border: none;
-  border-radius: 8px;
-  transition: background-color 0.3s ease;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 16px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease-in-out;
 }
 
-.analyzer-button:hover {
-  background-color: #2563eb;
+.analyzer-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px #60a5fa;
 }
 
-.analyzer-result-box {
-  background-color: #1e293b;
-  border-left: 4px solid #38bdf8;
-  padding: 16px;
-  border-radius: 8px;
-  margin-top: 20px;
-  white-space: pre-line;
-  font-size: 1rem;
-  line-height: 1.5;
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-.analyzer-error {
-  background-color: #7f1d1d;
-  color: #fee2e2;
-  padding: 10px;
-  border-radius: 6px;
-  margin-top: 12px;
-}
-
-.analyzer-loader {
-  color: #facc15;
+.examples {
   margin-top: 10px;
-  text-align: center;
-  font-style: italic;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-/* Optional: fadeIn animation */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.examples span {
+  font-weight: 500;
+  color: #facc15;
 }
 
-/* Mobile Responsive */
-@media (max-width: 640px) {
-  .analyzer-container {
-    padding: 20px 10px;
-  }
+.examples button {
+  padding: 6px 14px;
+  font-size: 14px;
+  border: none;
+  border-radius: 20px;
+  background-color: #334155;
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
 
-  .analyzer-textbox {
-    font-size: 0.95rem;
-  }
+.examples button:hover {
+  background-color: #1e3a8a;
+  transform: translateY(-1px);
+}
 
-  .analyzer-button {
-    width: 100%;
-    padding: 12px;
-  }
+.response-card {
+  margin-top: 25px;
+  background-color: #1e293b;
+  border-radius: 14px;
+  border: 1px solid #334155;
+}
+
+.response-output {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: #10b981;
+  padding-top: 8px;
+}
+
+.error-text {
+  color: #f87171;
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+.history-section {
+  margin-top: 35px;
+}
+
+.history-section h4 {
+  font-size: 20px;
+  color: #38bdf8;
+  margin-bottom: 10px;
+}
+
+.history-section li {
+  margin-bottom: 12px;
+  color: #fcd34d;
 }
