@@ -1,0 +1,114 @@
+/* SmartAnalyzer.css - Advanced UI for Natural Language AI Queries (CrickEdge Theme) */
+
+.analyzer-container {
+  padding: 30px 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  background-color: #0f172a;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(30, 64, 175, 0.5);
+  color: #f1f5f9;
+}
+
+.analyzer-container h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: #60a5fa;
+  text-align: center;
+}
+
+.analyzer-input-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.analyzer-textbox {
+  padding: 12px;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background-color: #1e293b;
+  color: #f8fafc;
+  resize: none;
+  min-height: 100px;
+  transition: border-color 0.3s;
+}
+
+.analyzer-textbox:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 5px #3b82f6;
+}
+
+.analyzer-button {
+  align-self: flex-end;
+  padding: 10px 20px;
+  font-weight: 600;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+
+.analyzer-button:hover {
+  background-color: #2563eb;
+}
+
+.analyzer-result-box {
+  background-color: #1e293b;
+  border-left: 4px solid #38bdf8;
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 20px;
+  white-space: pre-line;
+  font-size: 1rem;
+  line-height: 1.5;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.analyzer-error {
+  background-color: #7f1d1d;
+  color: #fee2e2;
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 12px;
+}
+
+.analyzer-loader {
+  color: #facc15;
+  margin-top: 10px;
+  text-align: center;
+  font-style: italic;
+}
+
+/* Optional: fadeIn animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .analyzer-container {
+    padding: 20px 10px;
+  }
+
+  .analyzer-textbox {
+    font-size: 0.95rem;
+  }
+
+  .analyzer-button {
+    width: 100%;
+    padding: 12px;
+  }
+}

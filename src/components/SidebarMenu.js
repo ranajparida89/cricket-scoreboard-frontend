@@ -38,6 +38,8 @@ const SidebarMenu = () => {
         <li><Link to="/player-rankings" onClick={handleClose}><FaChartLine className="me-2" /> 🏆 CrickEdge Rankings</Link></li>
         <li><Link to="/match-story" onClick={handleClose}><FaRegNewspaper className="me-2" /> Match Story</Link></li>  
         <li><Link to="/h2h-records" onClick={handleClose}><FaHandshake className="me-2" /> H2H Records</Link></li> {/* for h2h */}
+        <li><Link to="/smart-analyzer" onClick={handleClose}><FaBrain className="me-2" /> Smart Analyzer</Link></li> {/* for AI module */}
+
 
 
      
