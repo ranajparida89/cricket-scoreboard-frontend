@@ -1,9 +1,6 @@
 // src/components/SmartAnalyzer.js
 import React, { useState } from "react";
 import "./SmartAnalyzer.css";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { FaMagic, FaHistory, FaChartLine } from "react-icons/fa";
 
 const SmartAnalyzer = () => {
@@ -25,7 +22,7 @@ const SmartAnalyzer = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: query }),
-        });
+      });
       const data = await res.json();
       setResponse(data);
       setHistory((prev) => [{ query, response: data }, ...prev]);
@@ -47,33 +44,32 @@ const SmartAnalyzer = () => {
       <h2 className="analyzer-title">🧠 CrickEdge Smart Analyzer</h2>
 
       <div className="query-section">
-        <Input
+        <input
+          type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Ask a cricket question..."
           className="analyzer-input"
         />
-        <Button onClick={handleQuery} disabled={loading} className="analyzer-btn">
-          {loading ? "Analyzing..." : <FaMagic className="mr-2" />} Analyze
-        </Button>
+        <button onClick={handleQuery} disabled={loading} className="analyzer-btn">
+          {loading ? "Analyzing..." : <><FaMagic className="mr-2" /> Analyze</>}
+        </button>
       </div>
 
       {error && <p className="error-text">⚠️ {error}</p>}
 
       <div className="examples">
         <span>Try:</span>
-        <Button onClick={() => handleExampleClick("Top scorer in last 10 ODIs")}>Top scorer</Button>
-        <Button onClick={() => handleExampleClick("India vs Australia win % in T20s")}>Win %</Button>
-        <Button onClick={() => handleExampleClick("Best economy bowler in T20")}>Best economy</Button>
+        <button onClick={() => handleExampleClick("Top scorer in last 10 ODIs")}>Top scorer</button>
+        <button onClick={() => handleExampleClick("India vs Australia win % in T20s")}>Win %</button>
+        <button onClick={() => handleExampleClick("Best economy bowler in T20")}>Best economy</button>
       </div>
 
       {response && (
-        <Card className="response-card">
-          <CardContent>
-            <h3><FaChartLine className="inline mr-2" />Response:</h3>
-            <pre className="response-output">{JSON.stringify(response, null, 2)}</pre>
-          </CardContent>
-        </Card>
+        <div className="response-card">
+          <h3><FaChartLine className="inline mr-2" />Response:</h3>
+          <pre className="response-output">{JSON.stringify(response, null, 2)}</pre>
+        </div>
       )}
 
       {history.length > 0 && (
