@@ -6,6 +6,8 @@ import { Link } from "react-router-dom";
 import { FaUsers, FaPlus, FaChartLine, FaUserCheck, FaTimes } from "react-icons/fa";
 import { FaRegNewspaper } from "react-icons/fa"; // added for matchstory 14MAY2025 Ranaj Parida
 import { FaHandshake } from "react-icons/fa"; // for head to head comprision 15 MAY 2025 Ranaj Parida
+import { FaBrain } from "react-icons/fa";
+
 import "./SidebarMenu.css";
 
 const SidebarMenu = () => {
