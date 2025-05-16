@@ -68,7 +68,10 @@ const SmartAnalyzer = () => {
       {response && (
         <div className="response-card">
           <h3><FaChartLine className="inline mr-2" />Response:</h3>
-          <pre className="response-output">{JSON.stringify(response, null, 2)}</pre>
+          <div
+        className="response-output"
+        dangerouslySetInnerHTML={{ __html: response?.result || "No result." }}
+        ></div>
         </div>
       )}
 
