@@ -1,7 +1,9 @@
-// src/components/SmartAnalyzer.js
+// ✅ Step 3: Improve history output and UI styling in SmartAnalyzer.js
+
 import React, { useState } from "react";
 import "./SmartAnalyzer.css";
 import { FaMagic, FaHistory, FaChartLine } from "react-icons/fa";
+import questions from "./questions";
 
 const SmartAnalyzer = () => {
   const [query, setQuery] = useState("");
@@ -9,9 +11,11 @@ const SmartAnalyzer = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [history, setHistory] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const handleQuery = async () => {
     setError("");
+    setShowSuggestions(false);
     if (!query.trim()) {
       setError("Please enter a valid question.");
       return;
@@ -25,7 +29,7 @@ const SmartAnalyzer = () => {
       });
       const data = await res.json();
       setResponse(data);
-      setHistory((prev) => [{ query, response: data }, ...prev]);
+      setHistory((prev) => [{ query, result: data?.result }, ...prev]);
     } catch (err) {
       setError("Something went wrong. Try again later.");
     } finally {
@@ -37,55 +41,99 @@ const SmartAnalyzer = () => {
     setQuery(example);
     setResponse(null);
     setError("");
+    setShowSuggestions(false);
   };
+
+  const filteredSuggestions = questions.filter(q =>
+    q.toLowerCase().includes(query.toLowerCase()) && query.length > 1
+  ).slice(0, 7);
 
   return (
     <div className="analyzer-container">
       <h2 className="analyzer-title">🧠 CrickEdge Smart Analyzer</h2>
 
       <div className="query-section">
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Ask a cricket question..."
-          className="analyzer-input"
-        />
-        <button onClick={handleQuery} disabled={loading} className="analyzer-btn">
-          {loading ? "Analyzing..." : <><FaMagic className="mr-2" /> Analyze</>}
-        </button>
-      </div>
+  {/* ✅ Step 6: Dropdown for Popular Queries */}
+  <div className="popular-dropdown-container">
+    <label htmlFor="popular-queries">Popular Queries:</label>
+    <select
+      id="popular-queries"
+      className="popular-dropdown"
+      onChange={(e) => handleExampleClick(e.target.value)}
+      defaultValue=""
+    >
+      <option value="" disabled>Select a popular query...</option>
+      {questions.slice(0, 50).map((q, idx) => (
+        <option key={idx} value={q}>{q}</option>
+      ))}
+    </select>
+  </div>
+
+  {/* ✅ Main Input */}
+  <input
+    type="text"
+    value={query}
+    onChange={(e) => {
+      setQuery(e.target.value);
+      setShowSuggestions(true);
+    }}
+    placeholder="Ask a cricket question..."
+    className="analyzer-input"
+    onFocus={() => setShowSuggestions(true)}
+  />
+  <button onClick={handleQuery} disabled={loading} className="analyzer-btn">
+    {loading ? "Analyzing..." : <><FaMagic className="mr-2" /> Analyze</>}
+  </button>
+</div>
+
+
+      {showSuggestions && filteredSuggestions.length > 0 && (
+        <ul className="suggestion-dropdown">
+          {filteredSuggestions.map((suggestion, index) => (
+            <li key={index} onClick={() => handleExampleClick(suggestion)}>
+              {suggestion}
+            </li>
+          ))}
+        </ul>
+      )}
 
       {error && <p className="error-text">⚠️ {error}</p>}
 
       <div className="examples">
         <span>Try:</span>
-        <button onClick={() => handleExampleClick("Top scorer in last 10 ODIs")}>Top scorer</button>
-        <button onClick={() => handleExampleClick("India vs Australia win % in T20s")}>Win %</button>
-        <button onClick={() => handleExampleClick("Best economy bowler in T20")}>Best economy</button>
+        <button onClick={() => handleExampleClick("Top scorer for India in ODI")}>Top scorer</button>
+        <button onClick={() => handleExampleClick("Top wicket taker for Australia")}>Top wickets</button>
+        <button onClick={() => handleExampleClick("Most centuries for India")}>Most centuries</button>
       </div>
 
-      {response && (
-        <div className="response-card">
-          <h3><FaChartLine className="inline mr-2" />Response:</h3>
-          <div
-        className="response-output"
-        dangerouslySetInnerHTML={{ __html: response?.result || "No result." }}
-        ></div>
-        </div>
-      )}
+   {response && (
+  <div className="response-card glow-border">
+    <div className="badge-strip">
+      <span className="badge">🎯 Smart Result</span>
+      <span className="tooltip-icon" title="Based on live cricket performance data.">ℹ️</span>
+    </div>
+    <div
+      className="response-output"
+      dangerouslySetInnerHTML={{ __html: response?.result || "<p>No data available.</p>" }}
+    ></div>
+  </div>
+)}
+
 
       {history.length > 0 && (
         <div className="history-section">
-          <h4><FaHistory className="inline mr-2" />Query History</h4>
-          <ul>
+          <h4><FaHistory className="inline mr-2" />Past Queries</h4>
+          <div className="history-list">
             {history.map((item, idx) => (
-              <li key={idx}>
-                <strong>{item.query}</strong>
-                <pre>{JSON.stringify(item.response, null, 2)}</pre>
-              </li>
+              <div key={idx} className="history-entry">
+                <div className="history-question">❓ <strong>{item.query}</strong></div>
+                <div
+                  className="history-answer"
+                  dangerouslySetInnerHTML={{ __html: item.result }}
+                />
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       )}
     </div>
