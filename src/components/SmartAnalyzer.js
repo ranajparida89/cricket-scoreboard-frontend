@@ -3,8 +3,7 @@
 import React, { useState } from "react";
 import "./SmartAnalyzer.css";
 import { FaMagic, FaHistory, FaChartLine } from "react-icons/fa";
-import questions from "../components/questions"; // ✅ Correct relative path if `questions.js` is inside components folder
-
+import questions from "../components/questions"; // ✅ Correct import path
 
 const SmartAnalyzer = () => {
   const [query, setQuery] = useState("");
@@ -45,54 +44,58 @@ const SmartAnalyzer = () => {
     setShowSuggestions(false);
   };
 
-  const filteredSuggestions = questions.filter(q =>
-    q.toLowerCase().includes(query.toLowerCase()) && query.length > 1
-  ).slice(0, 7);
+  // ✅ FIXED: Use `q.text` for filtering suggestions
+  const filteredSuggestions = questions
+    .filter(q =>
+      q.text?.toLowerCase().includes(query.toLowerCase()) && query.length > 1
+    )
+    .slice(0, 7);
 
   return (
     <div className="analyzer-container">
       <h2 className="analyzer-title">🧠 CrickEdge Smart Analyzer</h2>
 
       <div className="query-section">
-  {/* ✅ Step 6: Dropdown for Popular Queries */}
-  <div className="popular-dropdown-container">
-    <label htmlFor="popular-queries">Popular Queries:</label>
-    <select
-      id="popular-queries"
-      className="popular-dropdown"
-      onChange={(e) => handleExampleClick(e.target.value)}
-      defaultValue=""
-    >
-      <option value="" disabled>Select a popular query...</option>
-      {questions.slice(0, 50).map((q, idx) => (
-        <option key={idx} value={q}>{q}</option>
-      ))}
-    </select>
-  </div>
 
-  {/* ✅ Main Input */}
-  <input
-    type="text"
-    value={query}
-    onChange={(e) => {
-      setQuery(e.target.value);
-      setShowSuggestions(true);
-    }}
-    placeholder="Ask a cricket question..."
-    className="analyzer-input"
-    onFocus={() => setShowSuggestions(true)}
-  />
-  <button onClick={handleQuery} disabled={loading} className="analyzer-btn">
-    {loading ? "Analyzing..." : <><FaMagic className="mr-2" /> Analyze</>}
-  </button>
-</div>
+        {/* ✅ Step 6: Dropdown for Popular Queries */}
+        <div className="popular-dropdown-container">
+          <label htmlFor="popular-queries">Popular Queries:</label>
+          <select
+            id="popular-queries"
+            className="popular-dropdown"
+            onChange={(e) => handleExampleClick(e.target.value)}
+            defaultValue=""
+          >
+            <option value="" disabled>Select a popular query...</option>
+            {questions.slice(0, 50).map((q, idx) => (
+              <option key={idx} value={q.text}>{q.text}</option>  // {/* ✅ Use q.text */}
+            ))}
+          </select>
+        </div>
 
+        {/* ✅ Main Input */}
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setShowSuggestions(true);
+          }}
+          placeholder="Ask a cricket question..."
+          className="analyzer-input"
+          onFocus={() => setShowSuggestions(true)}
+        />
+        <button onClick={handleQuery} disabled={loading} className="analyzer-btn">
+          {loading ? "Analyzing..." : <><FaMagic className="mr-2" /> Analyze</>}
+        </button>
+      </div>
 
+      {/* ✅ FIXED: Use `suggestion.text` safely */}
       {showSuggestions && filteredSuggestions.length > 0 && (
         <ul className="suggestion-dropdown">
           {filteredSuggestions.map((suggestion, index) => (
-            <li key={index} onClick={() => handleExampleClick(suggestion)}>
-              {suggestion}
+            <li key={index} onClick={() => handleExampleClick(suggestion.text)}>
+              {suggestion.text}
             </li>
           ))}
         </ul>
@@ -107,19 +110,18 @@ const SmartAnalyzer = () => {
         <button onClick={() => handleExampleClick("Most centuries for India")}>Most centuries</button>
       </div>
 
-   {response && (
-  <div className="response-card glow-border">
-    <div className="badge-strip">
-      <span className="badge">🎯 Smart Result</span>
-      <span className="tooltip-icon" title="Based on live cricket performance data.">ℹ️</span>
-    </div>
-    <div
-      className="response-output"
-      dangerouslySetInnerHTML={{ __html: response?.result || "<p>No data available.</p>" }}
-    ></div>
-  </div>
-)}
-
+      {response && (
+        <div className="response-card glow-border">
+          <div className="badge-strip">
+            <span className="badge">🎯 Smart Result</span>
+            <span className="tooltip-icon" title="Based on live cricket performance data.">ℹ️</span>
+          </div>
+          <div
+            className="response-output"
+            dangerouslySetInnerHTML={{ __html: response?.result || "<p>No data available.</p>" }}
+          ></div>
+        </div>
+      )}
 
       {history.length > 0 && (
         <div className="history-section">
