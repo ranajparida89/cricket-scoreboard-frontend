@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import "./SmartAnalyzer.css";
 import { FaMagic, FaHistory, FaChartLine } from "react-icons/fa";
-import questions from "./questions";
+import questions from "../components/questions"; // ✅ Correct relative path if `questions.js` is inside components folder
+
 
 const SmartAnalyzer = () => {
   const [query, setQuery] = useState("");
