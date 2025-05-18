@@ -23,6 +23,20 @@ const questions = [
   { id: "top_wicket_odi_srilanka", text: "Sri Lanka’s highest ODI wicket taker" },
   { id: "most_wickets_test_australia", text: "Most wickets by an Australian in Test matches" },
 
+    // 🧪 Test Match Analytics (ENHANCED)
+
+  { id: "top_run_scorer_team_test", text: "Top Run Scorer for a Team in Test Matches" },
+  { id: "top_wicket_taker_team_test", text: "Top Wicket Taker for a Team in Test Matches" },
+  { id: "most_centuries_player_test", text: "Most Centuries by a Player in Test Matches" },
+  { id: "total_runs_by_team_test", text: "Total Runs Scored by a Team in Test Matches" },
+  { id: "highest_individual_score_test", text: "Highest Individual Test Score (All Time)" },
+  { id: "total_wickets_player_test", text: "Total Wickets by a Player in Test Matches" },
+  { id: "last_test_match_winner", text: "Last Test Match Winner" },
+  { id: "team_with_most_test_wins", text: "Team with Most Test Wins" },
+  { id: "most_fifties_player_test", text: "Most Fifties by a Player in Test Matches" },
+  { id: "best_batting_average_test", text: "Best Batting Average in Tests" },
+
+
   // ⭐ Player Ratings
   { id: "highest_batting_rating_odi", text: "Highest rated batsman in ODI" },
   { id: "highest_bowling_rating_test", text: "Top bowling rating in Test matches" },
@@ -55,15 +69,16 @@ const questions = [
 
   // 🎖️ Fun / Trivia
   { id: "who_played_most_matches", text: "Who played the most matches in ODIs?" },
-  { id: "youngest_century_maker", text: "Youngest player to score a century in ODI?" },
+ // { id: "youngest_century_maker", text: "Youngest player to score a century in ODI?" },
   { id: "highest_match_score_test", text: "Highest total score in a Test match?" },
-  { id: "highest_partnership", text: "Highest partnership ever in international cricket?" },
-  { id: "best_keeper_dismissals", text: "Wicketkeeper with most dismissals in ODI" },
+ // { id: "highest_partnership", text: "Highest partnership ever in international cricket?" },
+ // { id: "best_keeper_dismissals", text: "Wicketkeeper with most dismissals in ODI" },
   { id: "most_ducks", text: "Which player has most ducks in career?" },
 
   // 💡 Player + Format + Team combos
   { id: "centuries_by_player_t20", text: "How many centuries has Rohit Sharma scored in T20s?" },
   { id: "wickets_by_player_test", text: "Wickets taken by Ashwin in Test cricket?" },
+  { id: "wickets_by_player_test", text: "Wickets taken by [Player] in Test cricket?" },
   { id: "runs_by_player_odi", text: "Total ODI runs by Virat Kohli?" },
   { id: "rating_of_player", text: "What is the batting rating of Steve Smith in Test?" },
   { id: "average_of_player", text: "Batting average of Babar Azam in ODI?" },
@@ -80,8 +95,8 @@ const questions = [
   { id: "last_match_top_bowler", text: "Top wicket taker in last Test match?" },
 
   // 📅 Date-specific
-  { id: "match_result_on_date", text: "Who won on 10 April 2024?" },
-  { id: "player_stats_on_date", text: "What were Kohli's stats on 15 March 2023?" },
+  //{ id: "match_result_on_date", text: "Who won on 10 April 2024?" },
+  //{ id: "player_stats_on_date", text: "What were Kohli's stats on 15 March 2023?" },
 
   // 💥 Strike Rate + Avg
   { id: "highest_strike_rate_t20", text: "Player with highest strike rate in T20s?" },
@@ -100,12 +115,12 @@ const questions = [
 
   // 🎯 Economy + Bowling
   { id: "best_economy_bowler", text: "Bowler with best economy in T20" },
-  { id: "most_dot_balls", text: "Bowler with most dot balls in ODI?" },
-  { id: "most_maiden_overs", text: "Most maiden overs bowled in Test cricket?" },
+  //{ id: "most_dot_balls", text: "Bowler with most dot balls in ODI?" },
+  // { id: "most_maiden_overs", text: "Most maiden overs bowled in Test cricket?" },
 
   // 📉 Failures
-  { id: "worst_loss", text: "Worst loss margin in ODI history?" },
-  { id: "biggest_collapses", text: "Biggest batting collapse ever?" },
+ // { id: "worst_loss", text: "Worst loss margin in ODI history?" },
+ //  { id: "biggest_collapses", text: "Biggest batting collapse ever?" },
 
   // 🧩 Other custom cricket queries...
 ];
