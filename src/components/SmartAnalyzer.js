@@ -67,7 +67,7 @@ const SmartAnalyzer = () => {
             defaultValue=""
           >
             <option value="" disabled>Select a popular query...</option>
-            {questions.slice(0, 50).map((q, idx) => (
+            {questions.slice(0, 200).map((q, idx) => (
               <option key={idx} value={q.text}>{q.text}</option>  // {/* ✅ Use q.text */}
             ))}
           </select>
