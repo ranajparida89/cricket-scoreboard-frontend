@@ -8,7 +8,7 @@ const questions = [
   { id: "most_centuries_srilanka", text: "Most centuries by a Sri Lankan batsman" },
 
   // 🏏 Total Runs
-  { id: "top_scorer_odi_india", text: "Top scorer for India in ODIs" },
+  { id: "top_scorer_odi_india", text: "Top scorer for India in ODI" },
   { id: "top_scorer_t20_australia", text: "Top scorer for Australia in T20s" },
   { id: "top_scorer_test_england", text: "Top scorer for England in Test matches" },
   { id: "top_scorer_odi_southafrica", text: "Top ODI scorer for South Africa" },
