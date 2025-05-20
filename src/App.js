@@ -56,7 +56,7 @@ function HomePage() {
       </div>
        {/* 📖 Test Match Leaderboard Section */}
       <div className="card bg-dark text-white p-4 shadow mb-5">
-        <h4 className="text-center text-info mb-3">📖 Test Match Leaderboard</h4>
+        <h4 className="text-center text-info mb-3"></h4>
         <TestLeaderboard />
       </div>
     </div>
@@ -73,7 +73,7 @@ function HomePage() {
 
       
       <div className="card bg-dark text-white p-4 shadow mb-5">
-        <h4 className="text-center text-success mb-3">🏆 Team Leaderboard</h4>
+        <h4 className="text-center text-success mb-3">🏆 Team Leaderboard(ODI/T20)</h4>
         <Leaderboard />
       </div>
        {/* 📖 Test Match Leaderboard Section */}
