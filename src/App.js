@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AppNavbar from "./components/Navbar";
 import MatchForm from "./components/MatchForm";
 import Leaderboard from "./components/Leaderboard";
+import TestLeaderboard from "./components/TestLeaderboard";
 import MatchHistory from "./components/MatchHistory";
 import TeamChart from "./components/TeamCharts";
 import MatchCards from "./components/MatchCards";
@@ -52,6 +53,11 @@ function HomePage() {
       <div className="card bg-dark text-white p-4 shadow mb-5">
         <h4 className="text-center text-success mb-3">🏆 Team Leaderboard</h4>
         <Leaderboard />
+      </div>
+       {/* 📖 Test Match Leaderboard Section */}
+      <div className="card bg-dark text-white p-4 shadow mb-5">
+        <h4 className="text-center text-info mb-3">📖 Test Match Leaderboard</h4>
+        <TestLeaderboard />
       </div>
     </div>
   );
