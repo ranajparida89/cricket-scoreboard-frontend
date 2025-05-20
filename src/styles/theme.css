@@ -49,6 +49,29 @@ h2, h3, h4 {
   background-color: #007e33;
   border-color: #007e33;
 }
+/* Custom Small Dark Navbar Buttons */
+.navbar-action-btn {
+  padding: 6px 18px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #222c38 60%, #1c262f 100%);
+  color: #00e6e6 !important;
+  border: 1.5px solid #00cfff;
+  margin-left: 8px;
+  margin-right: 0;
+  transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+  box-shadow: 0 2px 12px rgba(0,255,255,0.05);
+  min-width: 120px;
+  letter-spacing: 0.5px;
+}
+.navbar-action-btn:hover {
+  background: linear-gradient(90deg, #123049 80%, #19777a 100%);
+  color: #fff !important;
+  border-color: #00d2ff;
+  box-shadow: 0 0 18px #0ff2, 0 1px 8px #008da3;
+}
+
 
 /* 🏆 Enhanced Table Styling - [Ranaj Parida - 2025-04-12] */
 .table {
