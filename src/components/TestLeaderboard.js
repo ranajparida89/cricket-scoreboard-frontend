@@ -53,7 +53,7 @@ const TestLeaderboard = () => {
 
   return (
     <div className="table-responsive leaderboard-table-wrapper mt-5">
-      <h2 className="text-center text-info mb-4"></h2>
+      <h2 className="text-center text-info mb-4">World Test Match Team Rankings</h2>
       <table className="table table-bordered table-dark table-sm text-center mb-0">
         <thead>
           <tr>
