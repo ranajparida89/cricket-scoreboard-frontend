@@ -32,4 +32,29 @@
     vertical-align: middle;
     white-space: nowrap; /* prevent breaking like "West Indies" */
   }
-  
+  /* 🥇 Advanced 3D Medal Styles */
+.medal-3d {
+  display: inline-block;
+  font-size: 1.8rem;
+  filter: drop-shadow(0 0 6px #ffd70088) drop-shadow(0 0 12px #ffd70055);
+  transform: perspective(40px) rotateX(8deg);
+  transition: transform 0.3s;
+}
+
+.medal-3d.gold {
+  filter: drop-shadow(0 0 6px #ffd700) drop-shadow(0 0 18px #fffd94);
+}
+.medal-3d.silver {
+  filter: drop-shadow(0 0 6px #c0c0c0) drop-shadow(0 0 12px #b0e0e6);
+}
+.medal-3d.bronze {
+  filter: drop-shadow(0 0 6px #cd7f32) drop-shadow(0 0 12px #ffb347);
+}
+
+@keyframes spin {
+  0%   { transform: perspective(40px) rotateX(8deg) rotateY(0deg);}
+  100% { transform: perspective(40px) rotateX(8deg) rotateY(360deg);}
+}
+.animated-spin {
+  animation: spin 1.2s linear infinite;
+}

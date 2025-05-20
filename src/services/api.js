@@ -117,3 +117,9 @@ export const getPlayerRankings = async (type, matchType) => {
   );
   return response.data;
 };
+
+export const getTestMatchLeaderboard = async () => {
+  const res = await fetch("https://cricket-scoreboard-backend.onrender.com/api/leaderboard/test");
+  return res.json();
+};
+
