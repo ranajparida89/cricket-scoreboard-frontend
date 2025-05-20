@@ -65,7 +65,7 @@ const questions = [
   { id: "best_strike_rate_t20", text: "Best strike rate in T20 cricket" },
   { id: "fastest_50_odi", text: "Fastest fifty in ODI history?" },
   { id: "highest_score_individual", text: "Highest individual score in any format" },
-  { id: "most_sixes_t20", text: "Most sixes hit in T20 internationals" },
+  // { id: "most_sixes_t20", text: "Most sixes hit in T20 internationals" },
 
   // 🎖️ Fun / Trivia
   { id: "who_played_most_matches", text: "Who played the most matches in ODIs?" },
@@ -78,7 +78,7 @@ const questions = [
   // 💡 Player + Format + Team combos
   { id: "centuries_by_player_t20", text: "How many centuries has Rohit Sharma scored in T20s?" },
   { id: "wickets_by_player_test", text: "Wickets taken by Ashwin in Test cricket?" },
-  { id: "wickets_by_player_test", text: "Wickets taken by [Player] in Test cricket?" },
+ // { id: "wickets_by_player_test", text: "Wickets taken by [Player] in Test cricket?" },
   { id: "runs_by_player_odi", text: "Total ODI runs by Virat Kohli?" },
   { id: "rating_of_player", text: "What is the batting rating of Steve Smith in Test?" },
   { id: "average_of_player", text: "Batting average of Babar Azam in ODI?" },

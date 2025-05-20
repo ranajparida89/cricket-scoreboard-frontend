@@ -110,18 +110,30 @@ const SmartAnalyzer = () => {
         <button onClick={() => handleExampleClick("Most centuries for India")}>Most centuries</button>
       </div>
 
-      {response && (
-        <div className="response-card glow-border">
-          <div className="badge-strip">
-            <span className="badge">🎯 Smart Result</span>
-            <span className="tooltip-icon" title="Based on live cricket performance data.">ℹ️</span>
-          </div>
-          <div
-            className="response-output"
-            dangerouslySetInnerHTML={{ __html: response?.result || "<p>No data available.</p>" }}
-          ></div>
-        </div>
-      )}
+   {response && (
+  <div className="response-card glow-border">
+    <div className="badge-strip">
+      <span className="badge">🎯 Smart Result</span>
+      <span className="tooltip-icon" title="Based on live cricket performance data.">ℹ️</span>
+    </div>
+    {/* 🟢 CHANGED: Support for Array or Single result */}
+    <div className="response-output">
+      {Array.isArray(response.result)
+        ? response.result.map((item, idx) => (
+            <div
+              key={idx}
+              style={{ marginBottom: 12, borderBottom: "1px solid #222", paddingBottom: 8 }}
+              dangerouslySetInnerHTML={{ __html: item }}
+            />
+          ))
+        : (
+            <div dangerouslySetInnerHTML={{ __html: response?.result || "<p>No data available.</p>" }} />
+          )
+      }
+    </div>
+  </div>
+)}
+
 
       {history.length > 0 && (
         <div className="history-section">

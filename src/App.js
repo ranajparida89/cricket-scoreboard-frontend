@@ -51,7 +51,7 @@ function HomePage() {
 
       
       <div className="card bg-dark text-white p-4 shadow mb-5">
-        <h4 className="text-center text-success mb-3">🏆 Limited-Overs Cricket Leaderboard</h4>
+        <h4 className="text-center text-success mb-3">Limited-Overs Cricket Leaderboard</h4>
         <Leaderboard />
       </div>
       <div className="card bg-dark text-white p-4 shadow mb-5">
