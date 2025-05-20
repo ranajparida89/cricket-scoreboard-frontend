@@ -62,6 +62,27 @@ function HomePage() {
     </div>
   );
 }
+
+
+  return (
+    <div className="container mt-4">
+      {/* 🏏 Match Summary Section */}
+      <div className="mb-5">
+        <MatchCards />
+      </div>
+
+      {/* 🏆 Full Width Leaderboard Section */}
+      <div className="card bg-dark text-white p-4 shadow mb-5">
+        <h4 className="text-center text-success mb-3">🏆 Team Leaderboard</h4>
+        <Leaderboard />
+      </div>
+       {/* 📖 Test Match Leaderboard Section */}
+      <div className="card bg-dark text-white p-4 shadow mb-5">
+        <h4 className="text-center text-info mb-3">📖 Test Match Leaderboard</h4>
+        <TestLeaderboard />
+      </div>
+    </div>
+  );
 }
 
 function App() {
