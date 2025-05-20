@@ -41,28 +41,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 // ✅ Homepage = Match Summary (ODI + T20) + Leaderboard (Restricted for guests)
 function HomePage() {
   // ✅ Homepage = Match Summary (ODI + T20) + Leaderboard (Allowed for all users)
-function HomePage() {
-  return (
-    <div className="container mt-4">
-      {/* 🏏 Match Summary Section (ODI + T20) */}
-      <div className="mb-5">
-        <MatchCards />
-      </div>
-
-      {/* 🏆 Full Width Leaderboard Section */}
-      <div className="card bg-dark text-white p-4 shadow mb-5">
-        <h4 className="text-center text-success mb-3">🏆 Team Leaderboard(ODI/T20)</h4>
-        <Leaderboard />
-      </div>
-       {/* 📖 Test Match Leaderboard Section */}
-      <div className="card bg-dark text-white p-4 shadow mb-5">
-        <h4 className="text-center text-info mb-3"></h4>
-        <TestLeaderboard />
-      </div>
-    </div>
-  );
-}
-
 
   return (
     <div className="container mt-4">
