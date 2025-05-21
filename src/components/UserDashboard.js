@@ -40,14 +40,14 @@ const UserDashboard = () => {
     setApiError("");
     try {
       const results = await Promise.allSettled([
-        fetch(`/api/dashboard/favorites?userId=${userId}`),
-        fetch(`/api/dashboard/posts?userId=${userId}`),
-        fetch(`/api/dashboard/achievements?userId=${userId}`),
-        fetch(`/api/dashboard/widgets?userId=${userId}`),
-        fetch(`/api/dashboard/activity?userId=${userId}`),
-        fetch(`/api/dashboard/profile?userId=${userId}`),
-        fetch(`/api/dashboard/notifications?userId=${userId}`),
-        fetch(`/api/dashboard/settings?userId=${userId}`),
+       fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/favorites?userId=${userId}`),
+  fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/posts?userId=${userId}`),
+  fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/achievements?userId=${userId}`),
+  fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/widgets?userId=${userId}`),
+  fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/activity?userId=${userId}`),
+  fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/profile?userId=${userId}`),
+  fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/notifications?userId=${userId}`),
+  fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/settings?userId=${userId}`),
       ]);
       // Validate all
       if (results[0].status === "fulfilled") setFavorites(await results[0].value.json());
