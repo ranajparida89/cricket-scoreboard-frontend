@@ -360,3 +360,21 @@ h2, h3, h4 {
   overflow: visible !important;
   z-index: auto;
 }
+/* === Dashboard Glowing Button === */
+.dashboard-glow-btn {
+  background: linear-gradient(90deg, #0ff2, #00e6e6 80%);
+  color: #181d29 !important;
+  box-shadow: 0 0 14px 0 #00e6e6, 0 1px 3px 0 #0ff2;
+  border-radius: 8px;
+  padding: 7px 22px 7px 18px;
+  transition: box-shadow 0.28s, transform 0.18s, color 0.18s;
+  outline: none;
+}
+.dashboard-glow-btn:hover,
+.dashboard-glow-btn:focus {
+  color: #fff !important;
+  background: linear-gradient(90deg, #00e6e6 60%, #2ad7d7 100%);
+  box-shadow: 0 0 24px 2px #00fff7, 0 2px 10px #00c6c6;
+  transform: translateY(-1px) scale(1.05);
+  text-shadow: 0 0 8px #fff;
+}

@@ -123,3 +123,19 @@ export const getTestMatchLeaderboard = async () => {
   return res.json();
 };
 
+// src/services/api.js
+export const getUserDashboardData = async (userId) => {
+  const [favorites, posts, achievements, widgets, activity, profile, notifications, settings] = await Promise.all([
+    fetch(`/api/dashboard/favorites?userId=${userId}`).then(res => res.json()),
+    fetch(`/api/dashboard/posts?userId=${userId}`).then(res => res.json()),
+    fetch(`/api/dashboard/achievements?userId=${userId}`).then(res => res.json()),
+    fetch(`/api/dashboard/widgets?userId=${userId}`).then(res => res.json()),
+    fetch(`/api/dashboard/activity?userId=${userId}`).then(res => res.json()),
+    fetch(`/api/dashboard/profile?userId=${userId}`).then(res => res.json()),
+    fetch(`/api/dashboard/notifications?userId=${userId}`).then(res => res.json()),
+    fetch(`/api/dashboard/settings?userId=${userId}`).then(res => res.json()),
+  ]);
+  return { favorites, posts, achievements, widgets, activity, profile, notifications, settings };
+};
+
+
