@@ -40,16 +40,16 @@ const UserDashboard = () => {
     setApiError("");
     try {
       const results = await Promise.allSettled([
-       fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/favorites?userId=${userId}`),
-  fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/posts?userId=${userId}`),
-  fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/achievements?userId=${userId}`),
-  fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/widgets?userId=${userId}`),
-  fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/activity?userId=${userId}`),
-  fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/profile?userId=${userId}`),
-  fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/notifications?userId=${userId}`),
-  fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/settings?userId=${userId}`),
+        fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/favorites?userId=${userId}`),
+        fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/posts?userId=${userId}`),
+        fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/achievements?userId=${userId}`),
+        fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/widgets?userId=${userId}`),
+        fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/activity?userId=${userId}`),
+        fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/profile?userId=${userId}`),
+        fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/notifications?userId=${userId}`),
+        fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/settings?userId=${userId}`),
       ]);
-      // Validate all
+      // Validate all - each fallback to empty/blank if missing
       if (results[0].status === "fulfilled") setFavorites(await results[0].value.json());
       if (results[1].status === "fulfilled") setMyPosts(await results[1].value.json());
       if (results[2].status === "fulfilled") setAchievements(await results[2].value.json());
@@ -57,7 +57,11 @@ const UserDashboard = () => {
       if (results[4].status === "fulfilled") setActivity(await results[4].value.json());
       if (results[5].status === "fulfilled") setProfileStats(await results[5].value.json());
       if (results[6].status === "fulfilled") setNotifications(await results[6].value.json());
-      if (results[7].status === "fulfilled") setSettings(await results[7].value.json());
+      // ✅ Defensive check: set {} if null/undefined
+      if (results[7].status === "fulfilled") {
+        const settingsData = await results[7].value.json();
+        setSettings(settingsData && typeof settingsData === "object" ? settingsData : {});
+      }
     } catch (err) {
       setApiError("Error loading dashboard: " + (err?.message || ""));
     } finally {
@@ -89,22 +93,25 @@ const UserDashboard = () => {
         <p>Welcome, <b>{user?.first_name || user?.email}</b>!</p>
         {/* Quick Profile Stats */}
         <div className="dashboard-profile-bar-3d">
-          <span>🏏 Matches: <b>{profileStats.match_count ?? 0}</b></span>
-          <span>⭐ Favorites: <b>{profileStats.favorite_count ?? 0}</b></span>
-          <span>🏅 Achievements: <b>{profileStats.achievement_count ?? 0}</b></span>
-          <span>🕒 Activity: <b>{profileStats.activity_count ?? 0}</b></span>
+          <span>🏏 Matches: <b>{profileStats?.match_count ?? 0}</b></span>
+          <span>⭐ Favorites: <b>{profileStats?.favorite_count ?? 0}</b></span>
+          <span>🏅 Achievements: <b>{profileStats?.achievement_count ?? 0}</b></span>
+          <span>🕒 Activity: <b>{profileStats?.activity_count ?? 0}</b></span>
         </div>
         {/* Notification Bell */}
         <span className="notif-bell-3d" onClick={() => setShowNotif((v) => !v)} title="Show notifications">
           <span role="img" aria-label="notifications">🔔</span>
-          {!!notifications.length && <span className="notif-dot">{notifications.length}</span>}
+          {!!(Array.isArray(notifications) && notifications.length) && (
+            <span className="notif-dot">{notifications.length}</span>
+          )}
         </span>
         {/* Notification List */}
         {showNotif && (
           <div className="notif-list-3d">
             <h5>Notifications</h5>
-            {notifications.length === 0 && <div>No new notifications.</div>}
-            {notifications.map((n, idx) => (
+            {/* ✅ Defensive check for notifications array */}
+            {(!Array.isArray(notifications) || notifications.length === 0) && <div>No new notifications.</div>}
+            {Array.isArray(notifications) && notifications.map((n, idx) => (
               <div key={idx} className={`notif-item-3d ${n.read ? "read" : "unread"}`}>
                 {n.text}
                 <span className="notif-date">{n.created_at ? new Date(n.created_at).toLocaleString() : ""}</span>
@@ -129,7 +136,7 @@ const UserDashboard = () => {
           <div className="widget-card-3d">
             <b>Last Prediction</b>
             <div>{widgets?.lastPrediction?.prediction || "—"}</div>
-            <small>{widgets?.lastPrediction?.is_correct ? "✅ Correct" : "❌ Incorrect"}</small>
+            <small>{widgets?.lastPrediction ? (widgets.lastPrediction.is_correct ? "✅ Correct" : "❌ Incorrect") : ""}</small>
           </div>
           <div className="widget-card-3d">
             <b>Prediction Accuracy</b>
@@ -146,8 +153,9 @@ const UserDashboard = () => {
       <section className="dashboard-section-3d">
         <h4>⭐ Favorites</h4>
         <div className="dashboard-favorites-list">
-          {(!favorites || favorites.length === 0) && <div>No favorites yet.</div>}
-          {favorites.map((item, idx) => (
+          {/* ✅ Defensive check for favorites array */}
+          {(!Array.isArray(favorites) || favorites.length === 0) && <div>No favorites yet.</div>}
+          {Array.isArray(favorites) && favorites.map((item, idx) => (
             <div className="favorite-card-3d" key={idx}>
               {item.type === "team" ? (
                 <>
@@ -169,8 +177,9 @@ const UserDashboard = () => {
       <section className="dashboard-section-3d">
         <h4>📝 My Recent Match Posts</h4>
         <ul className="my-posts-list">
-          {(!myPosts || myPosts.length === 0) && <li>No match posts yet.</li>}
-          {myPosts.map((post, idx) => (
+          {/* ✅ Defensive check for myPosts array */}
+          {(!Array.isArray(myPosts) || myPosts.length === 0) && <li>No match posts yet.</li>}
+          {Array.isArray(myPosts) && myPosts.map((post, idx) => (
             <li key={idx}>
               <b>{post.match}</b> &nbsp;
               <span className="post-date">{post.date || post.created_at}</span> &nbsp;
@@ -184,8 +193,9 @@ const UserDashboard = () => {
       <section className="dashboard-section-3d">
         <h4>🏅 Achievements</h4>
         <div className="achievement-list-3d">
-          {(!achievements || achievements.length === 0) && <div>No achievements yet.</div>}
-          {achievements.map((a, idx) => (
+          {/* ✅ Defensive check for achievements array */}
+          {(!Array.isArray(achievements) || achievements.length === 0) && <div>No achievements yet.</div>}
+          {Array.isArray(achievements) && achievements.map((a, idx) => (
             <div className="achievement-card-3d" key={idx} style={{ borderColor: a.color }}>
               <span className="achievement-icon-3d" style={{ color: a.color }}>{a.icon}</span>
               <span>{a.label}</span>
@@ -198,8 +208,9 @@ const UserDashboard = () => {
       <section className="dashboard-section-3d">
         <h4>🕒 Recent Activity</h4>
         <ul className="activity-list-3d">
-          {(!activity || activity.length === 0) && <li>No recent activity yet.</li>}
-          {activity.map((a, idx) => (
+          {/* ✅ Defensive check for activity array */}
+          {(!Array.isArray(activity) || activity.length === 0) && <li>No recent activity yet.</li>}
+          {Array.isArray(activity) && activity.map((a, idx) => (
             <li key={idx}>
               <span className="activity-emoji">{a.icon || "📈"}</span> {a.activity_text}
               <span className="activity-date">{a.activity_date ? new Date(a.activity_date).toLocaleString() : ""}</span>
@@ -208,16 +219,18 @@ const UserDashboard = () => {
         </ul>
       </section>
 
-      {/* Dashboard Settings (coming soon, but logic included) */}
+      {/* Dashboard Settings */}
       <section className="dashboard-section-3d">
         <h4>⚙️ Dashboard Settings</h4>
         <div className="settings-list-3d">
-          {Object.keys(settings).length === 0 && <div>No settings found.</div>}
-          {Object.keys(settings).map((key, idx) => (
-            <div key={idx} className="setting-item-3d">
-              <b>{key.replace(/_/g, " ")}</b>: {String(settings[key])}
-            </div>
-          ))}
+          {/* ✅ Defensive check for settings object */}
+          {(!settings || typeof settings !== "object" || Object.keys(settings).length === 0) && <div>No settings found.</div>}
+          {settings && typeof settings === "object" &&
+            Object.keys(settings).map((key, idx) => (
+              <div key={idx} className="setting-item-3d">
+                <b>{key.replace(/_/g, " ")}</b>: {String(settings[key])}
+              </div>
+            ))}
         </div>
       </section>
     </div>
