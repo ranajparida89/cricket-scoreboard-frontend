@@ -212,6 +212,38 @@ h2, h3, h4 {
 .nav-link:hover {
   color: #00d2ff !important;
 }
+/* 🌐 Navbar */
+.navbar {
+  background-color: #0c1c2c;
+  border-bottom: 1px solid #00d2ff;
+}
+.navbar-brand,
+.nav-link {
+  color: #ffffff !important;
+  font-weight: 500;
+}
+.nav-link:hover {
+  color: #00d2ff !important;
+}
+
+/* 👉 Navbar Action Button Group (custom, for +Add Match/+Test Match) */
+.navbar-actions-group {
+  margin-left: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+@media (max-width: 992px) {
+  .navbar-actions-group {
+    margin-top: 8px;
+    margin-bottom: 4px;
+    justify-content: flex-end;
+    width: 100%;
+    gap: 8px;
+  }
+}
+
 
 /* 📌 Utility */
 .text-center {

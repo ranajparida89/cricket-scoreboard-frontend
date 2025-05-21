@@ -227,27 +227,29 @@ const AppNavbar = ({ onAuthClick, toggleTheme, theme }) => {
 )}
 
           {/* ✅ Button Section for Matches */}
-              <div className="d-flex flex-column flex-lg-row gap-2 mt-2 mt-lg-0 w-100 position-relative z-1">
-              <Button
-                as={Link}
-                to="/add-match"
-                className="navbar-action-btn hover-slide-emoji"
-                onClick={() => playSound("click")}
-                onMouseEnter={() => playSound("hover")}
-              >
-                + Add Match
-              </Button>
+             {/* Place this right AFTER </Navbar.Collapse> */}
+        <div className="navbar-actions-group ms-auto d-flex flex-row align-items-center gap-2">
+          <Button
+            as={Link}
+            to="/add-match"
+            className="navbar-action-btn hover-slide-emoji"
+            onClick={() => playSound("click")}
+            onMouseEnter={() => playSound("hover")}
+          >
+            + Add Match
+          </Button>
 
-              <Button
-                as={Link}
-                to="/add-test-match"
-                className="navbar-action-btn hover-slide-emoji"
-                onClick={() => playSound("click")}
-                onMouseEnter={() => playSound("hover")}
-              >
-                + Test Match
-              </Button>
-            </div>
+          <Button
+            as={Link}
+            to="/add-test-match"
+            className="navbar-action-btn hover-slide-emoji"
+            onClick={() => playSound("click")}
+            onMouseEnter={() => playSound("hover")}
+          >
+            + Test Match
+          </Button>
+        </div>
+
         </Navbar.Collapse>
       </Container>
     </Navbar>
