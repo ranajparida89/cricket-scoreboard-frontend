@@ -201,19 +201,6 @@ const AppNavbar = ({ onAuthClick, toggleTheme, theme }) => {
       style={{ width: "26px", height: "26px", marginRight: "8px" }}
     />
     <span className="text-white fw-bold small">{loggedInUser}</span>
-
-    {/* 🏠 DASHBOARD BUTTON WITH GLOW */}
-    <Button
-      as={Link}
-      to="/dashboard"
-      className="dashboard-glow-btn ms-2"
-      style={{ fontWeight: 700, fontSize: "1.07rem", letterSpacing: "0.03em", border: "none" }}
-      onMouseEnter={() => playSound("hover")}
-      onClick={() => playSound("click")}
-    >
-      🏠 Dashboard
-    </Button>
-
     <Button
       size="sm"
       variant="outline-light"
@@ -225,8 +212,21 @@ const AppNavbar = ({ onAuthClick, toggleTheme, theme }) => {
     >
       🔒 Logout
     </Button>
+    {/* 🏠 DASHBOARD BUTTON WITH GLOW */}
+    <Button
+      as={Link}
+      to="/dashboard"
+      className="dashboard-glow-btn ms-2"
+      style={{ fontWeight: 700, fontSize: "1.07rem", letterSpacing: "0.03em", border: "none" }}
+      onMouseEnter={() => playSound("hover")}
+      onClick={() => playSound("click")}
+    >
+      🏠 Dashboard
+    </Button>
   </div>
 )}
+
+
 
 {!loggedInUser && (
   <Button
