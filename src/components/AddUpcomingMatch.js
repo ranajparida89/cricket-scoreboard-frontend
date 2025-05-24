@@ -20,7 +20,6 @@ const AddUpcomingMatch = () => {
     created_by: "admin", // Later can be dynamic
   });
 
-const userData = JSON.parse(localStorage.getItem("user")) || {};
   const [teamPlaying, setTeamPlaying] = useState("");
 
   useEffect(() => {
@@ -107,7 +106,7 @@ const userData = JSON.parse(localStorage.getItem("user")) || {};
       const payload = {
         ...formData,
         team_playing: teamPlaying,
-        created_by_id: userData?.id || null  // 🔥 Add user ID
+        
       };
       console.log("🛰️ Sending match payload to backend:", payload); // handle error log
       const response = await addUpcomingMatch(payload);
