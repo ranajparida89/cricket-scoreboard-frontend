@@ -36,6 +36,8 @@ import H2HRecords from "./components/H2HRecords"; // H2H 15th May 2025 Ranaj Par
 import SmartAnalyzer from "./components/SmartAnalyzer"; // AI enable 16th MAY 2025 ranaj Parida
 import UserDashboard from "./components/UserDashboard"; // Userdashboard added 21 May 2025 Ranaj Parida
 import FavoritesManager from './components/FavoritesManager';
+import { useAuth } from './services/auth'; 
+
 
 
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -274,6 +276,16 @@ function App() {
 <Route path="/smart-analyzer" element={<SmartAnalyzer />} />
 <Route path="/dashboard" element={<UserDashboard />} />
 <Route path="/manage-favorites" element={<FavoritesManager userId={currentUser.id} />} />
+<Route
+  path="/manage-favorites"
+  element={
+    currentUser ? (
+      <FavoritesManager userId={currentUser.id} />
+    ) : (
+      <div>Please log in to view favorites.</div>
+    )
+  }
+/>
 
 
 
