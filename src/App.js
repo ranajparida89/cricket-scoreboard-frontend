@@ -71,6 +71,8 @@ function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [theme, setTheme] = useState('dark');
 
+  const { currentUser } = useAuth();
+
       useEffect(() => {
         document.body.className = theme === 'dark' ? 'bg-dark text-light' : 'bg-light text-dark';
       }, [theme]);
@@ -275,7 +277,6 @@ function App() {
 <Route path="/h2h-records" element={<H2HRecords />} />
 <Route path="/smart-analyzer" element={<SmartAnalyzer />} />
 <Route path="/dashboard" element={<UserDashboard />} />
-<Route path="/manage-favorites" element={<FavoritesManager userId={currentUser.id} />} />
 <Route
   path="/manage-favorites"
   element={
