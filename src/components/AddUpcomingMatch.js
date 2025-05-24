@@ -17,7 +17,7 @@ const AddUpcomingMatch = () => {
     series_name: "",
     match_status: "Scheduled",
     day_night: "Day",
-    created_by: "admin", // Later can be dynamic
+    // Removed created_by (backend handles this)
   });
 
   const [teamPlaying, setTeamPlaying] = useState("");
@@ -46,53 +46,48 @@ const AddUpcomingMatch = () => {
     const cleaned = str.trim().toLowerCase();
     return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
   };
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: name.startsWith("team_")
         ? normalizeAndCapitalize(value)
         : value
     }));
   };
-  
 
   const validateForm = () => {
     const requiredFields = [
       "match_name", "match_type", "team_1", "team_2",
       "match_date", "match_time", "location", "match_status", "day_night"
     ];
-  
+
     for (let field of requiredFields) {
       if (!formData[field] || formData[field].trim() === "") {
         return `Field "${field}" is required`;
       }
     }
-  
+
     const team1 = formData.team_1.trim().toLowerCase();
     const team2 = formData.team_2.trim().toLowerCase();
-  
-    // ✅ Team names must not be identical
+
     if (team1 === team2) {
       return "Team 1 and Team 2 cannot be the same.";
     }
-  
-    // ✅ Minimum length check
+
     if (team1.length < 3 || team2.length < 3) {
       return "Team names must be at least 3 characters long.";
     }
-  
-    // ✅ Letters and spaces only
+
     const nameRegex = /^[A-Za-z\s]+$/;
     if (!nameRegex.test(formData.team_1) || !nameRegex.test(formData.team_2)) {
       return "Team names must contain only letters and spaces.";
     }
-  
+
     return null;
   };
-  
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -105,12 +100,11 @@ const AddUpcomingMatch = () => {
     try {
       const payload = {
         ...formData,
-        team_playing: teamPlaying,
+        team_playing: teamPlaying, // Backend handles created_by
       };
-      console.log("🛰️ Sending match payload to backend:", payload); // handle error log
+      console.log("🛰️ Sending match payload to backend:", payload);
       const response = await addUpcomingMatch(payload);
       alert("Match Scheduled Successfully!");
-      // Reset form
       setFormData({
         match_name: "",
         match_type: "ODI",
@@ -122,7 +116,7 @@ const AddUpcomingMatch = () => {
         series_name: "",
         match_status: "Scheduled",
         day_night: "Day",
-        created_by: "admin",
+        // Removed created_by (backend handles)
       });
       setTeamPlaying("");
     } catch (err) {
@@ -144,38 +138,10 @@ const AddUpcomingMatch = () => {
           <option value="Test">Test</option>
         </select>
 
-        <input
-  type="text"
-  name="team_1"
-  placeholder="Team 1"
-  value={formData.team_1}
-  onChange={handleChange}
-  style={{
-    ...styles.input,
-    borderColor:
-      formData.team_1.trim().toLowerCase() === formData.team_2.trim().toLowerCase()
-        ? "red"
-        : "#ccc",
-  }}
-/>
+        <input type="text" name="team_1" placeholder="Team 1" value={formData.team_1} onChange={handleChange} style={styles.input} />
 
-<input
-  type="text"
-  name="team_2"
-  placeholder="Team 2"
-  value={formData.team_2}
-  onChange={handleChange}
-  style={{
-    ...styles.input,
-    borderColor:
-      formData.team_1.trim().toLowerCase() === formData.team_2.trim().toLowerCase()
-        ? "red"
-        : "#ccc",
-  }}
-/>
+        <input type="text" name="team_2" placeholder="Team 2" value={formData.team_2} onChange={handleChange} style={styles.input} />
 
-
-        {/* Auto Generated Team Playing Field */}
         <input type="text" name="team_playing" placeholder="Team Playing" value={teamPlaying} disabled style={styles.input} />
 
         <input type="date" name="match_date" placeholder="Match Date" value={formData.match_date} onChange={handleChange} style={styles.input} />
