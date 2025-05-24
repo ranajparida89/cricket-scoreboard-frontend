@@ -106,6 +106,7 @@ const AddUpcomingMatch = () => {
       const payload = {
         ...formData,
         team_playing: teamPlaying,
+        created_by_id: userData?.id || null  // 🔥 Add user ID
       };
       console.log("🛰️ Sending match payload to backend:", payload); // handle error log
       const response = await addUpcomingMatch(payload);
