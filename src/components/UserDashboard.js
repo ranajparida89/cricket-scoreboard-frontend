@@ -3,10 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./UserDashboard.css"; // Make sure your CSS covers all advanced 3D/section styles
 
 const UserDashboard = () => {
-  // 1. STATE: user info, all dashboard data, errors, loading
   const [user, setUser] = useState(null);
-
-  // Main sections
   const [favorites, setFavorites] = useState([]);
   const [myPosts, setMyPosts] = useState([]);
   const [achievements, setAchievements] = useState([]);
@@ -15,26 +12,22 @@ const UserDashboard = () => {
   const [profileStats, setProfileStats] = useState({});
   const [notifications, setNotifications] = useState([]);
   const [settings, setSettings] = useState({});
-
-  // UI State
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState("");
   const [showNotif, setShowNotif] = useState(false);
   const navigate = useNavigate();
 
-  // 2. On mount, check login and fetch everything
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (!userData) {
-      navigate("/"); // not logged in
+      navigate("/");
       return;
     }
     const userParsed = JSON.parse(userData);
     setUser(userParsed);
-    fetchDashboardData(userParsed.id); // USER ID must be present
+    fetchDashboardData(userParsed.id);
   }, [navigate]);
 
-  // 3. Main fetch logic - pulls all endpoints (advance pattern!)
   const fetchDashboardData = async (userId) => {
     setLoading(true);
     setApiError("");
@@ -49,7 +42,7 @@ const UserDashboard = () => {
         fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/notifications?userId=${userId}`),
         fetch(`https://cricket-scoreboard-backend.onrender.com/api/dashboard/settings?userId=${userId}`),
       ]);
-      // Validate all - each fallback to empty/blank if missing
+
       if (results[0].status === "fulfilled") setFavorites(await results[0].value.json());
       if (results[1].status === "fulfilled") setMyPosts(await results[1].value.json());
       if (results[2].status === "fulfilled") setAchievements(await results[2].value.json());
@@ -57,7 +50,6 @@ const UserDashboard = () => {
       if (results[4].status === "fulfilled") setActivity(await results[4].value.json());
       if (results[5].status === "fulfilled") setProfileStats(await results[5].value.json());
       if (results[6].status === "fulfilled") setNotifications(await results[6].value.json());
-      // ✅ Defensive check: set {} if null/undefined
       if (results[7].status === "fulfilled") {
         const settingsData = await results[7].value.json();
         setSettings(settingsData && typeof settingsData === "object" ? settingsData : {});
@@ -69,7 +61,6 @@ const UserDashboard = () => {
     }
   };
 
-  // 4. Loading/Error UI
   if (loading) {
     return <div className="dashboard-loading">Loading your dashboard...</div>;
   }
@@ -82,34 +73,28 @@ const UserDashboard = () => {
     );
   }
 
-  // 5. MAIN RENDER: 3D Container, elegant sectioning, all validations
   return (
     <div className="dashboard-3d-container">
-      {/* Dashboard Header */}
       <div className="dashboard-header-3d">
         <h2>
           <span role="img" aria-label="dashboard">🏠</span> My Cricket Dashboard
         </h2>
         <p>Welcome, <b>{user?.first_name || user?.email}</b>!</p>
-        {/* Quick Profile Stats */}
         <div className="dashboard-profile-bar-3d">
           <span>🏏 Matches: <b>{profileStats?.match_count ?? 0}</b></span>
           <span>⭐ Favorites: <b>{profileStats?.favorite_count ?? 0}</b></span>
           <span>🏅 Achievements: <b>{profileStats?.achievement_count ?? 0}</b></span>
           <span>🕒 Activity: <b>{profileStats?.activity_count ?? 0}</b></span>
         </div>
-        {/* Notification Bell */}
         <span className="notif-bell-3d" onClick={() => setShowNotif((v) => !v)} title="Show notifications">
           <span role="img" aria-label="notifications">🔔</span>
           {!!(Array.isArray(notifications) && notifications.length) && (
             <span className="notif-dot">{notifications.length}</span>
           )}
         </span>
-        {/* Notification List */}
         {showNotif && (
           <div className="notif-list-3d">
             <h5>Notifications</h5>
-            {/* ✅ Defensive check for notifications array */}
             {(!Array.isArray(notifications) || notifications.length === 0) && <div>No new notifications.</div>}
             {Array.isArray(notifications) && notifications.map((n, idx) => (
               <div key={idx} className={`notif-item-3d ${n.read ? "read" : "unread"}`}>
@@ -121,7 +106,7 @@ const UserDashboard = () => {
         )}
       </div>
 
-      {/* 3D Quick Stats Widgets */}
+      {/* 📊 Quick Stats Section */}
       <section className="dashboard-section-3d widget-bar-3d">
         <h4>📊 Quick Stats</h4>
         <div className="widget-row-3d">
@@ -129,7 +114,7 @@ const UserDashboard = () => {
             <b>Next Match</b>
             <div>
               {widgets?.nextMatch
-                ? `${widgets.nextMatch.match_name} (${widgets.nextMatch.team1} vs ${widgets.nextMatch.team2}) - ${widgets.nextMatch.match_date ? new Date(widgets.nextMatch.match_date).toLocaleDateString() : ""}`
+                ? `${widgets.nextMatch.match_name} (${widgets.nextMatch.team_playing}) - ${widgets.nextMatch.match_date ? new Date(widgets.nextMatch.match_date).toLocaleDateString() : ""} at ${widgets.nextMatch.location}`
                 : "No upcoming matches"}
             </div>
           </div>
@@ -149,11 +134,10 @@ const UserDashboard = () => {
         </div>
       </section>
 
-      {/* Favorite Teams/Players */}
+      {/* Favorites Section */}
       <section className="dashboard-section-3d">
         <h4>⭐ Favorites</h4>
         <div className="dashboard-favorites-list">
-          {/* ✅ Defensive check for favorites array */}
           {(!Array.isArray(favorites) || favorites.length === 0) && <div>No favorites yet.</div>}
           {Array.isArray(favorites) && favorites.map((item, idx) => (
             <div className="favorite-card-3d" key={idx}>
@@ -177,7 +161,6 @@ const UserDashboard = () => {
       <section className="dashboard-section-3d">
         <h4>📝 My Recent Match Posts</h4>
         <ul className="my-posts-list">
-          {/* ✅ Defensive check for myPosts array */}
           {(!Array.isArray(myPosts) || myPosts.length === 0) && <li>No match posts yet.</li>}
           {Array.isArray(myPosts) && myPosts.map((post, idx) => (
             <li key={idx}>
@@ -193,7 +176,6 @@ const UserDashboard = () => {
       <section className="dashboard-section-3d">
         <h4>🏅 Achievements</h4>
         <div className="achievement-list-3d">
-          {/* ✅ Defensive check for achievements array */}
           {(!Array.isArray(achievements) || achievements.length === 0) && <div>No achievements yet.</div>}
           {Array.isArray(achievements) && achievements.map((a, idx) => (
             <div className="achievement-card-3d" key={idx} style={{ borderColor: a.color }}>
@@ -208,7 +190,6 @@ const UserDashboard = () => {
       <section className="dashboard-section-3d">
         <h4>🕒 Recent Activity</h4>
         <ul className="activity-list-3d">
-          {/* ✅ Defensive check for activity array */}
           {(!Array.isArray(activity) || activity.length === 0) && <li>No recent activity yet.</li>}
           {Array.isArray(activity) && activity.map((a, idx) => (
             <li key={idx}>
@@ -223,14 +204,12 @@ const UserDashboard = () => {
       <section className="dashboard-section-3d">
         <h4>⚙️ Dashboard Settings</h4>
         <div className="settings-list-3d">
-          {/* ✅ Defensive check for settings object */}
           {(!settings || typeof settings !== "object" || Object.keys(settings).length === 0) && <div>No settings found.</div>}
-          {settings && typeof settings === "object" &&
-            Object.keys(settings).map((key, idx) => (
-              <div key={idx} className="setting-item-3d">
-                <b>{key.replace(/_/g, " ")}</b>: {String(settings[key])}
-              </div>
-            ))}
+          {settings && typeof settings === "object" && Object.keys(settings).map((key, idx) => (
+            <div key={idx} className="setting-item-3d">
+              <b>{key.replace(/_/g, " ")}</b>: {String(settings[key])}
+            </div>
+          ))}
         </div>
       </section>
     </div>
