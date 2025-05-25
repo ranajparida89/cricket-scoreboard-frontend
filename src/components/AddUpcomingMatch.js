@@ -212,7 +212,7 @@ const [formData, setFormData] = useState({
       </form>
     </div>
   );
-};
+;
 
 const styles = {
   container: { padding: "20px", maxWidth: "600px", margin: "auto" },
