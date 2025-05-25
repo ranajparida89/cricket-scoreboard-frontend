@@ -6,20 +6,20 @@ import React, { useState, useEffect } from "react";
 import { FaSave } from "react-icons/fa";
 import { addUpcomingMatch } from "../services/api"; // we'll create this next!
 
-const AddUpcomingMatch = () => {
-  const [formData, setFormData] = useState({
-    match_name: "",
-    match_type: "ODI",
-    team_1: "",
-    team_2: "",
-    match_date: "",
-    match_time: "",
-    location: "",
-    series_name: "",
-    match_status: "Scheduled",
-    day_night: "Day",
-    updated_by: "", // GPT UPDATE: will be set dynamically below
-  });
+const [formData, setFormData] = useState({
+  match_name: "",
+  match_type: "ODI",
+  team_1: "",
+  team_2: "",
+  match_date: "",
+  match_time: "",
+  location: "",
+  series_name: "",
+  match_status: "Scheduled",
+  day_night: "Day",
+  created_by: "",   // <--- ADD THIS LINE
+  updated_by: "",   // <--- KEEP THIS LINE
+});
 
   const [teamPlaying, setTeamPlaying] = useState("");
 
@@ -132,6 +132,7 @@ const AddUpcomingMatch = () => {
         series_name: "",
         match_status: "Scheduled",
         day_night: "Day",
+        created_by: storedUser?.email || "",
         updated_by: storedUser?.email || "", // or .id if you prefer
       });
       setTeamPlaying("");
