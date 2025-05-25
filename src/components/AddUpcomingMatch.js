@@ -18,8 +18,8 @@ const [formData, setFormData] = useState({
   series_name: "",
   match_status: "Scheduled",
   day_night: "Day",
-  created_by: "",
-  updated_by: "",  // <--- ADD THIS
+  created_by: "",    // include this
+  updated_by: "",    // include this
 });
 
 const [teamPlaying, setTeamPlaying] = useState("");
@@ -31,8 +31,6 @@ useEffect(() => {
     updated_by: storedUser?.email || "", // <--- SET THIS TOO
   }));
 }, []);
-
-
   useEffect(() => {
     if (formData.team_1 && formData.team_2) {
       const team1Formatted = normalizeTeamName(formData.team_1);
