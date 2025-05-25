@@ -4,31 +4,33 @@
 
 import React, { useState, useEffect } from "react";
 import { FaSave } from "react-icons/fa";
-import { addUpcomingMatch } from "../services/api"; // we'll create this next!
+import { addUpcomingMatch } from "../services/api";
 
-const [formData, setFormData] = useState({
-  match_name: "",
-  match_type: "ODI",
-  team_1: "",
-  team_2: "",
-  match_date: "",
-  match_time: "",
-  location: "",
-  series_name: "",
-  match_status: "Scheduled",
-  day_night: "Day",
-  created_by: "",   // <--- ADD THIS LINE
-  updated_by: "",   // <--- KEEP THIS LINE
-});
+const AddUpcomingMatch = () => {
+  const [formData, setFormData] = useState({
+    match_name: "",
+    match_type: "ODI",
+    team_1: "",
+    team_2: "",
+    match_date: "",
+    match_time: "",
+    location: "",
+    series_name: "",
+    match_status: "Scheduled",
+    day_night: "Day",
+    created_by: "",   // <--- INCLUDED
+    updated_by: "",   // <--- INCLUDED
+  });
 
   const [teamPlaying, setTeamPlaying] = useState("");
 
-  // GPT UPDATE: Set created_by from logged-in user at component mount
+  // Set created_by & updated_by from logged-in user at component mount
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     setFormData((prev) => ({
       ...prev,
-      updated_by: storedUser?.email || "", // change to storedUser?.id if you want id instead
+      created_by: storedUser?.email || "",
+      updated_by: storedUser?.email || "",
     }));
   }, []);
 
@@ -40,6 +42,7 @@ const [formData, setFormData] = useState({
     } else {
       setTeamPlaying("");
     }
+    // eslint-disable-next-line
   }, [formData.team_1, formData.team_2]);
 
   const normalizeTeamName = (name) => {
@@ -59,7 +62,7 @@ const [formData, setFormData] = useState({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: name.startsWith("team_")
         ? normalizeAndCapitalize(value)
@@ -70,7 +73,7 @@ const [formData, setFormData] = useState({
   const validateForm = () => {
     const requiredFields = [
       "match_name", "match_type", "team_1", "team_2",
-      "match_date", "match_time", "location", "match_status", "day_night", "updated_by"
+      "match_date", "match_time", "location", "match_status", "day_night", "created_by", "updated_by"
     ];
 
     for (let field of requiredFields) {
@@ -115,11 +118,10 @@ const [formData, setFormData] = useState({
         ...formData,
         team_playing: teamPlaying,
       };
-      console.log("🛰️ Sending match payload to backend:", payload); // handle error log
-      const response = await addUpcomingMatch(payload);
+      console.log("🛰️ Sending match payload to backend:", payload);
+      await addUpcomingMatch(payload);
       alert("Match Scheduled Successfully!");
-      // Reset form
-      // GPT UPDATE: Always set created_by again from localStorage
+      // Reset form, set created_by and updated_by again
       const storedUser = JSON.parse(localStorage.getItem("user"));
       setFormData({
         match_name: "",
@@ -133,7 +135,7 @@ const [formData, setFormData] = useState({
         match_status: "Scheduled",
         day_night: "Day",
         created_by: storedUser?.email || "",
-        updated_by: storedUser?.email || "", // or .id if you prefer
+        updated_by: storedUser?.email || "",
       });
       setTeamPlaying("");
     } catch (err) {
@@ -212,7 +214,7 @@ const [formData, setFormData] = useState({
       </form>
     </div>
   );
-;
+};
 
 const styles = {
   container: { padding: "20px", maxWidth: "600px", margin: "auto" },
