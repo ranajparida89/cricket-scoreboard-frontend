@@ -18,7 +18,7 @@ const AddUpcomingMatch = () => {
     series_name: "",
     match_status: "Scheduled",
     day_night: "Day",
-    created_by: "", // GPT UPDATE: will be set dynamically below
+    updated_by: "", // GPT UPDATE: will be set dynamically below
   });
 
   const [teamPlaying, setTeamPlaying] = useState("");
@@ -28,7 +28,7 @@ const AddUpcomingMatch = () => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     setFormData((prev) => ({
       ...prev,
-      created_by: storedUser?.email || "", // change to storedUser?.id if you want id instead
+      updated_by: storedUser?.email || "", // change to storedUser?.id if you want id instead
     }));
   }, []);
 
@@ -70,7 +70,7 @@ const AddUpcomingMatch = () => {
   const validateForm = () => {
     const requiredFields = [
       "match_name", "match_type", "team_1", "team_2",
-      "match_date", "match_time", "location", "match_status", "day_night"
+      "match_date", "match_time", "location", "match_status", "day_night", "updated_by"
     ];
 
     for (let field of requiredFields) {
@@ -132,7 +132,7 @@ const AddUpcomingMatch = () => {
         series_name: "",
         match_status: "Scheduled",
         day_night: "Day",
-        created_by: storedUser?.email || "", // or .id if you prefer
+        updated_by: storedUser?.email || "", // or .id if you prefer
       });
       setTeamPlaying("");
     } catch (err) {
