@@ -7,30 +7,31 @@ import { FaSave } from "react-icons/fa";
 import { addUpcomingMatch } from "../services/api"; // we'll create this next!
 
 const AddUpcomingMatch = () => {
-const [formData, setFormData] = useState({
-  match_name: "",
-  match_type: "ODI",
-  team_1: "",
-  team_2: "",
-  match_date: "",
-  match_time: "",
-  location: "",
-  series_name: "",
-  match_status: "Scheduled",
-  day_night: "Day",
-  created_by: "",    // include this
-  updated_by: "",    // include this
-});
+  const [formData, setFormData] = useState({
+    match_name: "",
+    match_type: "ODI",
+    team_1: "",
+    team_2: "",
+    match_date: "",
+    match_time: "",
+    location: "",
+    series_name: "",
+    match_status: "Scheduled",
+    day_night: "Day",
+    created_by: "", // GPT UPDATE: will be set dynamically below
+  });
 
-const [teamPlaying, setTeamPlaying] = useState("");
-useEffect(() => {
-  const storedUser = JSON.parse(localStorage.getItem("user"));
-  setFormData((prev) => ({
-    ...prev,
-    created_by: storedUser?.email || "",
-    updated_by: storedUser?.email || "", // <--- SET THIS TOO
-  }));
-}, []);
+  const [teamPlaying, setTeamPlaying] = useState("");
+
+  // GPT UPDATE: Set created_by from logged-in user at component mount
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    setFormData((prev) => ({
+      ...prev,
+      created_by: storedUser?.email || "", // change to storedUser?.id if you want id instead
+    }));
+  }, []);
+
   useEffect(() => {
     if (formData.team_1 && formData.team_2) {
       const team1Formatted = normalizeTeamName(formData.team_1);
@@ -100,47 +101,45 @@ useEffect(() => {
     return null;
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const error = validateForm();
-  if (error) {
-    alert(error);
-    return;
-  }
+    const error = validateForm();
+    if (error) {
+      alert(error);
+      return;
+    }
 
-  try {
-    const payload = {
-      ...formData,
-      team_playing: teamPlaying,
-      updated_by: formData.updated_by || formData.created_by, // <--- ENSURE IT IS SENT!
-    };
-    console.log("🛰️ Sending match payload to backend:", payload);
-    const response = await addUpcomingMatch(payload);
-    alert("Match Scheduled Successfully!");
-    // Reset form
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    setFormData({
-      match_name: "",
-      match_type: "ODI",
-      team_1: "",
-      team_2: "",
-      match_date: "",
-      match_time: "",
-      location: "",
-      series_name: "",
-      match_status: "Scheduled",
-      day_night: "Day",
-      created_by: storedUser?.email || "",
-      updated_by: storedUser?.email || "",
-    });
-    setTeamPlaying("");
-  } catch (err) {
-    console.error("Error scheduling match", err);
-    alert("Failed to schedule match. Please try again.");
-  }
-};
-
+    try {
+      const payload = {
+        ...formData,
+        team_playing: teamPlaying,
+      };
+      console.log("🛰️ Sending match payload to backend:", payload); // handle error log
+      const response = await addUpcomingMatch(payload);
+      alert("Match Scheduled Successfully!");
+      // Reset form
+      // GPT UPDATE: Always set created_by again from localStorage
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      setFormData({
+        match_name: "",
+        match_type: "ODI",
+        team_1: "",
+        team_2: "",
+        match_date: "",
+        match_time: "",
+        location: "",
+        series_name: "",
+        match_status: "Scheduled",
+        day_night: "Day",
+        created_by: storedUser?.email || "", // or .id if you prefer
+      });
+      setTeamPlaying("");
+    } catch (err) {
+      console.error("Error scheduling match", err);
+      alert("Failed to schedule match. Please try again.");
+    }
+  };
 
   return (
     <div className="add-upcoming-match" style={styles.container}>
