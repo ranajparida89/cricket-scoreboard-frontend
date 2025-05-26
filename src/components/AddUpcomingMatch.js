@@ -7,12 +7,25 @@ import { FaSave } from "react-icons/fa";
 import { addUpcomingMatch } from "../services/api"; // we'll create this next!
 
 const AddUpcomingMatch = () => {
+  // GPT ENHANCEMENT: Function to get tomorrow's date in yyyy-mm-dd format
+  const getTomorrowDateString = () => {
+    const today = new Date();
+    today.setDate(today.getDate() + 1); // Move to tomorrow
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  // GPT ENHANCEMENT: Store tomorrow's date for use as default and min date
+  const tomorrowDate = getTomorrowDateString();
+
   const [formData, setFormData] = useState({
     match_name: "",
     match_type: "ODI",
     team_1: "",
     team_2: "",
-    match_date: "",
+    match_date: tomorrowDate, // GPT CHANGE: default date is tomorrow
     match_time: "",
     location: "",
     series_name: "",
@@ -98,6 +111,11 @@ const AddUpcomingMatch = () => {
       return "Team names must contain only letters and spaces.";
     }
 
+    // GPT ENHANCEMENT: Prevent scheduling for past or today (must be tomorrow or later)
+    if (formData.match_date < tomorrowDate) {
+      return "Cannot select past dates or today. Please pick tomorrow or a future date.";
+    }
+
     return null;
   };
 
@@ -126,7 +144,7 @@ const AddUpcomingMatch = () => {
         match_type: "ODI",
         team_1: "",
         team_2: "",
-        match_date: "",
+        match_date: tomorrowDate, // GPT CHANGE: reset to tomorrow's date
         match_time: "",
         location: "",
         series_name: "",
@@ -186,7 +204,16 @@ const AddUpcomingMatch = () => {
         {/* Auto Generated Team Playing Field */}
         <input type="text" name="team_playing" placeholder="Team Playing" value={teamPlaying} disabled style={styles.input} />
 
-        <input type="date" name="match_date" placeholder="Match Date" value={formData.match_date} onChange={handleChange} style={styles.input} />
+        {/* GPT CHANGE: Add min attribute to restrict past dates, and set default to tomorrow */}
+        <input
+          type="date"
+          name="match_date"
+          placeholder="Match Date"
+          value={formData.match_date}
+          onChange={handleChange}
+          min={tomorrowDate} // GPT ENHANCEMENT: restrict to tomorrow and future
+          style={styles.input}
+        />
 
         <input type="time" name="match_time" placeholder="Match Time" value={formData.match_time} onChange={handleChange} style={styles.input} />
 
