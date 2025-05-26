@@ -33,6 +33,17 @@ const UpcomingMatches = () => {
     return date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
   };
 
+  // --- GPT ENHANCEMENT: Helper to check if match date is before today ---
+  const isMatchCompleted = (matchDateStr) => {
+    if (!matchDateStr) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // midnight
+    const matchDate = new Date(matchDateStr);
+    matchDate.setHours(0, 0, 0, 0);
+    return matchDate < today;
+  };
+  // ---------------------------------------------------------------------
+
   return (
     <div style={styles.container}>
       <div style={styles.header}>
@@ -48,17 +59,29 @@ const UpcomingMatches = () => {
         <p style={styles.info}>No upcoming matches scheduled.</p>
       ) : (
         <div style={styles.cardGrid}>
-          {matches.map((match, index) => (
-            <div key={index} style={styles.card}>
-              <h3 style={styles.title}>{match.match_name} ({match.match_type})</h3>
-              <p><strong>Teams:</strong> {match.team_playing}</p>
-              <p><FaGlobeAsia /> {match.location}</p>
-              <p><FaCalendarAlt /> {formatDate(match.match_date)}</p>
-              <p><FaClock /> {match.match_time} | <strong>{match.day_night} Match</strong></p>
-              <p><strong>Series:</strong> {match.series_name}</p>
-              <p>Status: <span style={styles.status(match.match_status)}>{match.match_status}</span></p>
-            </div>
-          ))}
+          {matches.map((match, index) => {
+            // GPT ENHANCEMENT: Dynamically compute status for display
+            const computedStatus = isMatchCompleted(match.match_date)
+              ? "Completed"
+              : match.match_status;
+
+            return (
+              <div key={index} style={styles.card}>
+                <h3 style={styles.title}>{match.match_name} ({match.match_type})</h3>
+                <p><strong>Teams:</strong> {match.team_playing}</p>
+                <p><FaGlobeAsia /> {match.location}</p>
+                <p><FaCalendarAlt /> {formatDate(match.match_date)}</p>
+                <p><FaClock /> {match.match_time} | <strong>{match.day_night} Match</strong></p>
+                <p><strong>Series:</strong> {match.series_name}</p>
+                <p>
+                  Status:{" "}
+                  <span style={styles.status(computedStatus)}>
+                    {computedStatus}
+                  </span>
+                </p>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -113,6 +136,8 @@ const styles = {
         ? "#22c55e"
         : type === "Postponed"
         ? "#facc15"
+        : type === "Completed"
+        ? "#60a5fa"
         : "#ef4444",
     fontWeight: "bold",
   }),
