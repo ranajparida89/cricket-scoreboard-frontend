@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from "react";
 import { FaSave } from "react-icons/fa";
 import { addUpcomingMatch } from "../services/api"; // we'll create this next!
+import './AddUpcomingMatch.css'; // for dark screen page
 
 const AddUpcomingMatch = () => {
   // GPT ENHANCEMENT: Function to get tomorrow's date in yyyy-mm-dd format

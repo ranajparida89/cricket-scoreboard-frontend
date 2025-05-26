@@ -1,0 +1,89 @@
+/* AddUpcomingMatch.css | GPT DARK THEME UPDATE | Ranaj Parida */
+
+/* Dark background for form container */
+.add-upcoming-match {
+  background: #16191e;
+  padding: 30px 24px;
+  max-width: 600px;
+  margin: 32px auto;
+  border-radius: 18px;
+  box-shadow: 0 2px 18px rgba(0,0,0,0.44), 0 1.5px 0 #24e07e inset;
+}
+
+/* Heading styling */
+.add-upcoming-match h2 {
+  color: #ffffff;
+  font-size: 26px;
+  margin-bottom: 22px;
+  letter-spacing: 1.2px;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* Input, select, and disabled field styling */
+.add-upcoming-match input,
+.add-upcoming-match select {
+  padding: 11px 13px;
+  border-radius: 9px;
+  border: 1px solid #2e2e34;
+  background: #23272f;
+  color: #fff;
+  font-size: 16px;
+  outline: none;
+  transition: border 0.22s;
+  margin-bottom: 7px;
+}
+
+.add-upcoming-match input:disabled {
+  background: #242730;
+  color: #a1a1a1;
+  opacity: 0.9;
+}
+
+/* Input focus effect */
+.add-upcoming-match input:focus,
+.add-upcoming-match select:focus {
+  border: 1.5px solid #24e07e;
+  box-shadow: 0 0 2px #24e07e;
+}
+
+/* Red border for invalid (for existing inline logic) */
+.add-upcoming-match input[style*="red"] {
+  border-color: #ff3b3b !important;
+}
+
+/* Button styling */
+.add-upcoming-match button {
+  padding: 11px 0;
+  border-radius: 9px;
+  background: linear-gradient(90deg, #22c1c3 0%, #24e07e 100%);
+  color: #181818;
+  font-weight: 700;
+  font-size: 17px;
+  border: none;
+  cursor: pointer;
+  margin-top: 14px;
+  box-shadow: 0 2px 8px #181c2440;
+  letter-spacing: 0.8px;
+  transition: background 0.22s;
+}
+
+.add-upcoming-match button:hover {
+  background: linear-gradient(90deg, #24e07e 0%, #22c1c3 100%);
+  color: #000;
+}
+
+/* For dropdown options */
+.add-upcoming-match select option {
+  background: #23272f;
+  color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .add-upcoming-match {
+    padding: 16px 3vw;
+    margin: 12px 3vw;
+    max-width: 97vw;
+  }
+}
