@@ -34,8 +34,8 @@ import PlayerRankings from "./components/PlayerRankings"; // playerratings
 import MatchStory from "./components/MatchStory"; // for matchstory 14th MAY 2025 Ranaj Parida
 import H2HRecords from "./components/H2HRecords"; // H2H 15th May 2025 Ranaj Parida
 import SmartAnalyzer from "./components/SmartAnalyzer"; // AI enable 16th MAY 2025 ranaj Parida
-import UserDashboard from "./components/UserDashboard"; // Userdashboard added 21 May 2025 Ranaj Parida
 import FavoritesManager from './components/FavoritesManager';
+import UserCricketStatsDashboard from './components/UserCricketStatsDashboard';
 import { useAuth } from './services/auth'; 
 
 
@@ -276,7 +276,7 @@ function App() {
 <Route path="/match-story" element={<MatchStory />} />  
 <Route path="/h2h-records" element={<H2HRecords />} />
 <Route path="/smart-analyzer" element={<SmartAnalyzer />} />
-<Route path="/dashboard" element={<UserDashboard />} />
+<Route path="/my-dashboard" element={<UserCricketStatsDashboard user={user} />} />
 <Route
   path="/manage-favorites"
   element={
@@ -285,7 +285,9 @@ function App() {
     ) : (
       <div>Please log in to view favorites.</div>
     )
+    
   }
+  
 />
 
 

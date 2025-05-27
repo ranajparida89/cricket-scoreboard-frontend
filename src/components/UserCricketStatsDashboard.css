@@ -1,0 +1,138 @@
+.cricket-dashboard-outer {
+  max-width: 520px;
+  margin: 32px auto;
+  background: #16212d;
+  border-radius: 20px;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.18);
+  padding: 34px 12px 30px 12px;
+  color: #e8f0ff;
+  font-family: 'Segoe UI', 'Roboto', 'sans-serif';
+  min-height: 380px;
+}
+
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.profile-img {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3.5px solid #25a1ef25;
+  background: #293a51;
+  box-shadow: 0 1px 10px #222f4533;
+}
+
+.user-welcome {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #90caf9;
+}
+.username {
+  margin-left: 8px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #fff;
+  letter-spacing: 0.7px;
+}
+
+.match-type-pills {
+  display: flex;
+  gap: 8px;
+  margin-top: 9px;
+}
+.pill-btn {
+  border-radius: 16px;
+  padding: 5px 24px;
+  font-size: 1rem;
+  background: #283e54;
+  color: #bbdefb;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s, color 0.2s, box-shadow 0.15s;
+}
+.pill-btn.active, .pill-btn:hover {
+  background: #1976d2;
+  color: #fff;
+  box-shadow: 0 2px 8px #1976d2aa;
+  font-weight: bold;
+}
+
+.stats-cards-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 17px;
+  justify-content: center;
+  margin-top: 18px;
+}
+.stat-card {
+  width: 163px;
+  height: 104px;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px 0 rgba(10, 20, 60, 0.11);
+  padding: 12px 7px 11px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  background: #1976d2;
+  color: #fff;
+  font-size: 1.06rem;
+  font-weight: 500;
+  position: relative;
+  animation: fadeInCard 0.5s cubic-bezier(0.18, 0.88, 0.44, 1.19);
+  animation-fill-mode: both;
+}
+@keyframes fadeInCard {
+  0% { opacity: 0; transform: translateY(15px) scale(0.98);}
+  100% { opacity: 1; transform: translateY(0) scale(1);}
+}
+.stat-icon {
+  font-size: 1.4rem;
+  margin-bottom: 3px;
+  opacity: 0.8;
+}
+.stat-label {
+  font-size: 1.06rem;
+  opacity: 0.96;
+}
+.stat-value {
+  margin-top: 6px;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #fff;
+  letter-spacing: 1.5px;
+  line-height: 1.1;
+}
+
+.dashboard-loading,
+.dashboard-error {
+  text-align: center;
+  color: #90caf9;
+  font-size: 1.18rem;
+  margin-top: 50px;
+}
+.dashboard-error {
+  color: #e57373;
+  font-weight: 500;
+}
+
+@media (max-width: 690px) {
+  .cricket-dashboard-outer {
+    max-width: 99vw;
+    padding: 17px 3px 18px 3px;
+  }
+  .profile-img {
+    width: 52px;
+    height: 52px;
+  }
+  .stat-card {
+    width: 99vw;
+    min-width: 125px;
+    font-size: 1rem;
+  }
+}
