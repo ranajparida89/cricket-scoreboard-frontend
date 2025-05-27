@@ -47,15 +47,12 @@ const PlayerPerformance = () => {
   const handleNumberChange = (e, key) => {
     let value = e.target.value;
 
-    // Allow empty input (for easy editing)
     if (value === "") {
       setForm({ ...form, [key]: "" });
       return;
     }
 
-    // If contains dot, show error and return
     if (value.includes(".")) {
-      // Specific message for Ball Faced
       if (key === "balls_faced") {
         toast.error("Please enter full number without any dot (.)");
       } else if (
@@ -69,17 +66,14 @@ const PlayerPerformance = () => {
       return;
     }
 
-    // Parse as integer
     const intValue = parseInt(value, 10);
 
-    // Ball Faced: No decimal, only integer >= 0
     if (key === "balls_faced") {
       if (isNaN(intValue) || intValue < 0) return;
       setForm({ ...form, balls_faced: intValue });
       return;
     }
 
-    // Wickets Taken: Only integer, max 10 for ODI/T20, allow >10 for Test
     if (key === "wickets_taken") {
       if (isNaN(intValue) || intValue < 0) return;
       if ((form.match_type === "ODI" || form.match_type === "T20") && intValue > 10) {
@@ -90,7 +84,6 @@ const PlayerPerformance = () => {
       return;
     }
 
-    // Runs Given, Fifties, Hundreds: Only integer
     if (
       key === "runs_given" ||
       key === "fifties" ||
@@ -101,7 +94,6 @@ const PlayerPerformance = () => {
       return;
     }
 
-    // Run Scored: Allow integer only (optional, to keep consistent)
     if (key === "run_scored") {
       if (isNaN(intValue) || intValue < 0) return;
       setForm({ ...form, run_scored: intValue });
@@ -109,6 +101,26 @@ const PlayerPerformance = () => {
     }
   };
   // --- END GPT ENHANCEMENT ---
+
+  // GPT ENHANCEMENT: Handle Team Name change with instant validation
+  const handleTeamNameChange = (team_name) => {
+    if (team_name === form.against_team) {
+      toast.error("Same teams names are not allowed.");
+      setForm({ ...form, team_name, against_team: "" });
+    } else {
+      setForm({ ...form, team_name });
+    }
+  };
+
+  // GPT ENHANCEMENT: Handle Against Team change with instant validation
+  const handleAgainstTeamChange = (against_team) => {
+    if (against_team === form.team_name) {
+      toast.error("Same teams names are not allowed.");
+      setForm({ ...form, against_team: "" });
+    } else {
+      setForm({ ...form, against_team });
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -203,7 +215,7 @@ const PlayerPerformance = () => {
           <select
             className="form-select"
             value={form.team_name}
-            onChange={(e) => setForm({ ...form, team_name: e.target.value })}
+            onChange={(e) => handleTeamNameChange(e.target.value)}
             required
           >
             <option value="">-- Select Team --</option>
@@ -228,16 +240,22 @@ const PlayerPerformance = () => {
           </select>
         </div>
 
-        {/* Against Team */}
+        {/* Against Team (Dropdown Only) */}
         <div className="mb-2">
           <label>Against Team</label>
-          <input
-            type="text"
-            className="form-control"
+          <select
+            className="form-select"
             value={form.against_team}
-            onChange={(e) => setForm({ ...form, against_team: e.target.value })}
+            onChange={(e) => handleAgainstTeamChange(e.target.value)}
             required
-          />
+          >
+            <option value="">-- Select Team --</option>
+            {teams.map((team, index) =>
+              team !== form.team_name ? (
+                <option key={index} value={team}>{team}</option>
+              ) : null
+            )}
+          </select>
         </div>
 
         {/* Performance Inputs */}
@@ -256,7 +274,6 @@ const PlayerPerformance = () => {
                 type="number"
                 className="form-control"
                 value={form[field.key]}
-                // --- GPT ENHANCEMENT: use new handler ---
                 onChange={(e) => handleNumberChange(e, field.key)}
                 required
               />
