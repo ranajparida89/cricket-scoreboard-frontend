@@ -166,6 +166,12 @@ const PlayerPerformance = () => {
     });
   };
 
+  // GPT ENHANCEMENT: Utility to detect "filled" for highlighting fields
+  const isFilled = (value) => {
+    // For 0 or "0" fields, treat as filled (user typed it)
+    return value !== "" && value !== null && (typeof value === "string" ? value.trim() !== "" : true);
+  };
+
   if (loading) {
     return <div className="text-center text-light mt-5">⏳ Loading Players...</div>;
   }
@@ -182,7 +188,7 @@ const PlayerPerformance = () => {
           <label htmlFor="matchName" className="form-label text-light">🏟️ Match Name</label>
           <input
             type="text"
-            className="form-control"
+            className={`form-control ${isFilled(form.match_name) ? "field-filled" : ""}`}
             id="matchName"
             placeholder="Enter match name (e.g., Asia Cup Final)"
             value={form.match_name}
@@ -195,7 +201,7 @@ const PlayerPerformance = () => {
         <div className="mb-2">
           <label>Player Name</label>
           <select
-            className="form-select"
+            className={`form-select ${isFilled(form.player_id) ? "field-filled" : ""}`}
             value={form.player_id}
             onChange={(e) => setForm({ ...form, player_id: e.target.value })}
             required
@@ -213,7 +219,7 @@ const PlayerPerformance = () => {
         <div className="mb-2">
           <label>Team Name</label>
           <select
-            className="form-select"
+            className={`form-select ${isFilled(form.team_name) ? "field-filled" : ""}`}
             value={form.team_name}
             onChange={(e) => handleTeamNameChange(e.target.value)}
             required
@@ -229,7 +235,7 @@ const PlayerPerformance = () => {
         <div className="mb-2">
           <label>Match Type</label>
           <select
-            className="form-select"
+            className={`form-select ${isFilled(form.match_type) ? "field-filled" : ""}`}
             value={form.match_type}
             onChange={(e) => setForm({ ...form, match_type: e.target.value })}
             required
@@ -244,7 +250,7 @@ const PlayerPerformance = () => {
         <div className="mb-2">
           <label>Against Team</label>
           <select
-            className="form-select"
+            className={`form-select ${isFilled(form.against_team) ? "field-filled" : ""}`}
             value={form.against_team}
             onChange={(e) => handleAgainstTeamChange(e.target.value)}
             required
@@ -272,7 +278,7 @@ const PlayerPerformance = () => {
               <label>{field.label}</label>
               <input
                 type="number"
-                className="form-control"
+                className={`form-control ${isFilled(form[field.key]) ? "field-filled" : ""}`}
                 value={form[field.key]}
                 onChange={(e) => handleNumberChange(e, field.key)}
                 required
@@ -284,7 +290,7 @@ const PlayerPerformance = () => {
           <div className="col-md-4 mb-2">
             <label>Dismissed Status</label>
             <select
-              className="form-select"
+              className={`form-select ${isFilled(form.dismissed) ? "field-filled" : ""}`}
               value={form.dismissed}
               onChange={(e) => setForm({ ...form, dismissed: e.target.value })}
               required
