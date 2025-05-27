@@ -97,16 +97,18 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
     }
   };
   
+  // -------------- FIXED: Save as currentUser, remove old user key -------------
   const handleLogin = async () => {
     try {
       const res = await axios.post(`${API_URL}/login`, {
         email: form.email,
         password: form.password,
       });
-  
+
       localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-  
+      localStorage.setItem("currentUser", JSON.stringify(res.data.user)); // <-- THE FIX!
+      localStorage.removeItem("user"); // Remove old key if present
+
       if (form.remember) {
         localStorage.setItem("rememberEmail", form.email);
         localStorage.setItem("rememberPassword", form.password);
@@ -114,15 +116,14 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
         localStorage.removeItem("rememberEmail");
         localStorage.removeItem("rememberPassword");
       }
-  
+
       setMessage("Login successful");
       setTimeout(() => window.location.reload(), 1500);
     } catch (err) {
       setMessage("Invalid credentials");
     }
   };
-  
-  
+  // ----------------------------------------------------------------------------
 
   const handleRequestReset = async () => {
     try {
