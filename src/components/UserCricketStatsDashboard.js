@@ -1,38 +1,28 @@
-// ✅ src/components/UserCricketStatsDashboard.js
-// ✅ Ranaj Parida | 28-May-2025 | Super Advanced User Cricket Stats Dashboard (UPDATED: use "currentUser" everywhere)
-
+// src/components/UserCricketStatsDashboard.js
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useAuth } from "../services/auth"; // Update path as needed
 import "./UserCricketStatsDashboard.css";
 
 const CARD_COLORS = {
-  played: "#1976d2",  // blue
-  won: "#22a98a",     // green
-  lost: "#ef5350",    // red
-  draw: "#757575",    // gray
-  runs: "#1ecbe1",    // aqua
-  wickets: "#fbc02d", // gold
+  played: "#1976d2",
+  won: "#22a98a",
+  lost: "#ef5350",
+  draw: "#757575",
+  runs: "#1ecbe1",
+  wickets: "#fbc02d",
 };
 
 const MATCH_TYPES = ["All", "ODI", "T20", "Test"];
 
-export default function UserCricketStatsDashboard({ user }) {
-  // 'user' prop: { id, name, photo_url } or get from context/localStorage
+export default function UserCricketStatsDashboard() {
+  const { currentUser } = useAuth(); // <-- Always use context!
   const [stats, setStats] = useState(null);
   const [selectedType, setSelectedType] = useState("All");
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState("");
 
-  // Optional: for advanced delete actions (next step)
-  // const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
   useEffect(() => {
-    // ====== CHANGED: always use "currentUser" key for localStorage ======
-    let currentUser = user;
-    if (!currentUser) {
-      const local = localStorage.getItem("currentUser"); // <-- updated!
-      if (local) currentUser = JSON.parse(local);
-    }
     if (!currentUser || !currentUser.id) {
       setApiError("User not found. Please log in.");
       setLoading(false);
@@ -40,7 +30,7 @@ export default function UserCricketStatsDashboard({ user }) {
     }
     fetchStats(currentUser.id, selectedType);
     // eslint-disable-next-line
-  }, [selectedType, user]); // added "user" to deps for good measure
+  }, [selectedType, currentUser]);
 
   const fetchStats = async (userId, matchType) => {
     setLoading(true);
@@ -58,7 +48,6 @@ export default function UserCricketStatsDashboard({ user }) {
     }
   };
 
-  // Stat card list, for easy mapping & animation
   const cardList = [
     { label: "Matches Played", value: stats?.matches_played ?? 0, color: CARD_COLORS.played, icon: "🏏" },
     { label: "Matches Won", value: stats?.matches_won ?? 0, color: CARD_COLORS.won, icon: "🏆" },
@@ -68,12 +57,19 @@ export default function UserCricketStatsDashboard({ user }) {
     { label: "Total Wickets", value: stats?.total_wickets ?? 0, color: CARD_COLORS.wickets, icon: "🎯" },
   ];
 
-  // Responsive and themed profile section
+  if (!currentUser || !currentUser.id) {
+    return (
+      <div className="cricket-dashboard-outer">
+        <div className="dashboard-error">Please log in to view your dashboard.</div>
+      </div>
+    );
+  }
+
   return (
     <div className="cricket-dashboard-outer">
       <div className="profile-row">
         <img
-          src={user?.photo_url || "/default-profile.png"}
+          src={currentUser.photo_url || "/default-profile.png"}
           alt="profile"
           className="profile-img"
         />
@@ -81,7 +77,7 @@ export default function UserCricketStatsDashboard({ user }) {
           <div className="user-welcome">
             Welcome,
             <span className="username">
-              {user?.name || user?.first_name || user?.email || "Player"}
+              {currentUser.name || currentUser.first_name || currentUser.email || "Player"}
             </span>
           </div>
           <div className="match-type-pills">
@@ -126,15 +122,6 @@ export default function UserCricketStatsDashboard({ user }) {
           ))}
         </div>
       )}
-
-      {/* Delete Buttons (for next step) */}
-      {/* <div className="delete-actions-row">
-        <button className="delete-btn" onClick={handleDeleteOne}>Delete Match</button>
-        <button className="delete-btn" onClick={() => setShowDeleteConfirm(true)}>Delete All Stats</button>
-      </div>
-      {showDeleteConfirm && (
-        <ConfirmModal onConfirm={handleDeleteAll} onCancel={() => setShowDeleteConfirm(false)} />
-      )} */}
     </div>
   );
 }
