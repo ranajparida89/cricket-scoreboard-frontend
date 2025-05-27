@@ -115,8 +115,9 @@ h4 {
 }
 /* GPT ENHANCEMENT: Highlight fields with value */
 .field-filled {
-  background-color: #d1fae5 !important; /* Light green */
-  transition: background 0.3s;
+  background-color: #d1fae5 !important;
   color: #112e15 !important;
+  transition: background 0.3s;
 }
+
 
