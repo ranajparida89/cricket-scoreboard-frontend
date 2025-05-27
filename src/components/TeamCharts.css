@@ -1,0 +1,36 @@
+/* TeamCharts.css - Custom dark theme for TeamCharts dropdown and section */
+
+/* Dark dropdown styling */
+.team-chart-type-select {
+  background: #181f2a !important;
+  color: #fff !important;
+  border: 1.5px solid #22d3ee !important;
+  border-radius: 10px;
+  padding: 10px 22px;
+  font-size: 1rem;
+  min-width: 120px;
+  margin-left: 10px;
+  box-shadow: 0 2px 12px rgba(34, 211, 238, 0.08);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.team-chart-type-select:focus {
+  border-color: #0fffc0 !important;
+  box-shadow: 0 0 0 2px #14e0c9b5;
+}
+
+.team-chart-type-select option {
+  background: #16212d;
+  color: #fff;
+}
+
+/* For even better alignment, you can tweak the container if needed */
+.d-flex.justify-content-end.mb-3.align-items-center {
+  align-items: center !important;
+}
+
+/* (Optional) Glow effect for info headline */
+.text-info {
+  text-shadow: 0 0 6px #0fffc0bb;
+}

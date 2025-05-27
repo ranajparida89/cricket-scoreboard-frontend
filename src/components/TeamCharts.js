@@ -4,6 +4,7 @@
 
 import React, { useEffect, useState } from "react";
 import { getTeamChartData } from "../services/api"; // ✅ Uses team-rankings only for charts
+import './TeamCharts.css'; // <-- for css style
 
 import {
   Chart as ChartJS,
@@ -150,11 +151,12 @@ const TeamCharts = () => {
 
       {/* ✅ Match Type Filter Dropdown */}
       <div className="d-flex justify-content-end mb-3">
-        <select
-          className="form-select w-auto"
+              <select
+          className="team-chart-type-select"
           value={filteredType}
           onChange={(e) => setFilteredType(e.target.value)}
         >
+
           <option value="All">All</option>
           <option value="T20">T20</option>
           <option value="ODI">ODI</option>
