@@ -1,5 +1,5 @@
 // ✅ src/components/UserCricketStatsDashboard.js
-// ✅ Ranaj Parida | 28-May-2025 | Super Advanced User Cricket Stats Dashboard
+// ✅ Ranaj Parida | 28-May-2025 | Super Advanced User Cricket Stats Dashboard (UPDATED: use "currentUser" everywhere)
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -27,10 +27,10 @@ export default function UserCricketStatsDashboard({ user }) {
   // const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
-    // Get user object from localStorage if not passed as prop
+    // ====== CHANGED: always use "currentUser" key for localStorage ======
     let currentUser = user;
     if (!currentUser) {
-      const local = localStorage.getItem("user");
+      const local = localStorage.getItem("currentUser"); // <-- updated!
       if (local) currentUser = JSON.parse(local);
     }
     if (!currentUser || !currentUser.id) {
@@ -40,7 +40,7 @@ export default function UserCricketStatsDashboard({ user }) {
     }
     fetchStats(currentUser.id, selectedType);
     // eslint-disable-next-line
-  }, [selectedType]);
+  }, [selectedType, user]); // added "user" to deps for good measure
 
   const fetchStats = async (userId, matchType) => {
     setLoading(true);
