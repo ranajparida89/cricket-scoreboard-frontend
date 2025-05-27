@@ -276,7 +276,17 @@ function App() {
 <Route path="/match-story" element={<MatchStory />} />  
 <Route path="/h2h-records" element={<H2HRecords />} />
 <Route path="/smart-analyzer" element={<SmartAnalyzer />} />
-<Route path="/my-dashboard" element={<UserCricketStatsDashboard user={user} />} />
+<Route
+  path="/my-dashboard"
+  element={
+    currentUser ? (
+      <UserCricketStatsDashboard user={currentUser} />
+    ) : (
+      <div>Please log in to view your dashboard.</div>
+    )
+  }
+/>
+
 <Route
   path="/manage-favorites"
   element={
