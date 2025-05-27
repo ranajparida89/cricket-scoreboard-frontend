@@ -11,7 +11,7 @@ const PlayerPerformance = () => {
   const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
-    match_name: "", // ✅ Newly added for match name
+    match_name: "",
     player_id: "",
     team_name: "",
     match_type: "ODI",
@@ -43,6 +43,73 @@ const PlayerPerformance = () => {
     }
   };
 
+  // --- GPT ENHANCEMENT: Unified number field validation handler ---
+  const handleNumberChange = (e, key) => {
+    let value = e.target.value;
+
+    // Allow empty input (for easy editing)
+    if (value === "") {
+      setForm({ ...form, [key]: "" });
+      return;
+    }
+
+    // If contains dot, show error and return
+    if (value.includes(".")) {
+      // Specific message for Ball Faced
+      if (key === "balls_faced") {
+        toast.error("Please enter full number without any dot (.)");
+      } else if (
+        key === "wickets_taken" ||
+        key === "runs_given" ||
+        key === "fifties" ||
+        key === "hundreds"
+      ) {
+        toast.error("Ooops! Only full number allowed no number with dot.");
+      }
+      return;
+    }
+
+    // Parse as integer
+    const intValue = parseInt(value, 10);
+
+    // Ball Faced: No decimal, only integer >= 0
+    if (key === "balls_faced") {
+      if (isNaN(intValue) || intValue < 0) return;
+      setForm({ ...form, balls_faced: intValue });
+      return;
+    }
+
+    // Wickets Taken: Only integer, max 10 for ODI/T20, allow >10 for Test
+    if (key === "wickets_taken") {
+      if (isNaN(intValue) || intValue < 0) return;
+      if ((form.match_type === "ODI" || form.match_type === "T20") && intValue > 10) {
+        toast.error("Maximum 10 wickets are allowed in a match");
+        return;
+      }
+      setForm({ ...form, wickets_taken: intValue });
+      return;
+    }
+
+    // Runs Given, Fifties, Hundreds: Only integer
+    if (
+      key === "runs_given" ||
+      key === "fifties" ||
+      key === "hundreds"
+    ) {
+      if (isNaN(intValue) || intValue < 0) return;
+      setForm({ ...form, [key]: intValue });
+      return;
+    }
+
+    // Run Scored: Allow integer only (optional, to keep consistent)
+    if (key === "run_scored") {
+      if (isNaN(intValue) || intValue < 0) return;
+      setForm({ ...form, run_scored: intValue });
+      return;
+    }
+  };
+  // --- END GPT ENHANCEMENT ---
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -72,7 +139,7 @@ const PlayerPerformance = () => {
 
   const resetForm = () => {
     setForm({
-      match_name: "", // ✅ Reset match name too
+      match_name: "",
       player_id: "",
       team_name: "",
       match_type: "ODI",
@@ -189,9 +256,8 @@ const PlayerPerformance = () => {
                 type="number"
                 className="form-control"
                 value={form[field.key]}
-                onChange={(e) =>
-                  setForm({ ...form, [field.key]: Math.max(0, e.target.value) })
-                }
+                // --- GPT ENHANCEMENT: use new handler ---
+                onChange={(e) => handleNumberChange(e, field.key)}
                 required
               />
             </div>
