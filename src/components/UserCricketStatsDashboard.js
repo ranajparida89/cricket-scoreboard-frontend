@@ -36,7 +36,7 @@ export default function UserCricketStatsDashboard() {
     setLoading(true);
     setApiError("");
     try {
-      const { data } = await axios.get("/api/user-dashboard-stats", {
+      const { data } = await axios.get("/api/my-dashboard", {
         params: { user_id: userId, match_type: matchType },
       });
       console.log("Dashboard API response:", data); // <--- ADD THIS
