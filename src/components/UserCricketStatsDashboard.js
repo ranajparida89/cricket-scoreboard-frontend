@@ -4,6 +4,9 @@ import axios from "axios";
 import { useAuth } from "../services/auth"; // Update path as needed
 import "./UserCricketStatsDashboard.css";
 
+// Use your backend API base URL (same as all other modules)
+const API_BASE_URL = "https://cricket-scoreboard-backend.onrender.com/api";
+
 const CARD_COLORS = {
   played: "#1976d2",
   won: "#22a98a",
@@ -16,7 +19,7 @@ const CARD_COLORS = {
 const MATCH_TYPES = ["All", "ODI", "T20", "Test"];
 
 export default function UserCricketStatsDashboard() {
-  const { currentUser } = useAuth(); // <-- Always use context!
+  const { currentUser } = useAuth();
   const [stats, setStats] = useState(null);
   const [selectedType, setSelectedType] = useState("All");
   const [loading, setLoading] = useState(true);
@@ -32,15 +35,16 @@ export default function UserCricketStatsDashboard() {
     // eslint-disable-next-line
   }, [selectedType, currentUser]);
 
+  // UPDATED: Use the same URL pattern as other modules
   const fetchStats = async (userId, matchType) => {
     setLoading(true);
     setApiError("");
     try {
-      const { data } = await axios.get("https://cricket-scoreboard-backend.onrender.com/api/user-dashboard-stats", {
-        params: { user_id: userId, match_type: matchType },
-      });
-      console.log("Dashboard API response:", data); // <--- ADD THIS
-      setStats(data);
+      // Just like your working modules, directly use string template for URL
+      const url = `${API_BASE_URL}/user-dashboard-stats?user_id=${userId}&match_type=${matchType}`;
+      const res = await axios.get(url);
+      console.log("Dashboard API response:", res.data);
+      setStats(res.data);
     } catch (err) {
       setApiError("Error fetching stats. Please try again.");
       setStats(null);
