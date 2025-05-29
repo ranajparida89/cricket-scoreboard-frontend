@@ -1,12 +1,20 @@
 // ✅ AddPlayers.js
 // ✅ [Ranaj Parida - 2025-04-23 | Full Player Add Form with all conditional logic]
+// ✅ [Updated: Now sends user_id - 2025-05-29]
 
 import React, { useState } from "react";
 import axios from "axios";
 import { API_URL } from "../services/api";
+
+// ⬇️ ADDED: Import your auth context/hook (update if you use something else)
+import { useAuth } from "../services/auth"; 
+
 import "./AddPlayers.css"; // optional, if you want to style
 
 const AddPlayers = () => {
+  // ⬇️ ADDED: Get current logged-in user (update if you use a different hook or method)
+  const { currentUser } = useAuth(); 
+
   const [form, setForm] = useState({
     lineupType: "ODI",
     playerName: "",
@@ -37,6 +45,12 @@ const AddPlayers = () => {
       return;
     }
 
+    // ✅ ADDED: Check if user is logged in
+    if (!currentUser || !currentUser.id) {
+      setMessage("User not logged in. Please sign in to add players.");
+      return;
+    }
+
     try {
       const res = await axios.post(`${API_URL}/add-player`, {
         lineup_type: form.lineupType,
@@ -47,10 +61,13 @@ const AddPlayers = () => {
         bowling_type: form.skill === "Bowler" ? form.bowlingType : null,
         is_captain: form.isCaptain,
         is_vice_captain: form.isViceCaptain,
+        user_id: currentUser.id, // ✅ ADDED: send user_id to backend
       });
 
-      setMessage(`✅ Player '${res.data.player.player_name}' added to ${res.data.player.lineup_type} squad.`);
-      
+      setMessage(
+        `✅ Player '${res.data.player.player_name}' added to ${res.data.player.lineup_type} squad.`
+      );
+
       // Reset form
       setForm({
         lineupType: "ODI",
@@ -63,7 +80,9 @@ const AddPlayers = () => {
         isViceCaptain: false,
       });
     } catch (err) {
-      setMessage("❌ Failed to add player: " + (err.response?.data?.error || "Server error"));
+      setMessage(
+        "❌ Failed to add player: " + (err.response?.data?.error || "Server error")
+      );
     }
   };
 
@@ -76,7 +95,12 @@ const AddPlayers = () => {
         <form onSubmit={handleSubmit}>
           {/* Lineup Type */}
           <label>🎯 Lineup Type *</label>
-          <select className="form-select mb-3" name="lineupType" value={form.lineupType} onChange={handleChange}>
+          <select
+            className="form-select mb-3"
+            name="lineupType"
+            value={form.lineupType}
+            onChange={handleChange}
+          >
             <option>ODI</option>
             <option>T20</option>
             <option>Test</option>
@@ -106,7 +130,13 @@ const AddPlayers = () => {
 
           {/* Player Skill */}
           <label>🎽 Skill Type *</label>
-          <select className="form-select mb-3" name="skill" value={form.skill} onChange={handleChange} required>
+          <select
+            className="form-select mb-3"
+            name="skill"
+            value={form.skill}
+            onChange={handleChange}
+            required
+          >
             <option value="">-- Select Skill --</option>
             <option value="Batsman">Batsman</option>
             <option value="Bowler">Bowler</option>
@@ -118,7 +148,12 @@ const AddPlayers = () => {
           {form.skill === "Batsman" && (
             <>
               <label>🏏 Batting Style</label>
-              <select className="form-select mb-3" name="battingStyle" value={form.battingStyle} onChange={handleChange}>
+              <select
+                className="form-select mb-3"
+                name="battingStyle"
+                value={form.battingStyle}
+                onChange={handleChange}
+              >
                 <option value="">-- Select --</option>
                 <option>Right Hand</option>
                 <option>Left Hand</option>
@@ -130,7 +165,12 @@ const AddPlayers = () => {
           {form.skill === "Bowler" && (
             <>
               <label>🎯 Bowling Type</label>
-              <select className="form-select mb-3" name="bowlingType" value={form.bowlingType} onChange={handleChange}>
+              <select
+                className="form-select mb-3"
+                name="bowlingType"
+                value={form.bowlingType}
+                onChange={handleChange}
+              >
                 <option value="">-- Select --</option>
                 <option>Fast</option>
                 <option>Medium Fast</option>
