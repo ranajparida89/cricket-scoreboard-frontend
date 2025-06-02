@@ -61,7 +61,7 @@ const AddPlayers = () => {
         bowling_type: form.skill === "Bowler" ? form.bowlingType : null,
         is_captain: form.isCaptain,
         is_vice_captain: form.isViceCaptain,
-        user_id: form.currentUser.id, // ✅ ADDED: send user_id to backend added "form." which was missing RCA
+        user_id: currentUser.id, // ✅ ADDED: send user_id to backend added "form." which was missing RCA
       });
 
       setMessage(
