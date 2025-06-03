@@ -32,7 +32,7 @@ const PlayerPerformance = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("https://cricket-scoreboard-backend.onrender.com/api/players");
+      const res = await axios.get("https://cricket-scoreboard-backend.onrender.com/api/players?user_id=${currentUser.id}");
       setPlayers(res.data);
       const teamSet = new Set(res.data.map((player) => player.team_name));
       setTeams([...teamSet]);
