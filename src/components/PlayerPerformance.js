@@ -33,7 +33,7 @@ const PlayerPerformance = () => {
   try {
     setLoading(true);
     // Get user_id (adapt as per your app's logic)
-    const user_id = currentUser?.id || localStorage.getItem("user_id");
+    const user_id = localStorage.getItem("user_id");
     if (!user_id) {
       toast.error("User not logged in.");
       setLoading(false);
