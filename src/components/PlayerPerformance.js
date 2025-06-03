@@ -29,27 +29,19 @@ const PlayerPerformance = () => {
     fetchData();
   }, []);
 
- const fetchData = async () => {
-  try {
-    setLoading(true);
-    // Get user_id (adapt as per your app's logic)
-    const user_id = localStorage.getItem("user_id");
-    if (!user_id) {
-      toast.error("User not logged in.");
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get("https://cricket-scoreboard-backend.onrender.com/api/players");
+      setPlayers(res.data);
+      const teamSet = new Set(res.data.map((player) => player.team_name));
+      setTeams([...teamSet]);
       setLoading(false);
-      return;
+    } catch (err) {
+      console.error("❌ Error fetching players:", err);
+      setLoading(false);
     }
-    const res = await axios.get(`https://cricket-scoreboard-backend.onrender.com/api/players?user_id=${user_id}`);
-    setPlayers(res.data);
-    const teamSet = new Set(res.data.map((player) => player.team_name));
-    setTeams([...teamSet]);
-    setLoading(false);
-  } catch (err) {
-    console.error("❌ Error fetching players:", err);
-    setLoading(false);
-  }
-};
-
+  };
 
   // --- GPT ENHANCEMENT: Unified number field validation handler ---
   const handleNumberChange = (e, key) => {
