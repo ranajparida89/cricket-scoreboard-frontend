@@ -18,6 +18,9 @@ const PlayerStats = () => {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
+  // 🔑 Retrieve user_id from storage or context (update this line as per your auth logic)
+  const user_id = localStorage.getItem("user_id"); // Or get from Redux/context if not in localStorage
+
   const handlePlayerClick = (playerName) => {
     setSelectedPlayer(playerName);
     setShowDetailsModal(true);
@@ -25,12 +28,25 @@ const PlayerStats = () => {
 
   useEffect(() => {
     fetchPerformances();
+    // eslint-disable-next-line
   }, []);
 
+  // ✅ Always include user_id as query param
   const fetchPerformances = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("https://cricket-scoreboard-backend.onrender.com/api/player-stats-summary");
+
+      if (!user_id) {
+        // If user_id missing, stop and show error
+        toast.error("❌ User not logged in. Please login again.");
+        setLoading(false);
+        return;
+      }
+
+      // Updated API call: always append user_id
+      const res = await axios.get(
+        `https://cricket-scoreboard-backend.onrender.com/api/player-stats-summary?user_id=${user_id}`
+      );
       setPerformances(res.data);
       setLoading(false);
     } catch (err) {
@@ -232,52 +248,51 @@ const PlayerStats = () => {
       )}
 
       {/* ✅ Floating Modal should be placed at bottom of return but inside main div */}
-    {showDetailsModal && selectedPlayer && (
-  <div className="player-modal-overlay">
-    <div className="player-modal-content">
-      <button className="player-modal-close" onClick={() => setShowDetailsModal(false)}>✖</button>
-      <h2 className="modal-header">📋 Match-wise Player Performance </h2>
+      {showDetailsModal && selectedPlayer && (
+        <div className="player-modal-overlay">
+          <div className="player-modal-content">
+            <button className="player-modal-close" onClick={() => setShowDetailsModal(false)}>✖</button>
+            <h2 className="modal-header">📋 Match-wise Player Performance </h2>
 
-      {performances
-        .filter((p) => p.player_name === selectedPlayer)
-        .map((match, idx) => (
-         <li key={idx} className="player-match-card">
-  <h5 className="text-info fw-bold mb-3">🖋️ {match.match_name} ({match.match_type})</h5>
+            {performances
+              .filter((p) => p.player_name === selectedPlayer)
+              .map((match, idx) => (
+                <li key={idx} className="player-match-card">
+                  <h5 className="text-info fw-bold mb-3">🖋️ {match.match_name} ({match.match_type})</h5>
 
-  <p><strong>🧍‍♂️ Player:</strong> {match.player_name}</p>
-  <p><strong>🏳️ Team:</strong> {match.team_name}</p>
-  <p><strong>⚔️ Opposition:</strong> {match.against_team}</p>
+                  <p><strong>🧍‍♂️ Player:</strong> {match.player_name}</p>
+                  <p><strong>🏳️ Team:</strong> {match.team_name}</p>
+                  <p><strong>⚔️ Opposition:</strong> {match.against_team}</p>
 
-  <div className="section mt-3">
-    <h6 className="text-warning fw-bold"> Batting Performance</h6>
-    <p>
-       Scored <b>{match.formatted_run_scored}</b> runs from <b>{match.balls_faced}</b> balls 
-      with a strike rate of <b>{match.strike_rate}</b>
-    </p>
-    <p>
-       Milestones: <b>{match.fifties}</b> Fifties | <b>{match.hundreds}</b> Hundreds
-    </p>
-    
-  </div>
+                  <div className="section mt-3">
+                    <h6 className="text-warning fw-bold"> Batting Performance</h6>
+                    <p>
+                      Scored <b>{match.formatted_run_scored}</b> runs from <b>{match.balls_faced}</b> balls 
+                      with a strike rate of <b>{match.strike_rate}</b>
+                    </p>
+                    <p>
+                      Milestones: <b>{match.fifties}</b> Fifties | <b>{match.hundreds}</b> Hundreds
+                    </p>
+                  </div>
 
-  <div className="section mt-3">
-    <h6 className="text-warning fw-bold"> Bowling Performance</h6>
-    <p>
-       Took <b>{match.wickets_taken}</b> wicket(s) conceding <b>{match.runs_given}</b> runs
-    </p>
-    <p>
-       Economy: <b>
-        {match.runs_given > 0 && match.wickets_taken > 0
-          ? (match.runs_given / (match.wickets_taken || 1)).toFixed(2)
-          : "-"}
-      </b>
-    </p>
-  </div>
-</li>
-      ))}
-    </div>
-  </div>
-)}
+                  <div className="section mt-3">
+                    <h6 className="text-warning fw-bold"> Bowling Performance</h6>
+                    <p>
+                      Took <b>{match.wickets_taken}</b> wicket(s) conceding <b>{match.runs_given}</b> runs
+                    </p>
+                    <p>
+                      Economy: <b>
+                        {match.runs_given > 0 && match.wickets_taken > 0
+                          ? (match.runs_given / (match.wickets_taken || 1)).toFixed(2)
+                          : "-"}
+                      </b>
+                    </p>
+                  </div>
+                </li>
+              ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
