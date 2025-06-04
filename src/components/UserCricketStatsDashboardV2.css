@@ -1,0 +1,17 @@
+/* UserCricketStatsDashboard.css */
+.cricket-dashboard-outer { padding: 24px; max-width: 650px; margin: auto; }
+.profile-row { display: flex; align-items: center; margin-bottom: 18px; }
+.profile-img { width: 48px; height: 48px; border-radius: 50%; margin-right: 18px; object-fit: cover; }
+.user-welcome { font-size: 20px; color: #1976d2; }
+.username { font-weight: bold; margin-left: 8px; }
+.match-type-pills { margin-top: 10px; }
+.pill-btn { padding: 5px 14px; border-radius: 999px; margin-right: 6px; margin-bottom: 2px; cursor: pointer; transition: 0.15s; }
+.pill-btn.active, .pill-btn:active { box-shadow: 0 2px 8px rgba(25,118,210,0.1);}
+.stats-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 20px; margin-top: 24px; }
+.stat-card { border-radius: 18px; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding: 18px 12px; display: flex; flex-direction: column; align-items: center; min-height: 115px; }
+.stat-icon { font-size: 2.2rem; margin-bottom: 9px; }
+.stat-label { font-size: 1.1rem; margin-bottom: 5px; }
+.stat-value { font-size: 1.8rem; font-weight: bold; }
+.dashboard-loading, .dashboard-error, .dashboard-info { text-align: center; margin-top: 34px; font-size: 1.1rem; color: #555; }
+.dashboard-error { color: #c00; }
+.retry-btn { margin-top: 10px; background: #1976d2; color: #fff; border: none; padding: 7px 20px; border-radius: 7px; font-size: 1rem; cursor: pointer; }

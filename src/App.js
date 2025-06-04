@@ -37,6 +37,7 @@ import SmartAnalyzer from "./components/SmartAnalyzer"; // AI enable 16th MAY 20
 import FavoritesManager from './components/FavoritesManager';
 import UserCricketStatsDashboard from './components/UserCricketStatsDashboard';
 import { useAuth } from './services/auth'; 
+import UserDashboardV2Page from './components/UserDashboardV2Page';
 
 
 
@@ -300,6 +301,7 @@ function App() {
   
 />
 
+<Route path="/dashboard-v2" element={<UserDashboardV2Page />} />
 
 
 
