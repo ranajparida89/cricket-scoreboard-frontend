@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "./RecentMatchesPanelV2.css"; // We will create this next
-import { FaTrophy, FaRegSadCry, FaHandshake, FaClock } from "react-icons/fa";
+import "./RecentMatchesPanelV2.css";
+import { FaTrophy, FaRegSadCry, FaHandshake, FaClock, FaTimes } from "react-icons/fa";
 
 const API_BASE_URL = "https://cricket-scoreboard-backend.onrender.com/api";
 
@@ -11,6 +11,7 @@ export default function RecentMatchesPanelV2({ userId, limit = 5 }) {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState("");
+  const [selectedMatch, setSelectedMatch] = useState(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -22,6 +23,16 @@ export default function RecentMatchesPanelV2({ userId, limit = 5 }) {
       .catch(() => setApiError("Failed to load recent matches"))
       .finally(() => setLoading(false));
   }, [userId, limit]);
+
+  // Close modal on ESC
+  useEffect(() => {
+    if (!selectedMatch) return;
+    const handleEsc = (e) => {
+      if (e.key === "Escape") setSelectedMatch(null);
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [selectedMatch]);
 
   if (!userId) {
     return <div className="recent-matches-panel-v2">User not found.</div>;
@@ -48,13 +59,20 @@ export default function RecentMatchesPanelV2({ userId, limit = 5 }) {
     );
   }
 
+  // Helper to get icon/color for result
+  const getResultDisplay = (result) => {
+    if (result === "Won") return { color: "#22a98a", icon: <FaTrophy /> };
+    if (result === "Lost") return { color: "#ef5350", icon: <FaRegSadCry /> };
+    return { color: "#757575", icon: <FaHandshake /> };
+  };
+
   return (
     <div className="recent-matches-panel-v2">
       <h3>
         <FaClock style={{ color: "#1ecbe1", marginRight: 6 }} />
         Recent Matches
       </h3>
-      <div className="recent-matches-table">
+      <div className="recent-matches-panel-scroll">
         <div className="rm-header">
           <span>Date</span>
           <span>Match</span>
@@ -65,21 +83,27 @@ export default function RecentMatchesPanelV2({ userId, limit = 5 }) {
           <span>Wickets</span>
         </div>
         {matches.map((m, i) => {
-          let resultColor = "#757575", resultIcon = <FaHandshake />;
-          if (m.result === "Won") { resultColor = "#22a98a"; resultIcon = <FaTrophy />; }
-          else if (m.result === "Lost") { resultColor = "#ef5350"; resultIcon = <FaRegSadCry />; }
-          // Format date nicely
+          const { color, icon } = getResultDisplay(m.result);
+          // Format date
           const dateStr = new Date(m.match_time).toLocaleDateString(undefined, {
             year: "numeric", month: "short", day: "numeric"
           });
           return (
-            <div className="rm-row" key={m.match_id}>
+            <div
+              className="rm-row"
+              key={m.match_id}
+              tabIndex={0}
+              style={{ cursor: "pointer" }}
+              onClick={() => setSelectedMatch(m)}
+              title="Click for match details"
+              aria-label={`Open details for ${m.match_name}`}
+            >
               <span>{dateStr}</span>
               <span title={m.match_name}>{m.match_name}</span>
               <span>{m.match_type}</span>
               <span>{m.opponent}</span>
-              <span style={{ color: resultColor, fontWeight: 600 }}>
-                <span className="rm-icon">{resultIcon}</span> {m.result}
+              <span style={{ color, fontWeight: 600 }}>
+                <span className="rm-icon">{icon}</span> {m.result}
               </span>
               <span>{m.runs}</span>
               <span>{m.wickets}</span>
@@ -87,6 +111,40 @@ export default function RecentMatchesPanelV2({ userId, limit = 5 }) {
           );
         })}
       </div>
+
+      {/* ---------- Floating Modal for Details ---------- */}
+      {selectedMatch && (
+        <div className="rm-modal-backdrop" onClick={() => setSelectedMatch(null)}>
+          <div
+            className="rm-modal"
+            onClick={e => e.stopPropagation()}
+            tabIndex={-1}
+          >
+            <button className="rm-modal-close" onClick={() => setSelectedMatch(null)} aria-label="Close">
+              <FaTimes />
+            </button>
+            <h4 style={{ marginBottom: 18, color: "#1ecbe1" }}>
+              Match Details
+            </h4>
+            <div className="rm-modal-details">
+              <div><strong>Date:</strong> {new Date(selectedMatch.match_time).toLocaleString()}</div>
+              <div><strong>Match Name:</strong> {selectedMatch.match_name}</div>
+              <div><strong>Type:</strong> {selectedMatch.match_type}</div>
+              <div><strong>Opponent:</strong> {selectedMatch.opponent}</div>
+              <div>
+                <strong>Result:</strong>
+                <span style={{ color: getResultDisplay(selectedMatch.result).color, marginLeft: 6 }}>
+                  {getResultDisplay(selectedMatch.result).icon} {selectedMatch.result}
+                </span>
+              </div>
+              <div><strong>Runs:</strong> {selectedMatch.runs}</div>
+              <div><strong>Wickets:</strong> {selectedMatch.wickets}</div>
+              {/* Add more fields if your API provides them! */}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ---------- End Modal ---------- */}
     </div>
   );
 }
