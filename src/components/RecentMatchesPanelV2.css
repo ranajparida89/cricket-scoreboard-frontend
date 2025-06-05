@@ -5,25 +5,24 @@
   margin: 30px auto 0 auto;
   box-shadow: 0 2px 20px rgba(30, 203, 225, 0.05), 0 1.5px 8px #2228;
   color: #e3f2fd;
-  max-width: 760px;
-  min-width: 290px;
+  width: 100%;
+  max-width: 1080px;      /* Allow much wider panel */
+  min-width: 320px;
   font-family: "Segoe UI", Roboto, Arial, sans-serif;
   transition: box-shadow 0.15s;
+  overflow-x: auto;
 }
 
-.recent-matches-panel-v2 h3 {
-  margin-bottom: 16px;
-  letter-spacing: 0.5px;
-  color: #1ecbe1;
-  font-weight: 700;
-  font-size: 1.22rem;
-  display: flex;
-  align-items: center;
+.recent-matches-panel-scroll {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 2px;
 }
 
 .rm-header, .rm-row {
   display: grid;
-  grid-template-columns: 110px 1.6fr 0.6fr 1fr 1fr 0.6fr 0.8fr;
+  grid-template-columns: 120px 2fr 1fr 1.4fr 1fr 0.9fr 1fr;
+  min-width: 820px;    /* Makes sure all columns are visible */
   align-items: center;
   gap: 8px;
   font-size: 1rem;
@@ -45,6 +44,7 @@
   transition: background 0.13s;
   font-size: 1.04rem;
   min-height: 42px;
+  cursor: pointer;
 }
 
 .rm-row:hover {
@@ -74,4 +74,16 @@
   gap: 9px;
   min-height: 70px;
   justify-content: center;
+}
+
+/* Responsive - enable horizontal scroll on smaller screens */
+@media (max-width: 900px) {
+  .recent-matches-panel-v2 {
+    max-width: 100vw;
+    padding: 14px 2vw 10px 2vw;
+  }
+  .rm-header, .rm-row {
+    font-size: 0.97rem;
+    min-width: 640px;
+  }
 }
