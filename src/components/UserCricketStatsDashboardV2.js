@@ -1,7 +1,10 @@
+// src/components/UserCricketStatsDashboardV2.js
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useAuth } from "../services/auth"; // Update path as needed
-import "./UserCricketStatsDashboardV2.css";   // Reuse your card styles
+import { useAuth } from "../services/auth";
+import "./UserCricketStatsDashboardV2.css";
+import RecentMatchesPanelV2 from "./RecentMatchesPanelV2";
 
 const API_BASE_URL = "https://cricket-scoreboard-backend.onrender.com/api";
 const CARD_COLORS = {
@@ -35,7 +38,7 @@ export default function UserCricketStatsDashboardV2() {
     // eslint-disable-next-line
   }, [selectedType, currentUser, retryCount]);
 
-  // API call
+  // API call for main dashboard stats
   const fetchStats = async (userId, matchType) => {
     setLoading(true);
     setApiError("");
@@ -62,7 +65,7 @@ export default function UserCricketStatsDashboardV2() {
   // Retry handler
   const handleRetry = () => setRetryCount(retryCount + 1);
 
-  // Card data
+  // Card data for stats
   const cardList = [
     { label: "Matches Played", value: stats?.matches_played ?? 0, color: CARD_COLORS.played, icon: "🏏" },
     { label: "Matches Won", value: stats?.matches_won ?? 0, color: CARD_COLORS.won, icon: "🏆" },
@@ -72,7 +75,7 @@ export default function UserCricketStatsDashboardV2() {
     { label: "Total Wickets", value: stats?.total_wickets ?? 0, color: CARD_COLORS.wickets, icon: "🎯" },
   ];
 
-  // Render
+  // UI
   if (!currentUser || !currentUser.id) {
     return (
       <div className="cricket-dashboard-outer">
@@ -136,23 +139,29 @@ export default function UserCricketStatsDashboardV2() {
               </span>
             </div>
           ) : (
-            <div className="stats-cards-grid">
-              {cardList.map((card, idx) => (
-                <div
-                  className="stat-card"
-                  style={{
-                    background: card.color,
-                    animationDelay: `${0.09 * idx}s`
-                  }}
-                  key={card.label}
-                  aria-label={card.label + ": " + card.value}
-                >
-                  <div className="stat-icon">{card.icon}</div>
-                  <div className="stat-label">{card.label}</div>
-                  <div className="stat-value">{card.value}</div>
-                </div>
-              ))}
-            </div>
+            <>
+              <div className="stats-cards-grid">
+                {cardList.map((card, idx) => (
+                  <div
+                    className="stat-card"
+                    style={{
+                      background: card.color,
+                      animationDelay: `${0.09 * idx}s`
+                    }}
+                    key={card.label}
+                    aria-label={card.label + ": " + card.value}
+                  >
+                    <div className="stat-icon">{card.icon}</div>
+                    <div className="stat-label">{card.label}</div>
+                    <div className="stat-value">{card.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Ranaj Parida | Added RecentMatchesPanelV2 for Recent User Matches | 07-Jun-2025 */}
+              {/* Advanced user-focused Recent Matches panel, non-invasive */}
+              <RecentMatchesPanelV2 userId={currentUser?.id} limit={5} />
+            </>
           )}
         </div>
       )}
