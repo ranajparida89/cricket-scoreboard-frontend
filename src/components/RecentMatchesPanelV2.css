@@ -1,0 +1,77 @@
+.recent-matches-panel-v2 {
+  background: #121e2c;
+  border-radius: 20px;
+  padding: 22px 28px 18px 28px;
+  margin: 30px auto 0 auto;
+  box-shadow: 0 2px 20px rgba(30, 203, 225, 0.05), 0 1.5px 8px #2228;
+  color: #e3f2fd;
+  max-width: 760px;
+  min-width: 290px;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  transition: box-shadow 0.15s;
+}
+
+.recent-matches-panel-v2 h3 {
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+  color: #1ecbe1;
+  font-weight: 700;
+  font-size: 1.22rem;
+  display: flex;
+  align-items: center;
+}
+
+.rm-header, .rm-row {
+  display: grid;
+  grid-template-columns: 110px 1.6fr 0.6fr 1fr 1fr 0.6fr 0.8fr;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+}
+
+.rm-header {
+  font-weight: bold;
+  color: #bbdefb;
+  border-bottom: 2px solid #283e54;
+  padding-bottom: 5px;
+  margin-bottom: 7px;
+}
+
+.rm-row {
+  border-radius: 8px;
+  background: #202f43;
+  margin-bottom: 8px;
+  padding: 8px 5px 8px 8px;
+  transition: background 0.13s;
+  font-size: 1.04rem;
+  min-height: 42px;
+}
+
+.rm-row:hover {
+  background: #283e54;
+}
+
+.rm-row span,
+.rm-header span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rm-icon {
+  font-size: 1.15em;
+  vertical-align: middle;
+  margin-right: 3px;
+}
+
+.recent-matches-panel-v2.loading,
+.recent-matches-panel-v2.error,
+.recent-matches-panel-v2.empty {
+  color: #ffb300;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 70px;
+  justify-content: center;
+}
