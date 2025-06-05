@@ -36,6 +36,8 @@ import H2HRecords from "./components/H2HRecords"; // H2H 15th May 2025 Ranaj Par
 import SmartAnalyzer from "./components/SmartAnalyzer"; // AI enable 16th MAY 2025 ranaj Parida
 import FavoritesManager from './components/FavoritesManager';
 import UserCricketStatsDashboard from './components/UserCricketStatsDashboard';
+import UserCricketStatsDashboardV2 from "./components/UserCricketStatsDashboardV2"; // new Dashboard 
+
 import { useAuth } from './services/auth'; 
 import UserDashboardV2Page from './components/UserDashboardV2Page';
 
@@ -281,7 +283,7 @@ function App() {
   path="/my-dashboard"
   element={
     currentUser ? (
-      <UserCricketStatsDashboard user={currentUser} />
+      <UserCricketStatsDashboardV2 />  // <-- NEW Dashboard
     ) : (
       <div>Please log in to view your dashboard.</div>
     )
