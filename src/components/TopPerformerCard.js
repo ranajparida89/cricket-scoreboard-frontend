@@ -2,8 +2,21 @@ import React from "react";
 import "./TopPerformerCard.css";
 
 const TopPerformerCard = ({ performer, period }) => {
-  if (!performer) return null;
-
+        if (!performer) {
+        // You can use the period and matchType props for a more friendly message!
+        return (
+            <div className="top-performer-card">
+            <div className="tp-title">
+                Top Performer
+                {matchType && matchType !== "All" ? ` (${matchType})` : ""}
+                {period === "month" ? " (This Month)" : ""}
+            </div>
+            <div style={{ color: "#aaa", marginTop: 16, fontSize: 17, textAlign: "center" }}>
+                No top performer found for {matchType && matchType !== "All" ? matchType : "this period"}.
+            </div>
+            </div>
+        );
+        }
   return (
     <div className={`top-performer-card${performer.mvp_badge ? " mvp" : ""}`}>
       {performer.mvp_badge && (
