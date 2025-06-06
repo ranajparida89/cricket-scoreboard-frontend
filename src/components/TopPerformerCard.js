@@ -1,7 +1,7 @@
 import React from "react";
 import "./TopPerformerCard.css";
 
-const TopPerformerCard = ({ performer, period }) => {
+const TopPerformerCard = ({ performer, period, matchType }) => {
         if (!performer) {
         // You can use the period and matchType props for a more friendly message!
         return (
