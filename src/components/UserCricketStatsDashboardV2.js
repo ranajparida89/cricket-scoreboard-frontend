@@ -68,11 +68,11 @@ export default function UserCricketStatsDashboardV2() {
   // Card data for stats
   const cardList = [
     { label: "Matches Played", value: stats?.matches_played ?? 0, color: CARD_COLORS.played},
-    { label: "Matches Won", value: stats?.matches_won ?? 0, color: CARD_COLORS.won, icon: "🏆" },
-    { label: "Matches Lost", value: stats?.matches_lost ?? 0, color: CARD_COLORS.lost, icon: "❌" },
-    { label: "Matches Draw", value: stats?.matches_draw ?? 0, color: CARD_COLORS.draw, icon: "🤝" },
-    { label: "Total Runs", value: stats?.total_runs ?? 0, color: CARD_COLORS.runs, icon: "🔢" },
-    { label: "Total Wickets", value: stats?.total_wickets ?? 0, color: CARD_COLORS.wickets, icon: "🎯" },
+    { label: "Matches Won", value: stats?.matches_won ?? 0, color: CARD_COLORS.won},
+    { label: "Matches Lost", value: stats?.matches_lost ?? 0, color: CARD_COLORS.lost},
+    { label: "Matches Draw", value: stats?.matches_draw ?? 0, color: CARD_COLORS.draw},
+    { label: "Total Runs", value: stats?.total_runs ?? 0, color: CARD_COLORS.runs},
+    { label: "Total Wickets", value: stats?.total_wickets ?? 0, color: CARD_COLORS.wickets},
   ];
 
   // UI
