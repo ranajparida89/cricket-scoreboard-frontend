@@ -5,7 +5,7 @@ import axios from "axios";
 import { useAuth } from "../services/auth";
 import "./UserCricketStatsDashboardV2.css";
 import RecentMatchesPanelV2 from "./RecentMatchesPanelV2";
-import TopPerformerCard from "./TopPerformerCard"; // <-- already imported
+import TopPerformerCard from "./TopPerformerCard";
 
 const API_BASE_URL = "https://cricket-scoreboard-backend.onrender.com/api";
 const CARD_COLORS = {
@@ -32,7 +32,7 @@ export default function UserCricketStatsDashboardV2() {
   const [tpLoading, setTpLoading] = useState(false);
   const [tpError, setTpError] = useState("");
 
-  // Fetch stats when user or match type changes
+  // Fetch stats & Top Performer when user or match type changes
   useEffect(() => {
     if (!currentUser || !currentUser.id) {
       setApiError("User not found. Please log in.");
@@ -41,7 +41,7 @@ export default function UserCricketStatsDashboardV2() {
       return;
     }
     fetchStats(currentUser.id, selectedType);
-    fetchTopPerformer(currentUser.id); // <-- fetch Top Performer for this user
+    fetchTopPerformer(currentUser.id, selectedType); // <-- fetch Top Performer by type
     // eslint-disable-next-line
   }, [selectedType, currentUser, retryCount]);
 
@@ -70,12 +70,14 @@ export default function UserCricketStatsDashboardV2() {
   };
 
   // ----------- Fetch Top Performer API -----------
-  const fetchTopPerformer = async (userId) => {
+  // Always includes matchType for filtering, always shows card for all users
+  const fetchTopPerformer = async (userId, matchType) => {
     setTpLoading(true);
     setTpError("");
     setTopPerformer(null);
     try {
-      const url = `${API_BASE_URL}/top-performer?user_id=${userId}&period=month`;
+      // Always pass match_type for accuracy
+      const url = `${API_BASE_URL}/top-performer?user_id=${userId}&period=month&match_type=${matchType}`;
       const res = await axios.get(url);
       setTopPerformer(res.data.performer ?? null);
     } catch (err) {
@@ -144,16 +146,14 @@ export default function UserCricketStatsDashboardV2() {
         </div>
       </div>
 
-      {/* ---- Top Performer Highlight Section ---- */}
+      {/* ---- Top Performer Highlight Section (Always visible for every user) ---- */}
       <div>
         {tpLoading ? (
           <div className="dashboard-loading" style={{marginTop: 16}}>Loading MVP...</div>
         ) : tpError ? (
           <div className="dashboard-error" style={{marginTop: 16}}>{tpError}</div>
         ) : (
-          topPerformer && (
-            <TopPerformerCard performer={topPerformer} period="month" />
-          )
+          <TopPerformerCard performer={topPerformer} period="month" matchType={selectedType} />
         )}
       </div>
 
@@ -194,8 +194,6 @@ export default function UserCricketStatsDashboardV2() {
                   </div>
                 ))}
               </div>
-
-              {/* Ranaj Parida | Added RecentMatchesPanelV2 for Recent User Matches | 07-Jun-2025 */}
               <RecentMatchesPanelV2 userId={currentUser?.id} limit={5} />
             </>
           )}
