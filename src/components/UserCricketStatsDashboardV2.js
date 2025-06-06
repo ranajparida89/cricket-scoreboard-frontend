@@ -149,12 +149,16 @@ export default function UserCricketStatsDashboardV2() {
       {/* ---- Top Performer Highlight Section (Always visible for every user) ---- */}
       <div>
         {tpLoading ? (
-          <div className="dashboard-loading" style={{marginTop: 16}}>Loading MVP...</div>
-        ) : tpError ? (
-          <div className="dashboard-error" style={{marginTop: 16}}>{tpError}</div>
-        ) : (
-          <TopPerformerCard performer={topPerformer} period="month" matchType={selectedType} />
-        )}
+        <div className="dashboard-loading" style={{marginTop: 16}}>Loading MVP...</div>
+      ) : tpError ? (
+        <div className="dashboard-error" style={{marginTop: 16}}>{tpError}</div>
+      ) : (
+        <TopPerformerCard
+          performer={topPerformer}
+          period="month"
+          matchType={selectedType}
+        />
+      )}
       </div>
 
       {loading ? (
