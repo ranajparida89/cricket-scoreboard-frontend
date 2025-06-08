@@ -81,8 +81,8 @@ export default function UserCricketStatsDashboardV2() {
       // Always send match_type for accuracy!
       const url = `${API_BASE_URL}/top-performer?user_id=${userId}&period=month&match_type=${matchType}`;
       const res = await axios.get(url);
-      // Debug: Uncomment this to see the API result in your browser console
-      // console.log("TopPerformer API:", res.data.performer, "| matchType:", matchType);
+      //Debug: Uncomment this to see the API result in your browser console
+       console.log("TopPerformer API:", res.data.performer, "| matchType:", matchType);
       setTopPerformer(res.data.performer ?? null);
     } catch (err) {
       setTpError("Could not fetch top performer.");
