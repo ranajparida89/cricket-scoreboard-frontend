@@ -1,5 +1,3 @@
-// src/components/UserCricketStatsDashboardV2.js
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../services/auth";
@@ -7,7 +5,10 @@ import "./UserCricketStatsDashboardV2.css";
 import RecentMatchesPanelV2 from "./RecentMatchesPanelV2";
 import TopPerformerCard from "./TopPerformerCard";
 
+// Backend API base URL
 const API_BASE_URL = "https://cricket-scoreboard-backend.onrender.com/api";
+
+// Card colors for the main stats
 const CARD_COLORS = {
   played: "#1976d2",
   won: "#22a98a",
@@ -17,17 +18,19 @@ const CARD_COLORS = {
   wickets: "#fbc02d",
 };
 
+// Supported match types (must match those used in backend/player_performance)
 const MATCH_TYPES = ["All", "ODI", "T20", "Test"];
 
 export default function UserCricketStatsDashboardV2() {
   const { currentUser } = useAuth();
+
   const [stats, setStats] = useState(null);
   const [selectedType, setSelectedType] = useState("All");
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
   const [retryCount, setRetryCount] = useState(0);
 
-  // ----------- Top Performer state ------------
+  // ---- Top Performer states ----
   const [topPerformer, setTopPerformer] = useState(null);
   const [tpLoading, setTpLoading] = useState(false);
   const [tpError, setTpError] = useState("");
@@ -41,11 +44,11 @@ export default function UserCricketStatsDashboardV2() {
       return;
     }
     fetchStats(currentUser.id, selectedType);
-    fetchTopPerformer(currentUser.id, selectedType); // <-- fetch Top Performer by type
+    fetchTopPerformer(currentUser.id, selectedType);
     // eslint-disable-next-line
   }, [selectedType, currentUser, retryCount]);
 
-  // API call for main dashboard stats
+  // Main stats API call
   const fetchStats = async (userId, matchType) => {
     setLoading(true);
     setApiError("");
@@ -69,16 +72,17 @@ export default function UserCricketStatsDashboardV2() {
     }
   };
 
-  // ----------- Fetch Top Performer API -----------
-  // Always includes matchType for filtering, always shows card for all users
+  // Top Performer API call (matches the selectedType)
   const fetchTopPerformer = async (userId, matchType) => {
     setTpLoading(true);
     setTpError("");
     setTopPerformer(null);
     try {
-      // Always pass match_type for accuracy
+      // Always send match_type for accuracy!
       const url = `${API_BASE_URL}/top-performer?user_id=${userId}&period=month&match_type=${matchType}`;
       const res = await axios.get(url);
+      // Debug: Uncomment this to see the API result in your browser console
+      // console.log("TopPerformer API:", res.data.performer, "| matchType:", matchType);
       setTopPerformer(res.data.performer ?? null);
     } catch (err) {
       setTpError("Could not fetch top performer.");
@@ -88,20 +92,20 @@ export default function UserCricketStatsDashboardV2() {
     }
   };
 
-  // Retry handler
+  // Retry handler for stats errors
   const handleRetry = () => setRetryCount(retryCount + 1);
 
-  // Card data for stats
+  // Card data for main stats
   const cardList = [
-    { label: "Matches Played", value: stats?.matches_played ?? 0, color: CARD_COLORS.played},
-    { label: "Matches Won", value: stats?.matches_won ?? 0, color: CARD_COLORS.won},
-    { label: "Matches Lost", value: stats?.matches_lost ?? 0, color: CARD_COLORS.lost},
-    { label: "Matches Draw", value: stats?.matches_draw ?? 0, color: CARD_COLORS.draw},
-    { label: "Total Runs", value: stats?.total_runs ?? 0, color: CARD_COLORS.runs},
-    { label: "Total Wickets", value: stats?.total_wickets ?? 0, color: CARD_COLORS.wickets},
+    { label: "Matches Played", value: stats?.matches_played ?? 0, color: CARD_COLORS.played },
+    { label: "Matches Won", value: stats?.matches_won ?? 0, color: CARD_COLORS.won },
+    { label: "Matches Lost", value: stats?.matches_lost ?? 0, color: CARD_COLORS.lost },
+    { label: "Matches Draw", value: stats?.matches_draw ?? 0, color: CARD_COLORS.draw },
+    { label: "Total Runs", value: stats?.total_runs ?? 0, color: CARD_COLORS.runs },
+    { label: "Total Wickets", value: stats?.total_wickets ?? 0, color: CARD_COLORS.wickets },
   ];
 
-  // UI
+  // Show login warning if user not present
   if (!currentUser || !currentUser.id) {
     return (
       <div className="cricket-dashboard-outer">
@@ -146,19 +150,19 @@ export default function UserCricketStatsDashboardV2() {
         </div>
       </div>
 
-      {/* ---- Top Performer Highlight Section (Always visible for every user) ---- */}
+      {/* ---- Top Performer Highlight Section (always visible for every user & matchType) ---- */}
       <div>
         {tpLoading ? (
-        <div className="dashboard-loading" style={{marginTop: 16}}>Loading MVP...</div>
-      ) : tpError ? (
-        <div className="dashboard-error" style={{marginTop: 16}}>{tpError}</div>
-      ) : (
-        <TopPerformerCard
-          performer={topPerformer}
-          period="month"
-          matchType={selectedType}
-        />
-      )}
+          <div className="dashboard-loading" style={{ marginTop: 16 }}>Loading MVP...</div>
+        ) : tpError ? (
+          <div className="dashboard-error" style={{ marginTop: 16 }}>{tpError}</div>
+        ) : (
+          <TopPerformerCard
+            performer={topPerformer}
+            period="month"
+            matchType={selectedType}
+          />
+        )}
       </div>
 
       {loading ? (
@@ -175,7 +179,7 @@ export default function UserCricketStatsDashboardV2() {
             <div className="dashboard-info">
               No matches found for your teams yet.
               <br />
-              <span style={{fontSize: 12, color: "#aaa"}}>
+              <span style={{ fontSize: 12, color: "#aaa" }}>
                 (Play or add new matches to see your stats here.)
               </span>
             </div>
