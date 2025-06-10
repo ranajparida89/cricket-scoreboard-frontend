@@ -4,6 +4,8 @@ import { useAuth } from "../services/auth";
 import "./UserCricketStatsDashboardV2.css";
 import RecentMatchesPanelV2 from "./RecentMatchesPanelV2";
 import TopPerformerCard from "./TopPerformerCard";
+import WinLossTrendDashboard from "./WinLossTrendDashboard";
+
 
 // Backend API base URL
 const API_BASE_URL = "https://cricket-scoreboard-backend.onrender.com/api";
@@ -150,7 +152,7 @@ export default function UserCricketStatsDashboardV2() {
         </div>
       </div>
 
-      {/* ---- Top Performer Highlight Section (always visible for every user & matchType) ---- */}
+          {/* ---- Top Performer Highlight Section ---- */}
       <div>
         {tpLoading ? (
           <div className="dashboard-loading" style={{ marginTop: 16 }}>Loading MVP...</div>
@@ -165,9 +167,13 @@ export default function UserCricketStatsDashboardV2() {
         )}
       </div>
 
+      {/* ---- Win/Loss Trend Section ---- */}
+      <WinLossTrendDashboard />
+
       {loading ? (
         <div className="dashboard-loading">Loading stats...</div>
       ) : apiError ? (
+
         <div className="dashboard-error">
           {apiError}
           <br />

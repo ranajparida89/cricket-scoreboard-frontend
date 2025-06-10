@@ -37,6 +37,7 @@ import SmartAnalyzer from "./components/SmartAnalyzer"; // AI enable 16th MAY 20
 import FavoritesManager from './components/FavoritesManager';
 import UserCricketStatsDashboard from './components/UserCricketStatsDashboard';
 import UserCricketStatsDashboardV2 from "./components/UserCricketStatsDashboardV2"; // new Dashboard 
+import WinLossTrendDashboard from "./components/WinLossTrendDashboard";
 
 import { useAuth } from './services/auth'; 
 import UserDashboardV2Page from './components/UserDashboardV2Page';
