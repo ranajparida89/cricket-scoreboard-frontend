@@ -7,11 +7,12 @@ const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
 
 // Colors for different results
 const outcomeColors = {
-  Win: "#43a047",    // green
-  Loss: "#e53935",   // red
-  Draw: "#757575",   // gray
-  "No Result": "#bdbdbd"
+  Win: "#4caf50",    // green (lighter)
+  Loss: "#f44336",   // red (brighter)
+  Draw: "#ffeb3b",   // yellow
+  "No Result": "#9e9e9e" // gray (darkened)
 };
+
 
 const WinLossTrendDashboard = () => {
   const [teams, setTeams] = useState([]);
@@ -83,7 +84,7 @@ const WinLossTrendDashboard = () => {
                 label={{ value: "Recent Matches", position: "insideBottom", offset: -4, fill: "#f1f1f1" }}
               />
               <Tooltip
-                contentStyle={{ background: "#222", borderRadius: 10, color: "#fff" }}
+                contentStyle={{ background: "#333", borderRadius: 10, color: "#fff" }}
                 formatter={(value, name, props) =>
                   `${props.payload.result} vs ${props.payload.opponent} (${props.payload.match_type})`
                 }
