@@ -105,12 +105,39 @@ const WinLossTrendDashboard = () => {
                 }}
               />
               <Tooltip
-                contentStyle={{ background: "#333", borderRadius: 10, color: "#fff" }}
-                formatter={(value, name, props) =>
-                  `${props.payload.result} vs ${props.payload.opponent} (${props.payload.match_type})`
-                }
-                cursor={false}
-              />
+  content={({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div
+          style={{
+            background: "#222",
+            borderRadius: 10,
+            color: "#fff",
+            padding: "12px 18px",
+            minWidth: 180,
+            boxShadow: "0 4px 12px #111a"
+          }}
+        >
+          <div style={{ fontWeight: "bold", fontSize: 15, marginBottom: 4 }}>
+            {data.match_name}
+          </div>
+          <div style={{ fontSize: 14 }}>
+            <span style={{ color: outcomeColors[data.result], fontWeight: 700 }}>
+              Result: {data.result}
+            </span>
+            {" vs "}
+            <span style={{ color: "#90caf9" }}>{data.opponent}</span>
+            <span style={{ color: "#fff" }}> ({data.match_type})</span>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  }}
+  cursor={false}
+/>
+
               <Bar dataKey="resultValue">
                 {chartData.map((entry, index) => (
                   <Cell key={index} fill={outcomeColors[entry.result] || "#bdbdbd"} />
