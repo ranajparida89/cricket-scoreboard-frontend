@@ -168,7 +168,7 @@ export default function UserCricketStatsDashboardV2() {
       </div>
 
       {/* ---- Win/Loss Trend Section ---- */}
-      <WinLossTrendDashboard />
+     <WinLossTrendDashboard selectedMatchType={selectedType} />   {/* ---- used for filter match type ODI,T20,Test By Ranaj Parida*/}
 
       {loading ? (
         <div className="dashboard-loading">Loading stats...</div>

@@ -5,43 +5,50 @@ import "./WinLossTrendDashboard.css";
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
 
-// Define colors for each outcome
+// Color codes for different outcomes
 const outcomeColors = {
-  Win: "#4caf50",    // green (lighter)
-  Loss: "#f44336",   // red (brighter)
-  Draw: "#ffeb3b",   // yellow
-  "No Result": "#9e9e9e" // gray (darkened)
+  Win: "#4caf50",    // Green
+  Loss: "#f44336",   // Red
+  Draw: "#ffeb3b",   // Yellow
+  "No Result": "#9e9e9e" // Gray
 };
 
-// The main component
-const WinLossTrendDashboard = () => {
+/**
+ * WinLossTrendDashboard component
+ * @param {string} selectedMatchType - Match type filter: "All" | "ODI" | "T20" | "Test"
+ */
+const WinLossTrendDashboard = ({ selectedMatchType = "All" }) => {
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState("");
   const [trendData, setTrendData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch the list of teams for the dropdown on mount
+  // Fetch the list of teams on component mount
   useEffect(() => {
     axios
       .get(`${API_BASE}/user-teams`)
       .then(res => {
         setTeams(res.data.teams || []);
-        // Auto-select the first team in the list
         if (res.data.teams && res.data.teams.length > 0) setSelectedTeam(res.data.teams[0]);
       });
   }, []);
 
-  // Fetch win/loss trend data when the selected team changes
+  // Fetch win/loss trend when selectedTeam or selectedMatchType changes
   useEffect(() => {
     if (!selectedTeam) return;
     setLoading(true);
     axios
-      .get(`${API_BASE}/win-loss-trend?team_name=${encodeURIComponent(selectedTeam)}`)
+      .get(`${API_BASE}/win-loss-trend`, {
+        params: {
+          team_name: selectedTeam,
+          match_type: selectedMatchType  // Send match_type to backend
+        }
+      })
       .then(res => setTrendData(res.data.data || []))
       .finally(() => setLoading(false));
-  }, [selectedTeam]);
+  }, [selectedTeam, selectedMatchType]);
 
-  // Calculate the current win/loss/draw/no-result streak
+  // Calculate the streak (Win/Loss/Draw/No Result in a row)
   const calcStreak = data => {
     if (!data.length) return { type: '', count: 0 };
     let streakType = data[0].result;
@@ -54,8 +61,7 @@ const WinLossTrendDashboard = () => {
   };
   const streak = calcStreak(trendData);
 
-  // ---- CRUCIAL FIX: Map the trendData to add a numeric resultValue for the bar chart ----
-  // Win: 1, Loss: -1, Draw: 0.5 (or 0), No Result: 0
+  // Format data for the BarChart (adds a resultValue for bar height)
   const chartData = trendData
     .slice(0).reverse()
     .map(entry => ({
@@ -82,14 +88,13 @@ const WinLossTrendDashboard = () => {
         </select>
       </div>
 
-      {/* Loading, No Data, or Chart */}
+      {/* Loading / No Data / Chart */}
       {loading ? (
         <div className="loading-trend">Loading...</div>
       ) : chartData.length === 0 ? (
         <div className="no-data-trend">No matches found for this team.</div>
       ) : (
         <>
-          {/* The Win/Loss Bar Chart */}
           <ResponsiveContainer width="100%" height={110}>
             <BarChart data={chartData}>
               <XAxis
@@ -105,39 +110,38 @@ const WinLossTrendDashboard = () => {
                 }}
               />
               <Tooltip
-  content={({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div
-          style={{
-            background: "#222",
-            borderRadius: 10,
-            color: "#fff",
-            padding: "12px 18px",
-            minWidth: 180,
-            boxShadow: "0 4px 12px #111a"
-          }}
-        >
-          <div style={{ fontWeight: "bold", fontSize: 15, marginBottom: 4 }}>
-            {data.match_name}
-          </div>
-          <div style={{ fontSize: 14 }}>
-            <span style={{ color: outcomeColors[data.result], fontWeight: 700 }}>
-              Result: {data.result}
-            </span>
-            {" vs "}
-            <span style={{ color: "#90caf9" }}>{data.opponent}</span>
-            <span style={{ color: "#fff" }}> ({data.match_type})</span>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  }}
-  cursor={false}
-/>
-
+                content={({ active, payload, label }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload;
+                    return (
+                      <div
+                        style={{
+                          background: "#222",
+                          borderRadius: 10,
+                          color: "#fff",
+                          padding: "12px 18px",
+                          minWidth: 180,
+                          boxShadow: "0 4px 12px #111a"
+                        }}
+                      >
+                        <div style={{ fontWeight: "bold", fontSize: 15, marginBottom: 4 }}>
+                          {data.match_name}
+                        </div>
+                        <div style={{ fontSize: 14 }}>
+                          <span style={{ color: outcomeColors[data.result], fontWeight: 700 }}>
+                            Result: {data.result}
+                          </span>
+                          {" vs "}
+                          <span style={{ color: "#90caf9" }}>{data.opponent}</span>
+                          <span style={{ color: "#fff" }}> ({data.match_type})</span>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+                cursor={false}
+              />
               <Bar dataKey="resultValue">
                 {chartData.map((entry, index) => (
                   <Cell key={index} fill={outcomeColors[entry.result] || "#bdbdbd"} />
@@ -146,7 +150,7 @@ const WinLossTrendDashboard = () => {
             </BarChart>
           </ResponsiveContainer>
 
-          {/* The legend for Win/Loss/Draw/No Result colors */}
+          {/* Legend */}
           <div className="trend-legend">
             <span className="win">■ Win</span>
             <span className="loss">■ Loss</span>
@@ -154,7 +158,7 @@ const WinLossTrendDashboard = () => {
             <span className="no-result">■ No Result</span>
           </div>
 
-          {/* Show the streak indicator if streak is more than 1 */}
+          {/* Streak Indicator */}
           {streak.count > 1 && (
             <div className="streak-indicator">
               <span>
