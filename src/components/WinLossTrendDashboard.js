@@ -43,14 +43,16 @@ useEffect(() => {
     if (!selectedTeam) return;
     setLoading(true);
     axios
-      .get(`${API_BASE}/win-loss-trend`, {
-        params: {
-          team_name: selectedTeam,
-          match_type: selectedMatchType  // Send match_type to backend
-        }
-      })
-      .then(res => setTrendData(res.data.data || []))
-      .finally(() => setLoading(false));
+  .get(`${API_BASE}/win-loss-trend`, {
+    params: {
+      team_name: selectedTeam,
+      match_type: selectedMatchType,
+      user_id: currentUser.id   // <-- CORRECT variable!
+    }
+  })
+  .then(res => setTrendData(res.data.data || []))
+  .finally(() => setLoading(false));
+  
   }, [selectedTeam, selectedMatchType]);
 
   // Calculate the streak (Win/Loss/Draw/No Result in a row)
