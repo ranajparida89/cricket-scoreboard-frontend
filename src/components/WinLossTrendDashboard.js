@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import "./WinLossTrendDashboard.css";
+import { useAuth } from "../services/auth";
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
 
@@ -23,15 +24,19 @@ const WinLossTrendDashboard = ({ selectedMatchType = "All" }) => {
   const [trendData, setTrendData] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const { currentUser } = useAuth(); // <-- Add this line
+
   // Fetch the list of teams on component mount
-  useEffect(() => {
-    axios
-      .get(`${API_BASE}/user-teams`)
-      .then(res => {
-        setTeams(res.data.teams || []);
-        if (res.data.teams && res.data.teams.length > 0) setSelectedTeam(res.data.teams[0]);
-      });
-  }, []);
+ // Fetch the list of teams for this user on mount or when currentUser changes
+useEffect(() => {
+  if (!currentUser || !currentUser.id) return;
+  axios
+    .get(`${API_BASE}/user-teams?user_id=${currentUser.id}`)
+    .then(res => {
+      setTeams(res.data.teams || []);
+      if (res.data.teams && res.data.teams.length > 0) setSelectedTeam(res.data.teams[0]);
+    });
+}, [currentUser]);
 
   // Fetch win/loss trend when selectedTeam or selectedMatchType changes
   useEffect(() => {
