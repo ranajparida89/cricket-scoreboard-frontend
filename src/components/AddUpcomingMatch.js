@@ -21,30 +21,29 @@ const AddUpcomingMatch = () => {
   // GPT ENHANCEMENT: Store tomorrow's date for use as default and min date
   const tomorrowDate = getTomorrowDateString();
 
-  const [formData, setFormData] = useState({
-    match_name: "",
-    match_type: "ODI",
-    team_1: "",
-    team_2: "",
-    match_date: tomorrowDate, // GPT CHANGE: default date is tomorrow
-    match_time: "",
-    location: "",
-    series_name: "",
-    match_status: "Scheduled",
-    day_night: "Day",
-    created_by: "", // GPT UPDATE: will be set dynamically below
-  });
+const [formData, setFormData] = useState({
+  match_name: "",
+  match_type: "ODI",
+  team_1: "",
+  team_2: "",
+  match_date: tomorrowDate,
+  match_time: "",
+  location: "",
+  series_name: "",
+  match_status: "Scheduled",
+  day_night: "Day",
+  user_id: "", // changed
+});
 
-  const [teamPlaying, setTeamPlaying] = useState("");
+// In effect
+useEffect(() => {
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  setFormData((prev) => ({
+    ...prev,
+    user_id: storedUser?.id || "",
+  }));
+}, []);
 
-  // GPT UPDATE: Set created_by from logged-in user at component mount
-  useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    setFormData((prev) => ({
-      ...prev,
-      created_by: storedUser?.email || "", // change to storedUser?.id if you want id instead
-    }));
-  }, []);
 
   useEffect(() => {
     if (formData.team_1 && formData.team_2) {
