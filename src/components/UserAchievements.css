@@ -1,0 +1,154 @@
+.ua-dashboard {
+  max-width: 950px;
+  margin: 30px auto;
+  padding: 28px;
+  background: #161c28;
+  border-radius: 22px;
+  box-shadow: 0 6px 40px #111a, 0 1.5px 10px #2224;
+  color: #fafafa;
+}
+
+.ua-heading {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffeb3b;
+}
+
+.ua-format {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #b5cef3;
+  margin-left: 10px;
+}
+
+.ua-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.ua-card {
+  background: linear-gradient(135deg, #232948 65%, #191c2b 100%);
+  border-radius: 15px;
+  padding: 22px 12px 18px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 3px 16px #2228;
+  transition: transform 0.18s;
+  position: relative;
+}
+.ua-card:hover { transform: translateY(-7px) scale(1.04); }
+
+.badge-icon {
+  font-size: 2.1rem;
+  margin-bottom: 10px;
+}
+
+.badge-icon.runs { color: #ffd600; }
+.badge-icon.centuries { color: #ffa000; }
+.badge-icon.wickets { color: #2979ff; }
+.badge-icon.wins { color: #4caf50; }
+.badge-icon.rating { color: #ef5350; }
+
+.ua-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #90caf9;
+  margin-bottom: 4px;
+  margin-top: 2px;
+}
+
+.ua-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fffde7;
+}
+.ua-stat {
+  font-size: 1rem;
+  color: #ffd54f;
+  margin-top: 2px;
+  font-weight: 500;
+}
+.ua-na {
+  color: #bdbdbd;
+  font-size: 1.05rem;
+  margin-top: 8px;
+}
+
+.ua-loading, .ua-error {
+  padding: 32px;
+  color: #fbc02d;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Ratings */
+.ua-ratings-section {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid #232b39;
+}
+.ua-subheading {
+  font-size: 1.35rem;
+  color: #00c853;
+  margin-bottom: 13px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.ua-ratings-table {
+  display: flex;
+  gap: 28px;
+  justify-content: space-around;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.ua-rating-col {
+  flex: 1 1 220px;
+  background: #242e44;
+  border-radius: 11px;
+  padding: 12px 16px;
+  margin: 6px 0;
+  min-width: 200px;
+  max-width: 260px;
+  box-shadow: 0 1px 8px #1a2a4c44;
+}
+.ua-rating-title {
+  font-weight: 700;
+  font-size: 1.07rem;
+  color: #ffd54f;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.ua-rating-list {
+  list-style: none;
+  margin: 0; padding: 0;
+}
+.ua-rating-list li {
+  padding: 7px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed #31436b;
+  font-size: 1.03rem;
+}
+.ua-player-name { font-weight: 700; color: #fff; }
+.ua-player-team { color: #90caf9; margin: 0 8px; font-size: 0.97rem; }
+.ua-player-rating { color: #ffd54f; font-weight: 600; font-size: 1.05rem; }
+
+@media (max-width: 900px) {
+  .ua-cards { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 650px) {
+  .ua-cards { grid-template-columns: 1fr; }
+  .ua-dashboard { padding: 9px; }
+  .ua-ratings-table { flex-direction: column; gap: 10px; }
+  .ua-rating-col { max-width: 100%; }
+}
