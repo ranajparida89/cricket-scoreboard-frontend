@@ -35,6 +35,7 @@ const [formData, setFormData] = useState({
   user_id: "", // changed
 });
 
+const [teamPlaying, setTeamPlaying] = useState(""); // added file
 // In effect
 useEffect(() => {
   const storedUser = JSON.parse(localStorage.getItem("user"));
