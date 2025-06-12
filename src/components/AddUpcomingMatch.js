@@ -139,19 +139,20 @@ useEffect(() => {
       alert("Match Scheduled Successfully!");
       // Reset form
       // GPT UPDATE: Always set created_by again from localStorage
+     // After success:
       const storedUser = JSON.parse(localStorage.getItem("user"));
       setFormData({
         match_name: "",
         match_type: "ODI",
         team_1: "",
         team_2: "",
-        match_date: tomorrowDate, // GPT CHANGE: reset to tomorrow's date
+        match_date: tomorrowDate, // reset to tomorrow's date
         match_time: "",
         location: "",
         series_name: "",
         match_status: "Scheduled",
         day_night: "Day",
-        created_by: storedUser?.email || "", // or .id if you prefer
+        user_id: storedUser?.id || "",  // <-- FIXED
       });
       setTeamPlaying("");
     } catch (err) {
