@@ -5,7 +5,7 @@ import "./UserCricketStatsDashboardV2.css";
 import RecentMatchesPanelV2 from "./RecentMatchesPanelV2";
 import TopPerformerCard from "./TopPerformerCard";
 import WinLossTrendDashboard from "./WinLossTrendDashboard";
-import UserAchievements from "./components/UserAchievements"; // added for userAchievement
+import UserAchievements from "./UserAchievements"; // added for userAchievement
 
 // Backend API base URL
 const API_BASE_URL = "https://cricket-scoreboard-backend.onrender.com/api";
