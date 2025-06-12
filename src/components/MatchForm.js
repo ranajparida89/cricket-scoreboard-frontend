@@ -83,6 +83,9 @@ const MatchForm = () => {
 
       const match = await createMatch({ match_name: matchName, match_type: matchType });
 
+          const storedUser = JSON.parse(localStorage.getItem("user"));
+      const userId = storedUser?.id;  // This should match your backend expectation
+
       const payload = {
         match_id: match.match_id,
         match_type: matchType,
@@ -93,9 +96,9 @@ const MatchForm = () => {
         wickets1: parseInt(wickets1),
         runs2: parseInt(runs2),
         overs2: parseFloat(overs2),
-        wickets2: parseInt(wickets2)
+        wickets2: parseInt(wickets2),
+        user_id: userId    // <--- ADD THIS LINE
       };
-
       const result = await submitMatchResult(payload);
       setResultMsg(result.message);
 
