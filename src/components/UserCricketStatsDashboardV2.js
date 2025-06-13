@@ -105,6 +105,9 @@ export default function UserCricketStatsDashboardV2() {
     { label: "Matches Draw", value: stats?.matches_draw ?? 0, color: CARD_COLORS.draw },
     { label: "Total Runs", value: stats?.total_runs ?? 0, color: CARD_COLORS.runs },
     { label: "Total Wickets", value: stats?.total_wickets ?? 0, color: CARD_COLORS.wickets },
+    // Per Player Stats:
+    { label: "My Runs", value: stats?.player_total_runs ?? 0, color: "#FFB300" },
+    { label: "My Wickets", value: stats?.player_total_wickets ?? 0, color: "#C62828" },
   ];
 
   // Show login warning if user not present
