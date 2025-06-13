@@ -7,7 +7,7 @@ import { playSound } from "../utils/playSound";
 import Confetti from "react-confetti";
 import useWindowSize from "react-use/lib/useWindowSize";
 import "./MatchForm.css"; // ✅ reuse celebration styles
-import { useAuth } from "../services/auth"; // add to fetch user_id
+import { useAuth } from "../services/auth"; // add to fetch user_id 13th June 2025
 
 
 const normalizeTeamName = (name) => {
@@ -106,6 +106,8 @@ const TestMatchForm = () => {
     return { winner: "Draw", points: 4 };
   };
 
+  const { currentUser } = useAuth(); // for user_id 13th June 2025
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const t1 = normalizeTeamName(team1);
@@ -122,7 +124,7 @@ const TestMatchForm = () => {
       const match = await createMatch({ match_name: matchName, match_type: "Test" });
       const { winner, points } = calculateResult();
 
-      const { currentUser } = useAuth(); // for user_id
+      
       const payload = {
         match_id: match.match_id,
         match_type: "Test",
@@ -143,7 +145,7 @@ const TestMatchForm = () => {
         overs2_2: parseFloat(innings.t2i2.overs),
         wickets2_2: parseInt(innings.t2i2.wickets),
         total_overs_used: totalUsedOvers(),
-        user_id: currentUser.id // added to fetch user_id
+        user_id: currentUser.id // added to fetch user_id 13th June 2025
       };
 
       const result = await submitTestMatchResult(payload);
