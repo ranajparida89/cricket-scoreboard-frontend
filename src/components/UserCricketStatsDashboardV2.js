@@ -60,7 +60,8 @@ export default function UserCricketStatsDashboardV2() {
         setStats(null);
         return;
       }
-      const url = `${API_BASE_URL}/user-dashboard-stats-v2?user_id=${userId}&match_type=${matchType}&team_name=${encodeURIComponent(teamName)}`;
+      //const url = `${API_BASE_URL}/user-dashboard-stats-v2?user_id=${userId}&match_type=${matchType}&team_name=${encodeURIComponent(teamName)}`;
+      const url = `${API_BASE_URL}/user-dashboard-stats-v2?user_id=${userId}&match_type=${matchType}&team_name=${encodeURIComponent(teamName?.toLowerCase().trim())}`;
       const res = await axios.get(url);
       setStats(res.data);
     } catch (err) {
