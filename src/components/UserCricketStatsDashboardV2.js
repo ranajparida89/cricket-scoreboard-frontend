@@ -5,7 +5,7 @@ import "./UserCricketStatsDashboardV2.css";
 import RecentMatchesPanelV2 from "./RecentMatchesPanelV2";
 import TopPerformerCard from "./TopPerformerCard";
 import WinLossTrendDashboard from "./WinLossTrendDashboard";
-import UserAchievements from "./UserAchievements";
+import UserAchievements from "./UserAchievements"; // added for userAchievement
 
 // Backend API base URL
 const API_BASE_URL = "https://cricket-scoreboard-backend.onrender.com/api";
@@ -37,57 +37,26 @@ export default function UserCricketStatsDashboardV2() {
   const [tpLoading, setTpLoading] = useState(false);
   const [tpError, setTpError] = useState("");
 
-  // [14-June-2025] -- Track user's teams and selected team for dashboard API
-  const [userTeams, setUserTeams] = useState([]);
-  const [selectedTeam, setSelectedTeam] = useState("");
-
-  // [14-June-2025] -- Fetch user teams on mount or when user changes
+  // Fetch stats & Top Performer when user or match type changes
   useEffect(() => {
-    if (currentUser?.id) {
-      axios
-        .get(`${API_BASE_URL}/players?user_id=${currentUser.id}`)
-        .then(res => {
-          // Assuming your /players endpoint returns an array of { team_name }
-          const teams = [...new Set(res.data.map(row =>
-            (row.team_name || "").toLowerCase().trim()
-          ))].filter(Boolean);
-          setUserTeams(teams);
-          // If no team selected yet, select the first available team
-          if (!selectedTeam && teams.length) setSelectedTeam(teams[0]);
-        })
-        .catch(() => {
-          setUserTeams([]);
-          setSelectedTeam("");
-        });
-    }
-  }, [currentUser?.id]); // re-run if user logs out/logs in
-
-  // Fetch stats & Top Performer when user, match type, or team changes
-  useEffect(() => {
-    // [14-June-2025] -- Now require selectedTeam for stats API call
-    if (!currentUser || !currentUser.id || !selectedTeam) {
-      setApiError("User or team not selected.");
+    if (!currentUser || !currentUser.id) {
+      setApiError("User not found. Please log in.");
       setStats(null);
       setLoading(false);
       return;
     }
-    fetchStats(currentUser.id, selectedType, selectedTeam);
+    fetchStats(currentUser.id, selectedType);
     fetchTopPerformer(currentUser.id, selectedType);
     // eslint-disable-next-line
-  }, [selectedType, currentUser, selectedTeam, retryCount]);
+  }, [selectedType, currentUser, retryCount]);
 
-  // Main stats API call -- now includes teamName (14-June-2025)
+  // Main stats API call
   const fetchStats = async (userId, matchType, teamName) => {
     setLoading(true);
     setApiError("");
     try {
       if (!MATCH_TYPES.includes(matchType)) {
         setApiError("Invalid match type selected.");
-        setStats(null);
-        return;
-      }
-      if (!teamName) {
-        setApiError("No team selected.");
         setStats(null);
         return;
       }
@@ -115,7 +84,7 @@ export default function UserCricketStatsDashboardV2() {
       const url = `${API_BASE_URL}/top-performer?user_id=${userId}&period=month&match_type=${matchType}`;
       const res = await axios.get(url);
       //Debug: Uncomment this to see the API result in your browser console
-      //console.log("TopPerformer API:", res.data.performer, "| matchType:", matchType);
+       console.log("TopPerformer API:", res.data.performer, "| matchType:", matchType);
       setTopPerformer(res.data.performer ?? null);
     } catch (err) {
       setTpError("Could not fetch top performer.");
@@ -128,7 +97,7 @@ export default function UserCricketStatsDashboardV2() {
   // Retry handler for stats errors
   const handleRetry = () => setRetryCount(retryCount + 1);
 
-  // Card data for main stats (order kept as original)
+  // Card data for main stats
   const cardList = [
     { label: "Matches Played", value: stats?.matches_played ?? 0, color: CARD_COLORS.played },
     { label: "Matches Won", value: stats?.matches_won ?? 0, color: CARD_COLORS.won },
@@ -137,7 +106,7 @@ export default function UserCricketStatsDashboardV2() {
     { label: "Total Runs", value: stats?.total_runs ?? 0, color: CARD_COLORS.runs },
     { label: "Total Wickets", value: stats?.total_wickets ?? 0, color: CARD_COLORS.wickets },
     // Per Player Stats:
-   // { label: "My Runs", value: stats?.player_total_runs ?? 0, color: "#FFB300" },
+    { label: "My Runs", value: stats?.player_total_runs ?? 0, color: "#FFB300" },
     { label: "My Wickets", value: stats?.player_total_wickets ?? 0, color: "#C62828" },
   ];
 
@@ -186,22 +155,7 @@ export default function UserCricketStatsDashboardV2() {
         </div>
       </div>
 
-      {/* [14-June-2025] ---- Team Selection Dropdown ---- */}
-      <div style={{ margin: "16px 0" }}>
-        <label style={{ color: "#fff", fontWeight: "bold" }}>Team:&nbsp;</label>
-        <select
-          value={selectedTeam}
-          onChange={e => setSelectedTeam(e.target.value)}
-          style={{ padding: "6px", borderRadius: 6, fontSize: 16, minWidth: 120 }}
-        >
-          <option value="" disabled>Select team</option>
-          {userTeams.map(team =>
-            <option value={team} key={team}>{team.charAt(0).toUpperCase() + team.slice(1)}</option>
-          )}
-        </select>
-      </div>
-
-      {/* ---- Top Performer Highlight Section ---- */}
+          {/* ---- Top Performer Highlight Section ---- */}
       <div>
         {tpLoading ? (
           <div className="dashboard-loading" style={{ marginTop: 16 }}>Loading MVP...</div>
@@ -217,11 +171,12 @@ export default function UserCricketStatsDashboardV2() {
       </div>
 
       {/* ---- Win/Loss Trend Section ---- */}
-      <WinLossTrendDashboard selectedMatchType={selectedType} />
+     <WinLossTrendDashboard selectedMatchType={selectedType} />   {/* ---- used for filter match type ODI,T20,Test By Ranaj Parida*/}
 
       {loading ? (
         <div className="dashboard-loading">Loading stats...</div>
       ) : apiError ? (
+
         <div className="dashboard-error">
           {apiError}
           <br />
@@ -256,7 +211,7 @@ export default function UserCricketStatsDashboardV2() {
                   </div>
                 ))}
               </div>
-              <UserAchievements userId={currentUser.id} matchType={selectedType} />
+              <UserAchievements userId={currentUser.id} matchType={selectedType} /> 
               <RecentMatchesPanelV2 userId={currentUser?.id} limit={5} />
             </>
           )}
