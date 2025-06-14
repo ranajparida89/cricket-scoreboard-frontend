@@ -76,24 +76,23 @@ export default function UserCricketStatsDashboardV2() {
   };
 
   // Top Performer API call (matches the selectedType)
-  const fetchTopPerformer = async (userId, matchType) => {
-    setTpLoading(true);
-    setTpError("");
+ // Updated: Pass team_name to Top Performer API
+const fetchTopPerformer = async (userId, matchType, teamName) => {
+  setTpLoading(true);
+  setTpError("");
+  setTopPerformer(null);
+  try {
+    // Always send match_type AND team_name!
+    const url = `${API_BASE_URL}/top-performer?user_id=${userId}&period=month&match_type=${matchType}&team_name=${encodeURIComponent(teamName)}`;
+    const res = await axios.get(url);
+    setTopPerformer(res.data.performer ?? null);
+  } catch (err) {
+    setTpError("Could not fetch top performer.");
     setTopPerformer(null);
-    try {
-      // Always send match_type for accuracy!
-      const url = `${API_BASE_URL}/top-performer?user_id=${userId}&period=month&match_type=${matchType}`;
-      const res = await axios.get(url);
-      //Debug: Uncomment this to see the API result in your browser console
-       console.log("TopPerformer API:", res.data.performer, "| matchType:", matchType);
-      setTopPerformer(res.data.performer ?? null);
-    } catch (err) {
-      setTpError("Could not fetch top performer.");
-      setTopPerformer(null);
-    } finally {
-      setTpLoading(false);
-    }
-  };
+  } finally {
+    setTpLoading(false);
+  }
+};
 
   // Retry handler for stats errors
   const handleRetry = () => setRetryCount(retryCount + 1);
