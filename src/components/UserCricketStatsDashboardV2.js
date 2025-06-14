@@ -7,10 +7,8 @@ import TopPerformerCard from "./TopPerformerCard";
 import WinLossTrendDashboard from "./WinLossTrendDashboard";
 import UserAchievements from "./UserAchievements"; // added for userAchievement
 
-// Backend API base URL
 const API_BASE_URL = "https://cricket-scoreboard-backend.onrender.com/api";
 
-// Card colors for the main stats
 const CARD_COLORS = {
   played: "#1976d2",
   won: "#22a98a",
@@ -19,12 +17,15 @@ const CARD_COLORS = {
   runs: "#1ecbe1",
   wickets: "#fbc02d",
 };
-
-// Supported match types (must match those used in backend/player_performance)
 const MATCH_TYPES = ["All", "ODI", "T20", "Test"];
 
 export default function UserCricketStatsDashboardV2() {
   const { currentUser } = useAuth();
+
+  // #SYNCFIX: Team state, list and loading
+  const [teams, setTeams] = useState([]);
+  const [selectedTeam, setSelectedTeam] = useState("");
+  const [teamsLoading, setTeamsLoading] = useState(true);
 
   const [stats, setStats] = useState(null);
   const [selectedType, setSelectedType] = useState("All");
@@ -32,25 +33,39 @@ export default function UserCricketStatsDashboardV2() {
   const [apiError, setApiError] = useState("");
   const [retryCount, setRetryCount] = useState(0);
 
-  // ---- Top Performer states ----
+  // Top Performer states
   const [topPerformer, setTopPerformer] = useState(null);
   const [tpLoading, setTpLoading] = useState(false);
   const [tpError, setTpError] = useState("");
 
-  // Fetch stats & Top Performer when user or match type changes
+  // #SYNCFIX: Fetch user teams on mount
   useEffect(() => {
-    if (!currentUser || !currentUser.id) {
-      setApiError("User not found. Please log in.");
+    if (!currentUser || !currentUser.id) return;
+    setTeamsLoading(true);
+    axios
+      .get(`${API_BASE_URL}/user-teams?user_id=${currentUser.id}`)
+      .then(res => {
+        const t = res.data.teams || [];
+        setTeams(t);
+        setSelectedTeam(t[0] || ""); // default select first team
+      })
+      .finally(() => setTeamsLoading(false));
+  }, [currentUser]);
+
+  // #SYNCFIX: Fetch stats & Top Performer when team changes
+  useEffect(() => {
+    if (!currentUser || !currentUser.id || !selectedTeam) {
+      setApiError("User/team not found. Please log in and select a team.");
       setStats(null);
       setLoading(false);
       return;
     }
-    fetchStats(currentUser.id, selectedType);
-    fetchTopPerformer(currentUser.id, selectedType);
+    fetchStats(currentUser.id, selectedType, selectedTeam);
+    fetchTopPerformer(currentUser.id, selectedType, selectedTeam);
     // eslint-disable-next-line
-  }, [selectedType, currentUser, retryCount]);
+  }, [selectedType, currentUser, selectedTeam, retryCount]);
 
-  // Main stats API call
+  // Main stats API call (now uses team)
   const fetchStats = async (userId, matchType, teamName) => {
     setLoading(true);
     setApiError("");
@@ -60,7 +75,6 @@ export default function UserCricketStatsDashboardV2() {
         setStats(null);
         return;
       }
-      //const url = `${API_BASE_URL}/user-dashboard-stats-v2?user_id=${userId}&match_type=${matchType}&team_name=${encodeURIComponent(teamName)}`;
       const url = `${API_BASE_URL}/user-dashboard-stats-v2?user_id=${userId}&match_type=${matchType}&team_name=${encodeURIComponent(teamName?.toLowerCase().trim())}`;
       const res = await axios.get(url);
       setStats(res.data);
@@ -75,29 +89,25 @@ export default function UserCricketStatsDashboardV2() {
     }
   };
 
-  // Top Performer API call (matches the selectedType)
- // Updated: Pass team_name to Top Performer API
-const fetchTopPerformer = async (userId, matchType, teamName) => {
-  setTpLoading(true);
-  setTpError("");
-  setTopPerformer(null);
-  try {
-    // Always send match_type AND team_name!
-    const url = `${API_BASE_URL}/top-performer?user_id=${userId}&period=month&match_type=${matchType}&team_name=${encodeURIComponent(teamName)}`;
-    const res = await axios.get(url);
-    setTopPerformer(res.data.performer ?? null);
-  } catch (err) {
-    setTpError("Could not fetch top performer.");
+  // Top Performer API call (now uses team)
+  const fetchTopPerformer = async (userId, matchType, teamName) => {
+    setTpLoading(true);
+    setTpError("");
     setTopPerformer(null);
-  } finally {
-    setTpLoading(false);
-  }
-};
+    try {
+      const url = `${API_BASE_URL}/top-performer?user_id=${userId}&period=month&match_type=${matchType}&team_name=${encodeURIComponent(teamName)}`;
+      const res = await axios.get(url);
+      setTopPerformer(res.data.performer ?? null);
+    } catch (err) {
+      setTpError("Could not fetch top performer.");
+      setTopPerformer(null);
+    } finally {
+      setTpLoading(false);
+    }
+  };
 
-  // Retry handler for stats errors
   const handleRetry = () => setRetryCount(retryCount + 1);
 
-  // Card data for main stats
   const cardList = [
     { label: "Matches Played", value: stats?.matches_played ?? 0, color: CARD_COLORS.played },
     { label: "Matches Won", value: stats?.matches_won ?? 0, color: CARD_COLORS.won },
@@ -105,12 +115,8 @@ const fetchTopPerformer = async (userId, matchType, teamName) => {
     { label: "Matches Draw", value: stats?.matches_draw ?? 0, color: CARD_COLORS.draw },
     { label: "Total Runs", value: stats?.total_runs ?? 0, color: CARD_COLORS.runs },
     { label: "Total Wickets", value: stats?.total_wickets ?? 0, color: CARD_COLORS.wickets },
-    // Per Player Stats:
-   // { label: "My Runs", value: stats?.player_total_runs ?? 0, color: "#FFB300" },
-   // { label: "My Wickets", value: stats?.player_total_wickets ?? 0, color: "#C62828" },
   ];
 
-  // Show login warning if user not present
   if (!currentUser || !currentUser.id) {
     return (
       <div className="cricket-dashboard-outer">
@@ -134,6 +140,23 @@ const fetchTopPerformer = async (userId, matchType, teamName) => {
               {currentUser.name || currentUser.first_name || currentUser.email || "Player"}
             </span>
           </div>
+          {/* #SYNCFIX: Team selector in main dashboard */}
+          <div className="team-selector" style={{ margin: "12px 0" }}>
+            {teamsLoading ? (
+              <span style={{ color: "#eee" }}>Loading teams...</span>
+            ) : (
+              <select
+                value={selectedTeam}
+                onChange={e => setSelectedTeam(e.target.value)}
+                style={{ fontWeight: "bold", borderRadius: 5, padding: "4px 10px" }}
+                aria-label="Select team"
+              >
+                {teams.map(team => (
+                  <option key={team} value={team}>{team.charAt(0).toUpperCase() + team.slice(1)}</option>
+                ))}
+              </select>
+            )}
+          </div>
           <div className="match-type-pills">
             {MATCH_TYPES.map((type) => (
               <button
@@ -155,7 +178,7 @@ const fetchTopPerformer = async (userId, matchType, teamName) => {
         </div>
       </div>
 
-          {/* ---- Top Performer Highlight Section ---- */}
+      {/* Top Performer Section */}
       <div>
         {tpLoading ? (
           <div className="dashboard-loading" style={{ marginTop: 16 }}>Loading MVP...</div>
@@ -170,13 +193,12 @@ const fetchTopPerformer = async (userId, matchType, teamName) => {
         )}
       </div>
 
-      {/* ---- Win/Loss Trend Section ---- */}
-     <WinLossTrendDashboard selectedMatchType={selectedType} />   {/* ---- used for filter match type ODI,T20,Test By Ranaj Parida*/}
+      {/* #SYNCFIX: Pass selectedTeam to WinLossTrendDashboard */}
+      <WinLossTrendDashboard selectedMatchType={selectedType} teamName={selectedTeam} />
 
       {loading ? (
         <div className="dashboard-loading">Loading stats...</div>
       ) : apiError ? (
-
         <div className="dashboard-error">
           {apiError}
           <br />
@@ -205,7 +227,6 @@ const fetchTopPerformer = async (userId, matchType, teamName) => {
                     key={card.label}
                     aria-label={card.label + ": " + card.value}
                   >
-                    <div className="stat-icon">{card.icon}</div>
                     <div className="stat-label">{card.label}</div>
                     <div className="stat-value">{card.value}</div>
                   </div>

@@ -6,56 +6,39 @@ import { useAuth } from "../services/auth";
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
 
-// Color codes for different outcomes
 const outcomeColors = {
-  Win: "#4caf50",    // Green
-  Loss: "#f44336",   // Red
-  Draw: "#ffeb3b",   // Yellow
-  "No Result": "#9e9e9e" // Gray
+  Win: "#4caf50",
+  Loss: "#f44336",
+  Draw: "#ffeb3b",
+  "No Result": "#9e9e9e"
 };
 
 /**
- * WinLossTrendDashboard component
- * @param {string} selectedMatchType - Match type filter: "All" | "ODI" | "T20" | "Test"
+ * #SYNCFIX: Now takes teamName prop (selected in main dashboard)
  */
-const WinLossTrendDashboard = ({ selectedMatchType = "All" }) => {
-  const [teams, setTeams] = useState([]);
-  const [selectedTeam, setSelectedTeam] = useState("");
+const WinLossTrendDashboard = ({ selectedMatchType = "All", teamName }) => {
   const [trendData, setTrendData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const { currentUser } = useAuth(); // <-- Add this line
+  const { currentUser } = useAuth();
 
-  // Fetch the list of teams on component mount
- // Fetch the list of teams for this user on mount or when currentUser changes
-useEffect(() => {
-  if (!currentUser || !currentUser.id) return;
-  axios
-    .get(`${API_BASE}/user-teams?user_id=${currentUser.id}`)
-    .then(res => {
-      setTeams(res.data.teams || []);
-      if (res.data.teams && res.data.teams.length > 0) setSelectedTeam(res.data.teams[0]);
-    });
-}, [currentUser]);
-
-  // Fetch win/loss trend when selectedTeam or selectedMatchType changes
+  // #SYNCFIX: Fetch win/loss trend for the teamName prop (no dropdown here)
   useEffect(() => {
-    if (!selectedTeam) return;
+    if (!currentUser || !currentUser.id || !teamName) return;
     setLoading(true);
     axios
-  .get(`${API_BASE}/win-loss-trend`, {
-    params: {
-      team_name: selectedTeam,
-      match_type: selectedMatchType,
-      user_id: currentUser.id   // <-- CORRECT variable!
-    }
-  })
-  .then(res => setTrendData(res.data.data || []))
-  .finally(() => setLoading(false));
+      .get(`${API_BASE}/win-loss-trend`, {
+        params: {
+          team_name: teamName,
+          match_type: selectedMatchType,
+          user_id: currentUser.id
+        }
+      })
+      .then(res => setTrendData(res.data.data || []))
+      .finally(() => setLoading(false));
+  }, [teamName, selectedMatchType, currentUser.id]);
 
-  }, [selectedTeam, selectedMatchType,currentUser.id]);
-
-  // Calculate the streak (Win/Loss/Draw/No Result in a row)
+  // ... (same as before, unchanged)
   const calcStreak = data => {
     if (!data.length) return { type: '', count: 0 };
     let streakType = data[0].result;
@@ -68,7 +51,6 @@ useEffect(() => {
   };
   const streak = calcStreak(trendData);
 
-  // Format data for the BarChart (adds a resultValue for bar height)
   const chartData = trendData
     .slice(0).reverse()
     .map(entry => ({
@@ -81,21 +63,13 @@ useEffect(() => {
 
   return (
     <div className="win-loss-trend-dashboard">
-      {/* Header and Team Selector */}
+      {/* #SYNCFIX: Header only, NO team dropdown here */}
       <div className="trend-header">
         <h2>Win/Loss Trend (Last 10 Matches)</h2>
-        <select
-          className="team-select"
-          value={selectedTeam}
-          onChange={e => setSelectedTeam(e.target.value)}
-        >
-          {teams.map(team => (
-            <option key={team} value={team}>{team}</option>
-          ))}
-        </select>
+        <span style={{ fontWeight: 700, fontSize: 16, color: "#8fd" }}>
+          {teamName && `Team: ${teamName.charAt(0).toUpperCase() + teamName.slice(1)}`}
+        </span>
       </div>
-
-      {/* Loading / No Data / Chart */}
       {loading ? (
         <div className="loading-trend">Loading...</div>
       ) : chartData.length === 0 ? (
@@ -156,16 +130,12 @@ useEffect(() => {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-
-          {/* Legend */}
           <div className="trend-legend">
             <span className="win">■ Win</span>
             <span className="loss">■ Loss</span>
             <span className="draw">■ Draw</span>
             <span className="no-result">■ No Result</span>
           </div>
-
-          {/* Streak Indicator */}
           {streak.count > 1 && (
             <div className="streak-indicator">
               <span>
