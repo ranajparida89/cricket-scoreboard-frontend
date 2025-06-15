@@ -5,7 +5,7 @@ import "./UserCricketStatsDashboardV2.css";
 import RecentMatchesPanelV2 from "./RecentMatchesPanelV2";
 import TopPerformerCard from "./TopPerformerCard";
 import WinLossTrendDashboard from "./WinLossTrendDashboard";
-import UserAchievements from "./UserAchievements"; // added for userAchievement
+import UserAchievements from "./UserAchievements";
 
 const API_BASE_URL = "https://cricket-scoreboard-backend.onrender.com/api";
 
@@ -27,7 +27,9 @@ export default function UserCricketStatsDashboardV2() {
   const [selectedTeam, setSelectedTeam] = useState("");
   const [teamsLoading, setTeamsLoading] = useState(true);
 
+  // Old stats (not used for cards anymore)
   const [stats, setStats] = useState(null);
+
   const [selectedType, setSelectedType] = useState("All");
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
@@ -37,6 +39,10 @@ export default function UserCricketStatsDashboardV2() {
   const [topPerformer, setTopPerformer] = useState(null);
   const [tpLoading, setTpLoading] = useState(false);
   const [tpError, setTpError] = useState("");
+
+  // NEW: Card stats state (dynamically loaded)
+  const [cardStats, setCardStats] = useState(null);
+  const [cardLoading, setCardLoading] = useState(false);
 
   // #SYNCFIX: Fetch user teams on mount
   useEffect(() => {
@@ -65,7 +71,7 @@ export default function UserCricketStatsDashboardV2() {
     // eslint-disable-next-line
   }, [selectedType, currentUser, selectedTeam, retryCount]);
 
-  // Main stats API call (now uses team)
+  // Main stats API call (not used for cards anymore, but for other UI logic)
   const fetchStats = async (userId, matchType, teamName) => {
     setLoading(true);
     setApiError("");
@@ -108,14 +114,22 @@ export default function UserCricketStatsDashboardV2() {
 
   const handleRetry = () => setRetryCount(retryCount + 1);
 
-  const cardList = [
-    { label: "Matches Played", value: stats?.matches_played ?? 0, color: CARD_COLORS.played },
-    { label: "Matches Won", value: stats?.matches_won ?? 0, color: CARD_COLORS.won },
-    { label: "Matches Lost", value: stats?.matches_lost ?? 0, color: CARD_COLORS.lost },
-    { label: "Matches Draw", value: stats?.matches_draw ?? 0, color: CARD_COLORS.draw },
-    { label: "Total Runs", value: stats?.total_runs ?? 0, color: CARD_COLORS.runs },
-    { label: "Total Wickets", value: stats?.total_wickets ?? 0, color: CARD_COLORS.wickets },
-  ];
+  // ===== NEW: Fetch card stats dynamically from /team-match-stats =====
+  useEffect(() => {
+    if (!currentUser || !selectedTeam) return;
+    setCardLoading(true);
+    setCardStats(null);
+    axios.get(`${API_BASE_URL}/team-match-stats`, {
+      params: {
+        user_id: currentUser.id,
+        team_name: selectedTeam,
+        match_type: selectedType
+      }
+    })
+      .then(res => setCardStats(res.data))
+      .catch(() => setCardStats(null))
+      .finally(() => setCardLoading(false));
+  }, [currentUser, selectedTeam, selectedType]);
 
   if (!currentUser || !currentUser.id) {
     return (
@@ -206,36 +220,43 @@ export default function UserCricketStatsDashboardV2() {
         </div>
       ) : (
         <div>
-          {cardList.every(card => card.value === 0) ? (
-            <div className="dashboard-info">
-              No matches found for your teams yet.
-              <br />
-              <span style={{ fontSize: 12, color: "#aaa" }}>
-                (Play or add new matches to see your stats here.)
-              </span>
-            </div>
-          ) : (
-            <>
-              <div className="stats-cards-grid">
-                {cardList.map((card, idx) => (
-                  <div
-                    className="stat-card"
-                    style={{
-                      background: card.color,
-                      animationDelay: `${0.09 * idx}s`
-                    }}
-                    key={card.label}
-                    aria-label={card.label + ": " + card.value}
-                  >
-                    <div className="stat-label">{card.label}</div>
-                    <div className="stat-value">{card.value}</div>
-                  </div>
-                ))}
-              </div>
-              <UserAchievements userId={currentUser.id} matchType={selectedType} /> 
-              <RecentMatchesPanelV2 userId={currentUser?.id} limit={5} />
-            </>
-          )}
+          {/* ====== NEW: DYNAMIC CARD SECTION ====== */}
+          <div className="stats-cards-grid">
+            {cardLoading ? (
+              <div className="dashboard-loading">Loading cards...</div>
+            ) : cardStats ? (
+              <>
+                <div className="stat-card" style={{ background: CARD_COLORS.played }}>
+                  <div className="stat-label">Matches Played</div>
+                  <div className="stat-value">{cardStats.matches_played}</div>
+                </div>
+                <div className="stat-card" style={{ background: CARD_COLORS.won }}>
+                  <div className="stat-label">Matches Won</div>
+                  <div className="stat-value">{cardStats.matches_won}</div>
+                </div>
+                <div className="stat-card" style={{ background: CARD_COLORS.lost }}>
+                  <div className="stat-label">Matches Lost</div>
+                  <div className="stat-value">{cardStats.matches_lost}</div>
+                </div>
+                <div className="stat-card" style={{ background: CARD_COLORS.draw }}>
+                  <div className="stat-label">Matches Draw</div>
+                  <div className="stat-value">{cardStats.matches_draw}</div>
+                </div>
+                <div className="stat-card" style={{ background: CARD_COLORS.runs }}>
+                  <div className="stat-label">Total Runs</div>
+                  <div className="stat-value">{cardStats.total_runs}</div>
+                </div>
+                <div className="stat-card" style={{ background: CARD_COLORS.wickets }}>
+                  <div className="stat-label">Total Wickets</div>
+                  <div className="stat-value">{cardStats.total_wickets}</div>
+                </div>
+              </>
+            ) : (
+              <div>No card stats found.</div>
+            )}
+          </div>
+          <UserAchievements userId={currentUser.id} matchType={selectedType} />
+          <RecentMatchesPanelV2 userId={currentUser?.id} limit={5} />
         </div>
       )}
     </div>
