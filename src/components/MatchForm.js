@@ -1,5 +1,6 @@
 // ✅ src/components/MatchForm.js
 // ✅ [Ranaj Parida | 2025-04-19] Celebration Enhanced: 4-sec Confetti, Popup, and Sound
+// ✅ [ChatGPT | 2024-06-18] Pass user_id when creating a match
 
 import React, { useState } from "react";
 import { createMatch, submitMatchResult } from "../services/api";
@@ -7,8 +8,6 @@ import { playSound } from "../utils/playSound"; // ✅ Sound utility
 import Confetti from "react-confetti"; // ✅ Confetti effect
 import useWindowSize from "react-use/lib/useWindowSize"; // ✅ Full screen sizing
 import "./MatchForm.css"; // ✅ Celebration banner CSS
-
-
 
 const TEAM_MAP = {
   IND: "India", AUS: "Australia", ENG: "England", PAK: "Pakistan", SA: "South Africa",
@@ -81,11 +80,18 @@ const MatchForm = () => {
     try {
       setIsSubmitting(true);
 
-      const match = await createMatch({ match_name: matchName, match_type: matchType });
+      // ✅  2024-06-18] Get user_id from localStorage ONCE and use everywhere needed
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      const userId = storedUser?.id;
 
-          const storedUser = JSON.parse(localStorage.getItem("user"));
-      const userId = storedUser?.id;  // This should match your backend expectation
+      // ✅ 2024-06-18] Pass user_id when creating a match
+      const match = await createMatch({
+        match_name: matchName,
+        match_type: matchType,
+        user_id: userId   // <-- This is the new change
+      });
 
+      // ✅2024-06-18] Pass user_id when submitting match result
       const payload = {
         match_id: match.match_id,
         match_type: matchType,
@@ -97,7 +103,7 @@ const MatchForm = () => {
         runs2: parseInt(runs2),
         overs2: parseFloat(overs2),
         wickets2: parseInt(wickets2),
-        user_id: userId    // <--- ADD THIS LINE
+        user_id: userId   // <-- This is the new change
       };
       const result = await submitMatchResult(payload);
       setResultMsg(result.message);
