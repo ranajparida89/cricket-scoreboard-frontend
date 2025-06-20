@@ -84,11 +84,22 @@ const groupByMatchType = (data) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {grouped[type].map((team, idx) => (
+                  {grouped[type]
+                    .slice() // Create a shallow copy to avoid mutating grouped[type]
+                    .sort((a, b) => {
+                      // Sort by rating DESC, then points DESC
+                      const aRating = parseFloat(a.rating) || 0;
+                      const bRating = parseFloat(b.rating) || 0;
+                      if (bRating !== aRating) return bRating - aRating;
+                      const aPoints = parseInt(a.points) || 0;
+                      const bPoints = parseInt(b.points) || 0;
+                      return bPoints - aPoints;
+                    })
+                    .map((team, idx) => (
                       <tr key={idx} className={getRowClass(idx, type)}>
                         <td>{getMedalEmoji(idx)} {idx + 1}</td>
                         <td>
-                          {flagMap[team.team_name?.toLowerCase()] || "🏳️"} {" "}
+                          {flagMap[team.team_name?.toLowerCase()] || "🏳️"}{" "}
                           {team.team_name}
                         </td>
                         <td>{team.matches}</td>
@@ -96,7 +107,7 @@ const groupByMatchType = (data) => {
                         <td>{team.rating}</td>
                       </tr>
                     ))}
-                  </tbody>
+                </tbody>
                 </table>
               </div>
             </div>
