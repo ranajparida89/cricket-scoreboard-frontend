@@ -6,7 +6,7 @@ import React, { useEffect, useState } from "react";
 import { getTeamChartData } from "../services/api"; // ✅ Uses team-rankings only for charts
 import './TeamCharts.css'; // <-- for css style
 import { Pie } from "react-chartjs-2"; // For Piechart
-
+import { ArcElement } from "chart.js";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -14,6 +14,7 @@ import {
   BarElement,
   LineElement,
   PointElement,
+  ArcElement,      // <--- NEW for Pie
   Tooltip,
   Legend,
   Title,
@@ -22,12 +23,14 @@ import ChartDataLabels from "chartjs-plugin-datalabels";
 import { Bar, Line } from "react-chartjs-2";
 
 // ✅ Register ChartJS modules globally
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
   LineElement,
   PointElement,
+  ArcElement, // <--- ADD THIS!
   Tooltip,
   Legend,
   Title,
