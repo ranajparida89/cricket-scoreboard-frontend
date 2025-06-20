@@ -6,7 +6,6 @@ import React, { useEffect, useState } from "react";
 import { getTeamChartData } from "../services/api"; // ✅ Uses team-rankings only for charts
 import './TeamCharts.css'; // <-- for css style
 import { Pie } from "react-chartjs-2"; // For Piechart
-import { ArcElement } from "chart.js";
 import {
   Chart as ChartJS,
   CategoryScale,
