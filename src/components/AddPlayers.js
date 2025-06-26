@@ -1,30 +1,19 @@
 // ✅ AddPlayers.js
 // ✅ [Ranaj Parida - 2025-04-23 | Full Player Add Form with all conditional logic]
 // ✅ [Updated: Now sends user_id - 2025-05-29]
+// ✅ [2025-06-26 | FIXED: React Hooks error by moving hooks before admin check]
 
 import React, { useState } from "react";
 import axios from "axios";
 import { API_URL } from "../services/api";
-
-// ⬇️ ADDED: Import your auth context/hook (update if you use something else)
-import { useAuth } from "../services/auth"; 
+import { useAuth } from "../services/auth"; // Auth hook import
 
 import "./AddPlayers.css"; // optional, if you want to style
 
-const AddPlayers = ({ isAdmin }) => {   // added for admin
-  // ⬇️ ADDED: Get current logged-in user (update if you use a different hook or method)
-  const { currentUser } = useAuth(); 
-
-    // Block non-admin users (THIS is the added logic)
-  if (!isAdmin) {
-    return (
-      <div className="container mt-5">
-        <div className="alert alert-danger" style={{ fontSize: 18, marginTop: 32 }}>
-          ⚠️ Only admins are allowed to add players. If you think this is a mistake, contact your administrator.
-        </div>
-      </div>
-    );
-  }
+// isAdmin prop: for admin-only access
+const AddPlayers = ({ isAdmin }) => {
+  // 🔴 FIXED: ALL hooks go at the very top before any if/return
+  const { currentUser } = useAuth();
 
   const [form, setForm] = useState({
     lineupType: "ODI",
@@ -39,6 +28,19 @@ const AddPlayers = ({ isAdmin }) => {   // added for admin
 
   const [message, setMessage] = useState("");
 
+  // 🟡 Moved BELOW hooks: block non-admins early
+  if (!isAdmin) {
+    return (
+      <div className="container mt-5">
+        <div className="alert alert-danger" style={{ fontSize: 18, marginTop: 32 }}>
+          ⚠️ Only admins are allowed to add players. If you think this is a mistake, contact your administrator.
+        </div>
+      </div>
+    );
+  }
+
+  // ======== The rest of your code is unchanged ========
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
@@ -50,13 +52,11 @@ const AddPlayers = ({ isAdmin }) => {   // added for admin
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ✅ Validation
     if (!form.playerName.trim() || !form.teamName.trim() || !form.skill) {
       setMessage("All required fields must be filled.");
       return;
     }
 
-    // ✅ ADDED: Check if user is logged in
     if (!currentUser || !currentUser.id) {
       setMessage("User not logged in. Please sign in to add players.");
       return;
@@ -72,14 +72,13 @@ const AddPlayers = ({ isAdmin }) => {   // added for admin
         bowling_type: form.skill === "Bowler" ? form.bowlingType : null,
         is_captain: form.isCaptain,
         is_vice_captain: form.isViceCaptain,
-        user_id: currentUser.id, // ✅ ADDED: send user_id to backend added "form." which was missing RCA
+        user_id: currentUser.id,
       });
 
       setMessage(
         `✅ Player '${res.data.player.player_name}' added to ${res.data.player.lineup_type} squad.`
       );
 
-      // Reset form
       setForm({
         lineupType: "ODI",
         playerName: "",
