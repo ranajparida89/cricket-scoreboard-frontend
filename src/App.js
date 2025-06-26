@@ -38,6 +38,7 @@ import FavoritesManager from './components/FavoritesManager';
 import UserCricketStatsDashboard from './components/UserCricketStatsDashboard';
 import UserCricketStatsDashboardV2 from "./components/UserCricketStatsDashboardV2"; // new Dashboard 
 import WinLossTrendDashboard from "./components/WinLossTrendDashboard";
+import AdminPromptModal from "./components/AdminPromptModal"; // admin portal
 
 import { useAuth } from './services/auth'; 
 import UserDashboardV2Page from './components/UserDashboardV2Page';
@@ -74,6 +75,8 @@ function App() {
   const [showAuthModal, setShowAuthModal] = useState(false); // ✅ [Added for Auth Modal Toggle]
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [theme, setTheme] = useState('dark');
+  const [checkedAdmin, setCheckedAdmin] = useState(false);  // <--- Added
+  const [isAdmin, setIsAdmin] = useState(false);            // <--- Added
 
   const { currentUser } = useAuth();
 
@@ -93,6 +96,18 @@ function App() {
     window.addEventListener("toggleSidebar", toggleHandler);
     return () => window.removeEventListener("toggleSidebar", toggleHandler);
   }, []);
+// added for admin 26-June-2026
+    if (!checkedAdmin) {
+    return (
+      <AdminPromptModal
+        onAdminResponse={(admin) => {
+          setIsAdmin(admin);
+          setCheckedAdmin(true);
+          // Optionally: localStorage.setItem("isAdmin", admin);
+        }}
+      />
+    );
+  }
   
   return (
     <div className={theme}>
@@ -240,12 +255,19 @@ function App() {
     </ProtectedRoute>
   }
 />
-<Route
+
+<Route // added for admin only use 26 june 2026 Ranaj Parida
   path="/add-player"
   element={
     <ProtectedRoute>
       <PlayerRouteWrapper>
-        <AddPlayers />
+        {isAdmin ? (
+          <AddPlayers isAdmin={isAdmin} />    // <-- Pass isAdmin here!
+        ) : (
+          <div style={{ padding: 24, color: "red", textAlign: "center" }}>
+            You are not authorized to access this page.
+          </div>
+        )}
       </PlayerRouteWrapper>
     </ProtectedRoute>
   }

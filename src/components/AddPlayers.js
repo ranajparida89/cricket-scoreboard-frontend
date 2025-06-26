@@ -11,9 +11,20 @@ import { useAuth } from "../services/auth";
 
 import "./AddPlayers.css"; // optional, if you want to style
 
-const AddPlayers = () => {
+const AddPlayers = ({ isAdmin }) => {   // added for admin
   // ⬇️ ADDED: Get current logged-in user (update if you use a different hook or method)
   const { currentUser } = useAuth(); 
+
+    // Block non-admin users (THIS is the added logic)
+  if (!isAdmin) {
+    return (
+      <div className="container mt-5">
+        <div className="alert alert-danger" style={{ fontSize: 18, marginTop: 32 }}>
+          ⚠️ Only admins are allowed to add players. If you think this is a mistake, contact your administrator.
+        </div>
+      </div>
+    );
+  }
 
   const [form, setForm] = useState({
     lineupType: "ODI",
