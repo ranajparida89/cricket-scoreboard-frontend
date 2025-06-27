@@ -293,16 +293,17 @@ function App() {
   }
 />
 
-<Route
+<Route  // Restricted for non-admin user
   path="/squad-lineup"
   element={
     <ProtectedRoute>
       <PageWrapper>
-        <SquadLineup />
+        <SquadLineup isAdmin={isAdmin} />
       </PageWrapper>
     </ProtectedRoute>
   }
 />
+
 <Route path="/qualification-scenario" element={<QualificationScenario />} />
 <Route path="/add-upcoming-match" element={<AddUpcomingMatch />} />
 <Route path="/upcoming-matches" element={<UpcomingMatches />} />

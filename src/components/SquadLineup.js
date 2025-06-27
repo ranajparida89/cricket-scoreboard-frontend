@@ -11,7 +11,7 @@ import {
 import axios from "axios";
 import "./SquadLineup.css"; // Optional custom styles if needed
 
-const SquadLineup = () => {
+const SquadLineup = ({ isAdmin }) => {
   const [players, setPlayers] = useState([]);
   const [lineup, setLineup] = useState([]);
   const [selectedFormat, setSelectedFormat] = useState("ODI");
@@ -193,22 +193,24 @@ const handleDelete = async (playerId) => {
         {player.player_name} {renderSkillIcons(player)}
         {player.is_captain && " (C)"} {player.is_vice_captain && " (VC)"}
       </div>
-      <div>
-        <button
-          className="btn btn-sm btn-outline-warning me-2"
-          onClick={() => handleEdit(player)}
-          title="Edit Player"
-        >
-          ✏️
-        </button>
-        <button
-          className="btn btn-sm btn-outline-danger"
-          onClick={() => handleDelete(player.id)}
-          title="Delete Player"
-        >
-          🗑️
-        </button>
-      </div>
+     <div>
+  <button
+    className="btn btn-sm btn-outline-warning me-2"
+    onClick={() => handleEdit(player)}
+    title="Edit Player"
+  >
+    ✏️
+  </button>
+  {isAdmin && (  // restricted for Non Admin user
+    <button
+      className="btn btn-sm btn-outline-danger"
+      onClick={() => handleDelete(player.id)}
+      title="Delete Player"
+    >
+      🗑️
+    </button>
+  )}
+</div>
     </li>
   ))}
 </ul>
