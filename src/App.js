@@ -304,8 +304,22 @@ function App() {
   }
 />
 
-<Route path="/qualification-scenario" element={<QualificationScenario />} />
-<Route path="/add-upcoming-match" element={<AddUpcomingMatch />} />
+<Route path="/qualification-scenario" element={<QualificationScenario />} /> 
+<Route
+  path="/add-upcoming-match"  // Restricted for Non Admin user.
+  element={
+    <ProtectedRoute>
+      {isAdmin ? (
+        <AddUpcomingMatch isAdmin={isAdmin} />
+      ) : (
+        <div style={{ padding: 24, color: "red", textAlign: "center" }}>
+          You are not authorized to access this page.
+        </div>
+      )}
+    </ProtectedRoute>
+  }
+/>
+
 <Route path="/upcoming-matches" element={<UpcomingMatches />} />
 <Route path="/player-rankings" element={<PlayerRankings />} />
 <Route path="/match-story" element={<MatchStory />} />  
