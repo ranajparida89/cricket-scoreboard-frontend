@@ -7,7 +7,7 @@ import { FaSave } from "react-icons/fa";
 import { addUpcomingMatch } from "../services/api"; // we'll create this next!
 import './AddUpcomingMatch.css'; // for dark screen page Ranaj Parida
 
-const AddUpcomingMatch = ({ isAdmin }) => {
+const AddUpcomingMatch = () => {
   // GPT ENHANCEMENT: Function to get tomorrow's date in yyyy-mm-dd format
   const getTomorrowDateString = () => {
     const today = new Date();
@@ -18,15 +18,7 @@ const AddUpcomingMatch = ({ isAdmin }) => {
     return `${yyyy}-${mm}-${dd}`;
   };
 
-  if (!isAdmin) { // restricted for Non Admin users 27-june-2025 Ranaj Parida
-  return (
-    <div className="container mt-5">
-      <div className="alert alert-danger" style={{ fontSize: 18, marginTop: 32 }}>
-        ⚠️ Only admins are allowed to schedule upcoming matches.
-      </div>
-    </div>
-  );
-}
+
 
   // Store tomorrow's date for use as default and min date
   const tomorrowDate = getTomorrowDateString();
