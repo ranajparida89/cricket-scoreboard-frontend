@@ -278,12 +278,20 @@ function App() {
   </ProtectedRoute>
 } />
 
-<Route path="/player-performance" element={
-  <ProtectedRoute>
-    <PlayerPerformance />
-  </ProtectedRoute>
-} />
-
+<Route  // added to restrict for Non-Admin users 27 June 2025 Ranaj Parida
+  path="/player-performance"
+  element={
+    <ProtectedRoute>
+      {isAdmin ? (
+        <PlayerPerformance />
+      ) : (
+        <div style={{ padding: 24, color: "red", textAlign: "center" }}>
+          You are not authorized to access this page.
+        </div>
+      )}
+    </ProtectedRoute>
+  }
+/>
 
 <Route
   path="/squad-lineup"
