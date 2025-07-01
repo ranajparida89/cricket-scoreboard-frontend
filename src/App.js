@@ -42,6 +42,8 @@ import AdminPromptModal from "./components/AdminPromptModal"; // admin portal
 
 import { useAuth } from './services/auth'; 
 import UserDashboardV2Page from './components/UserDashboardV2Page';
+import ManageAdmins from './components/Admin/ManageAdmins'; // FOR MANAGE ADMIN 01-JULY-2025 RANAJ PARIDA
+
 
 
 
@@ -351,7 +353,7 @@ function App() {
 
 <Route path="/dashboard-v2" element={<UserDashboardV2Page />} />
 
-
+<Route path="/admin/manage" element={<ManageAdmins />} /> 
 
       </Routes>
     </Router>
