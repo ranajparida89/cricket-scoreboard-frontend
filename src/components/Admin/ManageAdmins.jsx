@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 
 // Glass style helpers (Tailwind + some inline)
-const glassCard = "bg-white bg-opacity-20 backdrop-blur-lg border border-white/40 shadow-xl rounded-2xl";
+const glassCard = "bg-[#192031]/80 backdrop-blur-lg border border-white/20 shadow-2xl rounded-2xl";
 
 // ---- Modal Components (Add/Edit, Delete) ----
 function AdminModal({ open, mode, initialData, onSave, onClose, loading }) {
@@ -48,7 +48,7 @@ function AdminModal({ open, mode, initialData, onSave, onClose, loading }) {
     return "";
   }
 
-  async function handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault();
     const err = validate();
     if (err) return setError(err);
@@ -58,14 +58,14 @@ function AdminModal({ open, mode, initialData, onSave, onClose, loading }) {
 
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-40 bg-black bg-opacity-30 flex items-center justify-center">
-      <div className={`p-8 min-w-[340px] max-w-[90vw] w-full ${glassCard} relative`}>
-        <h2 className="text-2xl font-bold text-teal-300 mb-4">
+    <div className="fixed inset-0 z-40 bg-black bg-opacity-40 flex items-center justify-center transition-all">
+      <div className={`p-7 min-w-[320px] max-w-[90vw] w-full ${glassCard} relative shadow-2xl`}>
+        <h2 className="text-2xl font-extrabold text-teal-300 mb-4 text-center tracking-wide">
           {mode === "add" ? "Add New Admin" : "Edit Admin"}
         </h2>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <input
-            className="rounded-lg px-4 py-2 bg-white bg-opacity-50 text-black"
+            className="rounded-lg px-4 py-2 bg-white/70 text-black shadow"
             placeholder="Username"
             name="username"
             autoComplete="off"
@@ -75,7 +75,7 @@ function AdminModal({ open, mode, initialData, onSave, onClose, loading }) {
             required
           />
           <input
-            className="rounded-lg px-4 py-2 bg-white bg-opacity-50 text-black"
+            className="rounded-lg px-4 py-2 bg-white/70 text-black shadow"
             placeholder="Email"
             name="email"
             autoComplete="off"
@@ -84,7 +84,7 @@ function AdminModal({ open, mode, initialData, onSave, onClose, loading }) {
             required
           />
           <input
-            className="rounded-lg px-4 py-2 bg-white bg-opacity-50 text-black"
+            className="rounded-lg px-4 py-2 bg-white/70 text-black shadow"
             placeholder={mode === "add" ? "Password" : "Change Password (leave blank to keep old)"}
             name="password"
             autoComplete="new-password"
@@ -94,7 +94,7 @@ function AdminModal({ open, mode, initialData, onSave, onClose, loading }) {
             minLength={mode === "add" ? 6 : 0}
           />
           <input
-            className="rounded-lg px-4 py-2 bg-white bg-opacity-50 text-black"
+            className="rounded-lg px-4 py-2 bg-white/70 text-black shadow"
             placeholder="Full Name"
             name="full_name"
             autoComplete="off"
@@ -102,7 +102,7 @@ function AdminModal({ open, mode, initialData, onSave, onClose, loading }) {
             onChange={handleChange}
             required
           />
-          <label className="flex items-center gap-2 mt-2 select-none">
+          <label className="flex items-center gap-2 mt-2 select-none font-semibold">
             <input
               type="checkbox"
               name="is_super_admin"
@@ -111,7 +111,7 @@ function AdminModal({ open, mode, initialData, onSave, onClose, loading }) {
             />
             Super Admin
           </label>
-          {error && <div className="text-yellow-400 font-medium">{error}</div>}
+          {error && <div className="text-yellow-400 font-medium mt-2">{error}</div>}
           <div className="flex gap-3 mt-3">
             <button
               type="submit"
@@ -139,12 +139,12 @@ function DeleteModal({ open, admin, onDelete, onClose, loading }) {
   if (!open || !admin) return null;
   return (
     <div className="fixed inset-0 z-40 bg-black bg-opacity-40 flex items-center justify-center">
-      <div className={`${glassCard} p-8 min-w-[320px] max-w-[90vw]`}>
-        <h3 className="text-xl font-bold text-rose-400 mb-3">Delete Admin?</h3>
-        <div className="mb-5 text-white">
+      <div className={`${glassCard} p-7 min-w-[320px] max-w-[90vw]`}>
+        <h3 className="text-xl font-extrabold text-rose-400 mb-3 text-center">Delete Admin?</h3>
+        <div className="mb-5 text-white text-center">
           Are you sure you want to delete admin <b>{admin.username}</b>?
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 justify-center">
           <button
             className="px-6 py-2 rounded-xl font-bold bg-gradient-to-r from-rose-500 to-rose-700 text-white"
             onClick={onDelete}
@@ -240,8 +240,8 @@ export default function ManageAdmins() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-start bg-gradient-to-br from-[#0f172a] to-[#151a2e] pt-16">
-      <div className={`${glassCard} p-8 mt-6 w-[95vw] max-w-4xl`}>
-        <h1 className="text-3xl font-bold text-cyan-200 mb-6 tracking-wide drop-shadow">
+      <div className={`${glassCard} p-8 mt-6 w-[97vw] max-w-4xl`}>
+        <h1 className="text-3xl font-extrabold text-cyan-200 mb-7 tracking-wide text-center drop-shadow">
           Manage Admins
         </h1>
         <button
@@ -251,14 +251,14 @@ export default function ManageAdmins() {
           + Add Admin
         </button>
         {loading ? (
-          <div className="text-white text-lg">Loading admins...</div>
+          <div className="text-white text-lg text-center py-10">Loading admins...</div>
         ) : err ? (
-          <div className="text-red-400">{err}</div>
+          <div className="text-red-400 text-center py-8">{err}</div>
         ) : (
           <div className="overflow-x-auto rounded-xl">
-            <table className="min-w-full bg-transparent text-white shadow-lg">
+            <table className="min-w-full bg-transparent text-white shadow-xl">
               <thead>
-                <tr className="bg-white/30 backdrop-blur-lg text-cyan-100">
+                <tr className="bg-white/10 backdrop-blur-lg text-cyan-100">
                   <th className="py-2 px-4 text-left">Username</th>
                   <th className="py-2 px-4 text-left">Email</th>
                   <th className="py-2 px-4 text-left">Full Name</th>
@@ -345,12 +345,6 @@ export default function ManageAdmins() {
           loading={actionLoading}
         />
       </div>
-      {/* Custom frosted-glass blur for background */}
-      <style>{`
-        body {
-          background: linear-gradient(135deg, #192031 0%, #282a36 100%);
-        }
-      `}</style>
     </div>
   );
 }
