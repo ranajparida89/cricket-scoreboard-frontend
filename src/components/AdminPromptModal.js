@@ -8,7 +8,11 @@ export default function AdminPromptModal({ onAdminResponse }) {
   const [error, setError] = useState("");
 
   // Step 1: If "No", just close modal as normal user
-  const handleNo = () => onAdminResponse(false);
+  const handleNo = () => {
+    // 01-JULY-2025 Ranaj Parida: Always clear admin state if declined
+    localStorage.setItem("isAdmin", "false");
+    onAdminResponse(false);
+  };
 
   // Step 2: If "Yes", show admin login fields
   const handleYes = () => setShowCredentials(true);
@@ -26,11 +30,17 @@ export default function AdminPromptModal({ onAdminResponse }) {
       });
       const data = await res.json();
       if (res.ok && data.isAdmin) {
+        // 01-JULY-2025 Ranaj Parida: Set admin flag on successful login
+        localStorage.setItem("isAdmin", "true");
         onAdminResponse(true);
       } else {
+        // 01-JULY-2025 Ranaj Parida: Clear admin flag if login fails
+        localStorage.setItem("isAdmin", "false");
         setError(data.error || "Invalid credentials.");
       }
     } catch (e) {
+      // 01-JULY-2025 Ranaj Parida: Also clear admin flag on server error
+      localStorage.setItem("isAdmin", "false");
       setError("Server error. Try again.");
     }
     setSubmitting(false);
