@@ -1,8 +1,8 @@
-// src/components/Admin/ManageAdmins.jsx 01-JULY-2025 RANAJ PARIDA
-import React, { useEffect, useState } from "react";
+// src/components/Admin/ManageAdmins.jsx
+// 01-JULY-2025 RANAJ PARIDA - Fully converted to CSS classNames only
 
-// Glass style helpers (Tailwind + some inline)
-const glassCard = "bg-[#192031]/80 backdrop-blur-lg border border-white/20 shadow-2xl rounded-2xl";
+import React, { useEffect, useState } from "react";
+import "./ManageAdmins.css";
 
 // ---- Modal Components (Add/Edit, Delete) ----
 function AdminModal({ open, mode, initialData, onSave, onClose, loading }) {
@@ -58,14 +58,14 @@ function AdminModal({ open, mode, initialData, onSave, onClose, loading }) {
 
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-40 bg-black bg-opacity-40 flex items-center justify-center transition-all">
-      <div className={`p-7 min-w-[320px] max-w-[90vw] w-full ${glassCard} relative shadow-2xl`}>
-        <h2 className="text-2xl font-extrabold text-teal-300 mb-4 text-center tracking-wide">
+    <div className="manage-modal-bg">
+      <div className="manage-modal-card">
+        <h2 className="manage-modal-title">
           {mode === "add" ? "Add New Admin" : "Edit Admin"}
         </h2>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <form onSubmit={handleSubmit} className="manage-modal-form">
           <input
-            className="rounded-lg px-4 py-2 bg-white/70 text-black shadow"
+            className="manage-modal-input"
             placeholder="Username"
             name="username"
             autoComplete="off"
@@ -75,7 +75,7 @@ function AdminModal({ open, mode, initialData, onSave, onClose, loading }) {
             required
           />
           <input
-            className="rounded-lg px-4 py-2 bg-white/70 text-black shadow"
+            className="manage-modal-input"
             placeholder="Email"
             name="email"
             autoComplete="off"
@@ -84,7 +84,7 @@ function AdminModal({ open, mode, initialData, onSave, onClose, loading }) {
             required
           />
           <input
-            className="rounded-lg px-4 py-2 bg-white/70 text-black shadow"
+            className="manage-modal-input"
             placeholder={mode === "add" ? "Password" : "Change Password (leave blank to keep old)"}
             name="password"
             autoComplete="new-password"
@@ -94,7 +94,7 @@ function AdminModal({ open, mode, initialData, onSave, onClose, loading }) {
             minLength={mode === "add" ? 6 : 0}
           />
           <input
-            className="rounded-lg px-4 py-2 bg-white/70 text-black shadow"
+            className="manage-modal-input"
             placeholder="Full Name"
             name="full_name"
             autoComplete="off"
@@ -102,7 +102,7 @@ function AdminModal({ open, mode, initialData, onSave, onClose, loading }) {
             onChange={handleChange}
             required
           />
-          <label className="flex items-center gap-2 mt-2 select-none font-semibold">
+          <label className="manage-modal-checklabel">
             <input
               type="checkbox"
               name="is_super_admin"
@@ -111,22 +111,22 @@ function AdminModal({ open, mode, initialData, onSave, onClose, loading }) {
             />
             Super Admin
           </label>
-          {error && <div className="text-yellow-400 font-medium mt-2">{error}</div>}
-          <div className="flex gap-3 mt-3">
-                    <button
-            type="submit"
-            className="px-6 py-2 rounded-xl font-bold bg-gradient-to-r from-teal-400 to-cyan-400 text-white shadow-md hover:from-teal-300 hover:to-cyan-500 hover:scale-105 transition"
-            disabled={loading}
+          {error && <div className="manage-modal-error">{error}</div>}
+          <div className="manage-modal-actions">
+            <button
+              type="submit"
+              className="manage-btn save-btn"
+              disabled={loading}
             >
-            {loading ? "Saving..." : "Save"}
+              {loading ? "Saving..." : "Save"}
             </button>
-                    <button
-            type="button"
-            className="px-5 py-2 rounded-xl bg-gray-800 text-gray-200 shadow hover:bg-gray-700 hover:text-white transition"
-            onClick={onClose}
-            disabled={loading}
+            <button
+              type="button"
+              className="manage-btn cancel-btn"
+              onClick={onClose}
+              disabled={loading}
             >
-            Cancel
+              Cancel
             </button>
           </div>
         </form>
@@ -138,22 +138,22 @@ function AdminModal({ open, mode, initialData, onSave, onClose, loading }) {
 function DeleteModal({ open, admin, onDelete, onClose, loading }) {
   if (!open || !admin) return null;
   return (
-    <div className="fixed inset-0 z-40 bg-black bg-opacity-40 flex items-center justify-center">
-      <div className={`${glassCard} p-7 min-w-[320px] max-w-[90vw]`}>
-        <h3 className="text-xl font-extrabold text-rose-400 mb-3 text-center">Delete Admin?</h3>
-        <div className="mb-5 text-white text-center">
+    <div className="manage-modal-bg">
+      <div className="manage-modal-card">
+        <h3 className="manage-modal-title delete">Delete Admin?</h3>
+        <div className="manage-modal-confirm">
           Are you sure you want to delete admin <b>{admin.username}</b>?
         </div>
-        <div className="flex gap-3 justify-center">
-                        <button
-                className="px-6 py-2 rounded-xl font-bold bg-gradient-to-r from-rose-500 to-red-700 text-white shadow hover:from-rose-400 hover:to-red-800 hover:scale-105 transition"
-                onClick={onDelete}
-                disabled={loading}
-                >
-                {loading ? "Deleting..." : "Delete"}
-                </button>
+        <div className="manage-modal-actions">
           <button
-            className="px-5 py-2 rounded-xl bg-gray-700 text-white"
+            className="manage-btn delete-btn"
+            onClick={onDelete}
+            disabled={loading}
+          >
+            {loading ? "Deleting..." : "Delete"}
+          </button>
+          <button
+            className="manage-btn cancel-btn"
             onClick={onClose}
             disabled={loading}
           >
@@ -239,77 +239,61 @@ export default function ManageAdmins() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start bg-gradient-to-br from-[#0f172a] to-[#151a2e] pt-16">
-      <div className={`${glassCard} p-8 mt-6 w-[97vw] max-w-4xl`}>
-        <h1 className="text-3xl font-extrabold text-cyan-200 mb-7 tracking-wide text-center drop-shadow">
+    <div className="manage-admins-bg">
+      <div className="manage-admins-glass">
+        <h1 className="manage-admins-title">
           Manage Admins
         </h1>
-                    <button
-            className="mb-5 px-6 py-2 rounded-xl font-bold bg-gradient-to-r from-emerald-500 to-cyan-500 text-white shadow-lg hover:from-emerald-400 hover:to-cyan-600 transition"
-            onClick={() => setModal({ open: true, mode: "add", data: null })}
-            >
-            + Add Admin
-            </button> 
+        <button
+          className="manage-btn add-btn"
+          onClick={() => setModal({ open: true, mode: "add", data: null })}
+        >
+          + Add Admin
+        </button>
 
         {loading ? (
-          <div className="text-white text-lg text-center py-10">Loading admins...</div>
+          <div className="manage-loading">Loading admins...</div>
         ) : err ? (
-          <div className="text-red-400 text-center py-8">{err}</div>
+          <div className="manage-error">{err}</div>
         ) : (
-          <div className="overflow-x-auto rounded-xl">
-            <table className="min-w-full bg-transparent text-white shadow-xl">
+          <div className="manage-table-scroll">
+            <table className="manage-admins-table">
               <thead>
-                <tr className="bg-white/10 backdrop-blur-lg text-cyan-100">
-                  <th className="py-2 px-4 text-left">Username</th>
-                  <th className="py-2 px-4 text-left">Email</th>
-                  <th className="py-2 px-4 text-left">Full Name</th>
-                  <th className="py-2 px-4 text-center">Super Admin</th>
-                  <th className="py-2 px-4 text-center">Created</th>
-                  <th className="py-2 px-4 text-center">Actions</th>
+                <tr>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Full Name</th>
+                  <th>Super Admin</th>
+                  <th>Created</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {admins.map(a => (
-                  <tr
-                    key={a.id}
-                    className="hover:bg-white/10 transition"
-                  >
-                    <td className="py-2 px-4">{a.username}</td>
-                    <td className="py-2 px-4">{a.email}</td>
-                    <td className="py-2 px-4">{a.full_name}</td>
-                    <td className="py-2 px-4 text-center">
+                  <tr key={a.id}>
+                    <td>{a.username}</td>
+                    <td>{a.email}</td>
+                    <td>{a.full_name}</td>
+                    <td style={{ textAlign: "center" }}>
                       {a.is_super_admin ? (
-                        <span className="inline-block px-2 py-1 rounded-xl bg-teal-400/20 text-teal-200 font-bold">
-                          Yes
-                        </span>
+                        <span className="manage-super-yes">Yes</span>
                       ) : (
-                        <span className="inline-block px-2 py-1 rounded-xl bg-gray-500/30 text-gray-200">No</span>
+                        <span className="manage-super-no">No</span>
                       )}
                     </td>
-                    <td className="py-2 px-4 text-center">
+                    <td style={{ textAlign: "center" }}>
                       {new Date(a.created_at).toLocaleDateString()}
                     </td>
-                    <td className="py-2 px-4 text-center">
+                    <td style={{ textAlign: "center" }}>
                       <button
-                        className="px-4 py-1 rounded-xl font-semibold bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-md hover:from-cyan-400 hover:to-blue-700 hover:scale-105 transition"
-                        onClick={() =>
-                          setModal({
-                            open: true,
-                            mode: "edit",
-                            data: a,
-                          })
-                        }
+                        className="manage-btn edit-btn"
+                        onClick={() => setModal({ open: true, mode: "edit", data: a })}
                       >
                         Edit
                       </button>
                       <button
-                        className="px-4 py-1 rounded-xl font-semibold bg-gradient-to-br from-rose-500 to-red-700 text-white shadow-md hover:from-rose-400 hover:to-red-800 hover:scale-105 transition"
-                        onClick={() =>
-                          setDeleteModal({
-                            open: true,
-                            admin: a,
-                          })
-                        }
+                        className="manage-btn delete-btn"
+                        onClick={() => setDeleteModal({ open: true, admin: a })}
                         disabled={admins.length < 2}
                         title={admins.length < 2 ? "At least one admin must exist." : ""}
                       >
@@ -320,7 +304,7 @@ export default function ManageAdmins() {
                 ))}
                 {admins.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="text-center py-6 text-white/80">
+                    <td colSpan={6} style={{ textAlign: "center", padding: "2em", color: "#bbccdd" }}>
                       No admins found.
                     </td>
                   </tr>
