@@ -1,5 +1,5 @@
 // src/components/Admin/ManageAdmins.jsx
-// 01-JULY-2025 RANAJ PARIDA - Fully converted to CSS classNames only
+// 01-JULY-2025 RANAJ PARIDA - With refreshAdmins() helper and all latest logic
 
 import React, { useEffect, useState } from "react";
 import "./ManageAdmins.css";
@@ -174,8 +174,8 @@ export default function ManageAdmins() {
   const [deleteModal, setDeleteModal] = useState({ open: false, admin: null });
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Fetch admins
-  useEffect(() => {
+  // --- Helper: Always safely refresh admin list ---
+  function refreshAdmins() {
     setLoading(true);
     fetch("https://cricket-scoreboard-backend.onrender.com/api/admin/list")
       .then(r => r.json())
@@ -187,6 +187,12 @@ export default function ManageAdmins() {
         setErr("Failed to load admins.");
         setLoading(false);
       });
+  }
+
+  // Fetch admins (once)
+  useEffect(() => {
+    refreshAdmins();
+    // eslint-disable-next-line
   }, []);
 
   // Add/Edit admin
@@ -206,13 +212,9 @@ export default function ManageAdmins() {
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || "Failed to save admin");
-      // Refetch admins
       setModal({ open: false, mode: "add", data: null });
       setActionLoading(false);
-      setLoading(true);
-      fetch("https://cricket-scoreboard-backend.onrender.com/api/admin/list")
-        .then(r => r.json())
-        .then(data => setAdmins(data.admins || []));
+      refreshAdmins();
     } catch (e) {
       setErr(e.message || "Failed to save admin");
       setActionLoading(false);
@@ -229,9 +231,9 @@ export default function ManageAdmins() {
       );
       const data = await res.json();
       if (!data.success) throw new Error(data.error || "Failed to delete admin");
-      setAdmins(admins.filter(a => a.id !== deleteModal.admin.id));
       setDeleteModal({ open: false, admin: null });
       setActionLoading(false);
+      refreshAdmins();
     } catch (e) {
       setErr(e.message || "Failed to delete admin");
       setActionLoading(false);
