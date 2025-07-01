@@ -113,20 +113,20 @@ function AdminModal({ open, mode, initialData, onSave, onClose, loading }) {
           </label>
           {error && <div className="text-yellow-400 font-medium mt-2">{error}</div>}
           <div className="flex gap-3 mt-3">
-            <button
-              type="submit"
-              className="px-6 py-2 rounded-xl font-bold bg-gradient-to-r from-teal-400 to-cyan-400 text-white shadow"
-              disabled={loading}
+                    <button
+            type="submit"
+            className="px-6 py-2 rounded-xl font-bold bg-gradient-to-r from-teal-400 to-cyan-400 text-white shadow-md hover:from-teal-300 hover:to-cyan-500 hover:scale-105 transition"
+            disabled={loading}
             >
-              {loading ? "Saving..." : "Save"}
+            {loading ? "Saving..." : "Save"}
             </button>
-            <button
-              type="button"
-              className="px-5 py-2 rounded-xl bg-gray-700 text-white"
-              onClick={onClose}
-              disabled={loading}
+                    <button
+            type="button"
+            className="px-5 py-2 rounded-xl bg-gray-800 text-gray-200 shadow hover:bg-gray-700 hover:text-white transition"
+            onClick={onClose}
+            disabled={loading}
             >
-              Cancel
+            Cancel
             </button>
           </div>
         </form>
@@ -145,13 +145,13 @@ function DeleteModal({ open, admin, onDelete, onClose, loading }) {
           Are you sure you want to delete admin <b>{admin.username}</b>?
         </div>
         <div className="flex gap-3 justify-center">
-          <button
-            className="px-6 py-2 rounded-xl font-bold bg-gradient-to-r from-rose-500 to-rose-700 text-white"
-            onClick={onDelete}
-            disabled={loading}
-          >
-            {loading ? "Deleting..." : "Delete"}
-          </button>
+                        <button
+                className="px-6 py-2 rounded-xl font-bold bg-gradient-to-r from-rose-500 to-red-700 text-white shadow hover:from-rose-400 hover:to-red-800 hover:scale-105 transition"
+                onClick={onDelete}
+                disabled={loading}
+                >
+                {loading ? "Deleting..." : "Delete"}
+                </button>
           <button
             className="px-5 py-2 rounded-xl bg-gray-700 text-white"
             onClick={onClose}
@@ -244,12 +244,13 @@ export default function ManageAdmins() {
         <h1 className="text-3xl font-extrabold text-cyan-200 mb-7 tracking-wide text-center drop-shadow">
           Manage Admins
         </h1>
-        <button
-          className="mb-5 px-6 py-2 rounded-xl font-bold bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow"
-          onClick={() => setModal({ open: true, mode: "add", data: null })}
-        >
-          + Add Admin
-        </button>
+                    <button
+            className="mb-5 px-6 py-2 rounded-xl font-bold bg-gradient-to-r from-emerald-500 to-cyan-500 text-white shadow-lg hover:from-emerald-400 hover:to-cyan-600 transition"
+            onClick={() => setModal({ open: true, mode: "add", data: null })}
+            >
+            + Add Admin
+            </button> 
+
         {loading ? (
           <div className="text-white text-lg text-center py-10">Loading admins...</div>
         ) : err ? (
@@ -290,7 +291,7 @@ export default function ManageAdmins() {
                     </td>
                     <td className="py-2 px-4 text-center">
                       <button
-                        className="px-4 py-1 rounded-lg bg-cyan-600 text-white mr-2"
+                        className="px-4 py-1 rounded-xl font-semibold bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-md hover:from-cyan-400 hover:to-blue-700 hover:scale-105 transition"
                         onClick={() =>
                           setModal({
                             open: true,
@@ -302,7 +303,7 @@ export default function ManageAdmins() {
                         Edit
                       </button>
                       <button
-                        className="px-4 py-1 rounded-lg bg-rose-600 text-white"
+                        className="px-4 py-1 rounded-xl font-semibold bg-gradient-to-br from-rose-500 to-red-700 text-white shadow-md hover:from-rose-400 hover:to-red-800 hover:scale-105 transition"
                         onClick={() =>
                           setDeleteModal({
                             open: true,
