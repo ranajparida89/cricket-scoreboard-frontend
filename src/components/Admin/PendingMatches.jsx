@@ -1,5 +1,5 @@
 // src/components/Admin/PendingMatches.jsx
-// 07-JULY-2025: Admin UI for Approving/Denying Pending Matches (Glass, Advanced CSS)
+// 10-JULY-2025: Unified Pending Match UI (ODI/T20 + Test) for new backend
 
 import React, { useEffect, useState } from "react";
 
@@ -11,7 +11,7 @@ const glass = {
   border: "1.7px solid #00ffd828",
   boxShadow: "0 10px 28px #18e8e42a",
   padding: "2.2rem 1.5rem 2.5rem 1.5rem",
-  maxWidth: "1050px",
+  maxWidth: "1150px",
   width: "97vw",
   margin: "2.7rem auto",
 };
@@ -20,7 +20,7 @@ export default function PendingMatches() {
   const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-  const [action, setAction] = useState({}); // {id, type, loading, err, ok}
+  const [action, setAction] = useState({});
   const [refresh, setRefresh] = useState(false);
 
   // --- Auth: JWT from localStorage
@@ -45,9 +45,10 @@ export default function PendingMatches() {
   }, [refresh]);
 
   // --- Approve/Deny ---
-  async function handleAction(id, type) {
+  async function handleAction(table, id, type) {
     setAction({ id, type, loading: true, err: "", ok: false });
-    let url = `https://cricket-scoreboard-backend.onrender.com/api/match/${type}/${id}`;
+    // -- PATCH endpoint expects table (match_history or test_match_results)
+    let url = `https://cricket-scoreboard-backend.onrender.com/api/match/${type}/${table}/${id}`;
     let method = "PATCH";
     let opts = {
       method,
@@ -91,38 +92,47 @@ export default function PendingMatches() {
             <table className="pending-table">
               <thead>
                 <tr>
-                  <th>Date</th>
                   <th>Type</th>
+                  <th>Date</th>
+                  <th>Match Name</th>
                   <th>Team 1</th>
                   <th>Team 2</th>
-                  <th>Venue</th>
                   <th>Scores</th>
                   <th>Result</th>
                   <th>Reason</th>
+                  <th>Format</th>
                   <th style={{ textAlign: "center" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {pending.map(match => (
                   <tr key={match.id} style={action.id === match.id && action.loading ? { opacity: 0.64 } : {}}>
-                    <td>{new Date(match.date || match.match_date).toLocaleDateString()}</td>
                     <td>{match.match_type}</td>
+                    <td>{new Date(match.match_date || match.date).toLocaleDateString()}</td>
+                    <td>{match.match_name || "-"}</td>
                     <td>{match.team1}</td>
                     <td>{match.team2}</td>
-                    <td>{match.venue}</td>
                     <td>
-                      <b>{match.runs1}-{match.wickets1}</b> / <b>{match.runs2}-{match.wickets2}</b>
+                      <b>{match.runs1}-{match.wickets1}</b>
+                      {" / "}
+                      <b>{match.runs2}-{match.wickets2}</b>
                     </td>
-                    <td style={{ maxWidth: 150 }}>
-                      <span className="pending-result">{match.result}</span>
+                    <td style={{ maxWidth: 170 }}>
+                      <span className="pending-result">{match.winner}</span>
                     </td>
                     <td>
-                      <span className="pending-reason">{match.review_reason || "--"}</span>
+                      <span className="pending-reason">{match.auto_flag_reason || "--"}</span>
+                    </td>
+                    <td>
+                      <span className="pending-reason">{match.match_format || (match.match_type?.toLowerCase() === "test" ? "Test" : "ODI/T20")}</span>
                     </td>
                     <td style={{ textAlign: "center" }}>
                       <button
                         className="pending-btn approve"
-                        onClick={() => handleAction(match.id, "approve")}
+                        onClick={() => handleAction(
+                          match.match_format === "Test" ? "test_match_results" : "match_history",
+                          match.id, "approve"
+                        )}
                         disabled={action.loading}
                       >
                         {action.id === match.id && action.type === "approve" && action.loading
@@ -130,7 +140,10 @@ export default function PendingMatches() {
                       </button>
                       <button
                         className="pending-btn deny"
-                        onClick={() => handleAction(match.id, "deny")}
+                        onClick={() => handleAction(
+                          match.match_format === "Test" ? "test_match_results" : "match_history",
+                          match.id, "deny"
+                        )}
                         disabled={action.loading}
                         style={{ marginLeft: 10 }}
                       >
