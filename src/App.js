@@ -39,6 +39,7 @@ import UserCricketStatsDashboard from './components/UserCricketStatsDashboard';
 import UserCricketStatsDashboardV2 from "./components/UserCricketStatsDashboardV2"; // new Dashboard 
 import WinLossTrendDashboard from "./components/WinLossTrendDashboard";
 import AdminPromptModal from "./components/AdminPromptModal"; // admin portal
+import PendingMatches from "./components/Admin/PendingMatches"; //auto approval 2-July-2025
 
 import { useAuth } from './services/auth'; 
 import UserDashboardV2Page from './components/UserDashboardV2Page';
@@ -354,6 +355,8 @@ function App() {
 <Route path="/dashboard-v2" element={<UserDashboardV2Page />} />
 
 <Route path="/admin/manage" element={<ManageAdmins />} /> 
+
+<Route path="/admin/pending" element={<PendingMatches />} />
 
       </Routes>
     </Router>

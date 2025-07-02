@@ -49,12 +49,19 @@ const SidebarMenu = () => {
         <li><Link to="/smart-analyzer" onClick={handleClose}><FaBrain className="me-2" /> Smart Analyzer</Link></li>
         {/* 01-JULY-2025 Ranaj Parida: Only show for Admins */}
         {isAdmin && (
-          <li>
-            <Link to="/admin/manage" onClick={handleClose}>
-              <FaUsers className="me-2" /> Manage Admins
-            </Link>
-          </li>
-        )}
+  <>
+    <li>
+      <Link to="/admin/manage" onClick={handleClose}>
+        <FaUsers className="me-2" /> Manage Admins
+      </Link>
+    </li>
+    <li>
+      <Link to="/admin/pending" onClick={handleClose}>
+        <FaRegNewspaper className="me-2" /> Pending Matches
+      </Link>
+    </li>
+  </>
+)}
       </ul>
     </div>
   );
