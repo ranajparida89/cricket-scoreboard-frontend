@@ -1,8 +1,14 @@
 // src/components/Admin/ManageAdmins.jsx
-// 01-JULY-2025 RANAJ PARIDA - With refreshAdmins() helper and all latest logic
+// 05-JULY-2025 RANAJ PARIDA -- JWT support, UI modernization
 
 import React, { useEffect, useState } from "react";
 import "./ManageAdmins.css";
+
+// --- 🔒 05-JULY-2025 JWT CHANGE: Utility to get auth header ---
+function authHeader() {
+  const token = localStorage.getItem("admin_jwt");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 // ---- Modal Components (Add/Edit, Delete) ----
 function AdminModal({ open, mode, initialData, onSave, onClose, loading }) {
@@ -174,22 +180,29 @@ export default function ManageAdmins() {
   const [deleteModal, setDeleteModal] = useState({ open: false, admin: null });
   const [actionLoading, setActionLoading] = useState(false);
 
-  // --- Helper: Always safely refresh admin list ---
+  // --- 🔒 05-JULY-2025 JWT CHANGE: Always safely refresh admin list with JWT header ---
   function refreshAdmins() {
     setLoading(true);
-    fetch("https://cricket-scoreboard-backend.onrender.com/api/admin/list")
-      .then(r => r.json())
+    fetch("https://cricket-scoreboard-backend.onrender.com/api/admin/list", {
+      headers: {
+        ...authHeader(),
+        "Content-Type": "application/json"
+      }
+    })
+      .then(r => {
+        if (r.status === 401) throw new Error("Session expired. Please login again.");
+        return r.json();
+      })
       .then(data => {
         setAdmins(data.admins || []);
         setLoading(false);
       })
-      .catch(() => {
-        setErr("Failed to load admins.");
+      .catch((e) => {
+        setErr(e.message || "Failed to load admins.");
         setLoading(false);
       });
   }
 
-  // Fetch admins (once)
   useEffect(() => {
     refreshAdmins();
     // eslint-disable-next-line
@@ -207,7 +220,10 @@ export default function ManageAdmins() {
     try {
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          ...authHeader(), // 🔒 05-JULY-2025 JWT CHANGE
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify(form),
       });
       const data = await res.json();
@@ -227,7 +243,13 @@ export default function ManageAdmins() {
     try {
       const res = await fetch(
         `https://cricket-scoreboard-backend.onrender.com/api/admin/delete/${deleteModal.admin.id}`,
-        { method: "DELETE" }
+        {
+          method: "DELETE",
+          headers: {
+            ...authHeader(), // 🔒 05-JULY-2025 JWT CHANGE
+            "Content-Type": "application/json"
+          }
+        }
       );
       const data = await res.json();
       if (!data.success) throw new Error(data.error || "Failed to delete admin");

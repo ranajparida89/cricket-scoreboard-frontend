@@ -1,3 +1,6 @@
+// src/components/AdminPromptModal.jsx
+// 05-JULY-2025 RANAJ PARIDA -- JWT admin login support
+
 import React, { useState } from "react";
 
 export default function AdminPromptModal({ onAdminResponse }) {
@@ -9,8 +12,9 @@ export default function AdminPromptModal({ onAdminResponse }) {
 
   // Step 1: If "No", just close modal as normal user
   const handleNo = () => {
-    // 01-JULY-2025 Ranaj Parida: Always clear admin state if declined
     localStorage.setItem("isAdmin", "false");
+    // 🔒 05-JULY-2025 JWT CHANGE: Always clear JWT token if declining admin access
+    localStorage.removeItem("admin_jwt");
     onAdminResponse(false);
   };
 
@@ -29,18 +33,21 @@ export default function AdminPromptModal({ onAdminResponse }) {
         body: JSON.stringify({ username, password }),
       });
       const data = await res.json();
-      if (res.ok && data.isAdmin) {
-        // 01-JULY-2025 Ranaj Parida: Set admin flag on successful login
+      if (res.ok && data.isAdmin && data.token) {
+        // 🔒 05-JULY-2025 JWT CHANGE: Save JWT token for future API calls
         localStorage.setItem("isAdmin", "true");
+        localStorage.setItem("admin_jwt", data.token);
         onAdminResponse(true);
       } else {
-        // 01-JULY-2025 Ranaj Parida: Clear admin flag if login fails
+        // 🔒 05-JULY-2025 JWT CHANGE: Remove JWT on failure
         localStorage.setItem("isAdmin", "false");
+        localStorage.removeItem("admin_jwt");
         setError(data.error || "Invalid credentials.");
       }
     } catch (e) {
-      // 01-JULY-2025 Ranaj Parida: Also clear admin flag on server error
+      // 🔒 05-JULY-2025 JWT CHANGE: Remove JWT on error
       localStorage.setItem("isAdmin", "false");
+      localStorage.removeItem("admin_jwt");
       setError("Server error. Try again.");
     }
     setSubmitting(false);
@@ -85,7 +92,7 @@ export default function AdminPromptModal({ onAdminResponse }) {
           </form>
         )}
       </div>
-      {/* Advanced/modern CSS */}
+      {/* Inline CSS for modal styling */}
       <style>{`
         .admin-modal-bg {
           position:fixed; left:0; top:0; width:100vw; height:100vh;
