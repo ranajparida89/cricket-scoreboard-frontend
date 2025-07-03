@@ -76,13 +76,12 @@ const AppNavbar = ({ onAuthClick, toggleTheme, theme }) => {
               fontSize: '20px',
             }}
           >
-            🌙
           </button>
         </Navbar.Brand>
         {/* ——— Theme Toggle Button ——— */}
         <div className="ms-auto">
           <button onClick={toggleTheme} className="btn btn-light">
-            {theme === 'dark' ? '🌞' : '🌙'}
+            {/* {theme === 'dark' ? '🌞' : '🌙'} */}
           </button>
         </div>
 
