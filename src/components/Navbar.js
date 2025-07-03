@@ -79,11 +79,11 @@ const AppNavbar = ({ onAuthClick, toggleTheme, theme }) => {
           </button>
         </Navbar.Brand>
         {/* ——— Theme Toggle Button ——— */}
-        <div className="ms-auto">
-          <button onClick={toggleTheme} className="btn btn-light">
+       {/*  <div className="ms-auto"> */}
+          {/* <button onClick={toggleTheme} className="btn btn-light"> */}
             {/* {theme === 'dark' ? '🌞' : '🌙'} */}
-          </button>
-        </div>
+          {/* </button> */}
+        {/* </div> */}
 
         {/* ——— Hamburger Toggle for Mobile ——— */}
         <Navbar.Toggle aria-controls="navbarScroll" />
