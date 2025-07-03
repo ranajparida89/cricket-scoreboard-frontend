@@ -55,11 +55,6 @@ const SidebarMenu = () => {
         <FaUsers className="me-2" /> Manage Admins
       </Link>
     </li>
-    <li>
-      <Link to="/admin/pending" onClick={handleClose}>
-        <FaRegNewspaper className="me-2" /> Pending Matches
-      </Link>
-    </li>
   </>
 )}
       </ul>
