@@ -54,31 +54,31 @@ const AppNavbar = ({ onAuthClick, toggleTheme, theme }) => {
         </Button>
 
         {/* ——— Logo/Brand ——— */}
-       <Navbar.Brand
-  as={Link}
-  to="/"
-  className="fw-bold fs-4 hover-slide-emoji"
-  onClick={() => playSound("click")}
-  onMouseEnter={() => playSound("hover")}
-  style={{ display: "flex", alignItems: "center" }} // Makes logo/text aligned
->
-  <img
-    src="/logo/crickedge-logo.png"
-    alt="CrickEdge Logo"
-    style={{
-      height: 40,   // You can adjust size
-      marginRight: 10,
-      borderRadius: 12, // Optional: rounded corners
-      background: "#fff", // Optional: background
-      boxShadow: "0 2px 8px #2224"
-    }}
-  />
-  <span style={{ fontSize: '32px', fontWeight: 'bold', letterSpacing: '1px' }}>
-    <span style={{ color: '#FFA500' }}>Crick</span>
-    <span style={{ color: '#228B22' }}>Edge</span>
-    <span style={{ color: '#FFFFFF' }}>.in</span>
-  </span>
-</Navbar.Brand>
+        <Navbar.Brand
+          as={Link}
+          to="/"
+          className="fw-bold fs-4 hover-slide-emoji"
+          onClick={() => playSound("click")}
+          onMouseEnter={() => playSound("hover")}
+        >
+          <span style={{ fontSize: '32px', fontWeight: 'bold' }}>
+            <span style={{ color: '#FFA500' }}>Crick</span>
+            <span style={{ color: '#228B22' }}>Edge</span>
+            <span style={{ color: '#FFFFFF' }}>.in</span>
+          </span>
+          <button
+            onClick={toggleTheme}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              marginLeft: '10px',
+              fontSize: '20px',
+            }}
+          >
+            🌙
+          </button>
+        </Navbar.Brand>
         {/* ——— Theme Toggle Button ——— */}
         <div className="ms-auto">
           <button onClick={toggleTheme} className="btn btn-light">
