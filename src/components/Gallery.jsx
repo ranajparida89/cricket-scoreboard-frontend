@@ -11,7 +11,7 @@ function getCurrentUser() {
 export default function Gallery() {
   const user = getCurrentUser();
   const [images, setImages] = useState([]);
-  const [selected, setSelected] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [comment, setComment] = useState("");
   const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState("");
@@ -28,27 +28,34 @@ export default function Gallery() {
 
   async function handleUpload(e) {
     e.preventDefault();
-    if (!selected) return setErr("Select an image!");
+    if (!selectedFiles.length) return setErr("Select at least one image!");
     if (!user) return setErr("Please log in.");
     setErr(""); setSuccess("");
-    const formData = new FormData();
-    formData.append("image", selected);
-    formData.append("comment", comment);
-    formData.append("user_id", user.id);
-    formData.append("user_name", user.first_name || user.email);
-
     setUploading(true);
-    try {
-      const res = await fetch(`${API_BASE}/upload`, { method: "POST", body: formData });
-      if (!res.ok) throw new Error("Failed to upload");
-      setSuccess("Photo uploaded!");
-      setSelected(null);
-      setComment("");
-      fileInputRef.current.value = "";
-      fetchImages();
-    } catch {
-      setErr("Error uploading photo");
+    let uploadedCount = 0;
+    let errorCount = 0;
+
+    for (let file of selectedFiles) {
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("comment", comment);
+      formData.append("user_id", user.id);
+      formData.append("user_name", user.first_name || user.email);
+
+      try {
+        const res = await fetch(`${API_BASE}/upload`, { method: "POST", body: formData });
+        if (!res.ok) errorCount++;
+        else uploadedCount++;
+      } catch {
+        errorCount++;
+      }
     }
+    if (uploadedCount) setSuccess(`${uploadedCount} photo(s) uploaded!`);
+    if (errorCount) setErr(`Error uploading ${errorCount} photo(s)`);
+    setSelectedFiles([]);
+    setComment("");
+    fileInputRef.current.value = "";
+    fetchImages();
     setUploading(false);
   }
 
@@ -76,13 +83,13 @@ export default function Gallery() {
             accept="image/*"
             className="gallery-file"
             ref={fileInputRef}
-            onChange={e => setSelected(e.target.files[0])}
-            // capture removed! Now you get Gallery, Camera, Files options on mobile
+            multiple // ENABLE MULTIPLE FILES
+            onChange={e => setSelectedFiles(Array.from(e.target.files))}
           />
           <textarea
             className="gallery-comment"
             rows={2}
-            placeholder="Write a comment (e.g., Match highlight, Milestone, etc)"
+            placeholder="Write a comment (applied to all selected images)"
             value={comment}
             onChange={e => setComment(e.target.value)}
             maxLength={160}
@@ -93,6 +100,11 @@ export default function Gallery() {
           {err && <div className="gallery-error">{err}</div>}
           {success && <div className="gallery-success">{success}</div>}
         </form>
+        {selectedFiles.length > 1 &&
+          <div style={{fontSize:"0.96em", color:"#31ffc3", marginTop:"7px"}}>
+            {selectedFiles.length} images selected
+          </div>
+        }
       </div>
       <div className="gallery-grid">
         {images.map(img => (
