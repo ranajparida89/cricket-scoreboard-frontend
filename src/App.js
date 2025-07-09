@@ -361,9 +361,8 @@ function App() {
 <Route path="/admin/pending" element={<PendingMatches />} />
 
 <Route path="/gallery" element={<Gallery />} /> 
-<Footer />
-
       </Routes>
+      <Footer />
     </Router>
     </div>
   );
