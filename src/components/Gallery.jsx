@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 
-// Use your deployed backend here!
+// Your deployed backend for gallery API and static images
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api/gallery";
+const BACKEND_STATIC_BASE = "https://cricket-scoreboard-backend.onrender.com";
 
 function getCurrentUser() {
   try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
@@ -76,7 +77,7 @@ export default function Gallery() {
             className="gallery-file"
             ref={fileInputRef}
             onChange={e => setSelected(e.target.files[0])}
-            capture="environment" // allows taking a photo from mobile camera directly (mobile hint)
+            // capture removed! Now you get Gallery, Camera, Files options on mobile
           />
           <textarea
             className="gallery-comment"
@@ -96,7 +97,12 @@ export default function Gallery() {
       <div className="gallery-grid">
         {images.map(img => (
           <div className="gallery-card" key={img.id}>
-            <img src={img.image_url} className="gallery-image" alt="gallery" />
+            <img
+              src={BACKEND_STATIC_BASE + img.image_url}
+              className="gallery-image"
+              alt="gallery"
+              onError={e => { e.target.src = "https://via.placeholder.com/400x220/2e3440/ffffff?text=No+Image"; }}
+            />
             <div className="gallery-meta">
               <span className="gallery-comment-text">{img.comment}</span>
               <span className="gallery-meta-info">
