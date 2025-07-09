@@ -45,6 +45,7 @@ import { useAuth } from './services/auth';
 import UserDashboardV2Page from './components/UserDashboardV2Page';
 import ManageAdmins from './components/Admin/ManageAdmins'; // FOR MANAGE ADMIN 01-JULY-2025 RANAJ PARIDA
 import Gallery from './components/Gallery'; // For Gallary 
+import Footer from "./components/Footer"; // for Footer
 
 
 
@@ -360,6 +361,7 @@ function App() {
 <Route path="/admin/pending" element={<PendingMatches />} />
 
 <Route path="/gallery" element={<Gallery />} /> 
+<Footer />
 
       </Routes>
     </Router>
