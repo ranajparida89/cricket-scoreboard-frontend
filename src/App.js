@@ -44,6 +44,7 @@ import PendingMatches from "./components/Admin/PendingMatches"; //auto approval 
 import { useAuth } from './services/auth'; 
 import UserDashboardV2Page from './components/UserDashboardV2Page';
 import ManageAdmins from './components/Admin/ManageAdmins'; // FOR MANAGE ADMIN 01-JULY-2025 RANAJ PARIDA
+import Gallery from './components/Gallery'; // For Gallary 
 
 
 
@@ -357,6 +358,8 @@ function App() {
 <Route path="/admin/manage" element={<ManageAdmins />} /> 
 
 <Route path="/admin/pending" element={<PendingMatches />} />
+
+<Route path="/gallery" element={<Gallery />} /> 
 
       </Routes>
     </Router>
