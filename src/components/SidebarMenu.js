@@ -57,7 +57,7 @@ const SidebarMenu = () => {
     </li>
   </>
 )}
-<li>  
+<li>
   <Link to="/gallery" onClick={handleClose}>
     <span role="img" aria-label="gallery" style={{ marginRight: 6 }}>🖼️</span>
     Gallery

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
-// USE YOUR RENDER BACKEND!
+// Use your deployed backend here!
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api/gallery";
 
 function getCurrentUser() {
@@ -15,12 +15,14 @@ export default function Gallery() {
   const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState("");
   const [success, setSuccess] = useState("");
+  const fileInputRef = useRef();
 
   useEffect(() => { fetchImages(); }, []);
   function fetchImages() {
     fetch(`${API_BASE}/list`)
       .then(r => r.json())
-      .then(data => setImages(data.images || []));
+      .then(data => setImages(data.images || []))
+      .catch(() => setErr("Could not load gallery images"));
   }
 
   async function handleUpload(e) {
@@ -41,6 +43,7 @@ export default function Gallery() {
       setSuccess("Photo uploaded!");
       setSelected(null);
       setComment("");
+      fileInputRef.current.value = "";
       fetchImages();
     } catch {
       setErr("Error uploading photo");
@@ -51,7 +54,6 @@ export default function Gallery() {
   async function handleDelete(id) {
     if (!window.confirm("Delete this photo?")) return;
     try {
-      // You may need to send auth headers or a JWT here if required by your backend.
       const res = await fetch(`${API_BASE}/${id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -66,13 +68,15 @@ export default function Gallery() {
   return (
     <div className="gallery-root">
       <div className="gallery-upload-card">
-        <h2>📸 Share your cricket moments!</h2>
+        <h2 style={{marginBottom: 10}}>📸 Share your cricket moments!</h2>
         <form onSubmit={handleUpload} className="gallery-form">
           <input
             type="file"
             accept="image/*"
             className="gallery-file"
+            ref={fileInputRef}
             onChange={e => setSelected(e.target.files[0])}
+            capture="environment" // allows taking a photo from mobile camera directly (mobile hint)
           />
           <textarea
             className="gallery-comment"
@@ -106,7 +110,7 @@ export default function Gallery() {
           </div>
         ))}
       </div>
-      {/* MODERN CSS */}
+      {/* Modern Responsive CSS */}
       <style>{`
         .gallery-root {
           min-height: 100vh;
