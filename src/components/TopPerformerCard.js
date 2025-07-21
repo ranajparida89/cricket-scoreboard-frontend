@@ -28,7 +28,17 @@ const TopPerformerCard = ({ performer, period, matchType }) => {
         <div className="tp-title">
           {period === "month" ? "Top Performer (This Month)" : "Top Performer"}
         </div>
-        <div className="tp-player-name">{performer.player_name}</div>
+        {/* ✅ Step 2: Profile Image + Name */}
+          <div className="tp-player-header">
+            {performer.profile_url && (
+              <img
+                src={performer.profile_url}
+                alt={performer.player_name}
+                className="tp-player-image"
+              />
+            )}
+            <div className="tp-player-name">{performer.player_name}</div>
+          </div>
       </div>
       <div className="tp-stats-grid">
         <div>
