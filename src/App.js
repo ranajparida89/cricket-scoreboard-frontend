@@ -47,6 +47,7 @@ import ManageAdmins from './components/Admin/ManageAdmins'; // FOR MANAGE ADMIN 
 import Gallery from './components/Gallery'; // For Gallary 
 import Footer from "./components/Footer"; // for Footer
 import DownloadAppButton from "./components/DownloadAppButton"; // ✅ Step 3 - Add PWA Install Button
+import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
 
 
@@ -84,6 +85,10 @@ function App() {
   const [checkedAdmin, setCheckedAdmin] = useState(false);  // <--- Added
   const [isAdmin, setIsAdmin] = useState(false);            // <--- Added
 
+  // ✅ Step 3: Add update detection state
+   const [updateAvailable, setUpdateAvailable] = useState(false);  // Added for serviceworkreg 22-07-2025 
+   const [waitingWorker, setWaitingWorker] = useState(null);  // Added for serviceworkreg 22-07-2025 
+
   const { currentUser } = useAuth();
 
       useEffect(() => {
@@ -93,7 +98,19 @@ function App() {
       const toggleTheme = () => {
         setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
       };
-  
+
+      // ✅ Step 4: Add handler to activate the update
+const handleAppUpdate = () => {
+  if (waitingWorker) {
+    waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+    waitingWorker.addEventListener('statechange', (e) => {
+      if (e.target.state === 'activated') {
+        window.location.reload();
+      }
+    });
+  }
+};
+
   // ✅ Listen for custom "toggleSidebar" event from Navbar's hamburger button
   useEffect(() => {
     const toggleHandler = () => {
@@ -102,6 +119,18 @@ function App() {
     window.addEventListener("toggleSidebar", toggleHandler);
     return () => window.removeEventListener("toggleSidebar", toggleHandler);
   }, []);
+
+  // ✅ Step 3: Add this useEffect after toggleSidebar one
+useEffect(() => {
+  serviceWorkerRegistration.register({
+    onUpdate: (registration) => {
+      setUpdateAvailable(true);
+      setWaitingWorker(registration.waiting);
+    },
+  });
+}, []);
+
+
 // added for admin 26-June-2026
     if (!checkedAdmin) {
     return (
@@ -123,6 +152,21 @@ function App() {
             toggleTheme={toggleTheme}
             theme={theme} // added theme 
           />
+          {/* ✅ Step 5: Show update banner if new version available */}
+{updateAvailable && (
+  <div style={{
+    position: 'fixed', bottom: 20, left: 20, zIndex: 1000,
+    background: '#ffc107', padding: '12px 18px', borderRadius: '8px',
+    boxShadow: '0 2px 10px rgba(0,0,0,0.15)', color: '#000'
+  }}>
+    <strong>Update available</strong><br />
+    <span>Please update your application to get latest features.</span>
+    <div className="mt-2 d-flex gap-2">
+      <button className="btn btn-success btn-sm" onClick={handleAppUpdate}>Update</button>
+      <button className="btn btn-secondary btn-sm" onClick={() => setUpdateAvailable(false)}>Cancel</button>
+    </div>
+  </div>
+)}
           <DownloadAppButton /> {/* ✅ Step 3: Add PWA Install Button */}
 {/* ✅ Trigger modal */}
       <MatchTicker />
