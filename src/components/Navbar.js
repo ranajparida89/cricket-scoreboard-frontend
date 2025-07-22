@@ -43,7 +43,9 @@ useEffect(() => {
 
 
 const handleInstallClick = async () => {
-  const isAlreadyInstalled = window.matchMedia('(display-mode: standalone)').matches;
+  const isAlreadyInstalled =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true; // ✅ Add iOS support
 
   if (isAlreadyInstalled) {
     alert("✅ Application already installed in this device.");
@@ -71,10 +73,8 @@ const handleInstallClick = async () => {
     alert("❌ Installation failed.");
   }
 
-  // ⚠️ Do NOT disable the button anymore — keep it active always
-  setDeferredPrompt(null);
+  setDeferredPrompt(null); // ✅ Keep the button active even after prompt
 };
-
 
 
 
