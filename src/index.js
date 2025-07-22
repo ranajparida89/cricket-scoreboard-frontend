@@ -17,3 +17,7 @@ root.render(
 );
 
 reportWebVitals();
+
+// ✅ 22-July-2025: Register service worker for PWA support
+import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+serviceWorkerRegistration.register();
