@@ -290,25 +290,27 @@ const handleInstallClick = async () => {
               (always show at right)
           ————————————————————————————————————————————— */}
           <div className="navbar-actions-group ms-auto d-flex flex-row align-items-center gap-2">
-            <Button
-              as={Link}
-              to="/add-match"
-              className="navbar-action-btn hover-slide-emoji"
-              onClick={() => playSound("click")}
-              onMouseEnter={() => playSound("hover")}
-            >
-                {canInstall && (  // added Button for "Get App 22-07-2025 Ranaj Parida"
-                  <Button
-                    onClick={handleInstallClick}
-                    className="btn btn-warning ms-3"
-                    style={{ fontWeight: 'bold' }}
-                  >
-                    📥 Get App
-                  </Button>
-                )}
+           {canInstall && (
+  <Button
+    onClick={handleInstallClick}
+    className="btn btn-warning hover-slide-emoji"
+    style={{ fontWeight: 'bold' }}
+    onMouseEnter={() => playSound("hover")}
+  >
+    📥 Get App
+  </Button>
+)}
 
-              + Add Match
-            </Button>
+<Button
+  as={Link}
+  to="/add-match"
+  className="navbar-action-btn hover-slide-emoji"
+  onClick={() => playSound("click")}
+  onMouseEnter={() => playSound("hover")}
+>
+  + Add Match
+</Button>
+
             <Button
               as={Link}
               to="/add-test-match"
