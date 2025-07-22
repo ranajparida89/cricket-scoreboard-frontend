@@ -33,16 +33,42 @@ useEffect(() => {
   return () => window.removeEventListener("beforeinstallprompt", handler);
 }, []);
 
+// check if the code is already installed.. 
+useEffect(() => {
+  window.addEventListener('appinstalled', () => {
+    console.log("✅ App was installed");
+    setCanInstall(false); // Hide button after install
+  });
+}, []);
+
+
 const handleInstallClick = async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  if (outcome === "accepted") {
-    alert("Your application is downloading...");
+  if (!deferredPrompt) {
+    alert("Install not supported on this device or already installed.");
+    return;
   }
+
+  try {
+    // Trigger the browser install prompt
+    await deferredPrompt.prompt();
+
+    const choiceResult = await deferredPrompt.userChoice;
+    console.log("User choice:", choiceResult);
+
+    if (choiceResult.outcome === "accepted") {
+      alert("✅ Your application is being installed.");
+    } else {
+      alert("❌ Installation dismissed.");
+    }
+  } catch (err) {
+    console.error("Install prompt error:", err);
+    alert("❌ Installation failed.");
+  }
+
   setDeferredPrompt(null);
   setCanInstall(false);
 };
+
 
 
   // ✅ Fetch from localStorage (on mount)
