@@ -319,8 +319,7 @@ const handleInstallClick = async () => {
           ————————————————————————————————————————————— */}
           <div className="navbar-actions-group ms-auto d-flex flex-row align-items-center gap-2">
 <Button
-  onClick={handleInstallClick}
-  disabled={!canInstall}
+  onClick={canInstall ? handleInstallClick : () => alert("Install not available")}
   className="btn btn-warning hover-slide-emoji"
   style={{
     fontWeight: 'bold',
@@ -332,7 +331,6 @@ const handleInstallClick = async () => {
 >
   📥 Get App
 </Button>
-
 
 
 <Button
