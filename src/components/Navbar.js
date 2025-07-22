@@ -43,13 +43,19 @@ useEffect(() => {
 
 
 const handleInstallClick = async () => {
+  const isAlreadyInstalled = window.matchMedia('(display-mode: standalone)').matches;
+
+  if (isAlreadyInstalled) {
+    alert("✅ Application already installed in this device.");
+    return;
+  }
+
   if (!deferredPrompt) {
-    alert("Install not supported on this device or already installed.");
+    alert("⚠️ Installation not supported or already dismissed.");
     return;
   }
 
   try {
-    // Trigger the browser install prompt
     await deferredPrompt.prompt();
 
     const choiceResult = await deferredPrompt.userChoice;
@@ -65,9 +71,10 @@ const handleInstallClick = async () => {
     alert("❌ Installation failed.");
   }
 
+  // ⚠️ Do NOT disable the button anymore — keep it active always
   setDeferredPrompt(null);
-  setCanInstall(false);
 };
+
 
 
 
