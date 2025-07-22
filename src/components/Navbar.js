@@ -318,17 +318,21 @@ const handleInstallClick = async () => {
               (always show at right)
           ————————————————————————————————————————————— */}
           <div className="navbar-actions-group ms-auto d-flex flex-row align-items-center gap-2">
-{canInstall && (
-  <Button
-    onClick={handleInstallClick}
-    className="btn btn-warning hover-slide-emoji"
-    style={{ fontWeight: 'bold' }}
-    onMouseEnter={() => playSound("hover")}
-    title="Install the app to your device"
-  >
-    📥 Get App
-  </Button>
-)}
+<Button
+  onClick={handleInstallClick}
+  disabled={!canInstall}
+  className="btn btn-warning hover-slide-emoji"
+  style={{
+    fontWeight: 'bold',
+    opacity: canInstall ? 1 : 0.6,
+    cursor: canInstall ? 'pointer' : 'not-allowed'
+  }}
+  onMouseEnter={() => playSound("hover")}
+  title={canInstall ? "Install the app to your device" : "Install not available"}
+>
+  📥 Get App
+</Button>
+
 
 
 <Button
