@@ -17,6 +17,32 @@ import "../styles/theme.css"; // ✅ [Added for emoji hover styles]
 const AppNavbar = ({ onAuthClick, toggleTheme, theme }) => {
   const [loggedInUser, setLoggedInUser] = useState(null);
 
+  // ✅ Add PWA install logic
+const [deferredPrompt, setDeferredPrompt] = useState(null);
+const [canInstall, setCanInstall] = useState(false);
+
+useEffect(() => {
+  const handler = (e) => {
+    e.preventDefault();
+    setDeferredPrompt(e);
+    setCanInstall(true);
+  };
+  window.addEventListener("beforeinstallprompt", handler);
+  return () => window.removeEventListener("beforeinstallprompt", handler);
+}, []);
+
+const handleInstallClick = async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === "accepted") {
+    alert("Your application is downloading...");
+  }
+  setDeferredPrompt(null);
+  setCanInstall(false);
+};
+
+
   // ✅ Fetch from localStorage (on mount)
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -271,6 +297,16 @@ const AppNavbar = ({ onAuthClick, toggleTheme, theme }) => {
               onClick={() => playSound("click")}
               onMouseEnter={() => playSound("hover")}
             >
+                {canInstall && (  // added Button for "Get App 22-07-2025 Ranaj Parida"
+                  <Button
+                    onClick={handleInstallClick}
+                    className="btn btn-warning ms-3"
+                    style={{ fontWeight: 'bold' }}
+                  >
+                    📥 Get App
+                  </Button>
+                )}
+
               + Add Match
             </Button>
             <Button
