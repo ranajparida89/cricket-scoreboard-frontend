@@ -7,12 +7,19 @@ const DownloadAppButton = () => {
 
   useEffect(() => {
     const handler = (e) => {
-      e.preventDefault(); // Prevent auto-popup
-      setDeferredPrompt(e); // Save the event
-      setIsVisible(true);   // Show the button
+      console.log("📦 beforeinstallprompt event fired"); // ✅ Debug log
+      e.preventDefault(); // Prevent mini-infobar auto popup
+      setDeferredPrompt(e);
+      setIsVisible(true);
     };
 
     window.addEventListener("beforeinstallprompt", handler);
+
+    // ✅ Optional: log install event (if user has installed it)
+    window.addEventListener("appinstalled", () => {
+      console.log("✅ App successfully installed");
+      setIsVisible(false); // Hide button after install
+    });
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handler);
@@ -21,6 +28,7 @@ const DownloadAppButton = () => {
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
+
     deferredPrompt.prompt(); // Show the native install prompt
 
     const { outcome } = await deferredPrompt.userChoice;
@@ -34,6 +42,7 @@ const DownloadAppButton = () => {
     setIsVisible(false);
   };
 
+  // ✅ Only show if eligible and not yet installed
   if (!isVisible) return null;
 
   return (
