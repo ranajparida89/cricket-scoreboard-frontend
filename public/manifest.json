@@ -8,17 +8,17 @@
       "type": "image/x-icon"
     },
     {
-      "src": "icon-192.png",
+      "src": "icon-192-black.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "icon-512.png",
+      "src": "icon-512-black.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "start_url": "/?v=2",              
   "display": "standalone",
   "theme_color": "#000000",
   "background_color": "#ffffff"
