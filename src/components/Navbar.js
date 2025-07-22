@@ -43,39 +43,26 @@ useEffect(() => {
 
 
 const handleInstallClick = async () => {
-  const isAlreadyInstalled =
-    window.matchMedia('(display-mode: standalone)').matches ||
-    window.navigator.standalone === true; // ✅ Add iOS support
-
-  if (isAlreadyInstalled) {
-    alert("✅ Application already installed in this device.");
-    return;
-  }
-
   if (!deferredPrompt) {
-    alert("⚠️ Installation not supported or already dismissed.");
+    alert("ℹ️ Installation might not be available right now.\nPlease try again later or use 'Add to Home Screen' from your browser menu.");
     return;
   }
 
   try {
     await deferredPrompt.prompt();
-
     const choiceResult = await deferredPrompt.userChoice;
-    console.log("User choice:", choiceResult);
-
     if (choiceResult.outcome === "accepted") {
       alert("✅ Your application is being installed.");
     } else {
       alert("❌ Installation dismissed.");
     }
   } catch (err) {
-    console.error("Install prompt error:", err);
+    console.error("Install error:", err);
     alert("❌ Installation failed.");
   }
 
-  setDeferredPrompt(null); // ✅ Keep the button active even after prompt
+  setDeferredPrompt(null);
 };
-
 
 
   // ✅ Fetch from localStorage (on mount)
