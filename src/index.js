@@ -6,6 +6,7 @@ import './styles/theme.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { AuthProvider } from './services/auth'; // 🆕 Add this import
+import * as serviceWorkerRegistration from './serviceWorkerRegistration'; // ✅ Moved to top
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -19,5 +20,4 @@ root.render(
 reportWebVitals();
 
 // ✅ 22-July-2025: Register service worker for PWA support
-import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 serviceWorkerRegistration.register();
