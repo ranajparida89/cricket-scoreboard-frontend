@@ -48,6 +48,7 @@ import Gallery from './components/Gallery'; // For Gallary
 import Footer from "./components/Footer"; // for Footer
 import DownloadAppButton from "./components/DownloadAppButton"; // ✅ Step 3 - Add PWA Install Button
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+import DeleteAccount from './components/DeleteAccount';
 
 
 
@@ -407,6 +408,7 @@ useEffect(() => {
 <Route path="/admin/pending" element={<PendingMatches />} />
 
 <Route path="/gallery" element={<Gallery />} /> 
+<Route path="/privacy/delete-account" element={<DeleteAccount />} />
       </Routes>
       <Footer />
     </Router>
