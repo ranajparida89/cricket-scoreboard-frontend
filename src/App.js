@@ -410,10 +410,8 @@ useEffect(() => {
 <Route path="/gallery" element={<Gallery />} /> 
 <Route path="/privacy/delete-account" element={<DeleteAccount />} />
 
-<Routes>
-  {/* other routes */}
-  <Route path="/scheduler" element={<SchedulerPage />} />
-</Routes>
+<Route path="/scheduler" element={<SchedulerPage />} />
+
 
       </Routes>
       <Footer />
