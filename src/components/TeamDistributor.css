@@ -15,7 +15,7 @@
   box-shadow: 0 18px 40px rgba(0,0,0,0.45),
               inset 0 0 0 2px rgba(255,255,255,0.04);
   background: radial-gradient(ellipse at center, #0b0f14 0%, #07090c 70%);
-  z-index: 1; /* ensure the wheel sits under the confetti overlay */
+  z-index: 1;
 }
 
 /* Confetti overlay canvas above the wheel, no interaction */
@@ -28,40 +28,145 @@
   z-index: 2;
 }
 
-/* Toasts (dependency‑free) — now rendered via Portal so they’re always visible */
+/* ---------- TOASTS (animated, glass, progress) ---------- */
+
 .td-toasts{
   position: fixed;
-  top: 16px;
-  right: 16px;
+  top: 18px;
+  right: 18px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  z-index: 2147483647; /* max-ish to beat navbars/modals */
+  gap: 12px;
+  z-index: 2147483647;
 }
+
 .td-toast{
-  padding: 10px 14px;
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px 14px 12px;
+  min-width: 260px;
+  max-width: min(86vw, 420px);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02)),
+    rgba(15, 18, 23, 0.76);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  color: #e8f5f1;
+  backdrop-filter: blur(8px) saturate(110%);
+  transform: translateY(-8px) scale(0.96);
+  opacity: 0;
+  pointer-events: auto;
+}
+
+/* enter / exit */
+.td-toast.show{
+  animation: tdPopIn 260ms cubic-bezier(.2,.9,.2,1) forwards,
+             tdHold ease 1s 260ms forwards;
+}
+.td-toast:not(.show){
+  animation: tdPopOut 320ms ease forwards;
+}
+
+@keyframes tdPopIn{
+  from { transform: translateY(-10px) scale(0.94); opacity: 0; }
+  60%  { transform: translateY(2px)  scale(1.03); opacity: 1; }
+  to   { transform: translateY(0)    scale(1.00); opacity: 1; }
+}
+@keyframes tdPopOut{
+  from { transform: translateY(0) scale(1); opacity: 1; }
+  to   { transform: translateY(-8px) scale(.96); opacity: 0; }
+}
+@keyframes tdHold{
+  from { transform: translateY(0) scale(1); }
+  to   { transform: translateY(0) scale(1); }
+}
+
+/* icon + body */
+.td-toast-icon{
+  width: 34px;
+  height: 34px;
   border-radius: 10px;
-  font-weight: 600;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
-  backdrop-filter: blur(4px);
-  animation: tdSlideIn .25s ease-out, tdFadeOut .35s ease-in 2.7s forwards; /* fade near end */
-  max-width: 60vw;
-  color: #0b0f14;
-}
-.td-toast.success{
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  user-select: none;
   background: linear-gradient(180deg, #aef1d8, #77e6c2);
-  border: 1px solid rgba(0,0,0,0.06);
+  color: #083a2e;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
 }
-.td-toast.error{
+
+.td-toast.success .td-toast-icon{
+  background: linear-gradient(180deg, #aef1d8, #77e6c2);
+  color: #083a2e;
+}
+.td-toast.error .td-toast-icon{
   background: linear-gradient(180deg, #ffd2cc, #ffb3a9);
-  border: 1px solid rgba(0,0,0,0.06);
+  color: #5b1209;
 }
-@keyframes tdSlideIn{
-  from{ transform: translateY(-8px); opacity: 0; }
-  to{ transform: translateY(0); opacity: 1; }
+
+.td-toast-body{
+  display: grid;
+  gap: 2px;
 }
-@keyframes tdFadeOut{
-  to{ opacity: 0; transform: translateY(-6px); }
+.td-toast-title{
+  font-weight: 700;
+  letter-spacing: .2px;
+  color: #eafff7;
+}
+.td-toast-msg{
+  font-weight: 500;
+  color: #d6efe7;
+}
+.td-toast-msg strong{
+  color: #ffffff;
+}
+
+/* progress bar (auto) */
+.td-toast-progress{
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 8px;
+  height: 3px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.12);
+}
+.td-toast-progress::after{
+  content: "";
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255,255,255,.7), rgba(255,255,255,.35));
+  animation: tdLine 3.0s linear forwards; /* match JS toast timeout if you change it */
+}
+@keyframes tdLine{
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+
+/* close button */
+.td-toast-close{
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255,255,255,0.75);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.td-toast-close:hover{
+  background: rgba(255,255,255,0.08);
 }
 
 /* ---------- PRINT ONLY TABLE ---------- */
@@ -73,7 +178,6 @@
     color: #000 !important;
   }
 
-  /* hide everything except header + table */
   .not-print,
   .navbar, .sidebar, .wheel-wrap, .alert { display: none !important; }
 

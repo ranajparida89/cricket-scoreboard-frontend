@@ -1,8 +1,8 @@
 // ✅ src/components/TeamDistributor.js
-// [2025-08-05 rev5 - FULL FILE]
-// - Same features as rev4
-// - [FIX] Toast portal mounts after client mount and into a dedicated node
-// - [FIX] Removed non-existent key selector in pushToast
+// [2025-08-05 rev6 - FULL FILE]
+// - Animated Toast (pop-in/out, icon, progress, close)
+// - Robust show/hide lifecycle using `visible` flag
+// - Same wheel/confetti logic as rev5
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -20,28 +20,26 @@ const shuffle = (arr) => {
   return a;
 };
 
-// [NEW] Mount a dedicated container and only portal after mount
+// Mount a dedicated container and only portal after mount
 function useToastContainer() {
   const [container, setContainer] = useState(null);
 
   useEffect(() => {
-    // Create (or reuse) a top-level container
     let el = document.getElementById("td-toasts-root");
     if (!el) {
       el = document.createElement("div");
       el.id = "td-toasts-root";
-      // Safety: ensure it’s top-most and not affected by parent stacking
       el.style.position = "fixed";
       el.style.top = "0";
       el.style.right = "0";
-      el.style.width = "0"; // we’ll size with inner content
+      el.style.width = "0";
       el.style.height = "0";
       el.style.zIndex = "2147483647";
       document.body.appendChild(el);
     }
     setContainer(el);
     return () => {
-      // Keep container if other pages/components might reuse it; remove if you prefer.
+      // If you want to remove on unmount, uncomment:
       // document.body.removeChild(el);
     };
   }, []);
@@ -49,14 +47,34 @@ function useToastContainer() {
   return container;
 }
 
-function ToastPortal({ toasts }) {
+function ToastPortal({ toasts, onClose }) {
   const container = useToastContainer();
   if (!container) return null; // wait until after mount
   return createPortal(
     <div className="td-toasts" role="region" aria-live="polite" aria-atomic="true">
       {toasts.map((t) => (
-        <div key={t.id} className={`td-toast ${t.type}`} role="alert">
-          {t.message}
+        <div
+          key={t.id}
+          className={`td-toast ${t.type} ${t.visible ? "show" : ""}`}
+          role="alert"
+        >
+          <button
+            className="td-toast-close"
+            aria-label="Dismiss notification"
+            onClick={() => onClose(t.id)}
+          >
+            ×
+          </button>
+          <div className="td-toast-icon">✅</div>
+          <div className="td-toast-body">
+            <div className="td-toast-title">Assigned!</div>
+            <div
+              className="td-toast-msg"
+              // You can switch to plain text if you prefer (and remove dangerouslySetInnerHTML)
+              dangerouslySetInnerHTML={{ __html: t.message }}
+            />
+          </div>
+          <div className="td-toast-progress" />
         </div>
       ))}
     </div>,
@@ -277,12 +295,33 @@ export default function TeamDistributor() {
 
   // ---------- Toasts ----------
   const [toasts, setToasts] = useState([]);
+
+  const removeToast = (id) =>
+    setToasts((arr) => arr.filter((x) => x.id !== id));
+
   const pushToast = (message, type = "success", timeout = 3000) => {
     const id = Math.random().toString(36).slice(2);
-    setToasts((t) => [...t, { id, message, type }]);
+    // Insert hidden
+    setToasts((arr) => [...arr, { id, message, type, visible: false, timeout }]);
+
+    // Make it visible on next tick for enter animation
     setTimeout(() => {
-      setToasts((t) => t.filter((x) => x.id !== id)); // [FIX] no querySelector on key
-    }, timeout);
+      setToasts((arr) => arr.map((t) => (t.id === id ? { ...t, visible: true } : t)));
+    }, 10);
+
+    // Start exit slightly before removal so CSS can animate
+    const exitAt = timeout - 350;
+    setTimeout(() => {
+      setToasts((arr) => arr.map((t) => (t.id === id ? { ...t, visible: false } : t)));
+    }, Math.max(600, exitAt));
+
+    // Remove after timeout
+    setTimeout(() => removeToast(id), Math.max(900, timeout));
+  };
+
+  const closeToastNow = (id) => {
+    setToasts((arr) => arr.map((t) => (t.id === id ? { ...t, visible: false } : t)));
+    setTimeout(() => removeToast(id), 320);
   };
 
   // ---------- Confetti ----------
@@ -377,8 +416,8 @@ export default function TeamDistributor() {
 
     setTurnPtr((prev) => prev + 1);
 
-    // Celebrate the assignment
-    pushToast(`${team} assigned to ${p}`, "success");
+    // Celebrate the assignment (HTML for bold labels)
+    pushToast(`<strong>${team}</strong> assigned to <strong>${p}</strong>`, "success");
     const r = WHEEL_SIZE / 2 - WHEEL_MARGIN;
     const tipX = WHEEL_SIZE / 2;
     const tipY = WHEEL_SIZE / 2 + r - 6;
@@ -613,7 +652,7 @@ export default function TeamDistributor() {
       </div>
 
       {/* Toasts via Portal (fixed, top-right, always on top) */}
-      <ToastPortal toasts={toasts} />
+      <ToastPortal toasts={toasts} onClose={closeToastNow} />
     </div>
   );
 }
