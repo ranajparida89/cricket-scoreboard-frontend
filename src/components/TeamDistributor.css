@@ -1,5 +1,6 @@
 /* ✅ TeamDistributor.css */
 
+/* Wheel container & canvas (unchanged) */
 .teamdist .wheel-wrap{
   position: relative;
   width: 360px;
@@ -14,6 +15,50 @@
   box-shadow: 0 18px 40px rgba(0,0,0,0.45),
               inset 0 0 0 2px rgba(255,255,255,0.04);
   background: radial-gradient(ellipse at center, #0b0f14 0%, #07090c 70%);
+  z-index: 1; /* [NEW] ensure the wheel sits under the confetti overlay */
+}
+
+/* [NEW] Confetti overlay canvas above the wheel, no interaction */
+.confetti-canvas{
+  position: absolute;
+  inset: 0;
+  width: 360px;
+  height: 360px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* [NEW] Toasts (dependency‑free) */
+.td-toasts{
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+}
+.td-toast{
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  backdrop-filter: blur(4px);
+  animation: tdSlideIn .25s ease-out;
+  max-width: 60vw;
+  color: #0b0f14;
+}
+.td-toast.success{
+  background: linear-gradient(180deg, #aef1d8, #77e6c2);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+.td-toast.error{
+  background: linear-gradient(180deg, #ffd2cc, #ffb3a9);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+@keyframes tdSlideIn{
+  from{ transform: translateY(-8px); opacity: 0; }
+  to{ transform: translateY(0); opacity: 1; }
 }
 
 /* ---------- PRINT ONLY TABLE ---------- */
@@ -28,6 +73,9 @@
   /* hide everything except header + table */
   .not-print,
   .navbar, .sidebar, .wheel-wrap, .alert { display: none !important; }
+
+  /* [NEW] extra safety: never print toasts or confetti even if classes change */
+  .td-toasts, .confetti-canvas { display: none !important; } /* [NEW] */
 
   .print-header.print-only{
     display: flex !important;

@@ -1,14 +1,18 @@
 // ✅ src/components/TeamDistributor.js
-// [2025-08-05 rev2 - FULL FILE]
+// [2025-08-05 rev3 - FULL FILE]
 // - Single textarea for teams (choose Weak/Strong from dropdown)
-// - Pointer points DOWN and the tip sits just inside the rim
-// - Each slice gets a different glossy color (HSL palette)
+// - Pointer points DOWN; tip sits just inside the rim
+// - Each slice has a different glossy color (HSL palette)
 // - Players reshuffle every round; team removed after spin
 // - Final allocation table + print-to-PDF (logo + table only when printing)
+// - [NEW] Toasts for success messages (auto-dismiss)
+// - [NEW] Confetti burst from pointer tip on assignment
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./TeamDistributor.css";
 
+const WHEEL_SIZE = 360;            // [NEW] centralize sizes used by wheel+confetti
+const WHEEL_MARGIN = 12;           // [NEW]
 const randBetween = (min, max) => Math.random() * (max - min) + min;
 const shuffle = (arr) => {
   const a = [...arr];
@@ -47,6 +51,7 @@ export default function TeamDistributor() {
 
   // ---------- Spin engine ----------
   const canvasRef = useRef(null);
+  const confettiRef = useRef(null);        // [NEW] overlay canvas for confetti
   const [isSpinning, setIsSpinning] = useState(false);
   const [angle, setAngle] = useState(0);
   const [targetAngle, setTargetAngle] = useState(0);
@@ -121,7 +126,7 @@ export default function TeamDistributor() {
     const ctx = cvs.getContext("2d");
 
     const dpr = window.devicePixelRatio || 1;
-    const size = 360;
+    const size = WHEEL_SIZE;
     cvs.width = size * dpr;
     cvs.height = size * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -130,7 +135,17 @@ export default function TeamDistributor() {
       h = size,
       cx = w / 2,
       cy = h / 2,
-      r = Math.min(w, h) / 2 - 12;
+      r = Math.min(w, h) / 2 - WHEEL_MARGIN;
+
+    // Also size the confetti overlay canvas   // [NEW]
+    if (confettiRef.current) {
+      const c2 = confettiRef.current;
+      c2.width = size * dpr;
+      c2.height = size * dpr;
+      const c2ctx = c2.getContext("2d");
+      c2ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      c2ctx.clearRect(0, 0, size, size);
+    }
 
     // clear
     ctx.clearRect(0, 0, w, h);
@@ -247,6 +262,50 @@ export default function TeamDistributor() {
     ctx.stroke();
   }, [teamsForWheel, angle, teamType]);
 
+  // ---------- Toasts (simple, no deps) ----------  // [NEW]
+  const [toasts, setToasts] = useState([]);
+  const pushToast = (message, type = "success") => {
+    const id = Math.random().toString(36).slice(2);
+    setToasts((t) => [...t, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((t) => t.filter((x) => x.id !== id));
+    }, 3000);
+  };
+
+  // ---------- Confetti (lightweight, no deps) ---------- // [NEW]
+  const fireConfetti = (x, y) => {
+    const canvas = confettiRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const particles = Array.from({ length: 60 }).map(() => ({
+      x,
+      y,
+      vx: randBetween(-3, 3),
+      vy: randBetween(-6, -2),
+      g: 0.15,
+      life: randBetween(40, 70),
+      size: randBetween(3, 6),
+      hue: Math.floor(randBetween(0, 360)),
+    }));
+
+    let frame = 0;
+    const animate = () => {
+      frame++;
+      ctx.clearRect(0, 0, WHEEL_SIZE, WHEEL_SIZE);
+      particles.forEach((p) => {
+        p.vy += p.g;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 1;
+        ctx.fillStyle = `hsl(${p.hue}, 85%, 60%)`;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+      });
+      if (frame < 80) requestAnimationFrame(animate);
+      else ctx.clearRect(0, 0, WHEEL_SIZE, WHEEL_SIZE);
+    };
+    animate();
+  };
+
   // ---------- Spin / Assign ----------
   const [assignments, setAssignments] = useState({ Weak: {}, Strong: {} });
 
@@ -308,9 +367,13 @@ export default function TeamDistributor() {
 
     setTurnPtr((prev) => prev + 1);
 
-    setTimeout(() => {
-      alert(`${team} is assigned to ${p}`);
-    }, 80);
+    // --- Celebrate the assignment ---
+    // [NEW] Toast + confetti (from pointer tip)
+    pushToast(`${team} assigned to ${p}`, "success");
+    const r = WHEEL_SIZE / 2 - WHEEL_MARGIN;
+    const tipX = WHEEL_SIZE / 2;
+    const tipY = WHEEL_SIZE / 2 + r - 6;
+    fireConfetti(tipX, tipY);
   };
 
   // ---------- Helpers ----------
@@ -455,6 +518,8 @@ export default function TeamDistributor() {
               <h5 className="text-info">Wheel</h5>
               <div className="wheel-wrap my-2">
                 <canvas ref={canvasRef} className="wheel-canvas" />
+                {/* [NEW] Confetti overlay (no pointer events) */}
+                <canvas ref={confettiRef} className="confetti-canvas" />
               </div>
               <div className="mt-2 small text-muted">
                 {teamsForWheel.length} team(s) on wheel
@@ -536,6 +601,15 @@ export default function TeamDistributor() {
             Order reshuffles every round (e.g., 3 players and 6 teams → 2 rounds).
           </div>
         </div>
+      </div>
+
+      {/* [NEW] Toasts renderer (fixed, top-right) */}
+      <div className="td-toasts not-print">
+        {toasts.map((t) => (
+          <div key={t.id} className={`td-toast ${t.type}`}>
+            {t.message}
+          </div>
+        ))}
       </div>
     </div>
   );
