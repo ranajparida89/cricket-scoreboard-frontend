@@ -1,6 +1,6 @@
 /* ✅ TeamDistributor.css */
 
-/* Wheel container & canvas (unchanged) */
+/* Wheel container & canvas */
 .teamdist .wheel-wrap{
   position: relative;
   width: 360px;
@@ -15,10 +15,10 @@
   box-shadow: 0 18px 40px rgba(0,0,0,0.45),
               inset 0 0 0 2px rgba(255,255,255,0.04);
   background: radial-gradient(ellipse at center, #0b0f14 0%, #07090c 70%);
-  z-index: 1; /* [NEW] ensure the wheel sits under the confetti overlay */
+  z-index: 1; /* ensure the wheel sits under the confetti overlay */
 }
 
-/* [NEW] Confetti overlay canvas above the wheel, no interaction */
+/* Confetti overlay canvas above the wheel, no interaction */
 .confetti-canvas{
   position: absolute;
   inset: 0;
@@ -28,7 +28,7 @@
   z-index: 2;
 }
 
-/* [NEW] Toasts (dependency‑free) */
+/* Toasts (dependency‑free) — now rendered via Portal so they’re always visible */
 .td-toasts{
   position: fixed;
   top: 16px;
@@ -36,7 +36,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  z-index: 9999;
+  z-index: 2147483647; /* max-ish to beat navbars/modals */
 }
 .td-toast{
   padding: 10px 14px;
@@ -44,7 +44,7 @@
   font-weight: 600;
   box-shadow: 0 6px 20px rgba(0,0,0,0.35);
   backdrop-filter: blur(4px);
-  animation: tdSlideIn .25s ease-out;
+  animation: tdSlideIn .25s ease-out, tdFadeOut .35s ease-in 2.7s forwards; /* fade near end */
   max-width: 60vw;
   color: #0b0f14;
 }
@@ -60,6 +60,9 @@
   from{ transform: translateY(-8px); opacity: 0; }
   to{ transform: translateY(0); opacity: 1; }
 }
+@keyframes tdFadeOut{
+  to{ opacity: 0; transform: translateY(-6px); }
+}
 
 /* ---------- PRINT ONLY TABLE ---------- */
 .print-only{ display:none; }
@@ -74,8 +77,8 @@
   .not-print,
   .navbar, .sidebar, .wheel-wrap, .alert { display: none !important; }
 
-  /* [NEW] extra safety: never print toasts or confetti even if classes change */
-  .td-toasts, .confetti-canvas { display: none !important; } /* [NEW] */
+  /* never print toasts or confetti */
+  .td-toasts, .confetti-canvas { display: none !important; }
 
   .print-header.print-only{
     display: flex !important;

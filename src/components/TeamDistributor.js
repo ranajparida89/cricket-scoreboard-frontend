@@ -1,18 +1,19 @@
 // ✅ src/components/TeamDistributor.js
-// [2025-08-05 rev3 - FULL FILE]
+// [2025-08-05 rev4 - FULL FILE]
 // - Single textarea for teams (choose Weak/Strong from dropdown)
 // - Pointer points DOWN; tip sits just inside the rim
 // - Each slice has a different glossy color (HSL palette)
 // - Players reshuffle every round; team removed after spin
 // - Final allocation table + print-to-PDF (logo + table only when printing)
-// - [NEW] Toasts for success messages (auto-dismiss)
-// - [NEW] Confetti burst from pointer tip on assignment
+// - Toasts (auto-dismiss) + Confetti burst from pointer tip on assignment
+// - [FIX] Toasts now render via a React Portal so they can't be hidden by parent stacking/overflow
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom"; // [NEW]
 import "./TeamDistributor.css";
 
-const WHEEL_SIZE = 360;            // [NEW] centralize sizes used by wheel+confetti
-const WHEEL_MARGIN = 12;           // [NEW]
+const WHEEL_SIZE = 360;
+const WHEEL_MARGIN = 12;
 const randBetween = (min, max) => Math.random() * (max - min) + min;
 const shuffle = (arr) => {
   const a = [...arr];
@@ -22,6 +23,21 @@ const shuffle = (arr) => {
   }
   return a;
 };
+
+// [NEW] Toasts renderer via Portal so it is always visible above the app
+function ToastPortal({ toasts }) {
+  if (typeof document === "undefined") return null;
+  return createPortal(
+    <div className="td-toasts" role="region" aria-live="polite" aria-atomic="true">
+      {toasts.map((t) => (
+        <div key={t.id} className={`td-toast ${t.type}`} role="alert">
+          {t.message}
+        </div>
+      ))}
+    </div>,
+    document.body
+  );
+}
 
 export default function TeamDistributor() {
   // ---------- Players ----------
@@ -34,7 +50,7 @@ export default function TeamDistributor() {
   const [weakPool, setWeakPool] = useState([]);
   const [strongPool, setStrongPool] = useState([]);
 
-  // Keep textarea in sync with the current pool when switching type
+  // Keep textarea in sync with current pool on switch
   useEffect(() => {
     const src = teamType === "Weak" ? weakPool : strongPool;
     setTeamNamesRaw(src.join("\n"));
@@ -51,7 +67,7 @@ export default function TeamDistributor() {
 
   // ---------- Spin engine ----------
   const canvasRef = useRef(null);
-  const confettiRef = useRef(null);        // [NEW] overlay canvas for confetti
+  const confettiRef = useRef(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [angle, setAngle] = useState(0);
   const [targetAngle, setTargetAngle] = useState(0);
@@ -91,32 +107,25 @@ export default function TeamDistributor() {
     const f = parseInt(hex.replace("#", ""), 16);
     const t = pct < 0 ? 0 : 255;
     const p = Math.abs(pct);
-    const R = f >> 16,
-      G = (f >> 8) & 0xff,
-      B = f & 0xff;
+    const R = f >> 16, G = (f >> 8) & 0xff, B = f & 0xff;
     const v = (c) => Math.round((t - c) * p) + c;
-    return `#${(0x1000000 + (v(R) << 16) + (v(G) << 8) + v(B))
-      .toString(16)
-      .slice(1)}`;
+    return `#${(0x1000000 + (v(R) << 16) + (v(G) << 8) + (v(B))).toString(16).slice(1)}`;
   };
 
   const hslToHex = (h, s, l) => {
-    s /= 100;
-    l /= 100;
+    s /= 100; l /= 100;
     const k = (n) => (n + h / 30) % 12;
     const a = s * Math.min(l, 1 - l);
-    const f = (n) =>
-      l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
     const toHex = (x) => Math.round(255 * x).toString(16).padStart(2, "0");
     return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
   };
 
-  // Build a pleasant full‑wheel palette.
-  // Strong → cooler/teal start, Weak → violet start.
+  // Pleasant full‑wheel palette (Strong cooler/teal; Weak violet)
   const segBaseHex = (i, n) => {
-    const startHue = teamType === "Weak" ? 270 : 170; // entry hue
+    const startHue = teamType === "Weak" ? 270 : 170;
     const hue = (startHue + (360 * i) / n) % 360;
-    return hslToHex(hue, 70, 45); // medium saturation, mid lightness
+    return hslToHex(hue, 70, 45);
   };
 
   // ---------- Drawing ----------
@@ -131,13 +140,9 @@ export default function TeamDistributor() {
     cvs.height = size * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const w = size,
-      h = size,
-      cx = w / 2,
-      cy = h / 2,
-      r = Math.min(w, h) / 2 - WHEEL_MARGIN;
+    const w = size, h = size, cx = w / 2, cy = h / 2, r = Math.min(w, h) / 2 - WHEEL_MARGIN;
 
-    // Also size the confetti overlay canvas   // [NEW]
+    // Size the confetti overlay canvas to match  // [NEW]
     if (confettiRef.current) {
       const c2 = confettiRef.current;
       c2.width = size * dpr;
@@ -209,8 +214,7 @@ export default function TeamDistributor() {
       ctx.rotate(i * slice + slice / 2);
       ctx.textAlign = "right";
       ctx.fillStyle = "#fff";
-      ctx.font =
-        "600 15px ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial";
+      ctx.font = "600 15px ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial";
       ctx.fillText(label, r - 14, 5);
       ctx.restore();
     }
@@ -262,24 +266,25 @@ export default function TeamDistributor() {
     ctx.stroke();
   }, [teamsForWheel, angle, teamType]);
 
-  // ---------- Toasts (simple, no deps) ----------  // [NEW]
+  // ---------- Toasts (simple, no deps) ----------
   const [toasts, setToasts] = useState([]);
-  const pushToast = (message, type = "success") => {
+  const pushToast = (message, type = "success", timeout = 3000) => {
     const id = Math.random().toString(36).slice(2);
     setToasts((t) => [...t, { id, message, type }]);
+    // fade-out + remove
     setTimeout(() => {
+      const el = document.querySelector(`.td-toast[key="${id}"]`);
       setToasts((t) => t.filter((x) => x.id !== id));
-    }, 3000);
+    }, timeout);
   };
 
-  // ---------- Confetti (lightweight, no deps) ---------- // [NEW]
+  // ---------- Confetti (lightweight, no deps) ----------
   const fireConfetti = (x, y) => {
     const canvas = confettiRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     const particles = Array.from({ length: 60 }).map(() => ({
-      x,
-      y,
+      x, y,
       vx: randBetween(-3, 3),
       vy: randBetween(-6, -2),
       g: 0.15,
@@ -367,9 +372,8 @@ export default function TeamDistributor() {
 
     setTurnPtr((prev) => prev + 1);
 
-    // --- Celebrate the assignment ---
-    // [NEW] Toast + confetti (from pointer tip)
-    pushToast(`${team} assigned to ${p}`, "success");
+    // Celebrate the assignment
+    pushToast(`${team} assigned to ${p}`, "success"); // [FIX] visibly on top via portal
     const r = WHEEL_SIZE / 2 - WHEEL_MARGIN;
     const tipX = WHEEL_SIZE / 2;
     const tipY = WHEEL_SIZE / 2 + r - 6;
@@ -383,6 +387,8 @@ export default function TeamDistributor() {
     if (players.find((p) => p.name.toLowerCase() === name.toLowerCase())) return;
     setPlayers((prev) => [...prev, { name }]);
     setPlayerInput("");
+    // Optional toast feedback on add
+    // pushToast(`Added ${name}`, "success");
   };
   const removePlayer = (name) =>
     setPlayers((prev) => prev.filter((p) => p.name !== name));
@@ -518,7 +524,7 @@ export default function TeamDistributor() {
               <h5 className="text-info">Wheel</h5>
               <div className="wheel-wrap my-2">
                 <canvas ref={canvasRef} className="wheel-canvas" />
-                {/* [NEW] Confetti overlay (no pointer events) */}
+                {/* Confetti overlay (no pointer events) */}
                 <canvas ref={confettiRef} className="confetti-canvas" />
               </div>
               <div className="mt-2 small text-muted">
@@ -603,14 +609,8 @@ export default function TeamDistributor() {
         </div>
       </div>
 
-      {/* [NEW] Toasts renderer (fixed, top-right) */}
-      <div className="td-toasts not-print">
-        {toasts.map((t) => (
-          <div key={t.id} className={`td-toast ${t.type}`}>
-            {t.message}
-          </div>
-        ))}
-      </div>
+      {/* Toasts via Portal (fixed, top-right, always on top) */}
+      <ToastPortal toasts={toasts} /> {/* [FIX] */}
     </div>
   );
 }
