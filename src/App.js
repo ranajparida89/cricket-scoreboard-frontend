@@ -54,6 +54,8 @@ import SchedulerPage from "./components/SchedulerPage";
 
 
 import "bootstrap/dist/css/bootstrap.min.css";
+import TeamDistributor from "./components/TeamDistributor";
+
 
 
 
@@ -413,6 +415,9 @@ useEffect(() => {
 <Route path="/privacy/delete-account" element={<DeleteAccount />} />
 
 <Route path="/scheduler" element={<SchedulerPage />} />
+
+<Route path="/team-distributor" element={<TeamDistributor />} />
+
 
 
       </Routes>

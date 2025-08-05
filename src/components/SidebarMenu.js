@@ -55,6 +55,14 @@ const SidebarMenu = () => {
               </Link>
             </li>
 
+                      <li>
+            <Link to="/team-distributor" onClick={handleClose}>
+              <span role="img" aria-label="wheel" style={{ marginRight: 6 }}>🎡</span>
+              Team Distributor
+            </Link>
+          </li>
+
+
         {/* 01-JULY-2025 Ranaj Parida: Only show for Admins */}
         {isAdmin && (
   <>

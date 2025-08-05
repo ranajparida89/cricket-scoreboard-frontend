@@ -1,0 +1,35 @@
+/* ✅ src/components/TeamDistributor.css */
+
+.teamdist .wheel-wrap {
+  position: relative;
+  width: 340px;
+  height: 340px;
+}
+
+.teamdist .wheel-canvas {
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  display: block;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4), inset 0 0 0 2px rgba(255,255,255,0.04);
+  background: radial-gradient(ellipse at center, #111 0%, #000 70%);
+}
+
+/* Print-friendly table */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .navbar, .sidebar-menu, .btn, .card > .card-body > .btn, .alert, .wheel-wrap {
+    display: none !important;
+  }
+  .print-area {
+    border: none;
+    box-shadow: none;
+  }
+  .print-area table {
+    color: #000 !important;
+    background: #fff !important;
+  }
+}
