@@ -1,15 +1,11 @@
 // ✅ src/components/TeamDistributor.js
-// [2025-08-05 rev4 - FULL FILE]
-// - Single textarea for teams (choose Weak/Strong from dropdown)
-// - Pointer points DOWN; tip sits just inside the rim
-// - Each slice has a different glossy color (HSL palette)
-// - Players reshuffle every round; team removed after spin
-// - Final allocation table + print-to-PDF (logo + table only when printing)
-// - Toasts (auto-dismiss) + Confetti burst from pointer tip on assignment
-// - [FIX] Toasts now render via a React Portal so they can't be hidden by parent stacking/overflow
+// [2025-08-05 rev5 - FULL FILE]
+// - Same features as rev4
+// - [FIX] Toast portal mounts after client mount and into a dedicated node
+// - [FIX] Removed non-existent key selector in pushToast
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom"; // [NEW]
+import { createPortal } from "react-dom";
 import "./TeamDistributor.css";
 
 const WHEEL_SIZE = 360;
@@ -24,9 +20,38 @@ const shuffle = (arr) => {
   return a;
 };
 
-// [NEW] Toasts renderer via Portal so it is always visible above the app
+// [NEW] Mount a dedicated container and only portal after mount
+function useToastContainer() {
+  const [container, setContainer] = useState(null);
+
+  useEffect(() => {
+    // Create (or reuse) a top-level container
+    let el = document.getElementById("td-toasts-root");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "td-toasts-root";
+      // Safety: ensure it’s top-most and not affected by parent stacking
+      el.style.position = "fixed";
+      el.style.top = "0";
+      el.style.right = "0";
+      el.style.width = "0"; // we’ll size with inner content
+      el.style.height = "0";
+      el.style.zIndex = "2147483647";
+      document.body.appendChild(el);
+    }
+    setContainer(el);
+    return () => {
+      // Keep container if other pages/components might reuse it; remove if you prefer.
+      // document.body.removeChild(el);
+    };
+  }, []);
+
+  return container;
+}
+
 function ToastPortal({ toasts }) {
-  if (typeof document === "undefined") return null;
+  const container = useToastContainer();
+  if (!container) return null; // wait until after mount
   return createPortal(
     <div className="td-toasts" role="region" aria-live="polite" aria-atomic="true">
       {toasts.map((t) => (
@@ -35,7 +60,7 @@ function ToastPortal({ toasts }) {
         </div>
       ))}
     </div>,
-    document.body
+    container
   );
 }
 
@@ -45,12 +70,11 @@ export default function TeamDistributor() {
   const [playerInput, setPlayerInput] = useState("");
 
   // ---------- Team input (single block) ----------
-  const [teamType, setTeamType] = useState("Weak"); // "Weak" | "Strong"
+  const [teamType, setTeamType] = useState("Weak");
   const [teamNamesRaw, setTeamNamesRaw] = useState("");
   const [weakPool, setWeakPool] = useState([]);
   const [strongPool, setStrongPool] = useState([]);
 
-  // Keep textarea in sync with current pool on switch
   useEffect(() => {
     const src = teamType === "Weak" ? weakPool : strongPool;
     setTeamNamesRaw(src.join("\n"));
@@ -75,7 +99,6 @@ export default function TeamDistributor() {
   const currentPool = teamType === "Weak" ? weakPool : strongPool;
   const setCurrentPool = teamType === "Weak" ? setWeakPool : setStrongPool;
 
-  // Player order queue (reshuffles every round)
   const playerNames = useMemo(
     () => players.map((p) => p.name).filter(Boolean),
     [players]
@@ -121,7 +144,6 @@ export default function TeamDistributor() {
     return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
   };
 
-  // Pleasant full‑wheel palette (Strong cooler/teal; Weak violet)
   const segBaseHex = (i, n) => {
     const startHue = teamType === "Weak" ? 270 : 170;
     const hue = (startHue + (360 * i) / n) % 360;
@@ -142,7 +164,6 @@ export default function TeamDistributor() {
 
     const w = size, h = size, cx = w / 2, cy = h / 2, r = Math.min(w, h) / 2 - WHEEL_MARGIN;
 
-    // Size the confetti overlay canvas to match  // [NEW]
     if (confettiRef.current) {
       const c2 = confettiRef.current;
       c2.width = size * dpr;
@@ -152,10 +173,8 @@ export default function TeamDistributor() {
       c2ctx.clearRect(0, 0, size, size);
     }
 
-    // clear
     ctx.clearRect(0, 0, w, h);
 
-    // outer ring
     const ringGrad = ctx.createRadialGradient(cx, cy, r - 24, cx, cy, r + 18);
     ringGrad.addColorStop(0, "#0b0f14");
     ringGrad.addColorStop(1, "#26313c");
@@ -164,7 +183,6 @@ export default function TeamDistributor() {
     ctx.arc(cx, cy, r + 10, 0, Math.PI * 2);
     ctx.fill();
 
-    // shadow
     ctx.save();
     ctx.shadowColor = "rgba(0,0,0,0.6)";
     ctx.shadowBlur = 18;
@@ -172,7 +190,6 @@ export default function TeamDistributor() {
     const n = Math.max(teamsForWheel.length, 1);
     const slice = (Math.PI * 2) / n;
 
-    // wheel body
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(angle);
@@ -183,7 +200,6 @@ export default function TeamDistributor() {
       ctx.arc(0, 0, r, i * slice, (i + 1) * slice);
       ctx.closePath();
 
-      // per‑segment glossy gradient
       const base = teamsForWheel.length ? segBaseHex(i, n) : "#777";
       const segGrad = ctx.createLinearGradient(-r, -r, r, r);
       segGrad.addColorStop(0, shade(base, -0.14));
@@ -192,12 +208,10 @@ export default function TeamDistributor() {
       ctx.fillStyle = segGrad;
       ctx.fill();
 
-      // borders
       ctx.strokeStyle = "rgba(0,0,0,0.55)";
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // subtle rim tick
       ctx.save();
       ctx.rotate(i * slice);
       ctx.beginPath();
@@ -208,20 +222,19 @@ export default function TeamDistributor() {
       ctx.stroke();
       ctx.restore();
 
-      // label
       const label = teamsForWheel[i] || "—";
       ctx.save();
       ctx.rotate(i * slice + slice / 2);
       ctx.textAlign = "right";
       ctx.fillStyle = "#fff";
-      ctx.font = "600 15px ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial";
+      ctx.font =
+        "600 15px ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial";
       ctx.fillText(label, r - 14, 5);
       ctx.restore();
     }
-    ctx.restore(); // rotation
-    ctx.restore(); // shadow
+    ctx.restore();
+    ctx.restore();
 
-    // center hub
     ctx.beginPath();
     ctx.arc(cx, cy, 40, 0, Math.PI * 2);
     ctx.fillStyle = "#0b0f14";
@@ -230,7 +243,6 @@ export default function TeamDistributor() {
     ctx.strokeStyle = teamType === "Weak" ? "#7c4dff" : "#20c997";
     ctx.stroke();
 
-    // hub gloss
     const gloss = ctx.createLinearGradient(cx, cy - 40, cx, cy + 40);
     gloss.addColorStop(0, "rgba(255,255,255,0.22)");
     gloss.addColorStop(0.5, "rgba(255,255,255,0.05)");
@@ -241,14 +253,12 @@ export default function TeamDistributor() {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // ▼ pointer (DOWN) — tip is INSIDE the rim (points toward the team)
-    const tipY = cy + r - 6; // tip just inside rim
-    const baseY = tipY + 24; // triangle base
+    const tipY = cy + r - 6;
+    const baseY = tipY + 24;
     ctx.fillStyle = "#ffc107";
     ctx.strokeStyle = "#111";
     ctx.lineWidth = 2;
 
-    // triangle head (pointing UP toward center)
     ctx.beginPath();
     ctx.moveTo(cx, tipY);
     ctx.lineTo(cx - 16, baseY);
@@ -257,7 +267,6 @@ export default function TeamDistributor() {
     ctx.fill();
     ctx.stroke();
 
-    // shaft below the triangle
     ctx.beginPath();
     ctx.moveTo(cx, baseY);
     ctx.lineTo(cx, baseY + 16);
@@ -266,19 +275,17 @@ export default function TeamDistributor() {
     ctx.stroke();
   }, [teamsForWheel, angle, teamType]);
 
-  // ---------- Toasts (simple, no deps) ----------
+  // ---------- Toasts ----------
   const [toasts, setToasts] = useState([]);
   const pushToast = (message, type = "success", timeout = 3000) => {
     const id = Math.random().toString(36).slice(2);
     setToasts((t) => [...t, { id, message, type }]);
-    // fade-out + remove
     setTimeout(() => {
-      const el = document.querySelector(`.td-toast[key="${id}"]`);
-      setToasts((t) => t.filter((x) => x.id !== id));
+      setToasts((t) => t.filter((x) => x.id !== id)); // [FIX] no querySelector on key
     }, timeout);
   };
 
-  // ---------- Confetti (lightweight, no deps) ----------
+  // ---------- Confetti ----------
   const fireConfetti = (x, y) => {
     const canvas = confettiRef.current;
     if (!canvas) return;
@@ -321,7 +328,6 @@ export default function TeamDistributor() {
     const selectedIndex = Math.floor(Math.random() * n);
     const slice = (Math.PI * 2) / n;
 
-    // pointer is at bottom (π/2)
     const pointerAngle = Math.PI / 2;
     const segmentCenter = selectedIndex * slice + slice / 2;
 
@@ -351,7 +357,6 @@ export default function TeamDistributor() {
     const n = teamsForWheel.length;
     const slice = (Math.PI * 2) / n;
 
-    // pointer at bottom → +90deg
     const pointerAngle = Math.PI / 2;
     const normalized =
       ((pointerAngle - angle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
@@ -373,7 +378,7 @@ export default function TeamDistributor() {
     setTurnPtr((prev) => prev + 1);
 
     // Celebrate the assignment
-    pushToast(`${team} assigned to ${p}`, "success"); // [FIX] visibly on top via portal
+    pushToast(`${team} assigned to ${p}`, "success");
     const r = WHEEL_SIZE / 2 - WHEEL_MARGIN;
     const tipX = WHEEL_SIZE / 2;
     const tipY = WHEEL_SIZE / 2 + r - 6;
@@ -387,8 +392,6 @@ export default function TeamDistributor() {
     if (players.find((p) => p.name.toLowerCase() === name.toLowerCase())) return;
     setPlayers((prev) => [...prev, { name }]);
     setPlayerInput("");
-    // Optional toast feedback on add
-    // pushToast(`Added ${name}`, "success");
   };
   const removePlayer = (name) =>
     setPlayers((prev) => prev.filter((p) => p.name !== name));
@@ -610,7 +613,7 @@ export default function TeamDistributor() {
       </div>
 
       {/* Toasts via Portal (fixed, top-right, always on top) */}
-      <ToastPortal toasts={toasts} /> {/* [FIX] */}
+      <ToastPortal toasts={toasts} />
     </div>
   );
 }
