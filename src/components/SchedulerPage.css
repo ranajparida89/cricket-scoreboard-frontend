@@ -1,0 +1,22 @@
+.scheduler-page { padding: 16px; max-width: 1100px; margin: 0 auto; }
+.scheduler-form .row { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+.scheduler-form label { width: 320px; font-weight: 600; }
+.scheduler-form input[type="text"], .scheduler-form input[type="number"] { flex: 1; padding: 8px; }
+.boards-header { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+.board-card { border: 1px solid #e6e6e6; border-radius: 10px; padding: 12px; margin-top: 12px; background: #fff; }
+.board-head { display: flex; gap: 8px; }
+.board-head input { flex: 1; padding: 8px; }
+.teams { margin-top: 10px; }
+.team-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.team-row input { flex: 1; padding: 8px; }
+.error { color: #b00020; background: #ffeef0; padding: 8px 12px; border-radius: 8px; margin-top: 8px; }
+.actions { margin-top: 16px; }
+.actions button { padding: 10px 16px; font-weight: 600; }
+.result { margin-top: 24px; }
+.result-head { display: flex; justify-content: space-between; align-items: center; }
+.table-wrap { overflow-x: auto; margin-top: 12px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { border: 1px solid #eee; padding: 8px 10px; text-align: left; }
+th { background: #fafafa; }
+.hint { color: #555; margin-top: 8px; }
+.existing { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }

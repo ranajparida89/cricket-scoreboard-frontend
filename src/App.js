@@ -50,7 +50,7 @@ import DownloadAppButton from "./components/DownloadAppButton"; // ✅ Step 3 - 
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import DeleteAccount from './components/DeleteAccount';
 
-
+import SchedulerPage from "./components/SchedulerPage";
 
 
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -409,6 +409,12 @@ useEffect(() => {
 
 <Route path="/gallery" element={<Gallery />} /> 
 <Route path="/privacy/delete-account" element={<DeleteAccount />} />
+
+<Routes>
+  {/* other routes */}
+  <Route path="/scheduler" element={<SchedulerPage />} />
+</Routes>
+
       </Routes>
       <Footer />
     </Router>
