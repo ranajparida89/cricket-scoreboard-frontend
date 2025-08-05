@@ -1,35 +1,54 @@
-/* ✅ src/components/TeamDistributor.css */
+/* ✅ TeamDistributor.css */
 
-.teamdist .wheel-wrap {
+.teamdist .wheel-wrap{
   position: relative;
-  width: 340px;
-  height: 340px;
+  width: 360px;
+  height: 360px;
 }
 
-.teamdist .wheel-canvas {
-  width: 340px;
-  height: 340px;
+.teamdist .wheel-canvas{
+  width: 360px;
+  height: 360px;
   border-radius: 50%;
   display: block;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.4), inset 0 0 0 2px rgba(255,255,255,0.04);
-  background: radial-gradient(ellipse at center, #111 0%, #000 70%);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.45),
+              inset 0 0 0 2px rgba(255,255,255,0.04);
+  background: radial-gradient(ellipse at center, #0b0f14 0%, #07090c 70%);
 }
 
-/* Print-friendly table */
+/* ---------- PRINT ONLY TABLE ---------- */
+.print-only{ display:none; }
+
 @media print {
-  body {
+  :root, body {
     background: #fff !important;
     color: #000 !important;
   }
-  .navbar, .sidebar-menu, .btn, .card > .card-body > .btn, .alert, .wheel-wrap {
-    display: none !important;
+
+  /* hide everything except header + table */
+  .not-print,
+  .navbar, .sidebar, .wheel-wrap, .alert { display: none !important; }
+
+  .print-header.print-only{
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
   }
-  .print-area {
+  .print-header img{
+    height: 28px;
+    width: auto;
+  }
+  .print-area{
     border: none;
     box-shadow: none;
+    background: #fff !important;
   }
-  .print-area table {
+  .print-table{
     color: #000 !important;
     background: #fff !important;
+  }
+  .print-table thead th{
+    border-bottom: 2px solid #000 !important;
   }
 }
