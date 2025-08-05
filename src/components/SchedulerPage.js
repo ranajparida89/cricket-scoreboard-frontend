@@ -2,6 +2,15 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./SchedulerPage.css";
 
+// ✅ Helper to ensure .map calls don't fail
+const asArray = (v) => {
+  if (Array.isArray(v)) return v;
+  if (Array.isArray(v?.rows)) return v.rows;
+  if (Array.isArray(v?.data)) return v.data;
+  if (Array.isArray(v?.items)) return v.items;
+  return [];
+};
+
 const API_BASE = process.env.REACT_APP_API_BASE;
 
 const emptyBoard = () => ({ name: "", teams: [""] });
@@ -16,12 +25,13 @@ export default function SchedulerPage() {
   const [seriesList, setSeriesList] = useState([]);
   const [selectedSeriesId, setSelectedSeriesId] = useState("");
 
-  useEffect(() => {
-    axios
-      .get(`${API_BASE}/api/scheduler/series`)
-      .then((r) => setSeriesList(r.data || []))
-      .catch(() => {});
-  }, []);
+        useEffect(() => {
+        axios
+            .get(`${API_BASE}/api/scheduler/series`)
+            .then((r) => setSeriesList(asArray(r.data)))
+            .catch(() => setSeriesList([]));
+        }, []);
+
 
   const addBoard = () => setBoards((b) => [...b, emptyBoard()]);
   const removeBoard = (idx) =>
@@ -129,11 +139,12 @@ export default function SchedulerPage() {
           onChange={(e) => loadFixtures(e.target.value)}
         >
           <option value="">-- Select a series --</option>
-          {seriesList.map((s) => (
+                    {asArray(seriesList).map((s) => (
             <option key={s.id} value={s.id}>
-              {s.name}
+                {s.name}
             </option>
-          ))}
+            ))}
+
         </select>
         <button type="button" onClick={() => loadFixtures(selectedSeriesId)} disabled={!selectedSeriesId}>
           Load
@@ -227,7 +238,7 @@ export default function SchedulerPage() {
               </thead>
               <tbody>
                 {result.fixtures.map((f) => (
-                  <tr key={f.id}>
+                  <tr key={f.match_id}>
                     <td>{f.match_id}</td>
                     <td>{f.team1} ({f.team1_board})</td>
                     <td>{f.team2} ({f.team2_board})</td>
