@@ -1,10 +1,10 @@
 // ✅ src/components/TeamDistributor.js
-// [2025-08-05] Updates:
-// 1) 🔁 Single textarea for team names; dropdown chooses Weak/Strong  (replaces two blocks)
-// 2) ⬇️ Pointer now points DOWN; spin math updated to land under bottom pointer
-// 3) 🎨 Nicer wheel styling (ring, gloss, subtle ticks)
-// 4) 🖨️ Print shows ONLY logo + final allocation table
-// 5) 🪄 Comments tagged with  // [CHANGED]  where relevant
+// [2025-08-05 rev2 - FULL FILE]
+// - Single textarea for teams (choose Weak/Strong from dropdown)
+// - Pointer points DOWN and the tip sits just inside the rim
+// - Each slice gets a different glossy color (HSL palette)
+// - Players reshuffle every round; team removed after spin
+// - Final allocation table + print-to-PDF (logo + table only when printing)
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./TeamDistributor.css";
@@ -25,21 +25,21 @@ export default function TeamDistributor() {
   const [playerInput, setPlayerInput] = useState("");
 
   // ---------- Team input (single block) ----------
-  const [teamType, setTeamType] = useState("Weak");              // Weak | Strong
-  const [teamNamesRaw, setTeamNamesRaw] = useState("");          // [CHANGED] single textarea
+  const [teamType, setTeamType] = useState("Weak"); // "Weak" | "Strong"
+  const [teamNamesRaw, setTeamNamesRaw] = useState("");
   const [weakPool, setWeakPool] = useState([]);
   const [strongPool, setStrongPool] = useState([]);
 
-  // keep textarea in sync with current pool when switching type
+  // Keep textarea in sync with the current pool when switching type
   useEffect(() => {
     const src = teamType === "Weak" ? weakPool : strongPool;
-    setTeamNamesRaw(src.join("\n"));                              // [CHANGED]
+    setTeamNamesRaw(src.join("\n"));
   }, [teamType, weakPool, strongPool]);
 
   const parseLines = (raw) =>
     raw.split(/[\n,]/g).map((s) => s.trim()).filter(Boolean);
 
-  const buildPool = () => {                                       // [CHANGED]
+  const buildPool = () => {
     const list = [...new Set(parseLines(teamNamesRaw))];
     if (teamType === "Weak") setWeakPool(list);
     else setStrongPool(list);
@@ -54,9 +54,11 @@ export default function TeamDistributor() {
   const currentPool = teamType === "Weak" ? weakPool : strongPool;
   const setCurrentPool = teamType === "Weak" ? setWeakPool : setStrongPool;
 
-  const playerNames = useMemo(() => players.map((p) => p.name).filter(Boolean), [players]);
-
-  // Order queue that reshuffles every round
+  // Player order queue (reshuffles every round)
+  const playerNames = useMemo(
+    () => players.map((p) => p.name).filter(Boolean),
+    [players]
+  );
   const [orderQueue, setOrderQueue] = useState([]);
   const [turnPtr, setTurnPtr] = useState(0);
   const currentPlayer = orderQueue[turnPtr] || "";
@@ -79,27 +81,64 @@ export default function TeamDistributor() {
 
   const teamsForWheel = currentPool.filter(Boolean);
 
+  // ---------- Color helpers ----------
+  const shade = (hex, pct) => {
+    const f = parseInt(hex.replace("#", ""), 16);
+    const t = pct < 0 ? 0 : 255;
+    const p = Math.abs(pct);
+    const R = f >> 16,
+      G = (f >> 8) & 0xff,
+      B = f & 0xff;
+    const v = (c) => Math.round((t - c) * p) + c;
+    return `#${(0x1000000 + (v(R) << 16) + (v(G) << 8) + v(B))
+      .toString(16)
+      .slice(1)}`;
+  };
+
+  const hslToHex = (h, s, l) => {
+    s /= 100;
+    l /= 100;
+    const k = (n) => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = (n) =>
+      l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    const toHex = (x) => Math.round(255 * x).toString(16).padStart(2, "0");
+    return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
+  };
+
+  // Build a pleasant full‑wheel palette.
+  // Strong → cooler/teal start, Weak → violet start.
+  const segBaseHex = (i, n) => {
+    const startHue = teamType === "Weak" ? 270 : 170; // entry hue
+    const hue = (startHue + (360 * i) / n) % 360;
+    return hslToHex(hue, 70, 45); // medium saturation, mid lightness
+  };
+
   // ---------- Drawing ----------
   useEffect(() => {
     const cvs = canvasRef.current;
     if (!cvs) return;
-
     const ctx = cvs.getContext("2d");
+
     const dpr = window.devicePixelRatio || 1;
     const size = 360;
     cvs.width = size * dpr;
     cvs.height = size * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const w = size, h = size, cx = w / 2, cy = h / 2, r = Math.min(w, h) / 2 - 12;
+    const w = size,
+      h = size,
+      cx = w / 2,
+      cy = h / 2,
+      r = Math.min(w, h) / 2 - 12;
 
     // clear
     ctx.clearRect(0, 0, w, h);
 
     // outer ring
-    const ringGrad = ctx.createRadialGradient(cx, cy, r - 20, cx, cy, r + 16);
+    const ringGrad = ctx.createRadialGradient(cx, cy, r - 24, cx, cy, r + 18);
     ringGrad.addColorStop(0, "#0b0f14");
-    ringGrad.addColorStop(1, "#27313b");
+    ringGrad.addColorStop(1, "#26313c");
     ctx.fillStyle = ringGrad;
     ctx.beginPath();
     ctx.arc(cx, cy, r + 10, 0, Math.PI * 2);
@@ -124,45 +163,46 @@ export default function TeamDistributor() {
       ctx.arc(0, 0, r, i * slice, (i + 1) * slice);
       ctx.closePath();
 
-      // segment gradient
+      // per‑segment glossy gradient
+      const base = teamsForWheel.length ? segBaseHex(i, n) : "#777";
       const segGrad = ctx.createLinearGradient(-r, -r, r, r);
-      const base = teamType === "Weak" ? ["#7c4dff", "#3d5afe"] : ["#20c997", "#0dcaf0"];
-      const off = i % 2 ? 0.08 : 0;
-      segGrad.addColorStop(0, shade(base[0], -0.1 - off));
-      segGrad.addColorStop(1, shade(base[1],  0.05 + off));
-      ctx.fillStyle = teamsForWheel.length ? segGrad : "#555";
+      segGrad.addColorStop(0, shade(base, -0.14));
+      segGrad.addColorStop(0.5, shade(base, 0.05));
+      segGrad.addColorStop(1, shade(base, 0.15));
+      ctx.fillStyle = segGrad;
       ctx.fill();
 
       // borders
-      ctx.strokeStyle = "rgba(0,0,0,0.6)";
+      ctx.strokeStyle = "rgba(0,0,0,0.55)";
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // tick at edge
+      // subtle rim tick
       ctx.save();
       ctx.rotate(i * slice);
       ctx.beginPath();
-      ctx.moveTo(r - 8, 0);
+      ctx.moveTo(r - 10, 0);
       ctx.lineTo(r, 0);
-      ctx.strokeStyle = "rgba(255,255,255,0.15)";
+      ctx.strokeStyle = "rgba(255,255,255,0.18)";
       ctx.lineWidth = 3;
       ctx.stroke();
       ctx.restore();
 
-      // labels
+      // label
       const label = teamsForWheel[i] || "—";
       ctx.save();
       ctx.rotate(i * slice + slice / 2);
       ctx.textAlign = "right";
       ctx.fillStyle = "#fff";
-      ctx.font = "600 15px ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial";
-      ctx.fillText(label, r - 12, 5);
+      ctx.font =
+        "600 15px ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial";
+      ctx.fillText(label, r - 14, 5);
       ctx.restore();
     }
     ctx.restore(); // rotation
     ctx.restore(); // shadow
 
-    // center hub with ring
+    // center hub
     ctx.beginPath();
     ctx.arc(cx, cy, 40, 0, Math.PI * 2);
     ctx.fillStyle = "#0b0f14";
@@ -171,7 +211,7 @@ export default function TeamDistributor() {
     ctx.strokeStyle = teamType === "Weak" ? "#7c4dff" : "#20c997";
     ctx.stroke();
 
-    // gloss
+    // hub gloss
     const gloss = ctx.createLinearGradient(cx, cy - 40, cx, cy + 40);
     gloss.addColorStop(0, "rgba(255,255,255,0.22)");
     gloss.addColorStop(0.5, "rgba(255,255,255,0.05)");
@@ -182,51 +222,42 @@ export default function TeamDistributor() {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // ▼ pointer (DOWN)  [CHANGED]
-    // full arrow: shaft + triangle, positioned at bottom
-    const ptrY = cy + r + 12;
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = "#111";
+    // ▼ pointer (DOWN) — tip is INSIDE the rim (points toward the team)
+    const tipY = cy + r - 6; // tip just inside rim
+    const baseY = tipY + 24; // triangle base
     ctx.fillStyle = "#ffc107";
-
-    // shaft
-    ctx.beginPath();
-    ctx.moveTo(cx, ptrY - 34);
-    ctx.lineTo(cx, ptrY - 10);
-    ctx.strokeStyle = "#ffc107";
-    ctx.stroke();
-
-    // triangle head
-    ctx.beginPath();
-    ctx.moveTo(cx, ptrY);
-    ctx.lineTo(cx - 14, ptrY - 18);
-    ctx.lineTo(cx + 14, ptrY - 18);
-    ctx.closePath();
-    ctx.fill();
     ctx.strokeStyle = "#111";
     ctx.lineWidth = 2;
+
+    // triangle head (pointing UP toward center)
+    ctx.beginPath();
+    ctx.moveTo(cx, tipY);
+    ctx.lineTo(cx - 16, baseY);
+    ctx.lineTo(cx + 16, baseY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // shaft below the triangle
+    ctx.beginPath();
+    ctx.moveTo(cx, baseY);
+    ctx.lineTo(cx, baseY + 16);
+    ctx.strokeStyle = "#ffc107";
+    ctx.lineWidth = 5;
     ctx.stroke();
   }, [teamsForWheel, angle, teamType]);
 
-  function shade(hex, pct) {
-    const f = parseInt(hex.replace("#", ""), 16);
-    const t = pct < 0 ? 0 : 255;
-    const p = Math.abs(pct);
-    const R = f >> 16, G = (f >> 8) & 0x00ff, B = f & 0x0000ff;
-    const v = (c) => Math.round((t - c) * p) + c;
-    return `#${(0x1000000 + (v(R) << 16) + (v(G) << 8) + v(B)).toString(16).slice(1)}`;
-  }
-
-  // ---------- Spin ----------
+  // ---------- Spin / Assign ----------
   const [assignments, setAssignments] = useState({ Weak: {}, Strong: {} });
 
   const spin = () => {
     if (isSpinning || teamsForWheel.length === 0 || !currentPlayer) return;
+
     const n = teamsForWheel.length;
     const selectedIndex = Math.floor(Math.random() * n);
     const slice = (Math.PI * 2) / n;
 
-    // pointer is at +90deg (bottom)  [CHANGED]
+    // pointer is at bottom (π/2)
     const pointerAngle = Math.PI / 2;
     const segmentCenter = selectedIndex * slice + slice / 2;
 
@@ -236,7 +267,6 @@ export default function TeamDistributor() {
     setTargetAngle(endAngle);
     setIsSpinning(true);
 
-    // animate
     const duration = 2600;
     const start = performance.now();
     const step = (t) => {
@@ -257,9 +287,10 @@ export default function TeamDistributor() {
     const n = teamsForWheel.length;
     const slice = (Math.PI * 2) / n;
 
-    // pointer at bottom → +90deg  [CHANGED]
+    // pointer at bottom → +90deg
     const pointerAngle = Math.PI / 2;
-    const normalized = ((pointerAngle - angle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+    const normalized =
+      ((pointerAngle - angle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
     const index = Math.floor(normalized / slice);
     const team = teamsForWheel[index];
 
@@ -282,11 +313,6 @@ export default function TeamDistributor() {
     }, 80);
   };
 
-  // phase progression notices
-  const weakDone = weakPool.length === 0 && weakPool.length !== 0 || (weakPool.length === 0 && parseLines(teamNamesRaw).length > 0 && teamType === "Weak");
-  const strongDone = strongPool.length === 0 && strongPool.length !== 0 || (strongPool.length === 0 && parseLines(teamNamesRaw).length > 0 && teamType === "Strong");
-  const allDone = (weakPool.length === 0 && strongPool.length === 0) && (Object.keys(assignments.Weak).length + Object.keys(assignments.Strong).length > 0);
-
   // ---------- Helpers ----------
   const addPlayer = () => {
     const name = (playerInput || "").trim();
@@ -295,10 +321,9 @@ export default function TeamDistributor() {
     setPlayers((prev) => [...prev, { name }]);
     setPlayerInput("");
   };
-  const removePlayer = (name) => setPlayers((prev) => prev.filter((p) => p.name !== name));
+  const removePlayer = (name) =>
+    setPlayers((prev) => prev.filter((p) => p.name !== name));
   const canSpin = teamsForWheel.length > 0 && !isSpinning && currentPlayer;
-
-  // ---------- Print: just call window.print() ----------
   const downloadPDF = () => window.print();
 
   return (
@@ -327,28 +352,46 @@ export default function TeamDistributor() {
                   onChange={(e) => setPlayerInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addPlayer()}
                 />
-                <button className="btn btn-outline-light" onClick={addPlayer}>Add</button>
+                <button className="btn btn-outline-light" onClick={addPlayer}>
+                  Add
+                </button>
               </div>
 
               <ul className="list-group list-group-flush mt-3">
                 {players.map((p) => (
-                  <li key={p.name} className="list-group-item bg-dark text-white d-flex justify-content-between align-items-center">
+                  <li
+                    key={p.name}
+                    className="list-group-item bg-dark text-white d-flex justify-content-between align-items-center"
+                  >
                     {p.name}
-                    <button className="btn btn-sm btn-outline-danger" onClick={() => removePlayer(p.name)}>Remove</button>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => removePlayer(p.name)}
+                    >
+                      Remove
+                    </button>
                   </li>
                 ))}
                 {players.length === 0 && (
-                  <li className="list-group-item bg-dark text-secondary">No players added yet.</li>
+                  <li className="list-group-item bg-dark text-secondary">
+                    No players added yet.
+                  </li>
                 )}
               </ul>
 
               {players.length > 0 && (
                 <div className="mt-3">
-                  <div className="small text-muted mb-1">Turn order (shuffles every round):</div>
+                  <div className="small text-muted mb-1">
+                    Turn order (shuffles every round):
+                  </div>
                   <div className="d-flex flex-wrap gap-2">
-                    {orderQueue.slice(turnPtr, turnPtr + players.length).map((n, i) => (
-                      <span key={i} className="badge bg-secondary">{i + 1}. {n}</span>
-                    ))}
+                    {orderQueue
+                      .slice(turnPtr, turnPtr + players.length)
+                      .map((n, i) => (
+                        <span key={i} className="badge bg-secondary">
+                          {i + 1}. {n}
+                        </span>
+                      ))}
                   </div>
                 </div>
               )}
@@ -368,7 +411,8 @@ export default function TeamDistributor() {
                 value={teamType}
                 onChange={(e) => {
                   setTeamType(e.target.value);
-                  setAngle(0); setTargetAngle(0);
+                  setAngle(0);
+                  setTargetAngle(0);
                 }}
               >
                 <option>Weak</option>
@@ -376,7 +420,9 @@ export default function TeamDistributor() {
               </select>
 
               <div className="mt-3">
-                <label className="form-label">Teams (comma or newline separated)</label>
+                <label className="form-label">
+                  Teams (comma or newline separated)
+                </label>
                 <textarea
                   className="form-control bg-dark text-white"
                   rows={8}
@@ -385,8 +431,13 @@ export default function TeamDistributor() {
                   placeholder={`e.g.\nBangladesh, Zimbabwe, Kenya\nor one per line`}
                 />
                 <div className="d-flex gap-2 mt-2">
-                  <button className="btn btn-outline-info btn-sm" onClick={buildPool}>
-                    {teamType === "Weak" ? "Build Weak Wheel" : "Build Strong Wheel"}
+                  <button
+                    className="btn btn-outline-info btn-sm"
+                    onClick={buildPool}
+                  >
+                    {teamType === "Weak"
+                      ? "Build Weak Wheel"
+                      : "Build Strong Wheel"}
                   </button>
                   <span className="text-muted small align-self-center">
                     {currentPool.length} ready
@@ -405,7 +456,9 @@ export default function TeamDistributor() {
               <div className="wheel-wrap my-2">
                 <canvas ref={canvasRef} className="wheel-canvas" />
               </div>
-              <div className="mt-2 small text-muted">{teamsForWheel.length} team(s) on wheel</div>
+              <div className="mt-2 small text-muted">
+                {teamsForWheel.length} team(s) on wheel
+              </div>
 
               <div className="mt-3 text-center">
                 <div className="mb-2">
@@ -418,22 +471,17 @@ export default function TeamDistributor() {
                   className="btn btn-success"
                   onClick={spin}
                   disabled={!canSpin}
-                  title={!currentPlayer ? "Add players first" : teamsForWheel.length === 0 ? "Build wheel first" : ""}
+                  title={
+                    !currentPlayer
+                      ? "Add players first"
+                      : teamsForWheel.length === 0
+                      ? "Build wheel first"
+                      : ""
+                  }
                 >
                   {isSpinning ? "Spinning..." : "Spin"}
                 </button>
               </div>
-
-              {teamType === "Weak" && weakPool.length === 0 && players.length > 0 && (
-                <div className="alert alert-info mt-3 w-100 text-center">
-                  Weak teams done? Switch to <b>Strong</b> and build wheel.
-                </div>
-              )}
-              {allDone && (
-                <div className="alert alert-success mt-3 w-100 text-center">
-                  ✅ All spins complete. Teams allocated successfully.
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -450,7 +498,9 @@ export default function TeamDistributor() {
         <div className="card-body">
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 not-print">
             <h5 className="text-info m-0">Final Allocation</h5>
-            <button className="btn btn-outline-light btn-sm" onClick={downloadPDF}>Download as PDF</button>
+            <button className="btn btn-outline-light btn-sm" onClick={downloadPDF}>
+              Download as PDF
+            </button>
           </div>
 
           <div className="table-responsive mt-3">
@@ -465,7 +515,9 @@ export default function TeamDistributor() {
               <tbody>
                 {playerNames.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="text-center text-secondary">Add players to see allocations.</td>
+                    <td colSpan={3} className="text-center text-secondary">
+                      Add players to see allocations.
+                    </td>
                   </tr>
                 ) : (
                   playerNames.map((p) => (
@@ -478,6 +530,10 @@ export default function TeamDistributor() {
                 )}
               </tbody>
             </table>
+          </div>
+
+          <div className="small text-muted not-print">
+            Order reshuffles every round (e.g., 3 players and 6 teams → 2 rounds).
           </div>
         </div>
       </div>
