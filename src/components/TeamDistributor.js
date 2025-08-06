@@ -1,11 +1,12 @@
 // ✅ src/components/TeamDistributor.js
-// [2025-08-06 rev8 - FULL FILE]
-// - 🔒 Spin snapshot to prevent desync (teams, player, type, winning team)
-// - 🎯 End angle computed to land exactly at the chosen segment center
-// - 🧭 finalizeSpin uses the pre-chosen team from the snapshot (no re-calc)
-// - 🛡️ Ignore edits while spinning; button disabled; pointer/Toast always match
-// - ✅ NEW: input validations (players + teams), equal distribution rule & friendly UX
-// - 📝 All validation additions are marked with // [VALIDATION]
+// [2025-08-06 rev9 - FULL FILE]
+// - Spin snapshot to prevent desync (teams, player, type, winning team)
+// - End angle computed to land exactly at the chosen segment center
+// - finalizeSpin uses the pre-chosen team from the snapshot (no re-calc)
+// - Ignore edits while spinning; button disabled; pointer/Toast always match
+// - ✅ Fair-share rule now checks ONLY at build time; once armed, spins are not blocked
+// - ✅ If players change or phase switches, wheel is "disarmed" and asks to Build again
+// - ✅ Friendly validation for names, duplicates, and guidance messages
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -23,16 +24,15 @@ const shuffle = (arr) => {
   return a;
 };
 
-/* ------------------------ [VALIDATION] helpers ------------------------ */
+/* ------------------------ Validation helpers ------------------------ */
 const sanitize = (s) => (s || "").replace(/\s+/g, " ").trim();
-const isNameOk = (s) => /^[A-Za-z0-9 .'\-]{1,30}$/.test(s);     // players
-const isTeamOk = (s) => /^[A-Za-z0-9 .'\-]{1,30}$/.test(s);     // teams
-/* --------------------------------------------------------------------- */
+const isNameOk = (s) => /^[A-Za-z0-9 .'\-]{1,30}$/.test(s);
+const isTeamOk = (s) => /^[A-Za-z0-9 .'\-]{1,30}$/.test(s);
+/* ------------------------------------------------------------------- */
 
 // Mount a dedicated container and only portal after mount
 function useToastContainer() {
   const [container, setContainer] = useState(null);
-
   useEffect(() => {
     let el = document.getElementById("td-toasts-root");
     if (!el) {
@@ -48,13 +48,12 @@ function useToastContainer() {
     }
     setContainer(el);
   }, []);
-
   return container;
 }
 
 function ToastPortal({ toasts, onClose }) {
   const container = useToastContainer();
-  if (!container) return null; // wait until after mount
+  if (!container) return null;
   return createPortal(
     <div className="td-toasts" role="region" aria-live="polite" aria-atomic="true">
       {toasts.map((t) => (
@@ -77,7 +76,6 @@ function ToastPortal({ toasts, onClose }) {
             </div>
             <div
               className="td-toast-msg"
-              // Supports a bit of <strong> in the message
               dangerouslySetInnerHTML={{ __html: t.message }}
             />
           </div>
@@ -100,6 +98,16 @@ export default function TeamDistributor() {
   const [weakPool, setWeakPool] = useState([]);
   const [strongPool, setStrongPool] = useState([]);
 
+  // 👉 Wheel arming state: fairness is checked at build time only
+  const [wheelGate, setWheelGate] = useState({
+    ok: false,           // true = armed and allowed to spin regardless of remaining count
+    reason: "Click “Build Wheel” to arm equal distribution.",
+    initialTeams: 0,
+    playersAtBuild: 0,
+    typeAtBuild: "Weak",
+    armedAt: 0,          // timestamp for reference
+  });
+
   useEffect(() => {
     const src = teamType === "Weak" ? weakPool : strongPool;
     setTeamNamesRaw(src.join("\n"));
@@ -108,16 +116,38 @@ export default function TeamDistributor() {
   const parseLines = (raw) =>
     raw.split(/[\n,]/g).map((s) => s.trim()).filter(Boolean);
 
-  /* ------------------------ [VALIDATION] buildPool ------------------------
-     - trims, caps length (soft), validates allowed chars
-     - case-insensitive de-dupe
-     - shows friendly toasts when it fixes/ignores items
-  ------------------------------------------------------------------------- */
+  const [toasts, setToasts] = useState([]);
+  const removeToast = (id) =>
+    setToasts((arr) => arr.filter((x) => x.id !== id));
+  const pushToast = (message, type = "success", timeout = 3000) => {
+    const id = Math.random().toString(36).slice(2);
+    setToasts((arr) => [...arr, { id, message, type, visible: false, timeout }]);
+    setTimeout(() => {
+      setToasts((arr) => arr.map((t) => (t.id === id ? { ...t, visible: true } : t)));
+    }, 10);
+    const exitAt = timeout - 350;
+    setTimeout(() => {
+      setToasts((arr) => arr.map((t) => (t.id === id ? { ...t, visible: false } : t)));
+    }, Math.max(600, exitAt));
+    setTimeout(() => removeToast(id), Math.max(900, timeout));
+  };
+  const closeToastNow = (id) => {
+    setToasts((arr) => arr.map((t) => (t.id === id ? { ...t, visible: false } : t)));
+    setTimeout(() => removeToast(id), 320);
+  };
+
+  /* ------------------ Build Wheel + validations (one-time check) ------------------ */
+  const playerNames = useMemo(
+    () => players.map((p) => p.name).filter(Boolean),
+    [players]
+  );
+  const playersCount = playerNames.length;
+
   const buildPool = () => {
     const rawItems = parseLines(teamNamesRaw)
       .map(sanitize)
       .filter(Boolean)
-      .map((t) => t.slice(0, 30)); // soft cap length
+      .map((t) => t.slice(0, 30));
 
     const invalids = rawItems.filter((t) => !isTeamOk(t));
     const valids = rawItems.filter((t) => isTeamOk(t));
@@ -145,7 +175,55 @@ export default function TeamDistributor() {
 
     if (teamType === "Weak") setWeakPool(list);
     else setStrongPool(list);
+
+    // Arm/disarm fairness gate at build time (only if we have players)
+    if (playersCount === 0) {
+      setWheelGate({
+        ok: false,
+        reason: "Add at least one board/player to enable equal distribution.",
+        initialTeams: list.length,
+        playersAtBuild: 0,
+        typeAtBuild: teamType,
+        armedAt: Date.now(),
+      });
+      return;
+    }
+
+    const teamsCount = list.length;
+    const remainder = teamsCount % playersCount;
+
+    if (remainder === 0) {
+      // ✅ Armed: after this point we won't block spins as teams are distributed
+      setWheelGate({
+        ok: true,
+        reason: "",
+        initialTeams: teamsCount,
+        playersAtBuild: playersCount,
+        typeAtBuild: teamType,
+        armedAt: Date.now(),
+      });
+      pushToast(
+        `Wheel armed for fair share: ${teamsCount} team(s) / ${playersCount} board(s).`,
+        "success",
+        2600
+      );
+    } else {
+      const needToAdd = (playersCount - remainder) % playersCount;
+      const canRemove = remainder;
+      const multiplesSample = Array.from({ length: 4 }, (_, i) => playersCount * (i + 1))
+        .slice(0, 4)
+        .join(", ");
+      setWheelGate({
+        ok: false,
+        reason: `To split evenly across ${playersCount} board(s), total teams should be a multiple of ${playersCount} (e.g., ${multiplesSample}). You currently have ${teamsCount}. Add ${needToAdd} more team(s) or remove ${canRemove} to balance evenly.`,
+        initialTeams: teamsCount,
+        playersAtBuild: playersCount,
+        typeAtBuild: teamType,
+        armedAt: Date.now(),
+      });
+    }
   };
+  /* ------------------------------------------------------------------------------- */
 
   // ---------- Spin engine ----------
   const canvasRef = useRef(null);
@@ -154,12 +232,7 @@ export default function TeamDistributor() {
   const [angle, setAngle] = useState(0);
 
   const currentPool = teamType === "Weak" ? weakPool : strongPool;
-  const setCurrentPool = teamType === "Weak" ? setWeakPool : setStrongPool;
 
-  const playerNames = useMemo(
-    () => players.map((p) => p.name).filter(Boolean),
-    [players]
-  );
   const [orderQueue, setOrderQueue] = useState([]);
   const [turnPtr, setTurnPtr] = useState(0);
   const currentPlayer = orderQueue[turnPtr] || "";
@@ -179,6 +252,34 @@ export default function TeamDistributor() {
     setOrderQueue(shuffle(playerNames));
     setTurnPtr(0);
   }, [playerNames.join("|")]);
+
+  // If players change after we armed, require a rebuild to recheck fairness.
+  useEffect(() => {
+    setWheelGate((prev) => {
+      if (!prev.ok && prev.reason) return prev; // already disarmed
+      return {
+        ok: false,
+        reason: "Players changed. Click “Build Wheel” to recheck and arm equal distribution.",
+        initialTeams: prev.initialTeams,
+        playersAtBuild: playersCount,
+        typeAtBuild: teamType,
+        armedAt: prev.armedAt,
+      };
+    });
+  }, [playersCount]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Disarm when switching between Weak/Strong; user must click Build again.
+  useEffect(() => {
+    setWheelGate({
+      ok: false,
+      reason: "Phase changed. Click “Build Wheel” to arm equal distribution.",
+      initialTeams: 0,
+      playersAtBuild: playersCount,
+      typeAtBuild: teamType,
+      armedAt: 0,
+    });
+    setAngle(0);
+  }, [teamType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const teamsForWheel = currentPool.filter(Boolean);
 
@@ -333,30 +434,6 @@ export default function TeamDistributor() {
     ctx.stroke();
   }, [teamsForWheel, angle, teamType]);
 
-  // ---------- Toasts ----------
-  const [toasts, setToasts] = useState([]);
-
-  const removeToast = (id) =>
-    setToasts((arr) => arr.filter((x) => x.id !== id));
-
-  const pushToast = (message, type = "success", timeout = 3000) => {
-    const id = Math.random().toString(36).slice(2);
-    setToasts((arr) => [...arr, { id, message, type, visible: false, timeout }]);
-    setTimeout(() => {
-      setToasts((arr) => arr.map((t) => (t.id === id ? { ...t, visible: true } : t)));
-    }, 10);
-    const exitAt = timeout - 350;
-    setTimeout(() => {
-      setToasts((arr) => arr.map((t) => (t.id === id ? { ...t, visible: false } : t)));
-    }, Math.max(600, exitAt));
-    setTimeout(() => removeToast(id), Math.max(900, timeout));
-  };
-
-  const closeToastNow = (id) => {
-    setToasts((arr) => arr.map((t) => (t.id === id ? { ...t, visible: false } : t)));
-    setTimeout(() => removeToast(id), 320);
-  };
-
   // ---------- Confetti ----------
   const fireConfetti = (x, y) => {
     const canvas = confettiRef.current;
@@ -390,72 +467,19 @@ export default function TeamDistributor() {
     animate();
   };
 
-  // ---------- Spin snapshot (prevents desync) ----------
-  /**
-   * We freeze everything we need at spin start:
-   * - teams list (array snapshot)
-   * - teamType at the time
-   * - currentPlayer at the time
-   * - the selected index & team
-   * - the exact target angle to rotate to (so the pointer lands at the segment center)
-   */
+  // ---------- Spin snapshot ----------
   const spinSnapRef = useRef(null);
 
   // ---------- Spin / Assign ----------
   const [assignments, setAssignments] = useState({ Weak: {}, Strong: {} });
 
-  /* ------------------------ [VALIDATION] distribution rule ------------------------
-     If there are N players and M teams on the current wheel:
-     - require M % N === 0
-     Friendly message suggests add/remove options to reach a multiple of N.
-  ------------------------------------------------------------------------------- */
-  const playersCount = playerNames.length;
-  const teamsCount = teamsForWheel.length;
-
-  const distributionError = useMemo(() => {
-    if (playersCount === 0 || teamsCount === 0) return "";
-    const remainder = teamsCount % playersCount;
-    if (remainder === 0) return "";
-    const needToAdd = (playersCount - remainder) % playersCount; // how many to add
-    const canRemove = remainder;                                  // how many to remove
-    const multiplesSample = Array.from({ length: 4 }, (_, i) => playersCount * (i + 1))
-      .slice(0, 4)
-      .join(", ");
-    const nice = `Fair share check: with ${playersCount} board(s), total teams should be a multiple of ${playersCount} (e.g., ${multiplesSample}). You currently have ${teamsCount}. Add ${needToAdd} more team(s) or remove ${canRemove} to balance evenly.`;
-    return nice;
-  }, [playersCount, teamsCount]);
-
-  /* ------------------------ [VALIDATION] player add flow ------------------------ */
-  const addPlayer = () => {
-    const name = sanitize(playerInput);
-    if (!name) {
-      pushToast("Please enter a board/player name.", "error");
-      return;
-    }
-    if (!isNameOk(name)) {
-      pushToast("Name can use letters, numbers, spaces, . ’ - (max 30 chars).", "error");
-      return;
-    }
-    if (players.find((p) => p.name.toLowerCase() === name.toLowerCase())) {
-      pushToast("That name is already in the list.", "error");
-      return;
-    }
-    setPlayers((prev) => [...prev, { name }]);
-    setPlayerInput("");
-  };
-
-  const removePlayer = (name) =>
-    setPlayers((prev) => prev.filter((p) => p.name !== name));
-
-  /* ------------------------ [VALIDATION] canSpin logic ------------------------ */
   const canSpin =
     teamsForWheel.length > 0 &&
     !isSpinning &&
     !!currentPlayer &&
-    !distributionError;
+    wheelGate.ok; // ✅ check only the build-time gate
 
   const spin = () => {
-    // Friendly pre-checks with clear messages
     if (!currentPlayer) {
       pushToast("Add at least one board/player to start.", "error");
       return;
@@ -464,13 +488,13 @@ export default function TeamDistributor() {
       pushToast("Add team names and click “Build Wheel” first.", "error");
       return;
     }
-    if (distributionError) {
-      pushToast(distributionError, "error", 5200);
+    if (!wheelGate.ok) {
+      pushToast(wheelGate.reason || "Click “Build Wheel” to arm equal distribution.", "error", 5200);
       return;
     }
     if (isSpinning) return;
 
-    // 🔒 Snapshot the wheel and player *now*
+    // Snapshot now
     const teamsSnapshot = [...teamsForWheel];
     const playerSnapshot = currentPlayer;
     const typeSnapshot = teamType;
@@ -478,19 +502,15 @@ export default function TeamDistributor() {
     const n = teamsSnapshot.length;
     const slice = (Math.PI * 2) / n;
 
-    // 🎯 Pre-select the winning index so UI + Toast use the SAME team
     const selectedIndex = Math.floor(Math.random() * n);
     const selectedTeam = teamsSnapshot[selectedIndex];
 
-    // Pointer is at +90deg (Math.PI/2) in canvas space
     const pointerAngle = Math.PI / 2;
     const segmentCenter = selectedIndex * slice + slice / 2;
 
-    // Make several full spins, then align the segment center under the pointer
     const bigSpins = Math.floor(randBetween(3, 6)) * (Math.PI * 2);
     const targetAngle = bigSpins + (pointerAngle - segmentCenter);
 
-    // Save the snapshot to be used in finalizeSpin
     spinSnapRef.current = {
       teamsSnapshot,
       playerSnapshot,
@@ -502,9 +522,8 @@ export default function TeamDistributor() {
 
     setIsSpinning(true);
 
-    // Animate to targetAngle (easeOutCubic style)
     const duration = 2600;
-    const startAngle = angle; // start from the current angle for continuity
+    const startAngle = angle;
     const start = performance.now();
 
     const step = (t) => {
@@ -512,34 +531,29 @@ export default function TeamDistributor() {
       const ease = 1 - Math.pow(1 - p, 3);
       const next = startAngle + (targetAngle - startAngle) * ease;
       setAngle(next);
-      if (p < 1) {
-        requestAnimationFrame(step);
-      } else {
-        // Ensure we land exactly at targetAngle to avoid boundary rounding
+      if (p < 1) requestAnimationFrame(step);
+      else {
         setAngle(targetAngle);
         setIsSpinning(false);
-        finalizeSpin(); // uses the frozen snapshot
+        finalizeSpin();
       }
     };
     requestAnimationFrame(step);
   };
 
   const finalizeSpin = () => {
-    // 🧷 Always read from the frozen snapshot
     const snap = spinSnapRef.current;
     if (!snap) return;
 
     const { playerSnapshot, typeSnapshot, selectedTeam } = snap;
     if (!selectedTeam) return;
 
-    // ✅ Record assignment using the type at spin time
     setAssignments((prev) => {
       const bucket = prev[typeSnapshot] || {};
       const list = bucket[playerSnapshot] ? [...bucket[playerSnapshot], selectedTeam] : [selectedTeam];
       return { ...prev, [typeSnapshot]: { ...bucket, [playerSnapshot]: list } };
     });
 
-    // ✅ Remove team from the correct pool *based on the snapshot*
     if (typeSnapshot === "Weak") {
       setWeakPool((prev) => {
         const i = prev.indexOf(selectedTeam);
@@ -552,17 +566,14 @@ export default function TeamDistributor() {
       });
     }
 
-    // Advance turn AFTER we record the assignment and update pools
     setTurnPtr((prev) => prev + 1);
 
-    // 🎉 Celebrate (Toast + confetti) — using the same selected team & player snapshot
     pushToast(`<strong>${selectedTeam}</strong> goes to <strong>${playerSnapshot}</strong>. Nice pick!`);
     const r = WHEEL_SIZE / 2 - WHEEL_MARGIN;
     const tipX = WHEEL_SIZE / 2;
     const tipY = WHEEL_SIZE / 2 + r - 6;
     fireConfetti(tipX, tipY);
 
-    // Clear snapshot
     spinSnapRef.current = null;
   };
 
@@ -594,7 +605,7 @@ export default function TeamDistributor() {
                   value={playerInput}
                   onChange={(e) => setPlayerInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addPlayer()}
-                  disabled={isSpinning} /* [VALIDATION] prevent edits mid-spin */
+                  disabled={isSpinning}
                 />
                 <button className="btn btn-outline-light" onClick={addPlayer} disabled={isSpinning}>
                   Add
@@ -610,8 +621,8 @@ export default function TeamDistributor() {
                     {p.name}
                     <button
                       className="btn btn-sm btn-outline-danger"
-                      onClick={() => removePlayer(p.name)}
-                      disabled={isSpinning} /* [VALIDATION] */
+                      onClick={() => setPlayers((prev) => prev.filter((x) => x.name !== p.name))}
+                      disabled={isSpinning}
                     >
                       Remove
                     </button>
@@ -655,11 +666,10 @@ export default function TeamDistributor() {
                 className="form-select bg-dark text-white"
                 value={teamType}
                 onChange={(e) => {
-                  if (isSpinning) return; // [VALIDATION] ignore while spinning (prevents snapshot/type mismatch)
+                  if (isSpinning) return;
                   setTeamType(e.target.value);
-                  setAngle(0);
                 }}
-                disabled={isSpinning} /* [VALIDATION] lock during spin */
+                disabled={isSpinning}
               >
                 <option>Weak</option>
                 <option>Strong</option>
@@ -675,20 +685,20 @@ export default function TeamDistributor() {
                   value={teamNamesRaw}
                   onChange={(e) => setTeamNamesRaw(e.target.value)}
                   placeholder={`e.g.\nBangladesh, Zimbabwe, Kenya\nor one per line`}
-                  disabled={isSpinning} /* [VALIDATION] */
+                  disabled={isSpinning}
                 />
                 <div className="d-flex gap-2 mt-2">
                   <button
                     className="btn btn-outline-info btn-sm"
                     onClick={buildPool}
-                    disabled={isSpinning} /* [VALIDATION] */
+                    disabled={isSpinning}
                   >
                     {teamType === "Weak"
                       ? "Build Weak Wheel"
                       : "Build Strong Wheel"}
                   </button>
                   <span className="text-muted small align-self-center">
-                    {currentPool.length} ready
+                    {(teamType === "Weak" ? weakPool : strongPool).length} ready
                   </span>
                 </div>
               </div>
@@ -703,15 +713,14 @@ export default function TeamDistributor() {
               <h5 className="text-info">Wheel</h5>
               <div className="wheel-wrap my-2">
                 <canvas ref={canvasRef} className="wheel-canvas" />
-                {/* Confetti overlay (no pointer events) */}
                 <canvas ref={confettiRef} className="confetti-canvas" />
               </div>
 
               <div className="mt-2 small text-muted">
                 {teamsForWheel.length} team(s) on wheel
-                {/* [VALIDATION] show friendly, actionable distribution message */}
-                {!!distributionError && (
-                  <div className="text-warning mt-1">{distributionError}</div>
+                {/* Friendly, actionable message BEFORE spin; hidden after arming */}
+                {!wheelGate.ok && wheelGate.reason && (
+                  <div className="text-warning mt-1">{wheelGate.reason}</div>
                 )}
               </div>
 
@@ -731,7 +740,9 @@ export default function TeamDistributor() {
                       ? "Add at least one board/player."
                       : teamsForWheel.length === 0
                       ? "Add team names then click “Build Wheel”."
-                      : distributionError || ""
+                      : !wheelGate.ok
+                      ? wheelGate.reason
+                      : ""
                   }
                 >
                   {isSpinning ? "Spinning..." : "Spin"}
@@ -797,4 +808,23 @@ export default function TeamDistributor() {
       <ToastPortal toasts={toasts} onClose={closeToastNow} />
     </div>
   );
+
+  // ---------- Local helpers ----------
+  function addPlayer() {
+    const name = sanitize(playerInput);
+    if (!name) {
+      pushToast("Please enter a board/player name.", "error");
+      return;
+    }
+    if (!isNameOk(name)) {
+      pushToast("Name can use letters, numbers, spaces, . ’ - (max 30 chars).", "error");
+      return;
+    }
+    if (players.find((p) => p.name.toLowerCase() === name.toLowerCase())) {
+      pushToast("That name is already in the list.", "error");
+      return;
+    }
+    setPlayers((prev) => [...prev, { name }]);
+    setPlayerInput("");
+  }
 }
