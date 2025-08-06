@@ -1,10 +1,11 @@
 // ✅ src/components/TeamDistributor.js
-// [2025-08-06 rev7 - FULL FILE]
+// [2025-08-06 rev8 - FULL FILE]
 // - 🔒 Spin snapshot to prevent desync (teams, player, type, winning team)
 // - 🎯 End angle computed to land exactly at the chosen segment center
 // - 🧭 finalizeSpin uses the pre-chosen team from the snapshot (no re-calc)
 // - 🛡️ Ignore edits while spinning; button disabled; pointer/Toast always match
-// - Same UI/CSS hooks as before (works with your updated CSS)
+// - ✅ NEW: input validations (players + teams), equal distribution rule & friendly UX
+// - 📝 All validation additions are marked with // [VALIDATION]
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -21,6 +22,12 @@ const shuffle = (arr) => {
   }
   return a;
 };
+
+/* ------------------------ [VALIDATION] helpers ------------------------ */
+const sanitize = (s) => (s || "").replace(/\s+/g, " ").trim();
+const isNameOk = (s) => /^[A-Za-z0-9 .'\-]{1,30}$/.test(s);     // players
+const isTeamOk = (s) => /^[A-Za-z0-9 .'\-]{1,30}$/.test(s);     // teams
+/* --------------------------------------------------------------------- */
 
 // Mount a dedicated container and only portal after mount
 function useToastContainer() {
@@ -63,12 +70,14 @@ function ToastPortal({ toasts, onClose }) {
           >
             ×
           </button>
-          <div className="td-toast-icon">✅</div>
+          <div className="td-toast-icon">{t.type === "error" ? "⚠️" : "✅"}</div>
           <div className="td-toast-body">
-            <div className="td-toast-title">Assigned!</div>
+            <div className="td-toast-title">
+              {t.type === "error" ? "Heads up" : "Assigned!"}
+            </div>
             <div
               className="td-toast-msg"
-              // (kept) Supports a bit of <strong> in the message
+              // Supports a bit of <strong> in the message
               dangerouslySetInnerHTML={{ __html: t.message }}
             />
           </div>
@@ -99,8 +108,41 @@ export default function TeamDistributor() {
   const parseLines = (raw) =>
     raw.split(/[\n,]/g).map((s) => s.trim()).filter(Boolean);
 
+  /* ------------------------ [VALIDATION] buildPool ------------------------
+     - trims, caps length (soft), validates allowed chars
+     - case-insensitive de-dupe
+     - shows friendly toasts when it fixes/ignores items
+  ------------------------------------------------------------------------- */
   const buildPool = () => {
-    const list = [...new Set(parseLines(teamNamesRaw))];
+    const rawItems = parseLines(teamNamesRaw)
+      .map(sanitize)
+      .filter(Boolean)
+      .map((t) => t.slice(0, 30)); // soft cap length
+
+    const invalids = rawItems.filter((t) => !isTeamOk(t));
+    const valids = rawItems.filter((t) => isTeamOk(t));
+
+    // case-insensitive dedupe
+    const seen = new Set();
+    const list = valids.filter((t) => {
+      const key = t.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    if (invalids.length > 0) {
+      pushToast(
+        `Skipped ${invalids.length} team name(s). Use letters, numbers, spaces, . ’ - (max 30 chars).`,
+        "error",
+        4200
+      );
+    }
+    const removedDupes = valids.length - list.length;
+    if (removedDupes > 0) {
+      pushToast(`Removed ${removedDupes} duplicate team name(s).`, "error", 3000);
+    }
+
     if (teamType === "Weak") setWeakPool(list);
     else setStrongPool(list);
   };
@@ -350,7 +392,7 @@ export default function TeamDistributor() {
 
   // ---------- Spin snapshot (prevents desync) ----------
   /**
-   * CHANGED: we freeze everything we need at spin start:
+   * We freeze everything we need at spin start:
    * - teams list (array snapshot)
    * - teamType at the time
    * - currentPlayer at the time
@@ -362,8 +404,71 @@ export default function TeamDistributor() {
   // ---------- Spin / Assign ----------
   const [assignments, setAssignments] = useState({ Weak: {}, Strong: {} });
 
+  /* ------------------------ [VALIDATION] distribution rule ------------------------
+     If there are N players and M teams on the current wheel:
+     - require M % N === 0
+     Friendly message suggests add/remove options to reach a multiple of N.
+  ------------------------------------------------------------------------------- */
+  const playersCount = playerNames.length;
+  const teamsCount = teamsForWheel.length;
+
+  const distributionError = useMemo(() => {
+    if (playersCount === 0 || teamsCount === 0) return "";
+    const remainder = teamsCount % playersCount;
+    if (remainder === 0) return "";
+    const needToAdd = (playersCount - remainder) % playersCount; // how many to add
+    const canRemove = remainder;                                  // how many to remove
+    const multiplesSample = Array.from({ length: 4 }, (_, i) => playersCount * (i + 1))
+      .slice(0, 4)
+      .join(", ");
+    const nice = `Fair share check: with ${playersCount} board(s), total teams should be a multiple of ${playersCount} (e.g., ${multiplesSample}). You currently have ${teamsCount}. Add ${needToAdd} more team(s) or remove ${canRemove} to balance evenly.`;
+    return nice;
+  }, [playersCount, teamsCount]);
+
+  /* ------------------------ [VALIDATION] player add flow ------------------------ */
+  const addPlayer = () => {
+    const name = sanitize(playerInput);
+    if (!name) {
+      pushToast("Please enter a board/player name.", "error");
+      return;
+    }
+    if (!isNameOk(name)) {
+      pushToast("Name can use letters, numbers, spaces, . ’ - (max 30 chars).", "error");
+      return;
+    }
+    if (players.find((p) => p.name.toLowerCase() === name.toLowerCase())) {
+      pushToast("That name is already in the list.", "error");
+      return;
+    }
+    setPlayers((prev) => [...prev, { name }]);
+    setPlayerInput("");
+  };
+
+  const removePlayer = (name) =>
+    setPlayers((prev) => prev.filter((p) => p.name !== name));
+
+  /* ------------------------ [VALIDATION] canSpin logic ------------------------ */
+  const canSpin =
+    teamsForWheel.length > 0 &&
+    !isSpinning &&
+    !!currentPlayer &&
+    !distributionError;
+
   const spin = () => {
-    if (isSpinning || teamsForWheel.length === 0 || !currentPlayer) return;
+    // Friendly pre-checks with clear messages
+    if (!currentPlayer) {
+      pushToast("Add at least one board/player to start.", "error");
+      return;
+    }
+    if (teamsForWheel.length === 0) {
+      pushToast("Add team names and click “Build Wheel” first.", "error");
+      return;
+    }
+    if (distributionError) {
+      pushToast(distributionError, "error", 5200);
+      return;
+    }
+    if (isSpinning) return;
 
     // 🔒 Snapshot the wheel and player *now*
     const teamsSnapshot = [...teamsForWheel];
@@ -424,7 +529,7 @@ export default function TeamDistributor() {
     const snap = spinSnapRef.current;
     if (!snap) return;
 
-    const { teamsSnapshot, playerSnapshot, typeSnapshot, selectedTeam } = snap;
+    const { playerSnapshot, typeSnapshot, selectedTeam } = snap;
     if (!selectedTeam) return;
 
     // ✅ Record assignment using the type at spin time
@@ -451,8 +556,7 @@ export default function TeamDistributor() {
     setTurnPtr((prev) => prev + 1);
 
     // 🎉 Celebrate (Toast + confetti) — using the same selected team & player snapshot
-    pushToast(`<strong>${selectedTeam}</strong> assigned to <strong>${playerSnapshot}</strong>`, "success");
-
+    pushToast(`<strong>${selectedTeam}</strong> goes to <strong>${playerSnapshot}</strong>. Nice pick!`);
     const r = WHEEL_SIZE / 2 - WHEEL_MARGIN;
     const tipX = WHEEL_SIZE / 2;
     const tipY = WHEEL_SIZE / 2 + r - 6;
@@ -462,17 +566,7 @@ export default function TeamDistributor() {
     spinSnapRef.current = null;
   };
 
-  // ---------- Helpers ----------
-  const addPlayer = () => {
-    const name = (playerInput || "").trim();
-    if (!name) return;
-    if (players.find((p) => p.name.toLowerCase() === name.toLowerCase())) return;
-    setPlayers((prev) => [...prev, { name }]);
-    setPlayerInput("");
-  };
-  const removePlayer = (name) =>
-    setPlayers((prev) => prev.filter((p) => p.name !== name));
-  const canSpin = teamsForWheel.length > 0 && !isSpinning && currentPlayer;
+  // ---------- UI helpers ----------
   const downloadPDF = () => window.print();
 
   return (
@@ -500,7 +594,7 @@ export default function TeamDistributor() {
                   value={playerInput}
                   onChange={(e) => setPlayerInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addPlayer()}
-                  disabled={isSpinning} /* CHANGED: prevent edits mid-spin (optional) */
+                  disabled={isSpinning} /* [VALIDATION] prevent edits mid-spin */
                 />
                 <button className="btn btn-outline-light" onClick={addPlayer} disabled={isSpinning}>
                   Add
@@ -517,7 +611,7 @@ export default function TeamDistributor() {
                     <button
                       className="btn btn-sm btn-outline-danger"
                       onClick={() => removePlayer(p.name)}
-                      disabled={isSpinning} /* CHANGED */
+                      disabled={isSpinning} /* [VALIDATION] */
                     >
                       Remove
                     </button>
@@ -561,10 +655,11 @@ export default function TeamDistributor() {
                 className="form-select bg-dark text-white"
                 value={teamType}
                 onChange={(e) => {
-                  if (isSpinning) return; // CHANGED: ignore while spinning (prevents snapshot/type mismatch)
+                  if (isSpinning) return; // [VALIDATION] ignore while spinning (prevents snapshot/type mismatch)
                   setTeamType(e.target.value);
                   setAngle(0);
                 }}
+                disabled={isSpinning} /* [VALIDATION] lock during spin */
               >
                 <option>Weak</option>
                 <option>Strong</option>
@@ -580,13 +675,13 @@ export default function TeamDistributor() {
                   value={teamNamesRaw}
                   onChange={(e) => setTeamNamesRaw(e.target.value)}
                   placeholder={`e.g.\nBangladesh, Zimbabwe, Kenya\nor one per line`}
-                  disabled={isSpinning} /* CHANGED */
+                  disabled={isSpinning} /* [VALIDATION] */
                 />
                 <div className="d-flex gap-2 mt-2">
                   <button
                     className="btn btn-outline-info btn-sm"
                     onClick={buildPool}
-                    disabled={isSpinning} /* CHANGED */
+                    disabled={isSpinning} /* [VALIDATION] */
                   >
                     {teamType === "Weak"
                       ? "Build Weak Wheel"
@@ -611,8 +706,13 @@ export default function TeamDistributor() {
                 {/* Confetti overlay (no pointer events) */}
                 <canvas ref={confettiRef} className="confetti-canvas" />
               </div>
+
               <div className="mt-2 small text-muted">
                 {teamsForWheel.length} team(s) on wheel
+                {/* [VALIDATION] show friendly, actionable distribution message */}
+                {!!distributionError && (
+                  <div className="text-warning mt-1">{distributionError}</div>
+                )}
               </div>
 
               <div className="mt-3 text-center">
@@ -628,10 +728,10 @@ export default function TeamDistributor() {
                   disabled={!canSpin}
                   title={
                     !currentPlayer
-                      ? "Add players first"
+                      ? "Add at least one board/player."
                       : teamsForWheel.length === 0
-                      ? "Build wheel first"
-                      : ""
+                      ? "Add team names then click “Build Wheel”."
+                      : distributionError || ""
                   }
                 >
                   {isSpinning ? "Spinning..." : "Spin"}
