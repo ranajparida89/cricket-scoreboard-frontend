@@ -1,8 +1,10 @@
 // ✅ src/components/TeamDistributor.js
-// [2025-08-05 rev6 - FULL FILE]
-// - Animated Toast (pop-in/out, icon, progress, close)
-// - Robust show/hide lifecycle using `visible` flag
-// - Same wheel/confetti logic as rev5
+// [2025-08-06 rev7 - FULL FILE]
+// - 🔒 Spin snapshot to prevent desync (teams, player, type, winning team)
+// - 🎯 End angle computed to land exactly at the chosen segment center
+// - 🧭 finalizeSpin uses the pre-chosen team from the snapshot (no re-calc)
+// - 🛡️ Ignore edits while spinning; button disabled; pointer/Toast always match
+// - Same UI/CSS hooks as before (works with your updated CSS)
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -38,10 +40,6 @@ function useToastContainer() {
       document.body.appendChild(el);
     }
     setContainer(el);
-    return () => {
-      // If you want to remove on unmount, uncomment:
-      // document.body.removeChild(el);
-    };
   }, []);
 
   return container;
@@ -70,7 +68,7 @@ function ToastPortal({ toasts, onClose }) {
             <div className="td-toast-title">Assigned!</div>
             <div
               className="td-toast-msg"
-              // You can switch to plain text if you prefer (and remove dangerouslySetInnerHTML)
+              // (kept) Supports a bit of <strong> in the message
               dangerouslySetInnerHTML={{ __html: t.message }}
             />
           </div>
@@ -112,7 +110,6 @@ export default function TeamDistributor() {
   const confettiRef = useRef(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [angle, setAngle] = useState(0);
-  const [targetAngle, setTargetAngle] = useState(0);
 
   const currentPool = teamType === "Weak" ? weakPool : strongPool;
   const setCurrentPool = teamType === "Weak" ? setWeakPool : setStrongPool;
@@ -271,6 +268,7 @@ export default function TeamDistributor() {
     ctx.lineWidth = 2;
     ctx.stroke();
 
+    // Pointer
     const tipY = cy + r - 6;
     const baseY = tipY + 24;
     ctx.fillStyle = "#ffc107";
@@ -301,21 +299,14 @@ export default function TeamDistributor() {
 
   const pushToast = (message, type = "success", timeout = 3000) => {
     const id = Math.random().toString(36).slice(2);
-    // Insert hidden
     setToasts((arr) => [...arr, { id, message, type, visible: false, timeout }]);
-
-    // Make it visible on next tick for enter animation
     setTimeout(() => {
       setToasts((arr) => arr.map((t) => (t.id === id ? { ...t, visible: true } : t)));
     }, 10);
-
-    // Start exit slightly before removal so CSS can animate
     const exitAt = timeout - 350;
     setTimeout(() => {
       setToasts((arr) => arr.map((t) => (t.id === id ? { ...t, visible: false } : t)));
     }, Math.max(600, exitAt));
-
-    // Remove after timeout
     setTimeout(() => removeToast(id), Math.max(900, timeout));
   };
 
@@ -357,71 +348,118 @@ export default function TeamDistributor() {
     animate();
   };
 
+  // ---------- Spin snapshot (prevents desync) ----------
+  /**
+   * CHANGED: we freeze everything we need at spin start:
+   * - teams list (array snapshot)
+   * - teamType at the time
+   * - currentPlayer at the time
+   * - the selected index & team
+   * - the exact target angle to rotate to (so the pointer lands at the segment center)
+   */
+  const spinSnapRef = useRef(null);
+
   // ---------- Spin / Assign ----------
   const [assignments, setAssignments] = useState({ Weak: {}, Strong: {} });
 
   const spin = () => {
     if (isSpinning || teamsForWheel.length === 0 || !currentPlayer) return;
 
-    const n = teamsForWheel.length;
-    const selectedIndex = Math.floor(Math.random() * n);
+    // 🔒 Snapshot the wheel and player *now*
+    const teamsSnapshot = [...teamsForWheel];
+    const playerSnapshot = currentPlayer;
+    const typeSnapshot = teamType;
+
+    const n = teamsSnapshot.length;
     const slice = (Math.PI * 2) / n;
 
+    // 🎯 Pre-select the winning index so UI + Toast use the SAME team
+    const selectedIndex = Math.floor(Math.random() * n);
+    const selectedTeam = teamsSnapshot[selectedIndex];
+
+    // Pointer is at +90deg (Math.PI/2) in canvas space
     const pointerAngle = Math.PI / 2;
     const segmentCenter = selectedIndex * slice + slice / 2;
 
+    // Make several full spins, then align the segment center under the pointer
     const bigSpins = Math.floor(randBetween(3, 6)) * (Math.PI * 2);
-    const endAngle = bigSpins + (pointerAngle - segmentCenter);
+    const targetAngle = bigSpins + (pointerAngle - segmentCenter);
 
-    setTargetAngle(endAngle);
+    // Save the snapshot to be used in finalizeSpin
+    spinSnapRef.current = {
+      teamsSnapshot,
+      playerSnapshot,
+      typeSnapshot,
+      selectedIndex,
+      selectedTeam,
+      targetAngle
+    };
+
     setIsSpinning(true);
 
+    // Animate to targetAngle (easeOutCubic style)
     const duration = 2600;
+    const startAngle = angle; // start from the current angle for continuity
     const start = performance.now();
+
     const step = (t) => {
       const p = Math.min(1, (t - start) / duration);
       const ease = 1 - Math.pow(1 - p, 3);
-      setAngle((prev) => prev + (endAngle - prev) * ease);
-      if (p < 1) requestAnimationFrame(step);
-      else {
+      const next = startAngle + (targetAngle - startAngle) * ease;
+      setAngle(next);
+      if (p < 1) {
+        requestAnimationFrame(step);
+      } else {
+        // Ensure we land exactly at targetAngle to avoid boundary rounding
+        setAngle(targetAngle);
         setIsSpinning(false);
-        finalizeSpin();
+        finalizeSpin(); // uses the frozen snapshot
       }
     };
     requestAnimationFrame(step);
   };
 
   const finalizeSpin = () => {
-    if (teamsForWheel.length === 0) return;
-    const n = teamsForWheel.length;
-    const slice = (Math.PI * 2) / n;
+    // 🧷 Always read from the frozen snapshot
+    const snap = spinSnapRef.current;
+    if (!snap) return;
 
-    const pointerAngle = Math.PI / 2;
-    const normalized =
-      ((pointerAngle - angle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
-    const index = Math.floor(normalized / slice);
-    const team = teamsForWheel[index];
+    const { teamsSnapshot, playerSnapshot, typeSnapshot, selectedTeam } = snap;
+    if (!selectedTeam) return;
 
-    const p = currentPlayer || "Unknown";
+    // ✅ Record assignment using the type at spin time
     setAssignments((prev) => {
-      const bucket = prev[teamType] || {};
-      const list = bucket[p] ? [...bucket[p], team] : [team];
-      return { ...prev, [teamType]: { ...bucket, [p]: list } };
+      const bucket = prev[typeSnapshot] || {};
+      const list = bucket[playerSnapshot] ? [...bucket[playerSnapshot], selectedTeam] : [selectedTeam];
+      return { ...prev, [typeSnapshot]: { ...bucket, [playerSnapshot]: list } };
     });
 
-    setCurrentPool((prev) => {
-      const i = prev.indexOf(team);
-      return i === -1 ? prev : prev.slice(0, i).concat(prev.slice(i + 1));
-    });
+    // ✅ Remove team from the correct pool *based on the snapshot*
+    if (typeSnapshot === "Weak") {
+      setWeakPool((prev) => {
+        const i = prev.indexOf(selectedTeam);
+        return i === -1 ? prev : prev.slice(0, i).concat(prev.slice(i + 1));
+      });
+    } else {
+      setStrongPool((prev) => {
+        const i = prev.indexOf(selectedTeam);
+        return i === -1 ? prev : prev.slice(0, i).concat(prev.slice(i + 1));
+      });
+    }
 
+    // Advance turn AFTER we record the assignment and update pools
     setTurnPtr((prev) => prev + 1);
 
-    // Celebrate the assignment (HTML for bold labels)
-    pushToast(`<strong>${team}</strong> assigned to <strong>${p}</strong>`, "success");
+    // 🎉 Celebrate (Toast + confetti) — using the same selected team & player snapshot
+    pushToast(`<strong>${selectedTeam}</strong> assigned to <strong>${playerSnapshot}</strong>`, "success");
+
     const r = WHEEL_SIZE / 2 - WHEEL_MARGIN;
     const tipX = WHEEL_SIZE / 2;
     const tipY = WHEEL_SIZE / 2 + r - 6;
     fireConfetti(tipX, tipY);
+
+    // Clear snapshot
+    spinSnapRef.current = null;
   };
 
   // ---------- Helpers ----------
@@ -462,8 +500,9 @@ export default function TeamDistributor() {
                   value={playerInput}
                   onChange={(e) => setPlayerInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addPlayer()}
+                  disabled={isSpinning} /* CHANGED: prevent edits mid-spin (optional) */
                 />
-                <button className="btn btn-outline-light" onClick={addPlayer}>
+                <button className="btn btn-outline-light" onClick={addPlayer} disabled={isSpinning}>
                   Add
                 </button>
               </div>
@@ -478,6 +517,7 @@ export default function TeamDistributor() {
                     <button
                       className="btn btn-sm btn-outline-danger"
                       onClick={() => removePlayer(p.name)}
+                      disabled={isSpinning} /* CHANGED */
                     >
                       Remove
                     </button>
@@ -521,9 +561,9 @@ export default function TeamDistributor() {
                 className="form-select bg-dark text-white"
                 value={teamType}
                 onChange={(e) => {
+                  if (isSpinning) return; // CHANGED: ignore while spinning (prevents snapshot/type mismatch)
                   setTeamType(e.target.value);
                   setAngle(0);
-                  setTargetAngle(0);
                 }}
               >
                 <option>Weak</option>
@@ -540,11 +580,13 @@ export default function TeamDistributor() {
                   value={teamNamesRaw}
                   onChange={(e) => setTeamNamesRaw(e.target.value)}
                   placeholder={`e.g.\nBangladesh, Zimbabwe, Kenya\nor one per line`}
+                  disabled={isSpinning} /* CHANGED */
                 />
                 <div className="d-flex gap-2 mt-2">
                   <button
                     className="btn btn-outline-info btn-sm"
                     onClick={buildPool}
+                    disabled={isSpinning} /* CHANGED */
                   >
                     {teamType === "Weak"
                       ? "Build Weak Wheel"
@@ -651,7 +693,7 @@ export default function TeamDistributor() {
         </div>
       </div>
 
-      {/* Toasts via Portal (fixed, top-right, always on top) */}
+      {/* Toasts via Portal */}
       <ToastPortal toasts={toasts} onClose={closeToastNow} />
     </div>
   );
