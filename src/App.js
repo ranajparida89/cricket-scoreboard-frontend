@@ -56,6 +56,8 @@ import SchedulerPage from "./components/SchedulerPage";
 import "bootstrap/dist/css/bootstrap.min.css";
 import TeamDistributor from "./components/TeamDistributor";
 import AllBoardsView from "./components/AllBoardsView"; // ✅ Board Registration View
+import BoardRegistrationForm from "./components/BoardRegistrationForm";
+
 
 
 
@@ -253,6 +255,18 @@ useEffect(() => {
     </ProtectedRoute>
   }
 />
+
+<Route
+  path="/register-board"
+  element={
+    <ProtectedRoute>
+      <PageWrapper>
+        <BoardRegistrationForm />
+      </PageWrapper>
+    </ProtectedRoute>
+  }
+/>
+
 
 
         <Route

@@ -82,6 +82,14 @@ const SidebarMenu = () => {
 </li>
 
 <li>
+  <Link to="/register-board" onClick={handleClose}>
+    <span role="img" aria-label="form" style={{ marginRight: 6 }}>📝</span>
+    Register New Board
+  </Link>
+</li>
+
+
+<li>
   <Link to="/gallery" onClick={handleClose}>
     <span role="img" aria-label="gallery" style={{ marginRight: 6 }}>🖼️</span>
     Gallery
