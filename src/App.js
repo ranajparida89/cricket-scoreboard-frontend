@@ -1,6 +1,7 @@
 import './App.css';
 import React, { useState, useEffect } from "react"; // ✅ FIXED: Added useEffect
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import AppNavbar from "./components/Navbar";
 import MatchForm from "./components/MatchForm";
 import Leaderboard from "./components/Leaderboard";
@@ -57,11 +58,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import TeamDistributor from "./components/TeamDistributor";
 import AllBoardsView from "./components/AllBoardsView"; // ✅ Board Registration View
 import BoardRegistrationForm from "./components/BoardRegistrationForm";
-
-
-
-
-
 
 
 // ✅ Homepage = Match Summary (ODI + T20) + Leaderboard (Restricted for guests)
@@ -256,6 +252,9 @@ useEffect(() => {
   }
 />
 
+{/* Alias so old /create-board links still work */}
+<Route path="/create-board" element={<Navigate to="/register-board" replace />} />
+
 <Route
   path="/register-board"
   element={
@@ -266,6 +265,7 @@ useEffect(() => {
     </ProtectedRoute>
   }
 />
+
 
 
 
