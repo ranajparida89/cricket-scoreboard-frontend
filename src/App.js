@@ -55,6 +55,9 @@ import SchedulerPage from "./components/SchedulerPage";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import TeamDistributor from "./components/TeamDistributor";
+import AllBoardsView from "./components/AllBoardsView"; // ✅ Board Registration View
+
+
 
 
 
@@ -239,6 +242,18 @@ useEffect(() => {
     </ProtectedRoute>
   }
 />
+
+<Route
+  path="/all-boards"
+  element={
+    <ProtectedRoute>
+      <PageWrapper>
+        <AllBoardsView />
+      </PageWrapper>
+    </ProtectedRoute>
+  }
+/>
+
 
         <Route
           path="/teams"
