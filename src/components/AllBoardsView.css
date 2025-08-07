@@ -1,5 +1,4 @@
-/* src/components/AllBoardsView.css */
-
+/* Container styling */
 .boards-container {
   padding: 2rem;
   background-color: #0d1117;
@@ -9,6 +8,7 @@
   animation: fadeIn 0.8s ease-in-out;
 }
 
+/* Title */
 .boards-title {
   text-align: center;
   font-size: 2.2rem;
@@ -17,6 +17,7 @@
   color: #58a6ff;
 }
 
+/* Board cards grid layout */
 .board-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -24,6 +25,7 @@
   padding: 1rem;
 }
 
+/* Card design */
 .board-card {
   background: linear-gradient(145deg, #161b22, #1f2630);
   border: 1px solid #30363d;
@@ -31,24 +33,30 @@
   padding: 1.5rem;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
 }
 
+/* Hover effect */
 .board-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 30px rgba(88, 166, 255, 0.3);
 }
 
+/* Editable header and labels */
 .board-card h2 {
   color: #58a6ff;
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
+  outline: none;
 }
 
 .board-card p {
   margin: 5px 0;
   font-size: 0.95rem;
+  outline: none;
 }
 
+/* Team list style */
 .team-list {
   margin-top: 10px;
   display: flex;
@@ -56,6 +64,7 @@
   gap: 8px;
 }
 
+/* Team chip with delete button */
 .team-chip {
   background-color: #21262d;
   border: 1px solid #30363d;
@@ -64,6 +73,8 @@
   font-size: 0.85rem;
   color: #c9d1d9;
   transition: background-color 0.2s ease;
+  position: relative;
+  padding-right: 26px;
 }
 
 .team-chip:hover {
@@ -71,6 +82,39 @@
   color: #0d1117;
 }
 
+/* Remove team ❌ button */
+.remove-btn {
+  position: absolute;
+  right: 6px;
+  top: 5px;
+  background: none;
+  border: none;
+  color: #ff4d4d;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Delete board button */
+.delete-board-btn {
+  margin-top: 12px;
+  background-color: #ff4d4d;
+  border: none;
+  padding: 8px 14px;
+  color: white;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: block;
+  width: 100%;
+}
+
+.delete-board-btn:hover {
+  background-color: #ff1a1a;
+}
+
+/* Lottie wrappers */
 .lottie-wrapper {
   text-align: center;
   margin: 2rem 0;
@@ -82,6 +126,7 @@
   margin-top: 0.5rem;
 }
 
+/* Animation for initial load */
 @keyframes fadeIn {
   from {
     opacity: 0;

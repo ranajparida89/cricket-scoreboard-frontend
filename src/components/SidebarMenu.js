@@ -76,18 +76,19 @@ const SidebarMenu = () => {
 
 <li>
   <Link to="/all-boards" onClick={handleClose}>
-    <span role="img" aria-label="board" style={{ marginRight: 6 }}>📋</span>
-    Board Registration
+    <span role="img" aria-label="view" style={{ marginRight: 6 }}>📋</span>
+    View Boards & Teams
   </Link>
 </li>
 
-<li>
-  <Link to="/register-board" onClick={handleClose}>
-    <span role="img" aria-label="form" style={{ marginRight: 6 }}>📝</span>
-    Register New Board
-  </Link>
-</li>
-
+{user?.role === "admin" && (
+  <li>
+    <Link to="/create-board" onClick={handleClose}>
+      <span role="img" aria-label="create" style={{ marginRight: 6 }}>➕</span>
+      Create New Board
+    </Link>
+  </li>
+)}
 
 <li>
   <Link to="/gallery" onClick={handleClose}>
