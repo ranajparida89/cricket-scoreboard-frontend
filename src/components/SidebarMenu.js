@@ -81,14 +81,14 @@ const SidebarMenu = () => {
   </Link>
 </li>
 
-{user?.role === "admin" && (
+{isAdmin || localStorage.getItem("token") ? (
   <li>
     <Link to="/create-board" onClick={handleClose}>
       <span role="img" aria-label="create" style={{ marginRight: 6 }}>➕</span>
       Create New Board
     </Link>
   </li>
-)}
+) : null}
 
 <li>
   <Link to="/gallery" onClick={handleClose}>
