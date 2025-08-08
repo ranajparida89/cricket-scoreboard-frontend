@@ -58,6 +58,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import TeamDistributor from "./components/TeamDistributor";
 import AllBoardsView from "./components/AllBoardsView"; // ✅ Board Registration View
 import BoardRegistrationForm from "./components/BoardRegistrationForm";
+import BoardAnalyticsPro from "./components/BoardAnalyticsPro"; // 🔥 Pro Board Analytics UI
 
 
 // ✅ Homepage = Match Summary (ODI + T20) + Leaderboard (Restricted for guests)
@@ -251,6 +252,18 @@ useEffect(() => {
     </ProtectedRoute>
   }
 />
+
+<Route
+  path="/boards/analytics"
+  element={
+    <ProtectedRoute>
+      <PageWrapper>
+        <BoardAnalyticsPro />
+      </PageWrapper>
+    </ProtectedRoute>
+  }
+/>
+
 
 {/* Alias so old /create-board links still work */}
 <Route path="/create-board" element={<Navigate to="/register-board" replace />} />

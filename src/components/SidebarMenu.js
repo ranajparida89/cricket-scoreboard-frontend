@@ -81,6 +81,13 @@ const SidebarMenu = () => {
   </Link>
 </li>
 
+<li>
+  <Link to="/boards/analytics" onClick={handleClose}>
+    <FaChartLine className="me-2" /> Board Analytics (Pro)
+  </Link>
+</li>
+
+
 {isAdmin || localStorage.getItem("token") ? (
   <li>
   <Link to="/register-board" onClick={handleClose}>
