@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@lottiefiles/react-lottie-player": "^3.6.0",
+    "@radix-ui/react-tabs": "^1.1.12",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
@@ -15,6 +16,7 @@
     "chartjs-plugin-datalabels": "^2.2.0",
     "framer-motion": "^12.23.12",
     "lottie-react": "^2.4.1",
+    "lucide-react": "^0.539.0",
     "react": "^18.2.0",
     "react-beautiful-dnd": "^13.1.1",
     "react-bootstrap": "^2.10.9",
@@ -26,7 +28,7 @@
     "react-scripts": "5.0.1",
     "react-toastify": "^11.0.5",
     "react-use": "^17.6.0",
-    "recharts": "^2.15.3",
+    "recharts": "^2.15.4",
     "socket.io-client": "^4.8.1",
     "web-vitals": "^2.1.4"
   },
