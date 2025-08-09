@@ -58,3 +58,32 @@
 .animated-spin {
   animation: spin 1.2s linear infinite;
 }
+/* performance & motion-friendly tweaks */
+.leaderboard-motion-table {
+  will-change: transform, opacity, background-color;
+}
+
+.leaderboard-row-top {
+  position: relative;
+  z-index: 0;
+}
+.leaderboard-row-top::after {
+  /* subtle neon underline for #1 row */
+  content: "";
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: 2px;
+  height: 2px;
+  background: linear-gradient(90deg, #00ffcc33, #00e0ff66, #00ffcc33);
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+.table th,
+.table td {
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+/* keep your existing styles… (unchanged code you already have) */
+
