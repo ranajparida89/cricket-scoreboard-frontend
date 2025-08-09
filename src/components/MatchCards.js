@@ -2,8 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { getMatchHistory, getTeams, getTestMatches } from "../services/api";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import gsap from "gsap";
-import anime from "animejs";
+//import anime from "animejs";
 import "./MatchCards.css";
+import * as anime from "animejs";
 
 const formatOvers = (decimalOvers) => {
   const fullOvers = Math.floor(decimalOvers);
