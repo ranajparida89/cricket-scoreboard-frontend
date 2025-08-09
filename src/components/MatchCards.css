@@ -179,5 +179,74 @@
 .match-card .overs-info {
   opacity: 0.8;
 }
+/* ===== Premium deck layout ===== */
+.deck {
+  position: relative;
+  height: 360px;            /* space for the stacked deck */
+  perspective: 1200px;
+  margin-bottom: 28px;
+}
+.deck-item {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  transform-style: preserve-3d;
+  will-change: transform, opacity, box-shadow;
+  /* center anchor */
+  transform: translate(-50%, -50%);
+}
+
+/* Card look */
+.match-card.premium {
+  width: min(680px, 92vw);
+  background: #102233;
+  border: 1px solid rgba(0,255,204,0.12);
+  border-radius: 18px;
+  padding: 16px 18px;
+  color: #eaf6ff;
+}
+
+/* Title wave (animated per word via CSS hover) */
+.card-title-wave {
+  display: inline-block;
+  letter-spacing: 0.2px;
+}
+.card-title-wave:hover {
+  animation: wave 600ms ease-in-out;
+}
+@keyframes wave {
+  0% { transform: translateY(0) }
+  50% { transform: translateY(-3px) }
+  100% { transform: translateY(0) }
+}
+
+/* Live badge: green pill with RED dot */
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: #0b1f2e;
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+  border: 2px solid #0ef5d2;
+  box-shadow: 0 0 10px #00ffcc55;
+}
+.live-badge--green {
+  background: #00ffcc;
+}
+.dot-red {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #ff2b2b; box-shadow: 0 0 8px #ff2b2b99;
+}
+
+/* Small text polish */
+.match-card .overs-info { opacity: 0.85 }
+
+/* Responsive deck height */
+@media (max-width: 768px) {
+  .deck { height: 420px; }   /* give a bit more vertical space on mobile */
+}
 
 
