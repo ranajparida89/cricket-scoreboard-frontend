@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { getMatchHistory, getTeams, getTestMatches } from "../services/api";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import gsap from "gsap";
-import anime from "animejs/lib/anime.es.js";  // ✅ correct default export
+import { default as anime } from "animejs";  // ✅ correct default export
 import "./MatchCards.css";
 const formatOvers = (decimalOvers) => {
   const fullOvers = Math.floor(decimalOvers);
