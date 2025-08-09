@@ -5,13 +5,13 @@ import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-mo
 import gsap from "gsap";
 import "./MatchCards.css";
 
-const formatOvers = (decimalOvers) => {
+const formatOvers = (decimalOvers = 0) => {
   const fullOvers = Math.floor(decimalOvers);
   const balls = Math.round((decimalOvers - fullOvers) * 6);
   return `${fullOvers}.${balls}`;
 };
 
-/* ---------------- Framer Motion variants (section / list / card) ---------------- */
+/* ---------- page/list/card variants ---------- */
 const pageVariants = {
   hidden: { opacity: 0, y: 24 },
   show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
@@ -26,7 +26,7 @@ const cardVariants = {
   exit: { opacity: 0, y: -16, transition: { duration: 0.25 } },
 };
 
-/* ---------------- Small helpers ---------------- */
+/* ---------- helpers ---------- */
 const getFlag = (teamName) => {
   const normalized = teamName?.trim().toLowerCase();
   const flags = {
@@ -39,12 +39,12 @@ const getFlag = (teamName) => {
   return flags[normalized] || "🏳️";
 };
 
-/* ---------------- One card with GSAP + tilt + Anime.js burst ---------------- */
-function CardFX({ children, isRecent }) {
+/* ---------- Card FX shell: tilt, glow, ripple, recent badge ---------- */
+function CardFX({ children, isRecent, theme }) {
   const cardRef = useRef(null);
   const glowRef = useRef(null);
 
-  // Framer Motion tilt based on pointer position
+  // 3D tilt values
   const rx = useMotionValue(0);
   const ry = useMotionValue(0);
   const rotateX = useTransform(rx, [-1, 1], [8, -8]);
@@ -56,10 +56,9 @@ function CardFX({ children, isRecent }) {
     const rect = el.getBoundingClientRect();
     const px = (e.clientX - rect.left) / rect.width;   // 0..1
     const py = (e.clientY - rect.top) / rect.height;   // 0..1
-    ry.set(px * 2 - 1); // -1..1
-    rx.set(py * 2 - 1); // -1..1
+    ry.set(px * 2 - 1);
+    rx.set(py * 2 - 1);
 
-    // Move glow to cursor
     if (glowRef.current) {
       gsap.to(glowRef.current, {
         x: (px - 0.5) * rect.width * 0.4,
@@ -71,7 +70,6 @@ function CardFX({ children, isRecent }) {
   };
 
   const onEnter = () => {
-    // soft neon + slight lift
     gsap.to(cardRef.current, {
       boxShadow: "0 10px 30px rgba(0,255,204,0.18)",
       y: -3,
@@ -92,53 +90,37 @@ function CardFX({ children, isRecent }) {
     rx.set(0); ry.set(0);
   };
 
-  const onClickBurst = async (e) => {
-    // Anime.js confetti-like micro burst where user clicks/taps
+  // Tap ripple (replaces Anime.js burst)
+  const onTapRipple = (e) => {
     const el = cardRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-
-    const dots = Array.from({ length: 12 }).map(() => {
-      const span = document.createElement("span");
-      span.className = "burst-dot";
-      span.style.left = `${x}px`;
-      span.style.top = `${y}px`;
-      el.appendChild(span);
-      return span;
-    });
-
-    // ✅ Load Anime.js at runtime to avoid default-export build issues
-    const { default: anime } = await import("animejs");
-
-    anime.timeline().add({
-      targets: dots,
-      translateX: () => anime.random(-60, 60),
-      translateY: () => anime.random(-40, 40),
-      scale: [{ value: 1.2, duration: 120 }, { value: 0, duration: 300, delay: 70 }],
-      opacity: [{ value: 1, duration: 80 }, { value: 0, duration: 320 }],
-      easing: "easeOutQuad",
-      complete: () => dots.forEach((d) => d.remove()),
-    });
+    const ripple = document.createElement("span");
+    ripple.className = "tap-ripple";
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
+    el.appendChild(ripple);
+    ripple.addEventListener("animationend", () => ripple.remove());
   };
 
   return (
     <motion.div
       ref={cardRef}
-      className="match-card advanced h-100"
+      className={`match-card advanced h-100 theme-${theme}`}
       variants={cardVariants}
       style={{ rotateX, rotateY, transformPerspective: 800 }}
       onMouseMove={onMove}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
-      onClick={onClickBurst}
+      onClick={onTapRipple}
       whileTap={{ scale: 0.99 }}
     >
       {/* soft glow follower */}
       <div ref={glowRef} className="card-glow" aria-hidden="true" />
 
-      {/* animated recent badge */}
+      {/* animated recent badge (now used for Test too) */}
       {isRecent && (
         <motion.div
           className="live-badge"
@@ -148,7 +130,8 @@ function CardFX({ children, isRecent }) {
           }}
           transition={{ repeat: Infinity, duration: 1.6 }}
         >
-          🟢 Recent
+          <span className="dot-red" />
+          Recent
         </motion.div>
       )}
 
@@ -156,6 +139,19 @@ function CardFX({ children, isRecent }) {
     </motion.div>
   );
 }
+
+/* ---------- Score piece with flip-in ---------- */
+const ScoreFlip = ({ children, delay = 0 }) => (
+  <motion.span
+    className="score-flip"
+    initial={{ rotateX: 90, opacity: 0 }}
+    animate={{ rotateX: 0, opacity: 1 }}
+    transition={{ duration: 0.25, ease: "easeOut", delay }}
+    style={{ display: "inline-block", transformOrigin: "bottom" }}
+  >
+    {children}
+  </motion.span>
+);
 
 const MatchCards = () => {
   const [matches, setMatches] = useState([]);
@@ -183,20 +179,63 @@ const MatchCards = () => {
   }, []);
 
   const renderODICard = (match, index) => (
-    <CardFX key={`${match.match_name}-${index}`} isRecent={index === 0}>
-      <h5 className="text-white">{match.match_name}</h5>
+    <CardFX key={`${match.match_name}-${index}`} isRecent={index === 0} theme="odi">
+      <h5 className="text-white">
+        <span className="title-wave" tabIndex={0}>{match.match_name}</span>
+      </h5>
+
       <div className="d-flex justify-content-between align-items-center mb-2">
         <div>
           <h6 className="mb-1">
-            {getFlag(match.team1)} <strong>{match.team1?.toUpperCase()}</strong> {match.runs1}/{match.wickets1}
+            {getFlag(match.team1)} <strong>{match.team1?.toUpperCase()}</strong>{" "}
+            <ScoreFlip delay={0.05}>{match.runs1}/{match.wickets1}</ScoreFlip>
           </h6>
-          <p className="overs-info">Overs: {formatOvers(match.overs1)}</p>
+          <p className="overs-info">
+            Overs: <ScoreFlip delay={0.1}>{formatOvers(match.overs1)}</ScoreFlip>
+          </p>
         </div>
         <div>
           <h6 className="mb-1">
-            {getFlag(match.team2)} <strong>{match.team2?.toUpperCase()}</strong> {match.runs2}/{match.wickets2}
+            {getFlag(match.team2)} <strong>{match.team2?.toUpperCase()}</strong>{" "}
+            <ScoreFlip delay={0.05}>{match.runs2}/{match.wickets2}</ScoreFlip>
           </h6>
-          <p className="overs-info">Overs: {formatOvers(match.overs2)}</p>
+          <p className="overs-info">
+            Overs: <ScoreFlip delay={0.1}>{formatOvers(match.overs2)}</ScoreFlip>
+          </p>
+        </div>
+      </div>
+
+      <p className="text-light">
+        <strong>
+          🏆 {match.winner === "Draw"
+            ? "Match is drawn."
+            : match.winner.toLowerCase().includes("won the match")
+              ? match.winner
+              : `${match.winner} won the match!`}
+        </strong>
+      </p>
+    </CardFX>
+  );
+
+  const renderT20Card = (match, index) => (
+    <CardFX key={`${match.match_name}-${index}`} isRecent={index === 0} theme="t20">
+      <h5 className="text-white">
+        <span className="title-wave" tabIndex={0}>{match.match_name}</span>
+      </h5>
+      <div className="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <h6 className="mb-1">
+            {getFlag(match.team1)} <strong>{match.team1?.toUpperCase()}</strong>{" "}
+            <ScoreFlip delay={0.05}>{match.runs1}/{match.wickets1}</ScoreFlip>
+          </h6>
+          <p className="overs-info">Overs: <ScoreFlip delay={0.1}>{formatOvers(match.overs1)}</ScoreFlip></p>
+        </div>
+        <div>
+          <h6 className="mb-1">
+            {getFlag(match.team2)} <strong>{match.team2?.toUpperCase()}</strong>{" "}
+            <ScoreFlip delay={0.05}>{match.runs2}/{match.wickets2}</ScoreFlip>
+          </h6>
+          <p className="overs-info">Overs: <ScoreFlip delay={0.1}>{formatOvers(match.overs2)}</ScoreFlip></p>
         </div>
       </div>
       <p className="text-light">
@@ -212,18 +251,35 @@ const MatchCards = () => {
   );
 
   const renderTestCard = (match, index) => (
-    <CardFX key={`${match.match_name}-${index}`} isRecent={false}>
-      <h5 className="text-white">{match.match_name?.toUpperCase()}</h5>
+    <CardFX key={`${match.match_name}-${index}`} isRecent={index === 0} theme="test">
+      <h5 className="text-white">
+        <span className="title-wave" tabIndex={0}>{match.match_name?.toUpperCase()}</span>
+      </h5>
+
       <div>
         <h6 className="text-info">{getFlag(match.team1)} {match.team1?.toUpperCase()}</h6>
-        <p className="overs-info mb-1">1st Innings: {match.runs1}/{match.wickets1} ({formatOvers(match.overs1)} ov)</p>
-        <p className="overs-info mb-1">2nd Innings: {match.runs1_2}/{match.wickets1_2} ({formatOvers(match.overs1_2)} ov)</p>
+        <p className="overs-info mb-1">
+          1st Innings: <ScoreFlip delay={0.05}>{match.runs1}/{match.wickets1}</ScoreFlip>
+          {" "}(<ScoreFlip delay={0.1}>{formatOvers(match.overs1)}</ScoreFlip> ov)
+        </p>
+        <p className="overs-info mb-1">
+          2nd Innings: <ScoreFlip delay={0.05}>{match.runs1_2}/{match.wickets1_2}</ScoreFlip>
+          {" "}(<ScoreFlip delay={0.1}>{formatOvers(match.overs1_2)}</ScoreFlip> ov)
+        </p>
       </div>
-      <div>
+
+      <div className="mt-2">
         <h6 className="text-info">{getFlag(match.team2)} {match.team2?.toUpperCase()}</h6>
-        <p className="overs-info mb-1">1st Innings: {match.runs2}/{match.wickets2} ({formatOvers(match.overs2)} ov)</p>
-        <p className="overs-info mb-1">2nd Innings: {match.runs2_2}/{match.wickets2_2} ({formatOvers(match.overs2_2)} ov)</p>
+        <p className="overs-info mb-1">
+          1st Innings: <ScoreFlip delay={0.05}>{match.runs2}/{match.wickets2}</ScoreFlip>
+          {" "}(<ScoreFlip delay={0.1}>{formatOvers(match.overs2)}</ScoreFlip> ov)
+        </p>
+        <p className="overs-info mb-1">
+          2nd Innings: <ScoreFlip delay={0.05}>{match.runs2_2}/{match.wickets2_2}</ScoreFlip>
+          {" "}(<ScoreFlip delay={0.1}>{formatOvers(match.overs2_2)}</ScoreFlip> ov)
+        </p>
       </div>
+
       <p className="text-light mt-2">
         <strong>
           🏆 {match.winner === "Draw"
@@ -292,7 +348,7 @@ const MatchCards = () => {
               ) : (
                 t20Matches.map((match, index) => (
                   <div key={index} className="col-md-6 col-lg-4 d-flex">
-                    <div className="w-100 h-100">{renderODICard(match, index)}</div>
+                    <div className="w-100 h-100">{renderT20Card(match, index)}</div>
                   </div>
                 ))
               )}

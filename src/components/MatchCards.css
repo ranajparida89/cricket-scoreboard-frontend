@@ -1,189 +1,107 @@
-/* ===========================
-   BASE CARD (safe defaults)
-   =========================== */
+/* ========== Base card ========== */
 .match-card {
   background-color: #132c45;
   color: #fff;
   padding: 20px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid rgba(0, 255, 255, 0.1);
   box-shadow: 0 0 10px rgba(0, 255, 255, 0.08);
   will-change: transform, opacity, box-shadow;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   animation: fadeIn 0.4s ease-in;
+  position: relative;         /* for ripple */
+  overflow: hidden;           /* clip ripple */
 }
 .match-card:hover {
   transform: translateY(-6px) scale(1.02);
   box-shadow: 0 8px 24px rgba(0, 255, 204, 0.12);
 }
-
-.nrr-info,
-.overs-info {
-  font-size: 14px;
-  color: #ffffff;
-  font-weight: 500;
-}
-
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ===========================
-   TOGGLE BUTTONS (sticky)
-   =========================== */
+/* ========== Sticky toggle buttons ========== */
 .toggle-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 20px;
-  justify-content: flex-start;
-  align-items: center;
-  position: sticky;
-  top: 100px;                   /* ticker + navbar height */
-  z-index: 1000 !important;
-  background-color: #0c1c2c;
-  padding: 12px 20px;
-  border-bottom: 2px solid #00bfff;
+  display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
+  justify-content: flex-start; align-items: center;
+  position: sticky; top: 100px; z-index: 1000 !important;
+  background-color: #0c1c2c; padding: 12px 20px; border-bottom: 2px solid #00bfff;
 }
-.toggle-buttons button {
-  min-width: 160px;
-  font-weight: 500;
-  transition: transform 0.2s ease;
-}
+.toggle-buttons button { min-width: 160px; font-weight: 500; transition: transform .2s; }
 .toggle-buttons button:hover { transform: scale(1.03); }
 
-/* ===========================
-   PREMIUM DECK LAYOUT
-   =========================== */
-
-/* Keep the next section safely below the deck */
-.deck-wrap {
-  display: grid;
-  justify-items: center;
-  align-items: center;
-  gap: 18px;
-  margin-bottom: clamp(72px, 12vw, 140px);
-}
-
-/* Deck area sized to contain rotated/fanned cards */
-.deck {
-  position: relative;
-  width: min(960px, 96vw);         /* centered width cap */
-  height: clamp(420px, 58vw, 560px);
-  margin-inline: auto;
-  perspective: 1400px;
-  overflow: visible;
-}
-
-/* Card buttons centered in deck */
-.deck-item {
-  position: absolute;
-  left: 50%;
-  top: 52%;
-  transform: translate(-50%, -50%);
-  transform-style: preserve-3d;
-  border: 0;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
-  will-change: transform, opacity;
-}
-
-/* ===========================
-   PREMIUM SQUARE CARDS
-   =========================== */
-.match-card.premium {
-  background: #102233;
+/* ========== 3D-tilt / equal height container ========== */
+.match-card.advanced {
+  background: #0f2233;
+  border-radius: 14px;
   border: 1px solid rgba(0,255,204,0.12);
-  color: #eaf6ff;
-  border-radius: 18px;
   padding: 16px 18px;
+  min-height: 210px;
+  height: 100%;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  transform-style: preserve-3d;
 }
 
-.match-card.premium.square {
-  width: min(520px, 82vw);      /* square (slightly smaller to avoid overlap) */
-  height: min(520px, 82vw);
-  border-radius: 28px;
-  padding: clamp(18px, 3vw, 28px);
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  box-shadow: 0 20px 50px rgba(0,0,0,.35);
-  backdrop-filter: saturate(120%);
+/* ========== Soft neon glow follower ========== */
+.card-glow {
+  position: absolute; inset: 0; margin: auto;
+  width: 60%; height: 60%; opacity: 0; border-radius: 16px; pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(0,255,204,0.16), transparent 60%);
+  filter: blur(10px); transform: translateZ(-1px);
 }
 
-/* Active/top card = crisp; background cards = blurred/dimmed */
-.match-card.premium.is-active { filter: none; }
-.match-card.premium.is-dimmed {
-  filter: blur(1.3px) saturate(80%) brightness(0.92);
-  box-shadow: 0 10px 30px rgba(0,0,0,.28);
+/* ========== Tap ripple (replaces Anime.js burst) ========== */
+.tap-ripple {
+  position: absolute;
+  width: 20px; height: 20px; border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  background: radial-gradient(circle, rgba(255,255,255,.35), rgba(0,255,204,.15) 60%, transparent 70%);
+  mix-blend-mode: screen;
+  animation: rippleExpand .6s ease-out forwards;
+}
+@keyframes rippleExpand {
+  to { transform: translate(-50%, -50%) scale(14); opacity: 0; }
 }
 
-/* Big title + layout */
-.mc-title {
-  font-size: clamp(22px, 3.2vw, 36px);
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  margin: 6px 0 14px;
+/* ========== Title wave (hover/focus) ========== */
+.title-wave { display: inline-block; letter-spacing: .2px; }
+.title-wave:hover, .title-wave:focus {
+  animation: wave 600ms ease-in-out;
 }
-.mc-row {
-  display: flex;
-  justify-content: space-between;
-  gap: clamp(12px, 2vw, 22px);
+@keyframes wave {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
 }
-.mc-line { font-size: clamp(16px, 2.2vw, 20px); font-weight: 600; }
-.mc-sub  { opacity: .92; font-size: clamp(13px, 1.6vw, 16px); }
-.mc-win  { margin-top: auto; font-size: clamp(16px, 2vw, 18px); font-weight: 700; }
 
-/* ===========================
-   LIVE BADGE (single source of truth)
-   =========================== */
+/* ========== Score flip container (motion handles 3D) ========== */
+.score-flip { perspective: 600px; }
+
+/* ========== Recent badge (green pill + bigger red dot) ========== */
 .live-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 800;
-  color: #0b1f2e;
-  background: #00ffcc;                 /* green pill */
-  padding: 6px 14px;
-  border-radius: 999px;
-  border: 2px solid #0ef5d2;
-  box-shadow: 0 0 10px #00ffcc55;
-  margin-bottom: 6px;
+  display: inline-flex; align-items: center; gap: 8px;
+  font-weight: 800; color: #0b1f2e; background: #00ffcc;
+  padding: 6px 14px; border-radius: 999px; margin-bottom: 10px;
+  border: 2px solid #0ef5d2; box-shadow: 0 0 10px #00ffcc55;
 }
 .dot-red {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #ff2b2b;
-  box-shadow: 0 0 8px #ff2b2b99;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #ff2b2b; box-shadow: 0 0 10px #ff2b2bcc;
 }
 
-/* ===========================
-   GLASSY CONTROLS
-   =========================== */
-.deck-controls { display: flex; gap: 14px; }
-.glass-btn {
-  background: rgba(255,255,255,0.16);
-  border: 2px solid rgba(255,255,255,0.28);
-  color: #fff;
-  padding: 12px 20px;
-  border-radius: 26px;
-  font-weight: 700;
-  backdrop-filter: blur(10px);
-  transition: transform .18s ease, background .18s ease, border-color .18s ease;
+/* ========== Light colorful themes per format ========== */
+.theme-odi {
+  background: linear-gradient(135deg, #0f2a3a 0%, #0d416a 100%);
 }
-.glass-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  background: rgba(255,255,255,0.22);
-  border-color: rgba(255,255,255,0.45);
+.theme-t20 {
+  background: linear-gradient(135deg, #341129 0%, #642347 100%);
 }
-.glass-btn:disabled { opacity: .4; cursor: not-allowed; }
+.theme-test {
+  background: linear-gradient(135deg, #0f2a1d 0%, #1a5b45 100%);
+}
 
-/* ===========================
-   RESPONSIVE TWEAKS
-   =========================== */
+/* ========== Responsive tweaks ========== */
 @media (max-width: 768px) {
-  .deck { height: clamp(480px, 95vw, 580px); }
-  .match-card.premium.square { width: 88vw; height: 88vw; }
+  .match-card { border-radius: 10px; }
 }
