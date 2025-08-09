@@ -37,10 +37,7 @@ const GRADS = [
 const CardShell = ({ match, isRecent, gradient, active }) => (
   <div
     className={`match-card premium square ${active ? "is-active" : "is-dimmed"}`}
-    style={{
-      // front card = bold, back = slightly desaturated via CSS class
-      backgroundImage: `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})`,
-    }}
+    style={{ backgroundImage: `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})` }}
   >
     {isRecent && (
       <div className="live-badge live-badge--green">
@@ -78,23 +75,29 @@ const CardShell = ({ match, isRecent, gradient, active }) => (
   </div>
 );
 
-/* ---------- deck position math (centered, large square) ---------- */
-const layoutForIndex = (i, active) => {
+/* ---------- deck position math (centered, responsive fan) ---------- */
+const layoutForIndex = (i, active, total) => {
   const offset = i - active; // negative = left, positive = right
   const abs = Math.abs(offset);
+
   if (abs === 0) {
-    return {
-      x: 0,
-      y: 0,
-      scale: 1,
-      rotateY: 0,
-      zIndex: 100,
-      opacity: 1,
-    };
+    return { x: 0, y: 0, scale: 1, rotateY: 0, zIndex: 100, opacity: 1 };
   }
+
+  // responsive spread
+  const vw = typeof window !== "undefined" ? window.innerWidth : 1200;
+  const isSmall = vw < 576;
+  const isTablet = vw >= 576 && vw < 992;
+
+  // Wider spacing when there are only a few cards → clearer left/right
+  const few = total <= 3;
+  const baseX = few
+    ? (isSmall ? 110 : isTablet ? 180 : 240)
+    : (isSmall ? 80 : isTablet ? 120 : 140);
+
+  const baseRotate = few ? 16 : 18;
   const spread = Math.min(abs, 5);
-  const baseX = 140;           // how far side cards move
-  const baseRotate = 18;       // tilt
+
   return {
     x: Math.sign(offset) * baseX * spread,
     y: 8 * spread,
@@ -105,18 +108,19 @@ const layoutForIndex = (i, active) => {
   };
 };
 
-/* ---------- deck (centered with controls) ---------- */
+/* ---------- deck (centered with controls and safe spacing) ---------- */
 const Deck = ({ items }) => {
   const [active, setActive] = useState(0);
+  const total = items.length;
 
-  const next = () => setActive((a) => Math.min(a + 1, Math.max(0, items.length - 1)));
+  const next = () => setActive((a) => Math.min(a + 1, total - 1));
   const prev = () => setActive((a) => Math.max(a - 1, 0));
 
   return (
     <div className="deck-wrap">
       <div className="deck" role="listbox" aria-label="Match cards carousel">
         {items.slice(0, 12).map((m, i) => {
-          const pos = layoutForIndex(i, active);
+          const pos = layoutForIndex(i, active, total);
           const grad = GRADS[i % GRADS.length];
           const isActive = i === active;
           return (
@@ -147,11 +151,7 @@ const Deck = ({ items }) => {
         <button className="glass-btn" onClick={prev} disabled={active === 0}>
           ← Previous
         </button>
-        <button
-          className="glass-btn"
-          onClick={next}
-          disabled={active === Math.max(0, items.length - 1)}
-        >
+        <button className="glass-btn" onClick={next} disabled={active === total - 1}>
           Next →
         </button>
       </div>
