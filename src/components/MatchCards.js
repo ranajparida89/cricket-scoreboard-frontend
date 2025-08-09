@@ -1,6 +1,7 @@
 // src/components/MatchCards.js
 import React, { useEffect, useState } from "react";
-import { getMatchHistory, getTeams, getTestMatches } from "../services/api"; // ✅ new
+import { getMatchHistory, getTeams, getTestMatches } from "../services/api";
+import { motion, AnimatePresence } from "framer-motion"; // ✅ NEW
 import "./MatchCards.css";
 
 const formatOvers = (decimalOvers) => {
@@ -9,9 +10,24 @@ const formatOvers = (decimalOvers) => {
   return `${fullOvers}.${balls}`;
 };
 
+// ✅ Variants
+const pageVariants = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
+};
+const listVariants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+};
+const cardVariants = {
+  hidden: { opacity: 0, y: 26, scale: 0.98 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4 } },
+  exit: { opacity: 0, y: -16, transition: { duration: 0.25 } },
+};
+
 const MatchCards = () => {
   const [matches, setMatches] = useState([]);
-  const [testMatches, setTestMatches] = useState([]); // ✅ new
+  const [testMatches, setTestMatches] = useState([]);
   const [teams, setTeams] = useState([]);
   const [showOdi, setShowOdi] = useState(true);
   const [showT20, setShowT20] = useState(false);
@@ -21,11 +37,11 @@ const MatchCards = () => {
     const fetchData = async () => {
       try {
         const matchRes = await getMatchHistory();
-        const testRes = await getTestMatches(); // ✅ new
+        const testRes = await getTestMatches();
         const teamRes = await getTeams();
 
         if (Array.isArray(matchRes)) setMatches(matchRes);
-        if (Array.isArray(testRes)) setTestMatches(testRes); // ✅ new
+        if (Array.isArray(testRes)) setTestMatches(testRes);
         if (Array.isArray(teamRes)) setTeams(teamRes);
       } catch (err) {
         console.error("❌ Error fetching match/team data:", err);
@@ -46,11 +62,25 @@ const MatchCards = () => {
     return flags[normalized] || "🏳️";
   };
 
-  // ✅ [UPDATED: Added live badge on latest match]
+  // ✅ Card renderers with motion wrappers
   const renderMatchCard = (match, index) => (
-    <div className="match-card mb-4" key={index}>
+    <motion.div
+      className="match-card mb-4"
+      key={`${match.match_name}-${index}`}
+      variants={cardVariants}
+      whileHover={{ translateY: -3 }}
+      transition={{ type: "spring", stiffness: 220, damping: 18 }}
+    >
       {/* ✅ LIVE PULSE BADGE only for first/latest match */}
-      {index === 0 && <div className="live-badge">🟢 Recent</div>}
+      {index === 0 && (
+        <motion.div
+          className="live-badge"
+          animate={{ scale: [1, 1.12, 1], boxShadow: ["0 0 0px #00ffcc55", "0 0 14px #00ffccaa", "0 0 0px #00ffcc55"] }}
+          transition={{ repeat: Infinity, duration: 1.6 }}
+        >
+          🟢 Recent
+        </motion.div>
+      )}
 
       <h5 className="text-white">{match.match_name}</h5>
       <div className="d-flex justify-content-between align-items-center mb-2">
@@ -68,7 +98,6 @@ const MatchCards = () => {
         </div>
       </div>
 
-      {/* ✅ [FIXED - Ranaj 2025-04-19] Prevent duplicate "won the match!" in winner string */}
       <p className="text-light">
         <strong>
           🏆 {match.winner === "Draw"
@@ -78,11 +107,17 @@ const MatchCards = () => {
               : `${match.winner} won the match!`}
         </strong>
       </p>
-    </div>
+    </motion.div>
   );
 
   const renderTestMatchCard = (match, index) => (
-    <div className="match-card mb-4" key={index}>
+    <motion.div
+      className="match-card mb-4"
+      key={`${match.match_name}-${index}`}
+      variants={cardVariants}
+      whileHover={{ translateY: -3 }}
+      transition={{ type: "spring", stiffness: 220, damping: 18 }}
+    >
       <h5 className="text-white">{match.match_name?.toUpperCase()}</h5>
       <div>
         <h6 className="text-info">{getFlag(match.team1)} {match.team1?.toUpperCase()}</h6>
@@ -95,7 +130,6 @@ const MatchCards = () => {
         <p className="overs-info mb-1">2nd Innings: {match.runs2_2}/{match.wickets2_2} ({formatOvers(match.overs2_2)} ov)</p>
       </div>
 
-      {/* ✅ [FIXED - Ranaj 2025-04-19] Avoid duplicate win text in Test match cards */}
       <p className="text-light mt-2">
         <strong>
           🏆 {match.winner === "Draw"
@@ -105,82 +139,126 @@ const MatchCards = () => {
               : `${match.winner} won the match!`}
         </strong>
       </p>
-    </div>
+    </motion.div>
   );
 
   const odiMatches = matches.filter((m) => m.match_type === "ODI");
   const t20Matches = matches.filter((m) => m.match_type === "T20");
 
   return (
-    <div className="container mt-4">
+    <motion.div
+      className="container mt-4"
+      variants={pageVariants}
+      initial="hidden"
+      animate="show"
+    >
       <div className="toggle-buttons">
-        <button className={`btn btn-warning ${showOdi ? "active" : ""}`} onClick={() => {
-          setShowOdi(true); setShowT20(false); setShowTest(false);
-        }}>🏏 ODI Matches {showOdi ? "▼" : ""}</button>
+        <motion.button
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.98 }}
+          className={`btn btn-warning ${showOdi ? "active" : ""}`}
+          onClick={() => { setShowOdi(true); setShowT20(false); setShowTest(false); }}
+        >
+          🏏 ODI Matches {showOdi ? "▼" : ""}
+        </motion.button>
 
-        <button className={`btn btn-danger ${showT20 ? "active" : ""}`} onClick={() => {
-          setShowT20(true); setShowOdi(false); setShowTest(false);
-        }}>🔥 T20 Matches {showT20 ? "▼" : ""}</button>
+        <motion.button
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.98 }}
+          className={`btn btn-danger ${showT20 ? "active" : ""}`}
+          onClick={() => { setShowT20(true); setShowOdi(false); setShowTest(false); }}
+        >
+          🔥 T20 Matches {showT20 ? "▼" : ""}
+        </motion.button>
 
-        <button className={`btn btn-info ${showTest ? "active" : ""}`} onClick={() => {
-          setShowTest(true); setShowOdi(false); setShowT20(false);
-        }}>🧪 Test Matches {showTest ? "▼" : ""}</button>
+        <motion.button
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.98 }}
+          className={`btn btn-info ${showTest ? "active" : ""}`}
+          onClick={() => { setShowTest(true); setShowOdi(false); setShowT20(false); }}
+        >
+          🧪 Test Matches {showTest ? "▼" : ""}
+        </motion.button>
       </div>
 
       {/* ✅ ODI */}
-      {showOdi && (
-        <>
-          <h3 className="text-light mb-3">ODI Matches</h3>
-          <div className="row">
-            {odiMatches.length === 0 ? (
-              <p className="text-white">No ODI matches available.</p>
-            ) : (
-              odiMatches.map((match, index) => (
-                <div key={index} className="col-md-6 col-lg-4">
-                  {renderMatchCard(match, index)}
-                </div>
-              ))
-            )}
-          </div>
-        </>
-      )}
+      <AnimatePresence mode="wait">
+        {showOdi && (
+          <motion.div
+            key="odi-list"
+            initial="hidden"
+            animate="show"
+            exit={{ opacity: 0, y: -20 }}
+            variants={listVariants}
+          >
+            <h3 className="text-light mb-3">ODI Matches</h3>
+            <div className="row">
+              {odiMatches.length === 0 ? (
+                <p className="text-white">No ODI matches available.</p>
+              ) : (
+                odiMatches.map((match, index) => (
+                  <div key={index} className="col-md-6 col-lg-4">
+                    {renderMatchCard(match, index)}
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ✅ T20 */}
-      {showT20 && (
-        <>
-          <h3 className="text-light mt-5 mb-3">T20 Matches</h3>
-          <div className="row">
-            {t20Matches.length === 0 ? (
-              <p className="text-white">No T20 matches available.</p>
-            ) : (
-              t20Matches.map((match, index) => (
-                <div key={index} className="col-md-6 col-lg-4">
-                  {renderMatchCard(match, index)}
-                </div>
-              ))
-            )}
-          </div>
-        </>
-      )}
+      <AnimatePresence mode="wait">
+        {showT20 && (
+          <motion.div
+            key="t20-list"
+            initial="hidden"
+            animate="show"
+            exit={{ opacity: 0, y: -20 }}
+            variants={listVariants}
+          >
+            <h3 className="text-light mt-5 mb-3">T20 Matches</h3>
+            <div className="row">
+              {t20Matches.length === 0 ? (
+                <p className="text-white">No T20 matches available.</p>
+              ) : (
+                t20Matches.map((match, index) => (
+                  <div key={index} className="col-md-6 col-lg-4">
+                    {renderMatchCard(match, index)}
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ✅ Test Matches */}
-      {showTest && (
-        <>
-          <h3 className="text-light mt-5 mb-3">Test Matches</h3>
-          <div className="row">
-            {testMatches.length === 0 ? (
-              <p className="text-white">No Test matches available.</p>
-            ) : (
-              testMatches.map((match, index) => (
-                <div key={index} className="col-md-6 col-lg-4">
-                  {renderTestMatchCard(match, index)}
-                </div>
-              ))
-            )}
-          </div>
-        </>
-      )}
-    </div>
+      <AnimatePresence mode="wait">
+        {showTest && (
+          <motion.div
+            key="test-list"
+            initial="hidden"
+            animate="show"
+            exit={{ opacity: 0, y: -20 }}
+            variants={listVariants}
+          >
+            <h3 className="text-light mt-5 mb-3">Test Matches</h3>
+            <div className="row">
+              {testMatches.length === 0 ? (
+                <p className="text-white">No Test matches available.</p>
+              ) : (
+                testMatches.map((match, index) => (
+                  <div key={index} className="col-md-6 col-lg-4">
+                    {renderTestMatchCard(match, index)}
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 

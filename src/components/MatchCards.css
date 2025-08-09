@@ -99,4 +99,26 @@
     box-shadow: 0 0 8px rgba(255, 0, 0, 0.5);
   }
 }
-/* ✅ End of Live Score Pulse Section */
+/* motion-friendly */
+.match-card {
+  will-change: transform, opacity, box-shadow;
+  transition: box-shadow 0.2s ease;
+}
+.match-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 255, 204, 0.08);
+}
+
+/* Live badge pulse already handled by motion, just style */
+.live-badge {
+  display: inline-block;
+  font-weight: 700;
+  color: #0b1f2e;
+  background: #00ffcc;
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+  box-shadow: 0 0 8px #00ffcc55;
+}
+
+/* Keep your existing celebration styles if used… */
+
