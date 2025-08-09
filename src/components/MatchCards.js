@@ -1,16 +1,34 @@
-import React, { useEffect, useMemo, useState } from "react";
+// src/components/MatchCards.js
+import React, { useEffect, useRef, useState } from "react";
 import { getMatchHistory, getTeams, getTestMatches } from "../services/api";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
+import gsap from "gsap";
 import "./MatchCards.css";
 
-/* ---------- helpers ---------- */
-const formatOvers = (d = 0) => {
-  const full = Math.floor(d);
-  const balls = Math.round((d - full) * 6);
-  return `${full}.${balls}`;
+const formatOvers = (decimalOvers) => {
+  const fullOvers = Math.floor(decimalOvers);
+  const balls = Math.round((decimalOvers - fullOvers) * 6);
+  return `${fullOvers}.${balls}`;
 };
-const getFlag = (name) => {
-  const n = name?.trim().toLowerCase();
+
+/* ---------------- Framer Motion variants (section / list / card) ---------------- */
+const pageVariants = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
+};
+const listVariants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+};
+const cardVariants = {
+  hidden: { opacity: 0, y: 26, scale: 0.98 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4 } },
+  exit: { opacity: 0, y: -16, transition: { duration: 0.25 } },
+};
+
+/* ---------------- Small helpers ---------------- */
+const getFlag = (teamName) => {
+  const normalized = teamName?.trim().toLowerCase();
   const flags = {
     india: "🇮🇳", australia: "🇦🇺", england: "🏴", "new zealand": "🇳🇿",
     pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱🇰", ireland: "🇮🇪",
@@ -18,228 +36,291 @@ const getFlag = (name) => {
     zimbabwe: "🇿🇼", "west indies": "🏴‍☠️", usa: "🇺🇸", uae: "🇦🇪",
     oman: "🇴🇲", scotland: "🏴", netherlands: "🇳🇱", nepal: "🇳🇵",
   };
-  return flags[n] || "🏳️";
+  return flags[normalized] || "🏳️";
 };
 
-/* ---------- bold gradient palette (loops) ---------- */
-const GRADS = [
-  ["#ff6b6b", "#ee5a24"],
-  ["#4ecdc4", "#44a08d"],
-  ["#45b7d1", "#96c93d"],
-  ["#f093fb", "#f5576c"],
-  ["#4facfe", "#00f2fe"],
-  ["#43e97b", "#38f9d7"],
-  ["#fa709a", "#fee140"],
-  ["#30cfd0", "#91a7ff"],
-];
+/* ---------------- One card with GSAP + tilt + Anime.js burst ---------------- */
+function CardFX({ children, isRecent }) {
+  const cardRef = useRef(null);
+  const glowRef = useRef(null);
 
-/* ---------- card shell ---------- */
-const CardShell = ({ match, isRecent, gradient, active }) => (
-  <div
-    className={`match-card premium square ${active ? "is-active" : "is-dimmed"}`}
-    style={{ backgroundImage: `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})` }}
-  >
-    {isRecent && (
-      <div className="live-badge live-badge--green">
-        <span className="dot-red" /> Recent
-      </div>
-    )}
+  // Framer Motion tilt based on pointer position
+  const rx = useMotionValue(0);
+  const ry = useMotionValue(0);
+  const rotateX = useTransform(rx, [-1, 1], [8, -8]);
+  const rotateY = useTransform(ry, [-1, 1], [-8, 8]);
 
-    <h2 className="mc-title">{match.match_name}</h2>
+  const onMove = (e) => {
+    const el = cardRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width;   // 0..1
+    const py = (e.clientY - rect.top) / rect.height;   // 0..1
+    ry.set(px * 2 - 1); // -1..1
+    rx.set(py * 2 - 1); // -1..1
 
-    <div className="mc-row">
-      <div>
-        <div className="mc-line">
-          {getFlag(match.team1)} <strong>{match.team1?.toUpperCase()}</strong>{" "}
-          {match.runs1}/{match.wickets1}
-        </div>
-        <div className="mc-sub">Overs: {formatOvers(match.overs1)}</div>
-      </div>
-      <div>
-        <div className="mc-line">
-          {getFlag(match.team2)} <strong>{match.team2?.toUpperCase()}</strong>{" "}
-          {match.runs2}/{match.wickets2}
-        </div>
-        <div className="mc-sub">Overs: {formatOvers(match.overs2)}</div>
-      </div>
-    </div>
-
-    <div className="mc-win">
-      🏆{" "}
-      {match.winner === "Draw"
-        ? "Match is drawn."
-        : match.winner?.toLowerCase()?.includes("won the match")
-        ? match.winner
-        : `${match.winner} won the match!`}
-    </div>
-  </div>
-);
-
-/* ---------- deck position math (centered, responsive fan) ---------- */
-const layoutForIndex = (i, active, total) => {
-  const offset = i - active; // negative = left, positive = right
-  const abs = Math.abs(offset);
-
-  if (abs === 0) {
-    return { x: 0, y: 0, scale: 1, rotateY: 0, zIndex: 100, opacity: 1 };
-  }
-
-  // responsive spread
-  const vw = typeof window !== "undefined" ? window.innerWidth : 1200;
-  const isSmall = vw < 576;
-  const isTablet = vw >= 576 && vw < 992;
-
-  // Wider spacing when there are only a few cards → clearer left/right
-  const few = total <= 3;
-  const baseX = few
-    ? (isSmall ? 110 : isTablet ? 180 : 240)
-    : (isSmall ? 80 : isTablet ? 120 : 140);
-
-  const baseRotate = few ? 16 : 18;
-  const spread = Math.min(abs, 5);
-
-  return {
-    x: Math.sign(offset) * baseX * spread,
-    y: 8 * spread,
-    scale: 1 - 0.1 * spread,
-    rotateY: -Math.sign(offset) * baseRotate * Math.min(spread, 2),
-    zIndex: 100 - spread,
-    opacity: 0.95 - 0.12 * spread,
+    // Move glow to cursor
+    if (glowRef.current) {
+      gsap.to(glowRef.current, {
+        x: (px - 0.5) * rect.width * 0.4,
+        y: (py - 0.5) * rect.height * 0.4,
+        duration: 0.2,
+        ease: "power2.out",
+      });
+    }
   };
-};
 
-/* ---------- deck (centered with controls and safe spacing) ---------- */
-const Deck = ({ items }) => {
-  const [active, setActive] = useState(0);
-  const total = items.length;
+  const onEnter = () => {
+    // soft neon + slight lift
+    gsap.to(cardRef.current, {
+      boxShadow: "0 10px 30px rgba(0,255,204,0.18)",
+      y: -3,
+      duration: 0.25,
+      ease: "power2.out",
+    });
+    gsap.to(glowRef.current, { opacity: 1, duration: 0.25, ease: "power2.out" });
+  };
 
-  const next = () => setActive((a) => Math.min(a + 1, total - 1));
-  const prev = () => setActive((a) => Math.max(a - 1, 0));
+  const onLeave = () => {
+    gsap.to(cardRef.current, {
+      boxShadow: "0 4px 14px rgba(0,0,0,0.35)",
+      y: 0,
+      duration: 0.3,
+      ease: "power2.out",
+    });
+    gsap.to(glowRef.current, { opacity: 0, duration: 0.3, ease: "power2.out" });
+    rx.set(0); ry.set(0);
+  };
+
+  const onClickBurst = async (e) => {
+    // Anime.js confetti-like micro burst where user clicks/taps
+    const el = cardRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const dots = Array.from({ length: 12 }).map(() => {
+      const span = document.createElement("span");
+      span.className = "burst-dot";
+      span.style.left = `${x}px`;
+      span.style.top = `${y}px`;
+      el.appendChild(span);
+      return span;
+    });
+
+    // ✅ Load Anime.js at runtime to avoid default-export build issues
+    const { default: anime } = await import("animejs");
+
+    anime.timeline().add({
+      targets: dots,
+      translateX: () => anime.random(-60, 60),
+      translateY: () => anime.random(-40, 40),
+      scale: [{ value: 1.2, duration: 120 }, { value: 0, duration: 300, delay: 70 }],
+      opacity: [{ value: 1, duration: 80 }, { value: 0, duration: 320 }],
+      easing: "easeOutQuad",
+      complete: () => dots.forEach((d) => d.remove()),
+    });
+  };
 
   return (
-    <div className="deck-wrap">
-      <div className="deck" role="listbox" aria-label="Match cards carousel">
-        {items.slice(0, 12).map((m, i) => {
-          const pos = layoutForIndex(i, active, total);
-          const grad = GRADS[i % GRADS.length];
-          const isActive = i === active;
-          return (
-            <motion.button
-              type="button"
-              aria-label={`Open ${m.match_name}`}
-              key={m.id || `${m.match_name}-${i}`}
-              className="deck-item"
-              style={{ zIndex: pos.zIndex }}
-              initial={false}
-              animate={{
-                x: pos.x,
-                y: pos.y,
-                scale: pos.scale,
-                rotateY: pos.rotateY,
-                opacity: pos.opacity,
-              }}
-              transition={{ type: "spring", stiffness: 260, damping: 22, mass: 0.8 }}
-              onClick={() => setActive(i)}
-            >
-              <CardShell match={m} isRecent={i === 0} gradient={grad} active={isActive} />
-            </motion.button>
-          );
-        })}
-      </div>
+    <motion.div
+      ref={cardRef}
+      className="match-card advanced h-100"
+      variants={cardVariants}
+      style={{ rotateX, rotateY, transformPerspective: 800 }}
+      onMouseMove={onMove}
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+      onClick={onClickBurst}
+      whileTap={{ scale: 0.99 }}
+    >
+      {/* soft glow follower */}
+      <div ref={glowRef} className="card-glow" aria-hidden="true" />
 
-      <div className="deck-controls">
-        <button className="glass-btn" onClick={prev} disabled={active === 0}>
-          ← Previous
-        </button>
-        <button className="glass-btn" onClick={next} disabled={active === total - 1}>
-          Next →
-        </button>
-      </div>
-    </div>
+      {/* animated recent badge */}
+      {isRecent && (
+        <motion.div
+          className="live-badge"
+          animate={{
+            scale: [1, 1.12, 1],
+            boxShadow: ["0 0 0px #00ffcc55", "0 0 16px #00ffccaa", "0 0 0px #00ffcc55"],
+          }}
+          transition={{ repeat: Infinity, duration: 1.6 }}
+        >
+          🟢 Recent
+        </motion.div>
+      )}
+
+      {children}
+    </motion.div>
   );
-};
+}
 
-/* ======================= PAGE ======================= */
 const MatchCards = () => {
   const [matches, setMatches] = useState([]);
   const [testMatches, setTestMatches] = useState([]);
   const [teams, setTeams] = useState([]);
-  const [tab, setTab] = useState("ODI"); // 'ODI' | 'T20' | 'TEST'
+  const [showOdi, setShowOdi] = useState(true);
+  const [showT20, setShowT20] = useState(false);
+  const [showTest, setShowTest] = useState(false);
 
   useEffect(() => {
-    const load = async () => {
+    const fetchData = async () => {
       try {
-        const [matchRes, testRes, teamRes] = await Promise.all([
-          getMatchHistory(),
-          getTestMatches(),
-          getTeams(),
-        ]);
+        const matchRes = await getMatchHistory();
+        const testRes = await getTestMatches();
+        const teamRes = await getTeams();
+
         if (Array.isArray(matchRes)) setMatches(matchRes);
         if (Array.isArray(testRes)) setTestMatches(testRes);
         if (Array.isArray(teamRes)) setTeams(teamRes);
-      } catch (e) {
-        console.error("Error loading data:", e);
+      } catch (err) {
+        console.error("❌ Error fetching match/team data:", err);
       }
     };
-    load();
+    fetchData();
   }, []);
 
-  const odi = useMemo(() => matches.filter((m) => m.match_type === "ODI"), [matches]);
-  const t20 = useMemo(() => matches.filter((m) => m.match_type === "T20"), [matches]);
-  const test = useMemo(() => testMatches, [testMatches]);
-
-  const Section = ({ title, items }) => (
-    <motion.div
-      key={title}
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -16 }}
-      transition={{ duration: 0.45, ease: "easeOut" }}
-    >
-      <h3 className="text-light mb-3">{title}</h3>
-      {items.length === 0 ? (
-        <p className="text-white">No {title} available.</p>
-      ) : (
-        <Deck items={items} />
-      )}
-    </motion.div>
+  const renderODICard = (match, index) => (
+    <CardFX key={`${match.match_name}-${index}`} isRecent={index === 0}>
+      <h5 className="text-white">{match.match_name}</h5>
+      <div className="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <h6 className="mb-1">
+            {getFlag(match.team1)} <strong>{match.team1?.toUpperCase()}</strong> {match.runs1}/{match.wickets1}
+          </h6>
+          <p className="overs-info">Overs: {formatOvers(match.overs1)}</p>
+        </div>
+        <div>
+          <h6 className="mb-1">
+            {getFlag(match.team2)} <strong>{match.team2?.toUpperCase()}</strong> {match.runs2}/{match.wickets2}
+          </h6>
+          <p className="overs-info">Overs: {formatOvers(match.overs2)}</p>
+        </div>
+      </div>
+      <p className="text-light">
+        <strong>
+          🏆 {match.winner === "Draw"
+            ? "Match is drawn."
+            : match.winner.toLowerCase().includes("won the match")
+              ? match.winner
+              : `${match.winner} won the match!`}
+        </strong>
+      </p>
+    </CardFX>
   );
 
+  const renderTestCard = (match, index) => (
+    <CardFX key={`${match.match_name}-${index}`} isRecent={false}>
+      <h5 className="text-white">{match.match_name?.toUpperCase()}</h5>
+      <div>
+        <h6 className="text-info">{getFlag(match.team1)} {match.team1?.toUpperCase()}</h6>
+        <p className="overs-info mb-1">1st Innings: {match.runs1}/{match.wickets1} ({formatOvers(match.overs1)} ov)</p>
+        <p className="overs-info mb-1">2nd Innings: {match.runs1_2}/{match.wickets1_2} ({formatOvers(match.overs1_2)} ov)</p>
+      </div>
+      <div>
+        <h6 className="text-info">{getFlag(match.team2)} {match.team2?.toUpperCase()}</h6>
+        <p className="overs-info mb-1">1st Innings: {match.runs2}/{match.wickets2} ({formatOvers(match.overs2)} ov)</p>
+        <p className="overs-info mb-1">2nd Innings: {match.runs2_2}/{match.wickets2_2} ({formatOvers(match.overs2_2)} ov)</p>
+      </div>
+      <p className="text-light mt-2">
+        <strong>
+          🏆 {match.winner === "Draw"
+            ? "Match is drawn."
+            : match.winner.toLowerCase().includes("won the match")
+              ? match.winner
+              : `${match.winner} won the match!`}
+        </strong>
+      </p>
+    </CardFX>
+  );
+
+  const odiMatches = matches.filter((m) => m.match_type === "ODI");
+  const t20Matches = matches.filter((m) => m.match_type === "T20");
+
   return (
-    <div className="container mt-4">
+    <motion.div className="container mt-4" variants={pageVariants} initial="hidden" animate="show">
       <div className="toggle-buttons">
-        <motion.button
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.98 }}
-          className={`btn btn-warning ${tab === "ODI" ? "active" : ""}`}
-          onClick={() => setTab("ODI")}
-        >
-          🏏 ODI Matches {tab === "ODI" ? "▼" : ""}
+        <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.98 }}
+          className={`btn btn-warning ${showOdi ? "active" : ""}`}
+          onClick={() => { setShowOdi(true); setShowT20(false); setShowTest(false); }}>
+          🏏 ODI Matches {showOdi ? "▼" : ""}
         </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.98 }}
-          className={`btn btn-danger ${tab === "T20" ? "active" : ""}`}
-          onClick={() => setTab("T20")}
-        >
-          🔥 T20 Matches {tab === "T20" ? "▼" : ""}
+
+        <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.98 }}
+          className={`btn btn-danger ${showT20 ? "active" : ""}`}
+          onClick={() => { setShowT20(true); setShowOdi(false); setShowTest(false); }}>
+          🔥 T20 Matches {showT20 ? "▼" : ""}
         </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.98 }}
-          className={`btn btn-info ${tab === "TEST" ? "active" : ""}`}
-          onClick={() => setTab("TEST")}
-        >
-          🧪 Test Matches {tab === "TEST" ? "▼" : ""}
+
+        <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.98 }}
+          className={`btn btn-info ${showTest ? "active" : ""}`}
+          onClick={() => { setShowTest(true); setShowOdi(false); setShowT20(false); }}>
+          🧪 Test Matches {showTest ? "▼" : ""}
         </motion.button>
       </div>
 
+      {/* ODI */}
       <AnimatePresence mode="wait">
-        {tab === "ODI" && <Section title="ODI Matches" items={odi} />}
-        {tab === "T20" && <Section title="T20 Matches" items={t20} />}
-        {tab === "TEST" && <Section title="Test Matches" items={test} />}
+        {showOdi && (
+          <motion.div key="odi-list" initial="hidden" animate="show" exit={{ opacity: 0, y: -20 }} variants={listVariants}>
+            <h3 className="text-light mb-3">ODI Matches</h3>
+            <div className="row g-4">
+              {odiMatches.length === 0 ? (
+                <p className="text-white">No ODI matches available.</p>
+              ) : (
+                odiMatches.map((match, index) => (
+                  <div key={index} className="col-md-6 col-lg-4 d-flex">
+                    <div className="w-100 h-100">{renderODICard(match, index)}</div>
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
-    </div>
+
+      {/* T20 */}
+      <AnimatePresence mode="wait">
+        {showT20 && (
+          <motion.div key="t20-list" initial="hidden" animate="show" exit={{ opacity: 0, y: -20 }} variants={listVariants}>
+            <h3 className="text-light mt-5 mb-3">T20 Matches</h3>
+            <div className="row g-4">
+              {t20Matches.length === 0 ? (
+                <p className="text-white">No T20 matches available.</p>
+              ) : (
+                t20Matches.map((match, index) => (
+                  <div key={index} className="col-md-6 col-lg-4 d-flex">
+                    <div className="w-100 h-100">{renderODICard(match, index)}</div>
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Test */}
+      <AnimatePresence mode="wait">
+        {showTest && (
+          <motion.div key="test-list" initial="hidden" animate="show" exit={{ opacity: 0, y: -20 }} variants={listVariants}>
+            <h3 className="text-light mt-5 mb-3">Test Matches</h3>
+            <div className="row g-4">
+              {testMatches.length === 0 ? (
+                <p className="text-white">No Test matches available.</p>
+              ) : (
+                testMatches.map((match, index) => (
+                  <div key={index} className="col-md-6 col-lg-4 d-flex">
+                    <div className="w-100 h-100">{renderTestCard(match, index)}</div>
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 
