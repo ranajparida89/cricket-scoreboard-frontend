@@ -1,9 +1,10 @@
+// src/components/MatchCards.js
 import React, { useEffect, useRef, useState } from "react";
 import { getMatchHistory, getTeams, getTestMatches } from "../services/api";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import gsap from "gsap";
-import { default as anime } from "animejs";  // ✅ correct default export
 import "./MatchCards.css";
+
 const formatOvers = (decimalOvers) => {
   const fullOvers = Math.floor(decimalOvers);
   const balls = Math.round((decimalOvers - fullOvers) * 6);
@@ -91,7 +92,7 @@ function CardFX({ children, isRecent }) {
     rx.set(0); ry.set(0);
   };
 
-  const onClickBurst = (e) => {
+  const onClickBurst = async (e) => {
     // Anime.js confetti-like micro burst where user clicks/taps
     const el = cardRef.current;
     if (!el) return;
@@ -107,6 +108,9 @@ function CardFX({ children, isRecent }) {
       el.appendChild(span);
       return span;
     });
+
+    // ✅ Load Anime.js at runtime to avoid default-export build issues
+    const { default: anime } = await import("animejs");
 
     anime.timeline().add({
       targets: dots,
@@ -262,13 +266,12 @@ const MatchCards = () => {
         {showOdi && (
           <motion.div key="odi-list" initial="hidden" animate="show" exit={{ opacity: 0, y: -20 }} variants={listVariants}>
             <h3 className="text-light mb-3">ODI Matches</h3>
-            <div className="row g-4"> {/* g-4 ensures equal spacing */}
+            <div className="row g-4">
               {odiMatches.length === 0 ? (
                 <p className="text-white">No ODI matches available.</p>
               ) : (
                 odiMatches.map((match, index) => (
                   <div key={index} className="col-md-6 col-lg-4 d-flex">
-                    {/* d-flex + h-100 ensures equal heights */}
                     <div className="w-100 h-100">{renderODICard(match, index)}</div>
                   </div>
                 ))
