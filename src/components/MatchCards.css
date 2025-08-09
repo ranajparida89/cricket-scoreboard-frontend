@@ -120,5 +120,64 @@
   box-shadow: 0 0 8px #00ffcc55;
 }
 
-/* Keep your existing celebration styles if used… */
+/* ---------- Make all cards same height & motion-friendly ---------- */
+.match-card.advanced {
+  position: relative;
+  background: #102233;
+  border-radius: 14px;
+  border: 1px solid rgba(0,255,204,0.12);
+  padding: 16px 18px;
+  min-height: 210px;       /* ensures consistent height */
+  height: 100%;            /* stretch inside column */
+  will-change: transform, opacity, box-shadow;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  transform-style: preserve-3d; /* for 3D tilt */
+}
+
+/* Soft neon glow follower */
+.card-glow {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 60%;
+  height: 60%;
+  opacity: 0;
+  border-radius: 16px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(0,255,204,0.15), transparent 60%);
+  filter: blur(10px);
+  transform: translateZ(-1px);
+}
+
+/* Live badge styling (motion handles pulse) */
+.live-badge {
+  display: inline-block;
+  font-weight: 700;
+  color: #0b1f2e;
+  background: #00ffcc;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+  border: 2px solid #0ef5d2;
+}
+
+/* Tiny dots for click burst (Anime.js) */
+.burst-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: radial-gradient(circle, #00ffcc, #00c2ff);
+  border-radius: 50%;
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px rgba(0,255,204,0.6));
+}
+
+/* Title & copy spacing for compact equal-height cards */
+.match-card h5 {
+  margin-bottom: 10px;
+}
+.match-card .overs-info {
+  opacity: 0.8;
+}
+
 
