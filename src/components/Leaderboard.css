@@ -1,29 +1,40 @@
-/* ===== container (kept) ===== */
+/* ===== container ===== */
 .leaderboard-shell{
   width:100%;
   background:#0b1b2a;
   border-radius:16px;
-  padding:18px 18px 10px;
+  padding:18px;
   box-shadow:0 12px 36px rgba(0,0,0,.35);
   border:1px solid rgba(0,255,204,.08);
 }
 
-/* ===== professional table look ===== */
+/* ===== table frame (crisp rounded border + inner grid) ===== */
 .leaderboard-motion-table{
   width:100%;
-  border-collapse:separate;
+  border-collapse:separate;     /* we draw our own separators */
   border-spacing:0;
   background:linear-gradient(180deg, #0d1f2f, #0a1724);
   border-radius:14px;
-  overflow:hidden;
+  overflow:hidden;              /* clip to rounded frame */
+  border:1px solid rgba(255,255,255,.10);   /* << outer frame */
   box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+/* column separators (uniform) */
+.leaderboard-motion-table thead th,
+.leaderboard-motion-table tbody td{
+  border-right:1px solid rgba(255,255,255,.08);
+}
+.leaderboard-motion-table thead th:last-child,
+.leaderboard-motion-table tbody td:last-child{
+  border-right:none;            /* no extra line on the edge */
 }
 
 .leaderboard-motion-table thead th{
   font-weight:700;
   color:#dff2ff;
   background:linear-gradient(180deg, #102437, #0d1f2f);
-  border-bottom:1px solid rgba(255,255,255,.07);
+  border-bottom:1px solid rgba(255,255,255,.10); /* header-bottom separator */
   font-size:14px;
   padding:12px 10px;
   letter-spacing:.2px;
@@ -33,7 +44,7 @@
   padding:12px 10px;
   font-size:15px;
   color:#eaf6ff;
-  border-bottom:1px solid rgba(255,255,255,.06);
+  border-bottom:1px solid rgba(255,255,255,.06); /* row separator */
   text-align:center;
   position:relative;
 }
@@ -43,20 +54,16 @@
   background:rgba(255,255,255,.02);
 }
 
-/* ===== ROW HOVER: gradient sweep + bounce ===== */
+/* ===== base row effects ===== */
 .lb-row{
-  transition:background .25s ease, box-shadow .25s ease, transform .18s ease;
-  background:
-    linear-gradient(120deg, transparent 0%, transparent 55%, rgba(255,255,255,.05) 60%, transparent 65%) no-repeat;
-  background-size: 220% 100%;
-  background-position: -120% 0;
-}
-.lb-row:hover{
-  background-position: 120% 0;
-  box-shadow: inset 0 0 0 9999px rgba(255,255,255,.015), 0 6px 20px rgba(0,0,0,.25);
+  transition:
+    background-color .25s ease,
+    box-shadow .25s ease,
+    transform .18s ease,
+    color .2s ease;
 }
 
-/* Leader subtle underline */
+/* leader underline */
 .lb-row.is-leader{ position:relative; z-index:0; }
 .lb-row.is-leader::after{
   content:"";
@@ -73,28 +80,26 @@
   100%{ box-shadow:0 0 0 rgba(0,255,204,0); }
 }
 
-/* ===== RANK — simple: no square/pill/glow ===== */
+/* ===== RANK (clean, no square) ===== */
 .rank-cell{ white-space:nowrap; }
-.medal-emoji{ font-size:1.15rem; margin-right:4px; } /* ✅ no filter = no yellow square look */
+.medal-emoji{ font-size:1.15rem; margin-right:4px; }
 .rank-num{ font-weight:800; }
 .rank-arrow{ margin-left:8px; font-weight:900; font-size:14px; }
 .rank-arrow.up{ color:#27e08b; text-shadow:0 0 8px #27e08b55; }
 .rank-arrow.down{ color:#ff6b6b; text-shadow:0 0 8px #ff6b6b55; }
 
-/* ===== TEAM: underline slide & color shift ===== */
+/* ===== TEAM underline + tint on row hover ===== */
 .team-cell .team-name{
   position:relative; font-weight:800; letter-spacing:.2px; color:#eaf6ff;
   transition:color .22s ease;
 }
-.lb-row:hover .team-cell .team-name{ color:#9ff9ea; }
 .u-underline-slide::after{
   content:""; position:absolute; left:0; right:100%; bottom:-3px; height:2px;
   background:linear-gradient(90deg,#00ffcc,#00bfff);
   transition:right .3s ease;
 }
-.lb-row:hover .u-underline-slide::after{ right:0; }
 
-/* ===== POINTS: hover bounce + sparkle on update ===== */
+/* ===== POINTS: bounce + sparkle on update ===== */
 .cell-pop{ display:inline-block; transition:transform .18s ease; }
 .lb-row:hover .points-cell .cell-pop{ transform:scale(1.08); }
 
@@ -113,7 +118,7 @@
   to  { opacity:0; filter:blur(6px); }
 }
 
-/* positive/negative tint for numbers (kept) */
+/* number tints */
 .pos{ color:#c9ffef; }
 .neg{ color:#ffc2c2; }
 
@@ -123,32 +128,40 @@
   position:absolute; left:8px; right:8px; bottom:6px; height:6px;
   border-radius:999px; background:rgba(255,255,255,.08);
 }
-
-/* bar directions */
-.nrr-bar{ position:absolute; bottom:6px; height:6px; width:0; border-radius:999px;
+.nrr-bar{
+  position:absolute; bottom:6px; height:6px; width:0; border-radius:999px;
   animation: nrrFill .9s ease-out forwards, nrrBreathe 3.8s ease-in-out 1.1s infinite;
   box-shadow:0 0 10px rgba(255,255,255,.18);
 }
 .from-left  { left:8px;  transform-origin:left center; }
 .from-right { right:8px; transform-origin:right center; }
-
-/* fill amount */
 @keyframes nrrFill{ to { width: var(--target, 0%); } }
 @keyframes nrrBreathe{ 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.18) } }
 
-/* ===== NEW: NRR color buckets (also tint row hover) ===== */
+/* ===== bucket colors for bar ===== */
 .nrr-green .nrr-bar  { background:linear-gradient(90deg,#16e28a,#01b86b); }
 .nrr-yellow .nrr-bar { background:linear-gradient(90deg,#ffe76a,#ffb03a); }
 .nrr-orange .nrr-bar { background:linear-gradient(90deg,#ffb03a,#ff7a3d); }
 .nrr-purple .nrr-bar { background:linear-gradient(90deg,#a57cff,#6dd6ff); }
 .nrr-red .nrr-bar    { background:linear-gradient(90deg,#ff6b6b,#ff2b2b); }
 
-/* Row hover colorization by bucket */
-.lb-row.nrr-green:hover  { box-shadow: inset 0 0 0 9999px rgba(22,226,138,.07), 0 8px 22px rgba(22,226,138,.18); }
-.lb-row.nrr-yellow:hover { box-shadow: inset 0 0 0 9999px rgba(255,231,106,.07), 0 8px 22px rgba(255,231,106,.18); }
-.lb-row.nrr-orange:hover { box-shadow: inset 0 0 0 9999px rgba(255,176,58,.07), 0 8px 22px rgba(255,176,58,.18); }
-.lb-row.nrr-purple:hover { box-shadow: inset 0 0 0 9999px rgba(165,124,255,.07), 0 8px 22px rgba(165,124,255,.18); }
-.lb-row.nrr-red:hover    { box-shadow: inset 0 0 0 9999px rgba(255,43,43,.07),   0 8px 22px rgba(255,43,43,.18); }
+/* ===== STRONG, WHOLE-ROW HOVER TINT BY BUCKET =====
+   We color *every cell* in the row, not the <tr> background.
+   This gives a clear, professional highlight and keeps the frame crisp. */
+.lb-row:hover td{ transition:background-color .18s ease, color .18s ease; }
+.lb-row:hover .team-cell .team-name{ color:#ffffff; }
+.lb-row:hover .u-underline-slide::after{ right:0; }
+
+/* define the hover color per bucket */
+.lb-row.nrr-green:hover  td{ background-color:rgba(22,226,138,.14); }
+.lb-row.nrr-yellow:hover td{ background-color:rgba(255,231,106,.14); }
+.lb-row.nrr-orange:hover td{ background-color:rgba(255,176, 58,.14); }
+.lb-row.nrr-purple:hover td{ background-color:rgba(165,124,255,.14); }
+.lb-row.nrr-red:hover    td{ background-color:rgba(255, 43, 43,.14); }
+
+/* also brighten the column separators slightly on hover for polish */
+.lb-row:hover td{ border-right-color:rgba(255,255,255,.16); }
+.lb-row:hover td:last-child{ border-right-color:transparent; }
 
 /* ===== misc ===== */
 .table th, .table td{ transition:background-color .2s ease, color .2s ease; }
