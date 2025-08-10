@@ -11,18 +11,18 @@ const socket = io("https://cricket-scoreboard-backend.onrender.com");
 /* ---------- motion variants ---------- */
 const sectionVariants = {
   hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
 };
 const tableVariants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.05, delayChildren: 0.05 } },
+  show:   { transition: { staggerChildren: 0.05, delayChildren: 0.05 } },
 };
 const rowVariants = {
   hidden: { opacity: 0, y: 14 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.28 } },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.28 } },
 };
 
-/* ---------- animated number ---------- */
+/* ---------- animated number (react-spring) ---------- */
 const AnimatedNumber = ({ value }) => {
   const spring = useSpring({
     from: { val: 0 },
@@ -30,7 +30,9 @@ const AnimatedNumber = ({ value }) => {
     config: { tension: 180, friction: 20 },
   });
   return (
-    <a.span>{spring.val.to((v) => (Number.isInteger(value) ? Math.round(v) : v.toFixed(2)))}</a.span>
+    <a.span>
+      {spring.val.to((v) => (Number.isInteger(value) ? Math.round(v) : v.toFixed(2)))}
+    </a.span>
   );
 };
 
@@ -51,8 +53,8 @@ const sortTeams = (arr) =>
     b.points !== a.points ? b.points - a.points : (b.nrr || 0) - (a.nrr || 0)
   );
 
-/* Map NRR (-2 to +8 typical) into a 0–100 width for heat bar */
-const nrrToWidth = (nrr) => {
+/* Map NRR (-2 to +8 typical) -> 0–100% width for heat bar */
+const nrrPercent = (nrr) => {
   if (nrr === null || Number.isNaN(nrr)) return 0;
   const min = -2, max = 8;
   const clamped = Math.max(min, Math.min(max, nrr));
@@ -61,8 +63,8 @@ const nrrToWidth = (nrr) => {
 
 const Leaderboard = () => {
   const [teams, setTeams] = useState([]);
-  const [updatedRows, setUpdatedRows] = useState(new Set()); // rows that should pulse
-  const prevRanksRef = useRef(new Map());                    // name -> previous index
+  const [updatedRows, setUpdatedRows] = useState(new Set());
+  const prevRanksRef = useRef(new Map()); // name -> previous index
 
   const fetchTeams = async () => {
     try {
@@ -70,7 +72,7 @@ const Leaderboard = () => {
       const parsed = parseTeams(raw);
       const sorted = sortTeams(parsed);
 
-      // detect which teams changed stats (simple diff on points/wins/losses/nrr)
+      // mark rows that changed stat values
       const changed = new Set();
       sorted.forEach((t) => {
         const prev = teams.find((x) => x.team_name === t.team_name);
@@ -80,16 +82,13 @@ const Leaderboard = () => {
           prev.wins !== t.wins ||
           prev.losses !== t.losses ||
           (prev.nrr ?? null) !== (t.nrr ?? null)
-        ) {
-          changed.add(t.team_name);
-        }
+        ) changed.add(t.team_name);
       });
       setUpdatedRows(changed);
 
-      // update rank map
-      const map = new Map();
-      sorted.forEach((t, i) => map.set(t.team_name, i));
-      prevRanksRef.current = map;
+      const rankMap = new Map();
+      sorted.forEach((t, i) => rankMap.set(t.team_name, i));
+      prevRanksRef.current = rankMap;
 
       setTeams(sorted);
     } catch (e) {
@@ -99,7 +98,6 @@ const Leaderboard = () => {
 
   useEffect(() => {
     fetchTeams();
-
     let debounced;
     socket.on("matchUpdate", () => {
       clearTimeout(debounced);
@@ -112,34 +110,21 @@ const Leaderboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // previous rank map for arrows
   const prevRankMap = useMemo(() => prevRanksRef.current, [teams]);
 
-  const getMedal = (i) =>
+  const medal = (i) =>
     i === 0 ? <span className="medal-emoji medal-3d gold">🥇</span>
     : i === 1 ? <span className="medal-emoji medal-3d silver">🥈</span>
     : i === 2 ? <span className="medal-emoji medal-3d bronze">🥉</span>
     : null;
 
-  const calculateDraws = (t) => Math.max(0, t.matches_played - t.wins - t.losses);
+  const draws = (t) => Math.max(0, t.matches_played - t.wins - t.losses);
 
   return (
-    <motion.div
-      className="leaderboard-shell"
-      variants={sectionVariants}
-      initial="hidden"
-      animate="show"
-    >
-      <div className="leaderboard-header">
-        Limited-Overs Cricket Leaderboard
-      </div>
+    <motion.div className="leaderboard-shell" variants={sectionVariants} initial="hidden" animate="show">
+      <div className="leaderboard-header">Limited-Overs Cricket Leaderboard</div>
 
-      <motion.table
-        className="table table-dark leaderboard-motion-table"
-        variants={tableVariants}
-        initial="hidden"
-        animate="show"
-      >
+      <motion.table className="table table-dark leaderboard-motion-table" variants={tableVariants} initial="hidden" animate="show">
         <thead>
           <tr>
             <th>#</th>
@@ -156,55 +141,54 @@ const Leaderboard = () => {
         <tbody>
           {teams.map((team, index) => {
             const prevIndex = prevRankMap.get(team.team_name);
-            const rankDelta =
-              typeof prevIndex === "number" ? prevIndex - index : 0; // +ve means moved up
-
+            const delta = typeof prevIndex === "number" ? prevIndex - index : 0; // + => moved up
             const pulse = updatedRows.has(team.team_name);
+            const nrrW = nrrPercent(team.nrr);
 
             return (
               <motion.tr
                 key={team.team_name}
                 variants={rowVariants}
                 className={`lb-row ${index === 0 ? "is-leader" : ""} ${pulse ? "is-updated" : ""}`}
-                whileHover={{ y: -2, scale: 1.005 }}
+                whileHover={{ y: -2, scale: 1.008 }}
                 transition={{ type: "spring", stiffness: 260, damping: 20 }}
               >
+                {/* RANK — NO square/pill around it */}
                 <td className="rank-cell">
-                  {getMedal(index)}
-                  <span className="rank-num">{index + 1}</span>
-
-                  {/* rank change arrow */}
-                  {rankDelta !== 0 && (
+                  {medal(index)}<span className="rank-num">{index + 1}</span>
+                  {delta !== 0 && (
                     <motion.span
-                      className={`rank-delta ${rankDelta > 0 ? "up" : "down"}`}
-                      initial={{ y: rankDelta > 0 ? 8 : -8, opacity: 0 }}
+                      className={`rank-arrow ${delta > 0 ? "up" : "down"}`}
+                      initial={{ y: delta > 0 ? 10 : -10, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ duration: 0.28 }}
-                      title={rankDelta > 0 ? "Moved up" : "Moved down"}
+                      title={delta > 0 ? "Moved up" : "Moved down"}
                     >
-                      {rankDelta > 0 ? "↑" : "↓"}
+                      {delta > 0 ? "↑" : "↓"}
                     </motion.span>
                   )}
                 </td>
 
+                {/* TEAM — underline slide & color shift on hover */}
                 <td className="team-cell">
-                  <span className="team-name">{team.team_name}</span>
+                  <span className="team-name u-underline-slide">{team.team_name}</span>
                 </td>
 
                 <td><AnimatedNumber value={team.matches_played} /></td>
                 <td className="pos"><AnimatedNumber value={team.wins} /></td>
                 <td className="neg"><AnimatedNumber value={team.losses} /></td>
-                <td><AnimatedNumber value={calculateDraws(team)} /></td>
-                <td className="pos"><AnimatedNumber value={team.points} /></td>
+                <td><AnimatedNumber value={draws(team)} /></td>
 
-                {/* NRR with heat stripe */}
+                {/* POINTS — hover bounce, update sparkle */}
+                <td className={`pos points-cell ${pulse ? "sparkle-once" : ""}`}>
+                  <span className="cell-pop"><AnimatedNumber value={team.points} /></span>
+                </td>
+
+                {/* NRR — animated bar that fills on mount then breathes */}
                 <td className="nrr-cell">
-                  <div
-                    className="nrr-heat"
-                    style={{ "--w": `${nrrToWidth(team.nrr)}%` }}
-                    aria-hidden
-                  />
-                  {team.nrr === null ? "—" : <AnimatedNumber value={Number(team.nrr.toFixed(2))} />}
+                  <div className="nrr-track" aria-hidden />
+                  <div className="nrr-bar" style={{ "--target": `${nrrW}%` }} aria-hidden />
+                  {team.nrr === null ? "—" : <span className="cell-pop"><AnimatedNumber value={Number(team.nrr.toFixed(2))} /></span>}
                 </td>
               </motion.tr>
             );
