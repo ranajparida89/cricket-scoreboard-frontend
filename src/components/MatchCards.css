@@ -102,3 +102,7 @@
 @media (max-width:768px){
   .match-card{ border-radius:12px; }
 }
+.match-title{
+  letter-spacing: .3px;
+}
+

@@ -1,4 +1,3 @@
-// src/components/MatchCards.js
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { getMatchHistory, getTeams, getTestMatches } from "../services/api";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
@@ -10,6 +9,26 @@ const formatOvers = (decimalOvers = 0) => {
   const fullOvers = Math.floor(decimalOvers);
   const balls = Math.round((decimalOvers - fullOvers) * 6);
   return `${fullOvers}.${balls}`;
+};
+
+/* ✅ NEW: Pretty match title like "Ashes 3rd ODI 2025" */
+const formatMatchTitle = (raw = "") => {
+  // keep only left of the colon; API often appends "TeamAvsTeam" after it
+  let s = String(raw).split(":")[0];
+
+  // put spaces between letters and digits in both directions
+  s = s
+    .replace(/(?<=[A-Za-z])(?=\d)/g, " ")
+    .replace(/(?<=\d)(?=[A-Za-z])/g, " ");
+
+  // make sure common tokens have spacing (ODI, T20, Test, Final, Qualifier, etc.)
+  s = s.replace(/(ODI|T20|TEST|Test|Final|Qualifier|Semi|Quarter)/g, " $1 ");
+
+  // normalize spaces
+  s = s.replace(/\s{2,}/g, " ").trim();
+
+  // Capitalize first word nicely, keep others as-is (your sample uses "Ashes 3rd ODI 2025")
+  return s.replace(/^(\w)/, (m) => m.toUpperCase());
 };
 
 /* ---------- page/list/card variants ---------- */
@@ -96,14 +115,13 @@ const ScoreFlip = ({ children, delay = 0 }) => (
   </motion.span>
 );
 
-/* ---------- Card shell (FIX: motion values in style, not animate) ---------- */
+/* ---------- Card shell ---------- */
 function CardFX({ children, isRecent, paletteIndex }) {
   const cardRef = useRef(null);
   const glowRef = useRef(null);
   const [isDark, setIsDark] = useState(false);
   const [c1, c2] = PALETTES[paletteIndex % PALETTES.length];
 
-  // 3D tilt motion values
   const rx = useMotionValue(0);
   const ry = useMotionValue(0);
   const rotateX = useTransform(rx, [-1, 1], [8, -8]);
@@ -139,7 +157,6 @@ function CardFX({ children, isRecent, paletteIndex }) {
     rx.set(0); ry.set(0);
   };
 
-  // ripple + dark hold on touch
   const onTap = (e) => {
     setIsDark(true);
     const el = cardRef.current;
@@ -162,7 +179,7 @@ function CardFX({ children, isRecent, paletteIndex }) {
       className={`match-card advanced h-100 ${isDark ? "is-dark" : ""}`}
       style={{
         "--c1": c1, "--c2": c2,
-        rotateX, rotateY, transformPerspective: 900,   // ✅ keep motion values in style
+        rotateX, rotateY, transformPerspective: 900,
       }}
       variants={cardVariants}
       onMouseMove={onMove}
@@ -216,10 +233,12 @@ const MatchCards = () => {
     fetchData();
   }, []);
 
-  /* ----- renderers with text anims ---- */
+  /* ----- renderers ----- */
   const renderODICard = (match, index) => (
     <CardFX key={`${match.match_name}-${index}`} isRecent={index === 0} paletteIndex={index}>
-      <h5 className="text-white"><TitleStagger text={match.match_name} /></h5>
+      <h5 className="text-white match-title">
+        <TitleStagger text={formatMatchTitle(match.match_name)} />
+      </h5>
       <div className="d-flex justify-content-between align-items-center mb-2">
         <div>
           <h6 className="mb-1">
@@ -258,7 +277,9 @@ const MatchCards = () => {
 
   const renderT20Card = (match, index) => (
     <CardFX key={`${match.match_name}-${index}`} isRecent={index === 0} paletteIndex={index + 2}>
-      <h5 className="text-white"><TitleStagger text={match.match_name} /></h5>
+      <h5 className="text-white match-title">
+        <TitleStagger text={formatMatchTitle(match.match_name)} />
+      </h5>
       <div className="d-flex justify-content-between align-items-center mb-2">
         <div>
           <h6 className="mb-1">
@@ -297,7 +318,9 @@ const MatchCards = () => {
 
   const renderTestCard = (match, index) => (
     <CardFX key={`${match.match_name}-${index}`} isRecent={index === 0} paletteIndex={index + 4}>
-      <h5 className="text-white"><TitleStagger text={(match.match_name || "").toUpperCase()} /></h5>
+      <h5 className="text-white match-title">
+        <TitleStagger text={formatMatchTitle((match.match_name || "").toUpperCase())} />
+      </h5>
       <div>
         <h6 className="text-info">
           <RevealLine delay={0.05}>{getFlag(match.team1)} {match.team1?.toUpperCase()}</RevealLine>
@@ -344,7 +367,6 @@ const MatchCards = () => {
     </CardFX>
   );
 
-  /* ----- lists ----- */
   const odiMatches  = matches.filter((m) => m.match_type === "ODI");
   const t20Matches  = matches.filter((m) => m.match_type === "T20");
 
