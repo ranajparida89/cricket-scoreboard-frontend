@@ -1,98 +1,86 @@
-/* ========== Base card & gradient ========== */
-.match-card {
-  color: #fff;
-  padding: 20px;
-  border-radius: 14px;
-  border: 1px solid rgba(0, 255, 255, 0.12);
-  position: relative;
-  overflow: hidden;
-  will-change: transform, opacity, box-shadow, background;
-  transition: transform .18s ease, box-shadow .18s ease, filter .2s ease, background .2s ease;
-  animation: fadeIn .4s ease-in;
-  background: linear-gradient(135deg, var(--c1, #0f2a3a), var(--c2, #0d416a));
+/* ====== Card base with bold gradients ====== */
+.match-card{
+  color:#fff;
+  padding:20px;
+  border-radius:14px;
+  border:1px solid rgba(0,255,255,.14);
+  position:relative;
+  overflow:hidden;
+  will-change:transform,opacity,box-shadow,background;
+  transition:transform .18s ease, box-shadow .18s ease, filter .2s ease, background .2s ease;
+  animation:fadeIn .4s ease-in;
+  /* vivid gradient via CSS vars */
+  background: radial-gradient(1200px 500px at -20% -40%, rgba(255,255,255,.08), transparent 40%),
+              linear-gradient(135deg, var(--c1,#00C6FF), var(--c2,#0072FF));
 }
-@keyframes fadeIn { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
-.match-card:hover { transform: translateY(-6px) scale(1.02); }
+@keyframes fadeIn{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
+.match-card:hover{ transform:translateY(-6px) scale(1.02); }
 
 /* Dark hold (hover/touch) */
-.match-card.is-dark {
-  background: linear-gradient(135deg, #08213a, #0a2e53) !important;
-  box-shadow: 0 18px 44px rgba(0, 255, 204, 0.22);
+.match-card.is-dark{
+  background: linear-gradient(135deg,#081f37,#0a2f57)!important;
+  box-shadow:0 18px 44px rgba(0,255,204,.22);
 }
 
 /* Equal height + 3D skin */
-.match-card.advanced { min-height: 210px; height: 100%; box-shadow: 0 6px 18px rgba(0,0,0,.35); transform-style: preserve-3d; }
-.card-surface { height: 100%; }
+.match-card.advanced{ min-height:210px; height:100%; box-shadow:0 6px 18px rgba(0,0,0,.35); transform-style:preserve-3d; }
+.card-surface{ height:100%; }
 
 /* Glow follower */
-.card-glow {
-  position: absolute; inset: 0; margin: auto;
-  width: 60%; height: 60%; opacity: 0; border-radius: 18px; pointer-events: none;
-  background: radial-gradient(ellipse at center, rgba(0,255,204,0.18), transparent 60%);
-  filter: blur(12px); transform: translateZ(-1px);
+.card-glow{
+  position:absolute; inset:0; margin:auto;
+  width:60%; height:60%; opacity:0; border-radius:18px; pointer-events:none;
+  background:radial-gradient(ellipse at center, rgba(0,255,204,.2), transparent 60%);
+  filter:blur(12px); transform:translateZ(-1px);
 }
 
 /* Shine sweep */
 .card-shine{
   content:""; position:absolute; inset:0;
-  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,.18) 50%, transparent 70%);
-  transform: translateX(-120%);
-  transition: transform .7s cubic-bezier(.2,.6,.2,1);
-  mix-blend-mode: screen;
+  background:linear-gradient(120deg, transparent 30%, rgba(255,255,255,.18) 50%, transparent 70%);
+  transform:translateX(-120%); transition:transform .7s cubic-bezier(.2,.6,.2,1); mix-blend-mode:screen;
 }
-.match-card:hover .card-shine { transform: translateX(120%); }
+.match-card:hover .card-shine{ transform:translateX(120%); }
 
 /* Tap ripple */
-.tap-ripple {
-  position: absolute; width: 22px; height: 22px; border-radius: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  background: radial-gradient(circle, rgba(255,255,255,.4), rgba(0,255,204,.18) 60%, transparent 70%);
-  mix-blend-mode: screen; pointer-events: none;
-  animation: rippleExpand .6s ease-out forwards;
+.tap-ripple{
+  position:absolute; width:22px; height:22px; border-radius:50%;
+  transform:translate(-50%,-50%) scale(0);
+  background:radial-gradient(circle, rgba(255,255,255,.4), rgba(0,255,204,.18) 60%, transparent 70%);
+  mix-blend-mode:screen; pointer-events:none; animation:rippleExpand .6s ease-out forwards;
 }
-@keyframes rippleExpand { to { transform: translate(-50%, -50%) scale(14); opacity: 0; } }
+@keyframes rippleExpand{ to{ transform:translate(-50%,-50%) scale(14); opacity:0 } }
 
-/* ========== Text animations ========== */
-
-/* 1) Title word-stagger container + subtle shimmer */
-.title-stagger {
-  display: inline-block;
-  background: linear-gradient(90deg, #fff, #dffcff, #fff);
-  background-size: 300% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;                /* makes shimmer visible */
-  animation: titleShimmer 3.8s linear infinite paused;
+/* ====== Text animations ====== */
+.title-stagger{
+  display:inline-block;
+  background:linear-gradient(90deg,#fff,#dffcff,#fff);
+  background-size:300% 100%;
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  animation:titleShimmer 3.8s linear infinite paused;
 }
-.title-stagger:hover { animation-play-state: running; } /* shimmer only when hovered */
-@keyframes titleShimmer { 0%{background-position: 0%} 100%{background-position: 300%} }
+.title-stagger:hover{ animation-play-state:running; }
+@keyframes titleShimmer{ 0%{background-position:0%} 100%{background-position:300%} }
+.title-word{ display:inline-block; }
 
-.title-word { display:inline-block; }
+.reveal-line{ display:inline-block; }
+.score-flip{ perspective:600px; }
 
-/* 2) Line reveal mask (used by RevealLine) */
-.reveal-line { display: inline-block; }
-
-/* 3) Score flip container perspective */
-.score-flip { perspective: 600px; }
-
-/* Winner underline + sheen */
-.win-line { position: relative; display: inline-block; }
+.win-line{ position:relative; display:inline-block; }
 .u-underline::after{
   content:""; position:absolute; left:0; right:0; bottom:-3px; height:2px;
-  background: linear-gradient(90deg, #00ffcc, #00bfff);
-  transform: scaleX(0); transform-origin: left; transition: transform .35s ease;
+  background:linear-gradient(90deg,#00ffcc,#00bfff);
+  transform:scaleX(0); transform-origin:left; transition:transform .35s ease;
 }
-.u-underline:hover::after{ transform: scaleX(1); }
+.u-underline:hover::after{ transform:scaleX(1) }
 .u-sheen::before{
   content:""; position:absolute; top:0; left:-30%; width:30%; height:100%;
-  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.22) 50%, transparent 70%);
-  transform: translateX(-120%);
-  transition: transform .8s cubic-bezier(.2,.6,.2,1);
-  mix-blend-mode: screen;
+  background:linear-gradient(110deg, transparent 30%, rgba(255,255,255,.22) 50%, transparent 70%);
+  transform:translateX(-120%); transition:transform .8s cubic-bezier(.2,.6,.2,1); mix-blend-mode:screen;
 }
-.u-sheen:hover::before{ transform: translateX(320%); }
+.u-sheen:hover::before{ transform:translateX(320%) }
 
-/* ========== Live badge (green pill + bigger red dot) ========== */
+/* ====== Recent badge ====== */
 .live-badge{
   display:inline-flex; align-items:center; gap:10px;
   font-weight:800; color:#0b1f2e;
@@ -101,16 +89,16 @@
 }
 .dot-red{ width:16px; height:16px; border-radius:50%; background:#ff2b2b; box-shadow:0 0 10px #ff2b2bcc; }
 
-/* ========== Sticky toggle header (unchanged) ========== */
+/* ====== Sticky toggle header ====== */
 .toggle-buttons{
-  display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;
-  justify-content:flex-start;align-items:center;
-  position:sticky;top:100px;z-index:1000!important;background:#0c1c2c;padding:12px 20px;border-bottom:2px solid #00bfff;
+  display:flex; flex-wrap:wrap; gap:12px; margin-bottom:20px;
+  justify-content:flex-start; align-items:center;
+  position:sticky; top:100px; z-index:1000!important; background:#0c1c2c; padding:12px 20px; border-bottom:2px solid #00bfff;
 }
 .toggle-buttons button{ min-width:160px; font-weight:500; transition:transform .2s }
 .toggle-buttons button:hover{ transform:scale(1.03) }
 
-/* ========== Responsive ========== */
-@media (max-width: 768px){
+/* ====== Responsive ====== */
+@media (max-width:768px){
   .match-card{ border-radius:12px; }
 }

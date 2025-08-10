@@ -5,18 +5,14 @@ import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-mo
 import gsap from "gsap";
 import "./MatchCards.css";
 
-/* ---------------------------------------
-   Utility: overs formatter
---------------------------------------- */
+/* ---------- utils ---------- */
 const formatOvers = (decimalOvers = 0) => {
   const fullOvers = Math.floor(decimalOvers);
   const balls = Math.round((decimalOvers - fullOvers) * 6);
   return `${fullOvers}.${balls}`;
 };
 
-/* ---------------------------------------
-   Framer variants (page / list / card)
---------------------------------------- */
+/* ---------- page/list/card variants ---------- */
 const pageVariants = {
   hidden: { opacity: 0, y: 24 },
   show:   { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
@@ -31,9 +27,7 @@ const cardVariants = {
   exit:   { opacity: 0, y: -16, transition: { duration: 0.25 } },
 };
 
-/* ---------------------------------------
-   Flags helper
---------------------------------------- */
+/* ---------- flags ---------- */
 const getFlag = (teamName) => {
   const normalized = teamName?.trim().toLowerCase();
   const flags = {
@@ -46,26 +40,19 @@ const getFlag = (teamName) => {
   return flags[normalized] || "🏳️";
 };
 
-/* ---------------------------------------
-   Color palettes (looped per card)
---------------------------------------- */
+/* ---------- richer palettes (bolder) ---------- */
 const PALETTES = [
-  ["#4facfe", "#00f2fe"],
-  ["#43e97b", "#38f9d7"],
-  ["#fa709a", "#fee140"],
-  ["#30cfd0", "#91a7ff"],
-  ["#f093fb", "#f5576c"],
-  ["#45b7d1", "#96c93d"],
-  ["#ff6b6b", "#ee5a24"],
-  ["#a18cd1", "#fbc2eb"],
+  ["#00C6FF", "#0072FF"],   // vivid blue
+  ["#00F5A0", "#00D9F5"],   // aqua-mint
+  ["#FF6A88", "#FF99AC"],   // coral-rose
+  ["#7F7FD5", "#86A8E7"],   // indigo-sky
+  ["#F7971E", "#FFD200"],   // amber
+  ["#8EC5FC", "#E0C3FC"],   // lilac-sky
+  ["#00DBDE", "#FC00FF"],   // teal-magenta
+  ["#3AE374", "#2ECC71"],   // green
 ];
 
-/* ---------------------------------------
-   Text Anim 1: Title word-stagger
-   - Splits title into words
-   - Each word fades+slides up on mount
-   - Tiny lift on hover for micro-delight
---------------------------------------- */
+/* ---------- text animations ---------- */
 const TitleStagger = ({ text }) => {
   const words = useMemo(() => (text || "").split(" "), [text]);
   return (
@@ -86,15 +73,10 @@ const TitleStagger = ({ text }) => {
   );
 };
 
-/* ---------------------------------------
-   Text Anim 2: RevealLine
-   - Uses clip-path mask to wipe text in
-   - Ideal for lines like "Overs" or team rows
---------------------------------------- */
 const RevealLine = ({ children, delay = 0 }) => (
   <motion.span
     className="reveal-line"
-    initial={{ clipPath: "inset(0 100% 0 0)" , opacity: 0.0001 }}
+    initial={{ clipPath: "inset(0 100% 0 0)", opacity: 0.0001 }}
     animate={{ clipPath: "inset(0 0% 0 0)", opacity: 1 }}
     transition={{ duration: 0.38, ease: "easeOut", delay }}
   >
@@ -102,10 +84,6 @@ const RevealLine = ({ children, delay = 0 }) => (
   </motion.span>
 );
 
-/* ---------------------------------------
-   Text Anim 3: ScoreFlip
-   - Your existing score flip-in (kept)
---------------------------------------- */
 const ScoreFlip = ({ children, delay = 0 }) => (
   <motion.span
     className="score-flip"
@@ -118,21 +96,14 @@ const ScoreFlip = ({ children, delay = 0 }) => (
   </motion.span>
 );
 
-/* ---------------------------------------
-   CardFX:
-   - 3D tilt + pointer-glow
-   - Shine sweep
-   - Gradient palettes per card
-   - Dark blue morph on hover/touch
-   - Ripple on pointer down
---------------------------------------- */
+/* ---------- Card shell (FIX: motion values in style, not animate) ---------- */
 function CardFX({ children, isRecent, paletteIndex }) {
   const cardRef = useRef(null);
   const glowRef = useRef(null);
   const [isDark, setIsDark] = useState(false);
   const [c1, c2] = PALETTES[paletteIndex % PALETTES.length];
 
-  // 3D tilt
+  // 3D tilt motion values
   const rx = useMotionValue(0);
   const ry = useMotionValue(0);
   const rotateX = useTransform(rx, [-1, 1], [8, -8]);
@@ -146,7 +117,6 @@ function CardFX({ children, isRecent, paletteIndex }) {
     const py = (e.clientY - rect.top) / rect.height;
     ry.set(px * 2 - 1);
     rx.set(py * 2 - 1);
-
     if (glowRef.current) {
       gsap.to(glowRef.current, {
         x: (px - 0.5) * rect.width * 0.4,
@@ -158,29 +128,18 @@ function CardFX({ children, isRecent, paletteIndex }) {
   };
 
   const onEnter = () => {
-    setIsDark(true); // morph to dark while hovered
-    gsap.to(cardRef.current, {
-      boxShadow: "0 18px 44px rgba(0,255,204,0.22)",
-      y: -4,
-      duration: 0.25,
-      ease: "power2.out",
-    });
+    setIsDark(true);
+    gsap.to(cardRef.current, { boxShadow: "0 18px 44px rgba(0,255,204,0.22)", y: -4, duration: 0.25, ease: "power2.out" });
     gsap.to(glowRef.current, { opacity: 1, duration: 0.25, ease: "power2.out" });
   };
-
   const onLeave = () => {
     setIsDark(false);
-    gsap.to(cardRef.current, {
-      boxShadow: "0 4px 14px rgba(0,0,0,0.35)",
-      y: 0,
-      duration: 0.3,
-      ease: "power2.out",
-    });
+    gsap.to(cardRef.current, { boxShadow: "0 6px 18px rgba(0,0,0,0.35)", y: 0, duration: 0.3, ease: "power2.out" });
     gsap.to(glowRef.current, { opacity: 0, duration: 0.3, ease: "power2.out" });
     rx.set(0); ry.set(0);
   };
 
-  // Tap ripple + dark hold on touch
+  // ripple + dark hold on touch
   const onTap = (e) => {
     setIsDark(true);
     const el = cardRef.current;
@@ -201,7 +160,10 @@ function CardFX({ children, isRecent, paletteIndex }) {
     <motion.div
       ref={cardRef}
       className={`match-card advanced h-100 ${isDark ? "is-dark" : ""}`}
-      style={{ "--c1": c1, "--c2": c2 }}
+      style={{
+        "--c1": c1, "--c2": c2,
+        rotateX, rotateY, transformPerspective: 900,   // ✅ keep motion values in style
+      }}
       variants={cardVariants}
       onMouseMove={onMove}
       onMouseEnter={onEnter}
@@ -210,44 +172,26 @@ function CardFX({ children, isRecent, paletteIndex }) {
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
       whileTap={{ scale: 0.99 }}
-      animate={{ rotateX, rotateY }}
     >
-      {/* soft glow follower */}
       <div ref={glowRef} className="card-glow" aria-hidden="true" />
-      {/* shine sweep */}
       <div className="card-shine" aria-hidden="true" />
-
-      {/* recent pill (ODI/T20/Test: index 0 in each list) */}
       {isRecent && (
         <motion.div
           className="live-badge"
-          animate={{
-            scale: [1, 1.12, 1],
-            boxShadow: ["0 0 0px #00ffcc55", "0 0 16px #00ffccaa", "0 0 0px #00ffcc55"],
-          }}
+          animate={{ scale: [1, 1.12, 1], boxShadow: ["0 0 0px #00ffcc55","0 0 16px #00ffccaa","0 0 0px #00ffcc55"] }}
           transition={{ repeat: Infinity, duration: 1.6 }}
         >
-          <span className="dot-red" />
-          Recent
+          <span className="dot-red" /> Recent
         </motion.div>
       )}
-
-      {/* slight idle float for whole content */}
-      <motion.div
-        className="card-surface"
-        style={{ rotateX, rotateY }}
-        animate={{ y: [0, -2, 0] }}
-        transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-      >
+      <motion.div className="card-surface" animate={{ y: [0, -2, 0] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}>
         {children}
       </motion.div>
     </motion.div>
   );
 }
 
-/* ---------------------------------------
-   MAIN
---------------------------------------- */
+/* ---------- main ---------- */
 const MatchCards = () => {
   const [matches, setMatches] = useState([]);
   const [testMatches, setTestMatches] = useState([]);
@@ -259,10 +203,9 @@ const MatchCards = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const matchRes = await getMatchHistory();
-        const testRes = await getTestMatches();
-        const teamRes = await getTeams();
-
+        const [matchRes, testRes, teamRes] = await Promise.all([
+          getMatchHistory(), getTestMatches(), getTeams()
+        ]);
         if (Array.isArray(matchRes)) setMatches(matchRes);
         if (Array.isArray(testRes)) setTestMatches(testRes);
         if (Array.isArray(teamRes)) setTeams(teamRes);
@@ -273,14 +216,10 @@ const MatchCards = () => {
     fetchData();
   }, []);
 
-  /* ----- Card renderers with text animations ----- */
+  /* ----- renderers with text anims ---- */
   const renderODICard = (match, index) => (
     <CardFX key={`${match.match_name}-${index}`} isRecent={index === 0} paletteIndex={index}>
-      <h5 className="text-white">
-        {/* Title: word-stagger + subtle shimmer via CSS */}
-        <TitleStagger text={match.match_name} />
-      </h5>
-
+      <h5 className="text-white"><TitleStagger text={match.match_name} /></h5>
       <div className="d-flex justify-content-between align-items-center mb-2">
         <div>
           <h6 className="mb-1">
@@ -305,8 +244,6 @@ const MatchCards = () => {
           </p>
         </div>
       </div>
-
-      {/* Winner: underline grow + sheen on hover */}
       <p className="text-light win-line u-underline u-sheen">
         <strong>
           🏆 {match.winner === "Draw"
@@ -361,12 +298,9 @@ const MatchCards = () => {
   const renderTestCard = (match, index) => (
     <CardFX key={`${match.match_name}-${index}`} isRecent={index === 0} paletteIndex={index + 4}>
       <h5 className="text-white"><TitleStagger text={(match.match_name || "").toUpperCase()} /></h5>
-
       <div>
         <h6 className="text-info">
-          <RevealLine delay={0.05}>
-            {getFlag(match.team1)} {match.team1?.toUpperCase()}
-          </RevealLine>
+          <RevealLine delay={0.05}>{getFlag(match.team1)} {match.team1?.toUpperCase()}</RevealLine>
         </h6>
         <p className="overs-info mb-1">
           <RevealLine delay={0.08}>
@@ -381,12 +315,9 @@ const MatchCards = () => {
           </RevealLine>
         </p>
       </div>
-
       <div className="mt-2">
         <h6 className="text-info">
-          <RevealLine delay={0.05}>
-            {getFlag(match.team2)} {match.team2?.toUpperCase()}
-          </RevealLine>
+          <RevealLine delay={0.05}>{getFlag(match.team2)} {match.team2?.toUpperCase()}</RevealLine>
         </h6>
         <p className="overs-info mb-1">
           <RevealLine delay={0.08}>
@@ -401,7 +332,6 @@ const MatchCards = () => {
           </RevealLine>
         </p>
       </div>
-
       <p className="text-light mt-2 win-line u-underline u-sheen">
         <strong>
           🏆 {match.winner === "Draw"
@@ -414,9 +344,9 @@ const MatchCards = () => {
     </CardFX>
   );
 
-  /* ----- Data filters ----- */
-  const odiMatches = matches.filter((m) => m.match_type === "ODI");
-  const t20Matches = matches.filter((m) => m.match_type === "T20");
+  /* ----- lists ----- */
+  const odiMatches  = matches.filter((m) => m.match_type === "ODI");
+  const t20Matches  = matches.filter((m) => m.match_type === "T20");
 
   return (
     <motion.div className="container mt-4" variants={pageVariants} initial="hidden" animate="show">
@@ -450,7 +380,7 @@ const MatchCards = () => {
                 <p className="text-white">No ODI matches available.</p>
               ) : (
                 odiMatches.map((match, index) => (
-                  <div key={index} className="col-md-6 col-lg-4 d-flex">
+                  <div key={match.match_name + index} className="col-md-6 col-lg-4 d-flex">
                     <div className="w-100 h-100">{renderODICard(match, index)}</div>
                   </div>
                 ))
@@ -470,7 +400,7 @@ const MatchCards = () => {
                 <p className="text-white">No T20 matches available.</p>
               ) : (
                 t20Matches.map((match, index) => (
-                  <div key={index} className="col-md-6 col-lg-4 d-flex">
+                  <div key={match.match_name + index} className="col-md-6 col-lg-4 d-flex">
                     <div className="w-100 h-100">{renderT20Card(match, index)}</div>
                   </div>
                 ))
@@ -490,7 +420,7 @@ const MatchCards = () => {
                 <p className="text-white">No Test matches available.</p>
               ) : (
                 testMatches.map((match, index) => (
-                  <div key={index} className="col-md-6 col-lg-4 d-flex">
+                  <div key={match.match_name + index} className="col-md-6 col-lg-4 d-flex">
                     <div className="w-100 h-100">{renderTestCard(match, index)}</div>
                   </div>
                 ))
