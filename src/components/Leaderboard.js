@@ -9,32 +9,30 @@ import "./Leaderboard.css";
 /* socket */
 const socket = io("https://cricket-scoreboard-backend.onrender.com");
 
-/* motion variants */
+/* page/list/row variants */
 const sectionVariants = {
   hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
 };
 const tableVariants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.05, delayChildren: 0.05 } },
+  show:   { transition: { staggerChildren: 0.05, delayChildren: 0.05 } },
 };
 const rowVariants = {
   hidden: { opacity: 0, y: 14 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.28 } },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.28 } },
 };
 
 /* animated number (react-spring) */
 const AnimatedNumber = ({ value }) => {
   const spring = useSpring({
     from: { val: 0 },
-    to: { val: Number.isFinite(value) ? value : 0 },
+    to:   { val: Number.isFinite(value) ? value : 0 },
     config: { tension: 180, friction: 20 },
   });
   return (
     <a.span>
-      {spring.val.to((v) =>
-        Number.isInteger(value) ? Math.round(v) : v.toFixed(2)
-      )}
+      {spring.val.to((v) => (Number.isInteger(value) ? Math.round(v) : v.toFixed(2)))}
     </a.span>
   );
 };
@@ -56,22 +54,22 @@ const sortTeams = (arr) =>
     b.points !== a.points ? b.points - a.points : (b.nrr || 0) - (a.nrr || 0)
   );
 
-/* NRR width: use |nrr| clamped 0..8 → 0..100% */
+/* NRR helpers */
 const nrrPercent = (nrr) => {
   if (nrr === null || Number.isNaN(nrr)) return 0;
-  const max = 8;
+  const max = 8; // map |nrr| to 0..8
   const mag = Math.min(max, Math.max(0, Math.abs(nrr)));
   return Math.round((mag / max) * 100);
 };
 
-/* NRR bucket → class + negative flag (drives row tint & bar color) */
+/* bucket → {bucketName, neg} */
 const nrrBucket = (nrr) => {
-  if (nrr === null) return { cls: "nrr-none", neg: false };
-  if (nrr < 0) return { cls: "nrr-red", neg: true };
-  if (nrr < 0.5) return { cls: "nrr-purple", neg: false };
-  if (nrr < 2) return { cls: "nrr-orange", neg: false };
-  if (nrr < 4) return { cls: "nrr-yellow", neg: false };
-  return { cls: "nrr-green", neg: false }; // >= 4
+  if (nrr === null) return { bucket: "none", neg: false };
+  if (nrr < 0)     return { bucket: "red",    neg: true  };
+  if (nrr < 0.5)   return { bucket: "purple", neg: false };
+  if (nrr < 2)     return { bucket: "orange", neg: false };
+  if (nrr < 4)     return { bucket: "yellow", neg: false };
+  return { bucket: "green", neg: false }; // >= 4
 };
 
 const Leaderboard = () => {
@@ -94,9 +92,7 @@ const Leaderboard = () => {
           prev.wins !== t.wins ||
           prev.losses !== t.losses ||
           (prev.nrr ?? null) !== (t.nrr ?? null)
-        ) {
-          changed.add(t.team_name);
-        }
+        ) changed.add(t.team_name);
       });
       setUpdatedRows(changed);
 
@@ -156,17 +152,18 @@ const Leaderboard = () => {
         <tbody>
           {teams.map((team, index) => {
             const prevIndex = prevRankMap.get(team.team_name);
-            const delta =
-              typeof prevIndex === "number" ? prevIndex - index : 0;
+            const delta = typeof prevIndex === "number" ? prevIndex - index : 0;
             const pulse = updatedRows.has(team.team_name);
-            const { cls, neg } = nrrBucket(team.nrr);
+
+            const { bucket, neg } = nrrBucket(team.nrr);
             const width = nrrPercent(team.nrr);
 
             return (
               <motion.tr
                 key={team.team_name}
                 variants={rowVariants}
-                className={`lb-row ${cls} ${pulse ? "is-updated" : ""}`}
+                className={`lb-row ${pulse ? "is-updated" : ""}`}
+                data-bucket={bucket}
                 whileHover={{ y: -2, scale: 1.01 }}
                 transition={{ type: "spring", stiffness: 260, damping: 20 }}
               >
@@ -187,9 +184,7 @@ const Leaderboard = () => {
                 </td>
 
                 <td className="team-cell">
-                  <span className="team-name u-underline-slide">
-                    {team.team_name}
-                  </span>
+                  <span className="team-name u-underline-slide">{team.team_name}</span>
                 </td>
 
                 <td><AnimatedNumber value={team.matches_played} /></td>
@@ -198,22 +193,18 @@ const Leaderboard = () => {
                 <td><AnimatedNumber value={draws(team)} /></td>
 
                 <td className={`pos points-cell ${pulse ? "sparkle-once" : ""}`}>
-                  <span className="cell-pop">
-                    <AnimatedNumber value={team.points} />
-                  </span>
+                  <span className="cell-pop"><AnimatedNumber value={team.points} /></span>
                 </td>
 
                 <td className={`nrr-cell ${neg ? "neg" : "pos"}`}>
                   <div className="nrr-track" aria-hidden />
                   <div
-                    className={`nrr-bar ${cls} ${neg ? "from-right" : "from-left"}`}
+                    className={`nrr-bar ${neg ? "from-right" : "from-left"}`}
                     style={{ "--target": `${width}%` }}
                     aria-hidden
                   />
                   {team.nrr === null ? "—" : (
-                    <span className="cell-pop">
-                      <AnimatedNumber value={Number(team.nrr.toFixed(2))} />
-                    </span>
+                    <span className="cell-pop"><AnimatedNumber value={Number(team.nrr.toFixed(2))} /></span>
                   )}
                 </td>
               </motion.tr>
@@ -221,11 +212,7 @@ const Leaderboard = () => {
           })}
 
           {teams.length === 0 && (
-            <tr>
-              <td colSpan="8" className="text-muted py-4">
-                No match data available.
-              </td>
-            </tr>
+            <tr><td colSpan="8" className="text-muted py-4">No match data available.</td></tr>
           )}
         </tbody>
       </motion.table>
