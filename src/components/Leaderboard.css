@@ -1,4 +1,4 @@
-/* ============ Outer shell (kept) ============ */
+/* ===== Shell (unchanged) ===== */
 .leaderboard-shell{
   width:100%;
   background:#0b1b2a;
@@ -8,7 +8,7 @@
   border:1px solid rgba(0,255,204,.08);
 }
 
-/* ============ Card-like table (NO borders) ============ */
+/* ===== Clean table: no visible frame/borders ===== */
 .leaderboard-motion-table{
   width:100%;
   border-collapse:separate;
@@ -16,16 +16,11 @@
   background:transparent;
   border:none;
   box-shadow:none;
-  border-radius:0;
 }
-
-/* Kill Bootstrap's borders hard */
 .leaderboard-motion-table,
-.leaderboard-motion-table *{
-  border:0 !important;
-}
+.leaderboard-motion-table *{ border:0 !important; }
 
-/* Header: one soft rule only */
+/* Header with 1 soft rule only */
 .leaderboard-motion-table thead th{
   font-weight:700;
   color:#dff2ff;
@@ -36,66 +31,49 @@
   letter-spacing:.2px;
 }
 
-/* Cells: clean & flat; no zebra fill (we tint on hover) */
+/* Body cells keep layout tight; no borders */
 .leaderboard-motion-table tbody td{
   padding:12px 10px;
   font-size:15px;
   color:#eaf6ff;
+  text-align:center;
   background:transparent;
   position:relative;
-  text-align:center;
+  z-index:1; /* sits above row overlay */
 }
-.leaderboard-motion-table tbody tr:nth-child(odd){ background:transparent; }
 
-/* ============ Row → “card” on hover ============ */
+/* ===== Row as a single overlay (fixes “broken corners”) ===== */
 .lb-row{
-  --tint: 255,255,255; /* overridden per bucket below */
-  transition:
-    background-color .18s ease,
-    transform .18s ease,
-    color .18s ease,
-    box-shadow .18s ease;
   position:relative;
+  --tint: 255,255,255; /* overridden by bucket classes */
+}
+.lb-row::before{
+  content:"";
+  position:absolute;
+  left:6px; right:6px; top:2px; bottom:2px; /* inset so it looks card-like */
+  border-radius:12px;
+  background:transparent;
+  box-shadow:none;
+  transition: background-color .18s ease, box-shadow .18s ease, transform .18s ease;
+  z-index:0;
+}
+.lb-row:hover::before{
+  background: rgba(var(--tint), .18);
+  box-shadow: 0 0 0 1px rgba(var(--tint), .28), 0 8px 22px rgba(var(--tint), .12);
 }
 .lb-row:hover{
-  transform: translateY(-2px) scale(1.006);
-}
-.lb-row:hover td{
-  background-color: rgba(var(--tint), .18); /* whole row tint */
-}
-/* rounded ends for the card feel */
-.lb-row:hover td:first-child{
-  border-top-left-radius:10px; border-bottom-left-radius:10px;
-}
-.lb-row:hover td:last-child{
-  border-top-right-radius:10px; border-bottom-right-radius:10px;
-}
-/* faint outline that matches tint */
-.lb-row:hover::before{
-  content:"";
-  position:absolute; left:6px; right:6px; top:2px; bottom:2px;
-  border-radius:12px;
-  box-shadow: 0 0 0 1px rgba(var(--tint), .25), 0 8px 24px rgba(var(--tint), .10);
-  pointer-events:none;
+  transform: translateY(-2px) scale(1.01);
 }
 
-/* Leader underline (kept) */
-.lb-row.is-leader{ z-index:0; }
-.lb-row.is-leader::after{
-  content:""; position:absolute; left:8%; right:8%; bottom:-1px; height:2px;
-  background:linear-gradient(90deg,#00ffcc77,#00bfff99,#00ffcc77);
-  filter:blur(1px); pointer-events:none;
-}
-
-/* live update pulse */
-.lb-row.is-updated{ animation:rowPulse .9s ease-out 1; }
+/* one-time live-update pulse */
+.lb-row.is-updated::before{ animation: rowPulse .9s ease-out 1; }
 @keyframes rowPulse{
   0%{ box-shadow:0 0 0 rgba(0,255,204,0); }
-  40%{ box-shadow:0 0 0 6px rgba(0,255,204,.16) inset; }
+  40%{ box-shadow:0 0 0 8px rgba(0,255,204,.16) inset; }
   100%{ box-shadow:0 0 0 rgba(0,255,204,0); }
 }
 
-/* ============ Rank / Team polish ============ */
+/* ===== Rank / Team polish ===== */
 .rank-cell{ white-space:nowrap; }
 .medal-emoji{ font-size:1.15rem; margin-right:4px; }
 .rank-num{ font-weight:800; }
@@ -115,23 +93,24 @@
 .lb-row:hover .team-cell .team-name{ color:#ffffff; }
 .lb-row:hover .u-underline-slide::after{ right:0; }
 
-/* ============ Points effects ============ */
+/* ===== Points: bounce + sparkle on update ===== */
 .cell-pop{ display:inline-block; transition:transform .18s ease; }
 .lb-row:hover .points-cell .cell-pop{ transform:scale(1.08); }
 .points-cell.sparkle-once{ position:relative; }
 .points-cell.sparkle-once::after{
   content:""; position:absolute; inset:-6px;
   background:
-    radial-gradient(circle at 20% 40%, rgba(255,255,255,.15), transparent 40%),
-    radial-gradient(circle at 80% 60%, rgba(0,255,204,.18), transparent 38%),
-    radial-gradient(circle at 50% 0%, rgba(0,191,255,.18), transparent 34%);
+    radial-gradient(circle at 20% 40%, rgba(255,255,255,.14), transparent 40%),
+    radial-gradient(circle at 80% 60%, rgba(0,255,204,.16), transparent 38%),
+    radial-gradient(circle at 50% 0%, rgba(0,191,255,.16), transparent 34%);
   animation:sparkle .7s ease-out 1; pointer-events:none;
 }
 @keyframes sparkle{ from{opacity:1;filter:blur(0)} to{opacity:0;filter:blur(6px)} }
+
 .pos{ color:#c9ffef; }
 .neg{ color:#ffc2c2; }
 
-/* ============ NRR bar ============ */
+/* ===== NRR bar ===== */
 .nrr-cell{ position:relative; overflow:hidden; }
 .nrr-track{
   position:absolute; left:8px; right:8px; bottom:6px; height:6px;
@@ -147,12 +126,12 @@
 @keyframes nrrFill{ to { width: var(--target, 0%); } }
 @keyframes nrrBreathe{ 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.18) } }
 
-/* ============ Bucket → row tint + bar color ============ */
-.nrr-green  { --tint: 22,226,138; }  /* GREEN   */
-.nrr-yellow { --tint: 255,231,106; } /* YELLOW  */
-.nrr-orange { --tint: 255,176,58; }  /* ORANGE  */
-.nrr-purple { --tint: 165,124,255; } /* PURPLE  */
-.nrr-red    { --tint: 255,43,43; }   /* RED     */
+/* ===== Buckets (set the row tint color + bar gradient) ===== */
+.nrr-green  { --tint: 22,226,138; }   /* GREEN */
+.nrr-yellow { --tint: 255,231,106; }  /* YELLOW */
+.nrr-orange { --tint: 255,176,58; }   /* ORANGE */
+.nrr-purple { --tint: 165,124,255; }  /* PURPLE */
+.nrr-red    { --tint: 255,43,43; }    /* RED */
 
 .nrr-green  .nrr-bar{ background:linear-gradient(90deg,#14e29a,#00c986); }
 .nrr-yellow .nrr-bar{ background:linear-gradient(90deg,#ffe76a,#ffb03a); }
@@ -160,7 +139,7 @@
 .nrr-purple .nrr-bar{ background:linear-gradient(90deg,#a57cff,#6dd6ff); }
 .nrr-red    .nrr-bar{ background:linear-gradient(90deg,#ff6b6b,#ff2b2b); }
 
-/* ============ Responsive ============ */
+/* ===== Responsive ===== */
 .table th, .table td{ transition:background-color .2s ease, color .2s ease; }
 @media (max-width:768px){
   .leaderboard-motion-table thead th,
