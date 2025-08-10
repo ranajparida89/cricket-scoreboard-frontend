@@ -1,89 +1,138 @@
-/* Leaderboard.css */
-
-/* 🔷 Full-width container with styling */
-.leaderboard-container {
-    background-color: #0c1c2c;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
-    width: 100%;
-    overflow-x: auto; /* allow scroll only if really needed */
-  }
-  
-  /* 🔷 Allow the table to adjust to content size */
-  .leaderboard-table-wrapper {
-    max-height: 500px;
-    overflow-y: auto;
-    width: 100%;
-  }
-  
-  /* 🔷 Full-width table with smart column sizing */
-  .table {
-    width: 100%;
-    table-layout: auto; /* lets columns expand based on content */
-  }
-  
-  /* 🔷 Prevent data overlap and keep it neat */
-  .table th,
-  .table td {
-    padding: 10px 14px;
-    font-size: 15px;
-    text-align: center;
-    vertical-align: middle;
-    white-space: nowrap; /* prevent breaking like "West Indies" */
-  }
-  /* 🥇 Advanced 3D Medal Styles */
-.medal-3d {
-  display: inline-block;
-  font-size: 1.8rem;
-  filter: drop-shadow(0 0 6px #ffd70088) drop-shadow(0 0 12px #ffd70055);
-  transform: perspective(40px) rotateX(8deg);
-  transition: transform 0.3s;
+/* ===== shell ===== */
+.leaderboard-shell{
+  width:100%;
+  background:#0b1b2a;
+  border-radius:16px;
+  padding:18px 18px 8px;
+  box-shadow:0 12px 36px rgba(0,0,0,.35);
+  border:1px solid rgba(0,255,204,.08);
 }
 
-.medal-3d.gold {
-  filter: drop-shadow(0 0 6px #ffd700) drop-shadow(0 0 18px #fffd94);
-}
-.medal-3d.silver {
-  filter: drop-shadow(0 0 6px #c0c0c0) drop-shadow(0 0 12px #b0e0e6);
-}
-.medal-3d.bronze {
-  filter: drop-shadow(0 0 6px #cd7f32) drop-shadow(0 0 12px #ffb347);
-}
-
-@keyframes spin {
-  0%   { transform: perspective(40px) rotateX(8deg) rotateY(0deg);}
-  100% { transform: perspective(40px) rotateX(8deg) rotateY(360deg);}
-}
-.animated-spin {
-  animation: spin 1.2s linear infinite;
-}
-/* performance & motion-friendly tweaks */
-.leaderboard-motion-table {
-  will-change: transform, opacity, background-color;
+/* header chip */
+.leaderboard-header{
+  font-weight:800;
+  letter-spacing:.2px;
+  color:#1fe2c2;
+  text-align:center;
+  padding:10px 14px;
+  margin-bottom:12px;
+  border-radius:12px;
+  background:linear-gradient(180deg, rgba(0,255,204,.08), rgba(0,255,204,.03));
+  border:1px solid rgba(0,255,204,.16);
+  text-shadow:0 0 20px rgba(0,255,204,.25);
 }
 
-.leaderboard-row-top {
-  position: relative;
-  z-index: 0;
-}
-.leaderboard-row-top::after {
-  /* subtle neon underline for #1 row */
-  content: "";
-  position: absolute;
-  left: 6%;
-  right: 6%;
-  bottom: 2px;
-  height: 2px;
-  background: linear-gradient(90deg, #00ffcc33, #00e0ff66, #00ffcc33);
-  filter: blur(1px);
-  pointer-events: none;
+/* table base (use your dark theme) */
+.leaderboard-motion-table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  background:rgba(8,20,32,.6);
+  border-radius:12px;
+  overflow:hidden;
 }
 
-.table th,
-.table td {
-  transition: background-color 0.2s ease, transform 0.2s ease;
+.leaderboard-motion-table thead th{
+  font-weight:700;
+  color:#cfe9ff;
+  background:linear-gradient(180deg, #0f2233, #0b1b2a);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  font-size:14px;
+  padding:12px 10px;
 }
 
-/* keep your existing styles… (unchanged code you already have) */
+.leaderboard-motion-table tbody td{
+  padding:12px 10px;
+  font-size:15px;
+  color:#eaf6ff;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  text-align:center;
+  position:relative;
+}
 
+/* zebra */
+.leaderboard-motion-table tbody tr:nth-child(odd){
+  background:rgba(255,255,255,.02);
+}
+
+/* row hover / lift */
+.lb-row{
+  transition:background-color .2s ease, box-shadow .2s ease;
+}
+.lb-row:hover{
+  background-color:rgba(255,255,255,.04);
+  box-shadow:0 6px 20px rgba(0,0,0,.25) inset;
+}
+
+/* subtle shimmer for leader row */
+.lb-row.is-leader{
+  position:relative;
+  z-index:0;
+}
+.lb-row.is-leader::after{
+  content:"";
+  position:absolute;
+  left:6%; right:6%; bottom:1px; height:2px;
+  background:linear-gradient(90deg,#00ffcc55,#00bfff88,#00ffcc55);
+  filter:blur(1px);
+  pointer-events:none;
+}
+
+/* live update pulse */
+.lb-row.is-updated{
+  animation:rowPulse .9s ease-out 1;
+}
+@keyframes rowPulse{
+  0%{ box-shadow:0 0 0 rgba(0,255,204,0); background-color:transparent; }
+  40%{ box-shadow:0 0 0 6px rgba(0,255,204,.12) inset; background-color:rgba(0,255,204,.06); }
+  100%{ box-shadow:0 0 0 rgba(0,255,204,0); background-color:transparent; }
+}
+
+/* rank / medal */
+.rank-cell{ white-space:nowrap; }
+.rank-num{ margin-left:6px; font-weight:700; }
+.rank-delta{
+  margin-left:8px;
+  font-weight:800;
+  font-size:13px;
+  padding:2px 6px;
+  border-radius:999px;
+  background:rgba(255,255,255,.08);
+}
+.rank-delta.up{ color:#27e08b; }
+.rank-delta.down{ color:#ff6b6b; }
+
+.medal-3d{
+  display:inline-block;
+  font-size:1.6rem;
+  transform:perspective(40px) rotateX(8deg);
+  filter:drop-shadow(0 0 6px #ffd70088);
+}
+.medal-3d.gold{ filter:drop-shadow(0 0 6px #ffd700) drop-shadow(0 0 18px #fffd94); }
+.medal-3d.silver{ filter:drop-shadow(0 0 6px #c0c0c0) drop-shadow(0 0 12px #b0e0e6); }
+.medal-3d.bronze{ filter:drop-shadow(0 0 6px #cd7f32) drop-shadow(0 0 12px #ffb347); }
+
+/* positive/negative subtle tint */
+.pos{ color:#b9ffea; }
+.neg{ color:#ffc1c1; }
+
+/* team cell */
+.team-cell .team-name{
+  font-weight:700;
+  letter-spacing:.2px;
+}
+
+/* NRR heat stripe (width driven by --w) */
+.nrr-cell{ position:relative; overflow:hidden; }
+.nrr-heat{
+  position:absolute; left:0; top:0; bottom:0; width:var(--w,0);
+  background:linear-gradient(90deg, rgba(0,255,204,.15), rgba(0,191,255,.06));
+  pointer-events:none;
+}
+
+/* small devices */
+@media (max-width: 768px){
+  .leaderboard-header{ font-size:16px; }
+  .leaderboard-motion-table thead th,
+  .leaderboard-motion-table tbody td{ font-size:14px; padding:10px 8px; }
+}
