@@ -1,3 +1,4 @@
+// src/components/Leaderboard.js
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getTeams } from "../services/api";
 import { io } from "socket.io-client";
@@ -5,10 +6,10 @@ import { motion } from "framer-motion";
 import { useSpring, animated as a } from "@react-spring/web";
 import "./Leaderboard.css";
 
-/* socket */
+/* ---------------- socket ---------------- */
 const socket = io("https://cricket-scoreboard-backend.onrender.com");
 
-/* motion variants */
+/* ---------------- motion variants ---------------- */
 const sectionVariants = {
   hidden: { opacity: 0, y: 24 },
   show:   { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
@@ -22,7 +23,7 @@ const rowVariants = {
   show:   { opacity: 1, y: 0, transition: { duration: 0.28 } },
 };
 
-/* animated number */
+/* ---------------- animated number (react-spring) ---------------- */
 const AnimatedNumber = ({ value }) => {
   const spring = useSpring({
     from: { val: 0 },
@@ -36,7 +37,7 @@ const AnimatedNumber = ({ value }) => {
   );
 };
 
-/* helpers */
+/* ---------------- helpers ---------------- */
 const parseTeams = (data) =>
   data.map((t) => ({
     ...t,
@@ -53,7 +54,7 @@ const sortTeams = (arr) =>
     b.points !== a.points ? b.points - a.points : (b.nrr || 0) - (a.nrr || 0)
   );
 
-/* NRR helpers */
+/* NRR bar width: 0..8 → 0..100%. For negative NRR use absolute value. */
 const nrrPercent = (nrr) => {
   if (nrr === null || Number.isNaN(nrr)) return 0;
   const max = 8;
@@ -61,13 +62,14 @@ const nrrPercent = (nrr) => {
   return Math.round((magnitude / max) * 100);
 };
 
+/* NRR bucket (drives row tint + bar color). Matches your spec. */
 const nrrBucket = (nrr) => {
   if (nrr === null) return { cls: "nrr-none", neg: false };
   if (nrr < 0) return { cls: "nrr-red", neg: true };
   if (nrr < 0.5) return { cls: "nrr-purple", neg: false };
   if (nrr < 2) return { cls: "nrr-orange", neg: false };
   if (nrr < 4) return { cls: "nrr-yellow", neg: false };
-  return { cls: "nrr-green", neg: false };
+  return { cls: "nrr-green", neg: false }; // >= 4 => GREEN
 };
 
 const Leaderboard = () => {
@@ -81,19 +83,23 @@ const Leaderboard = () => {
       const parsed = parseTeams(raw);
       const sorted = sortTeams(parsed);
 
+      // mark rows that changed (pulse once)
       const changed = new Set();
       sorted.forEach((t) => {
         const prev = teams.find((x) => x.team_name === t.team_name);
-        if (!prev ||
-            prev.points !== t.points ||
-            prev.wins !== t.wins ||
-            prev.losses !== t.losses ||
-            (prev.nrr ?? null) !== (t.nrr ?? null)) {
+        if (
+          !prev ||
+          prev.points !== t.points ||
+          prev.wins !== t.wins ||
+          prev.losses !== t.losses ||
+          (prev.nrr ?? null) !== (t.nrr ?? null)
+        ) {
           changed.add(t.team_name);
         }
       });
       setUpdatedRows(changed);
 
+      // update rank map for movement arrows
       const rankMap = new Map();
       sorted.forEach((t, i) => rankMap.set(t.team_name, i));
       prevRanksRef.current = rankMap;
@@ -150,6 +156,7 @@ const Leaderboard = () => {
                 key={team.team_name}
                 variants={rowVariants}
                 className={`lb-row ${cls} ${index === 0 ? "is-leader" : ""} ${pulse ? "is-updated" : ""}`}
+                data-bucket={cls} // optional: handy for debugging
                 whileHover={{ y: -2, scale: 1.015 }}
                 transition={{ type: "spring", stiffness: 280, damping: 18 }}
               >
@@ -183,7 +190,11 @@ const Leaderboard = () => {
 
                 <td className={`nrr-cell ${neg ? "neg" : "pos"}`}>
                   <div className="nrr-track" aria-hidden />
-                  <div className={`nrr-bar ${cls} ${neg ? "from-right" : "from-left"}`} style={{ "--target": `${width}%` }} aria-hidden />
+                  <div
+                    className={`nrr-bar ${cls} ${neg ? "from-right" : "from-left"}`}
+                    style={{ "--target": `${width}%` }}
+                    aria-hidden
+                  />
                   {team.nrr === null ? "—" : (
                     <span className="cell-pop"><AnimatedNumber value={Number(team.nrr.toFixed(2))} /></span>
                   )}

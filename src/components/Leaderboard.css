@@ -1,4 +1,4 @@
-/* ===== container ===== */
+/* ============ Outer shell (kept) ============ */
 .leaderboard-shell{
   width:100%;
   background:#0b1b2a;
@@ -8,60 +8,86 @@
   border:1px solid rgba(0,255,204,.08);
 }
 
-/* ===== table: no frame, minimal grid ===== */
+/* ============ Card-like table (NO borders) ============ */
 .leaderboard-motion-table{
   width:100%;
   border-collapse:separate;
   border-spacing:0;
-  background:linear-gradient(180deg, #0d1f2f, #0a1724);
-  border-radius:14px;
-  overflow:hidden;            /* keep rounded corners */
-  /* removed outer border/frame */
+  background:transparent;
   border:none;
   box-shadow:none;
+  border-radius:0;
 }
 
-/* remove column dividers entirely for a clean look */
-.leaderboard-motion-table thead th,
-.leaderboard-motion-table tbody td{
-  border-right:none;
+/* Kill Bootstrap's borders hard */
+.leaderboard-motion-table,
+.leaderboard-motion-table *{
+  border:0 !important;
 }
 
+/* Header: one soft rule only */
 .leaderboard-motion-table thead th{
   font-weight:700;
   color:#dff2ff;
   background:linear-gradient(180deg, #102437, #0d1f2f);
-  border-bottom:1px solid rgba(255,255,255,.10);
+  border-bottom:1px solid rgba(255,255,255,.10) !important;
   font-size:14px;
   padding:12px 10px;
   letter-spacing:.2px;
 }
 
+/* Cells: clean & flat; no zebra fill (we tint on hover) */
 .leaderboard-motion-table tbody td{
   padding:12px 10px;
   font-size:15px;
   color:#eaf6ff;
-  /* keep only a soft horizontal separator */
-  border-bottom:1px solid rgba(255,255,255,.06);
+  background:transparent;
+  position:relative;
   text-align:center;
+}
+.leaderboard-motion-table tbody tr:nth-child(odd){ background:transparent; }
+
+/* ============ Row → “card” on hover ============ */
+.lb-row{
+  --tint: 255,255,255; /* overridden per bucket below */
+  transition:
+    background-color .18s ease,
+    transform .18s ease,
+    color .18s ease,
+    box-shadow .18s ease;
   position:relative;
 }
-
-/* zebra baseline */
-.leaderboard-motion-table tbody tr:nth-child(odd){
-  background:rgba(255,255,255,.02);
+.lb-row:hover{
+  transform: translateY(-2px) scale(1.006);
+}
+.lb-row:hover td{
+  background-color: rgba(var(--tint), .18); /* whole row tint */
+}
+/* rounded ends for the card feel */
+.lb-row:hover td:first-child{
+  border-top-left-radius:10px; border-bottom-left-radius:10px;
+}
+.lb-row:hover td:last-child{
+  border-top-right-radius:10px; border-bottom-right-radius:10px;
+}
+/* faint outline that matches tint */
+.lb-row:hover::before{
+  content:"";
+  position:absolute; left:6px; right:6px; top:2px; bottom:2px;
+  border-radius:12px;
+  box-shadow: 0 0 0 1px rgba(var(--tint), .25), 0 8px 24px rgba(var(--tint), .10);
+  pointer-events:none;
 }
 
-/* ===== row effects ===== */
-.lb-row{
-  transition:background-color .25s ease, box-shadow .25s ease, transform .18s ease, color .2s ease;
-}
-.lb-row.is-leader{ position:relative; z-index:0; }
+/* Leader underline (kept) */
+.lb-row.is-leader{ z-index:0; }
 .lb-row.is-leader::after{
-  content:""; position:absolute; left:6%; right:6%; bottom:1px; height:2px;
+  content:""; position:absolute; left:8%; right:8%; bottom:-1px; height:2px;
   background:linear-gradient(90deg,#00ffcc77,#00bfff99,#00ffcc77);
   filter:blur(1px); pointer-events:none;
 }
+
+/* live update pulse */
 .lb-row.is-updated{ animation:rowPulse .9s ease-out 1; }
 @keyframes rowPulse{
   0%{ box-shadow:0 0 0 rgba(0,255,204,0); }
@@ -69,7 +95,7 @@
   100%{ box-shadow:0 0 0 rgba(0,255,204,0); }
 }
 
-/* ===== rank / team ===== */
+/* ============ Rank / Team polish ============ */
 .rank-cell{ white-space:nowrap; }
 .medal-emoji{ font-size:1.15rem; margin-right:4px; }
 .rank-num{ font-weight:800; }
@@ -86,8 +112,10 @@
   background:linear-gradient(90deg,#00ffcc,#00bfff);
   transition:right .3s ease;
 }
+.lb-row:hover .team-cell .team-name{ color:#ffffff; }
+.lb-row:hover .u-underline-slide::after{ right:0; }
 
-/* ===== points bounce + sparkle ===== */
+/* ============ Points effects ============ */
 .cell-pop{ display:inline-block; transition:transform .18s ease; }
 .lb-row:hover .points-cell .cell-pop{ transform:scale(1.08); }
 .points-cell.sparkle-once{ position:relative; }
@@ -100,11 +128,10 @@
   animation:sparkle .7s ease-out 1; pointer-events:none;
 }
 @keyframes sparkle{ from{opacity:1;filter:blur(0)} to{opacity:0;filter:blur(6px)} }
-
 .pos{ color:#c9ffef; }
 .neg{ color:#ffc2c2; }
 
-/* ===== NRR bar ===== */
+/* ============ NRR bar ============ */
 .nrr-cell{ position:relative; overflow:hidden; }
 .nrr-track{
   position:absolute; left:8px; right:8px; bottom:6px; height:6px;
@@ -120,29 +147,21 @@
 @keyframes nrrFill{ to { width: var(--target, 0%); } }
 @keyframes nrrBreathe{ 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.18) } }
 
-/* bar colors */
-.nrr-green .nrr-bar  { background:linear-gradient(90deg,#14e29a,#00c986); }
-.nrr-yellow .nrr-bar { background:linear-gradient(90deg,#ffe76a,#ffb03a); }
-.nrr-orange .nrr-bar { background:linear-gradient(90deg,#ffb03a,#ff7a3d); }
-.nrr-purple .nrr-bar { background:linear-gradient(90deg,#a57cff,#6dd6ff); }
-.nrr-red .nrr-bar    { background:linear-gradient(90deg,#ff6b6b,#ff2b2b); }
+/* ============ Bucket → row tint + bar color ============ */
+.nrr-green  { --tint: 22,226,138; }  /* GREEN   */
+.nrr-yellow { --tint: 255,231,106; } /* YELLOW  */
+.nrr-orange { --tint: 255,176,58; }  /* ORANGE  */
+.nrr-purple { --tint: 165,124,255; } /* PURPLE  */
+.nrr-red    { --tint: 255,43,43; }   /* RED     */
 
-/* ===== bucket-synced WHOLE-ROW hover tint =====
-   (applies to every cell, so it always matches the bar color) */
-.lb-row:hover td{ transition:background-color .18s ease, color .18s ease; }
-.lb-row:hover .team-cell .team-name{ color:#ffffff; }
-.lb-row:hover .u-underline-slide::after{ right:0; }
+.nrr-green  .nrr-bar{ background:linear-gradient(90deg,#14e29a,#00c986); }
+.nrr-yellow .nrr-bar{ background:linear-gradient(90deg,#ffe76a,#ffb03a); }
+.nrr-orange .nrr-bar{ background:linear-gradient(90deg,#ffb03a,#ff7a3d); }
+.nrr-purple .nrr-bar{ background:linear-gradient(90deg,#a57cff,#6dd6ff); }
+.nrr-red    .nrr-bar{ background:linear-gradient(90deg,#ff6b6b,#ff2b2b); }
 
-/* stronger, unmistakable tints */
-.lb-row.nrr-green:hover  td{ background-color:rgba(20,226,154,.22); }  /* GREEN */
-.lb-row.nrr-yellow:hover td{ background-color:rgba(255,231,106,.20); } /* YELLOW */
-.lb-row.nrr-orange:hover td{ background-color:rgba(255,176, 58,.20); } /* ORANGE */
-.lb-row.nrr-purple:hover td{ background-color:rgba(165,124,255,.22); } /* PURPLE */
-.lb-row.nrr-red:hover    td{ background-color:rgba(255, 43, 43,.18); } /* RED */
-
-/* ===== misc ===== */
+/* ============ Responsive ============ */
 .table th, .table td{ transition:background-color .2s ease, color .2s ease; }
-
 @media (max-width:768px){
   .leaderboard-motion-table thead th,
   .leaderboard-motion-table tbody td{ font-size:14px; padding:10px 8px; }
