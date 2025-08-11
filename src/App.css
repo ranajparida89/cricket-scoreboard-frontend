@@ -80,7 +80,7 @@ a:hover { color: #ffb800; text-decoration: underline; }
 ::selection { background: #ffd40080; }
 
 /* ===== Footer ===== */
-/* CHANGED: 100vw -> 100% to avoid horizontal overflow on mobile */
+/* 100vw -> 100% to avoid horizontal overflow on mobile */
 .crickedge-footer {
   width: 100%;
   background: #0a0a0a;
@@ -114,7 +114,7 @@ a:hover { color: #ffb800; text-decoration: underline; }
 }
 
 /* ===== Glass blur (scoped & mobile-safe) ===== */
-/* IMPORTANT: do NOT apply to body — it caused the white screen */
+/* IMPORTANT: do NOT apply to body — can cause white screen */
 .card,
 .bg-dark:not(body) {
   backdrop-filter: blur(2.5px);
@@ -136,4 +136,64 @@ a:hover { color: #ffb800; text-decoration: underline; }
 @keyframes App-logo-spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
+}
+
+/* ================================
+   FINAL mobile/touch stability fix
+   (put these at the END of App.css)
+   ================================ */
+
+/* Always promote these surfaces to dedicated GPU layers */
+.leaderboard-glass,
+.lbfx-glass,
+.trfx-glass,
+.mhfx-glass,
+.nrr-track, .nrr-bar,
+.win-track, .win-bar {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  contain: paint;
+}
+
+/* Touch devices & small screens: disable blur/filters & hover transforms */
+@media (max-width: 900px), (pointer: coarse) {
+  /* Kill backdrop blur on glass cards to stop flicker */
+  .leaderboard-glass,
+  .lbfx-glass,
+  .trfx-glass,
+  .mhfx-glass {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(13,31,47,.96) !important; /* solid glassy fallback */
+    box-shadow: 0 10px 26px rgba(0,0,0,.35);
+  }
+
+  /* Remove hover/tilt transforms that cause layer thrash on mobile */
+  .lb-row,
+  .mhfx-row,
+  .trfx-row {
+    transform: none !important;
+    transition: background-color .18s ease !important; /* keep a light hover feel */
+    box-shadow: none !important;
+  }
+
+  /* Remove expensive filters on animated bars/icons */
+  .nrr-bar,
+  .win-bar,
+  .trophy {
+    filter: none !important;
+  }
+
+  /* Particles add translucent layers while scrolling—hide on mobile */
+  #lbfx-particles,
+  #trfx-particles,
+  #mhfx-particles {
+    display: none !important;
+  }
+}
+
+/* If your body uses .bg-dark (Bootstrap), keep it simple to avoid repaint bugs */
+body.bg-dark {
+  background-color: #0a0a0a !important;
 }
