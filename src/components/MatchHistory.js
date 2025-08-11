@@ -1,139 +1,214 @@
-import React, { useEffect, useState } from "react";
-import { getMatchHistory, getTestMatchHistory } from "../services/api"; // ✅ [Ranaj - 2025-04-09] Imported Test match history API
+import React, { useEffect, useRef, useState, forwardRef } from "react";
+import { getMatchHistory, getTestMatchHistory } from "../services/api";
+import { gsap } from "gsap";
+import { Animate } from "react-move";
+import { useSpring, animated as a } from "@react-spring/web";
+import Particles from "react-tsparticles";
+import { loadFull } from "tsparticles";
+import "./MatchHistory.css";
 
+/* -------- AOI (in-view) -------- */
+const useInView = (ref, threshold = 0.2) => {
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    if (!ref.current) return;
+    const o = new IntersectionObserver(([e]) => e.isIntersecting && setSeen(true), { threshold });
+    o.observe(ref.current);
+    return () => o.disconnect();
+  }, [ref, threshold]);
+  return seen;
+};
+
+/* -------- Helpers -------- */
+const formatOvers = (overs) => Number(overs || 0).toFixed(1);
+const sumNum = (a, b) => (Number(a || 0) + Number(b || 0));
+const sumOvers = (a, b) => (Number(a || 0) + Number(b || 0)).toFixed(1);
+
+/* -------- Row (hooks live here, not inside map) -------- */
+const MHRow = forwardRef(({ i, m }, ref) => {
+  const isTest = m.match_type === "Test";
+
+  // Team 1
+  const runs1    = isTest ? sumNum(m.runs1,    m.runs1_2)    : m.runs1;
+  const wickets1 = isTest ? sumNum(m.wickets1, m.wickets1_2) : m.wickets1;
+  const overs1   = isTest ? sumOvers(m.overs1, m.overs1_2)   : formatOvers(m.overs1);
+
+  // Team 2
+  const runs2    = isTest ? sumNum(m.runs2,    m.runs2_2)    : m.runs2;
+  const wickets2 = isTest ? sumNum(m.wickets2, m.wickets2_2) : m.wickets2;
+  const overs2   = isTest ? sumOvers(m.overs2, m.overs2_2)   : formatOvers(m.overs2);
+
+  // Hover tilt
+  const [spr, api] = useSpring(() => ({
+    rotateX: 0, rotateY: 0, scale: 1,
+    config: { mass: 1, tension: 280, friction: 24 },
+  }));
+  const onMove = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - r.left, y = e.clientY - r.top;
+    api.start({ rotateX: -(y / r.height - 0.5) * 6, rotateY: (x / r.width - 0.5) * 6, scale: 1.01 });
+  };
+  const onLeave = () => api.start({ rotateX: 0, rotateY: 0, scale: 1 });
+
+  return (
+    <a.tr
+      ref={ref}
+      className="mhfx-row"
+      style={{
+        transform: spr.scale.to(
+          (s) => `perspective(900px) rotateX(${spr.rotateX.get()}deg) rotateY(${spr.rotateY.get()}deg) scale(${s})`
+        ),
+      }}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+    >
+      <td className="idx">{i + 1}</td>
+      <td className="left">{m.match_name}</td>
+      <td>{m.match_type}</td>
+      <td className="left">{m.team1}</td>
+      <td>{runs1}/{wickets1} ({overs1} ov)</td>
+      <td className="left">{m.team2}</td>
+      <td>{runs2}/{wickets2} ({overs2} ov)</td>
+
+      {/* Winner: trophy + comet underline + sparkles + count-up opacity */}
+      <td className="mhfx-winner">
+        <div className="win-pill">
+          <span className="trophy" aria-hidden>🏆</span>
+          <Animate start={{ o: 0 }} update={{ o: [1], timing: { duration: 600 } }}>
+            {({ o }) => <span className="name" style={{ opacity: o }}>{m.winner || "—"}</span>}
+          </Animate>
+        </div>
+
+        {/* comet underline fill */}
+        <div className="win-track" />
+        <Animate start={{ w: 0 }} update={{ w: [100], timing: { duration: 800 } }}>
+          {({ w }) => (
+            <div className="win-bar" style={{ width: `${w}%` }}>
+              <span className="win-head" />
+            </div>
+          )}
+        </Animate>
+
+        {/* sparkles */}
+        <span className="spark s1" />
+        <span className="spark s2" />
+        <span className="spark s3" />
+      </td>
+
+      <td className="right">{new Date(m.match_time).toLocaleString()}</td>
+    </a.tr>
+  );
+});
+
+/* -------- Main component -------- */
 const MatchHistory = () => {
   const [matches, setMatches] = useState([]);
-  const [filters, setFilters] = useState({
-    match_type: "",
-    team: "",
-    winner: ""
-  });
+  const [filters, setFilters] = useState({ match_type: "", team: "", winner: "" });
+  const wrapRef = useRef(null);
+  const rowsRef = useRef([]);
+  rowsRef.current = [];
+  const addRowRef = (el) => el && !rowsRef.current.includes(el) && rowsRef.current.push(el);
 
-  // ✅ [Ranaj - 2025-04-09] Updated fetchData logic to support Test match history
+  const particlesInit = async (engine) => { await loadFull(engine); };
+
   const fetchData = async (filterValues = {}) => {
     try {
       let data = [];
       if (filterValues.match_type === "Test") {
-        const testMatches = await getTestMatchHistory();
-        data = testMatches.map(match => ({
+        const t = await getTestMatchHistory();
+        data = (t || []).map((match) => ({
           ...match,
           match_type: "Test",
           match_name: match.match_name,
           match_time: match.match_time,
-          team1: match.team1,
-          team2: match.team2,
+          team1: match.team1, team2: match.team2,
           winner: match.winner,
-          runs1: match.runs1,
-          overs1: match.overs1,
-          wickets1: match.wickets1,
-          runs1_2: match.runs1_2,
-          overs1_2: match.overs1_2,
-          wickets1_2: match.wickets1_2,
-          runs2: match.runs2,
-          overs2: match.overs2,
-          wickets2: match.wickets2,
-          runs2_2: match.runs2_2,
-          overs2_2: match.overs2_2,
-          wickets2_2: match.wickets2_2
+          runs1: match.runs1, overs1: match.overs1, wickets1: match.wickets1,
+          runs1_2: match.runs1_2, overs1_2: match.overs1_2, wickets1_2: match.wickets1_2,
+          runs2: match.runs2, overs2: match.overs2, wickets2: match.wickets2,
+          runs2_2: match.runs2_2, overs2_2: match.overs2_2, wickets2_2: match.wickets2_2,
         }));
       } else {
         data = await getMatchHistory(filterValues);
       }
-      setMatches(data);
-    } catch (error) {
-      console.error("Error fetching match history:", error);
+      setMatches(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error fetching match history:", err);
+      setMatches([]);
     }
   };
 
+  useEffect(() => { fetchData(); }, []);
+
+  const handleChange = (e) => setFilters({ ...filters, [e.target.name]: e.target.value });
+  const handleSearch = (e) => { e.preventDefault(); fetchData(filters); };
+  const handleReset = () => { setFilters({ match_type: "", team: "", winner: "" }); fetchData({}); };
+
+  const inView = useInView(wrapRef);
+
+  // GSAP reveal
   useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleChange = (e) => {
-    setFilters({
-      ...filters,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    fetchData(filters);
-  };
-
-  const handleReset = () => {
-    setFilters({
-      match_type: "",
-      team: "",
-      winner: ""
-    });
-    fetchData({});
-  };
-
-  const formatOvers = (overs) => {
-    return Number(overs).toFixed(1);
-  };
-
-  const getTotal = (primary, secondary) => {
-    const p = parseFloat(primary || 0);
-    const s = parseFloat(secondary || 0);
-    return (p + s).toFixed(1);
-  };
+    if (!inView || !rowsRef.current.length) return;
+    gsap.fromTo(
+      rowsRef.current,
+      { y: 20, opacity: 0, filter: "blur(4px)" },
+      { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.55, stagger: 0.06, ease: "power2.out" }
+    );
+  }, [inView, matches]);
 
   return (
-    <div className="container mt-5">
-      <div className="card shadow p-4">
-        <h2 className="text-center text-secondary mb-4">📜 Match History</h2>
+    <div className="mhfx-shell">
+      <Particles
+        id="mhfx-particles"
+        init={particlesInit}
+        options={{
+          fullScreen: { enable: false },
+          background: { color: { value: "transparent" } },
+          fpsLimit: 60,
+          particles: {
+            number: { value: 20, density: { enable: true, area: 800 } },
+            links: { enable: true, distance: 120, opacity: 0.15, width: 1 },
+            move: { enable: true, speed: 1, outModes: { default: "bounce" } },
+            size: { value: { min: 1, max: 3 } },
+            opacity: { value: 0.25 },
+          },
+        }}
+      />
 
-        {/* Filter Form */}
-        <form onSubmit={handleSearch} className="row g-3 mb-4">
-          <div className="col-md-3">
-            <select
-              className="form-select"
-              name="match_type"
-              value={filters.match_type}
-              onChange={handleChange}
-            >
-              <option value="">All Match Types</option>
-              <option value="T20">T20</option>
-              <option value="ODI">ODI</option>
-            </select>
-          </div>
+      <div ref={wrapRef} className="mhfx-glass">
+        <div className="mhfx-header">
+          <span className="mhfx-title">📜 Match History</span>
+          <span className="mhfx-sub">Past results • All formats</span>
+        </div>
 
-          <div className="col-md-3">
-            <input
-              type="text"
-              name="team"
-              className="form-control"
-              placeholder="Search by Team"
-              value={filters.team}
-              onChange={handleChange}
-            />
-          </div>
+        {/* Filters */}
+        <form onSubmit={handleSearch} className="mhfx-filters">
+          <select name="match_type" value={filters.match_type} onChange={handleChange}>
+            <option value="">All Match Types</option>
+            <option value="T20">T20</option>
+            <option value="ODI">ODI</option>
+            <option value="Test">Test</option>
+          </select>
 
-          <div className="col-md-3">
-            <input
-              type="text"
-              name="winner"
-              className="form-control"
-              placeholder="Search by Winner"
-              value={filters.winner}
-              onChange={handleChange}
-            />
-          </div>
+          <input
+            type="text" name="team" placeholder="Search by Team"
+            value={filters.team} onChange={handleChange}
+          />
+          <input
+            type="text" name="winner" placeholder="Search by Winner"
+            value={filters.winner} onChange={handleChange}
+          />
 
-          <div className="col-md-3 d-flex justify-content-between">
-            <button type="submit" className="btn btn-primary me-2">Search</button>
-            <button type="button" className="btn btn-secondary" onClick={handleReset}>
-              Reset
-            </button>
+          <div className="btns">
+            <button type="submit" className="btn primary">Search</button>
+            <button type="button" className="btn" onClick={handleReset}>Reset</button>
           </div>
         </form>
 
-        {/* Match History Table */}
-        <div className="table-responsive">
-          <table className="table table-bordered text-center">
-            <thead className="table-light">
+        {/* Table */}
+        <div className="mhfx-table-wrap">
+          <table className="mhfx-table">
+            <thead>
               <tr>
                 <th>#</th>
                 <th>Match</th>
@@ -146,39 +221,18 @@ const MatchHistory = () => {
                 <th>Date</th>
               </tr>
             </thead>
+
             <tbody>
-              {matches.length > 0 ? (
-                matches.map((match, index) => {
-                  const isTest = match.match_type === "Test";
-
-                  // Team 1 scores
-                  const runs1 = isTest ? (parseInt(match.runs1 || 0) + parseInt(match.runs1_2 || 0)) : match.runs1;
-                  const overs1 = isTest ? getTotal(match.overs1, match.overs1_2) : formatOvers(match.overs1);
-                  const wickets1 = isTest ? (parseInt(match.wickets1 || 0) + parseInt(match.wickets1_2 || 0)) : match.wickets1;
-
-                  // Team 2 scores
-                  const runs2 = isTest ? (parseInt(match.runs2 || 0) + parseInt(match.runs2_2 || 0)) : match.runs2;
-                  const overs2 = isTest ? getTotal(match.overs2, match.overs2_2) : formatOvers(match.overs2);
-                  const wickets2 = isTest ? (parseInt(match.wickets2 || 0) + parseInt(match.wickets2_2 || 0)) : match.wickets2;
-
-                  return (
-                    <tr key={match.id || index}>
-                      <td>{index + 1}</td>
-                      <td>{match.match_name}</td>
-                      <td>{match.match_type}</td>
-                      <td>{match.team1}</td>
-                      <td>{runs1}/{wickets1} ({overs1} ov)</td>
-                      <td>{match.team2}</td>
-                      <td>{runs2}/{wickets2} ({overs2} ov)</td>
-                      <td>{match.winner}</td>
-                      <td>{new Date(match.match_time).toLocaleString()}</td>
-                    </tr>
-                  );
-                })
+              {matches.length ? (
+                matches.map((m, i) => (
+                  <MHRow key={m.id || `${m.match_name}-${i}`} ref={(el) => addRowRef(el)} i={i} m={m} />
+                ))
               ) : (
-                <tr>
-                  <td colSpan="9">No match history available.</td>
-                </tr>
+                <>
+                  <tr className="skeleton"><td colSpan="9" /></tr>
+                  <tr className="skeleton"><td colSpan="9" /></tr>
+                  <tr className="skeleton"><td colSpan="9" /></tr>
+                </>
               )}
             </tbody>
           </table>
