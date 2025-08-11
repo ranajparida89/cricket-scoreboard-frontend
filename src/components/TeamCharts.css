@@ -1,5 +1,5 @@
 /*******************************************************
- * TeamCharts.css — dashboard cards like your screenshot
+ * TeamCharts.css — polished dashboard look
  *******************************************************/
 .tcpro-shell{ position:relative; width:100%; padding:24px 10px; }
 #tcpro-particles{ position:absolute; inset:0; pointer-events:none; z-index:0; }
@@ -9,8 +9,9 @@
   position:relative; z-index:1;
   border-radius:18px;
   padding:18px 12px;
-  background: radial-gradient(900px 380px at 8% -10%, rgba(0,255,170,.08), transparent 60%),
-              linear-gradient(180deg, rgba(13,31,47,.78), rgba(10,23,36,.68));
+  background:
+    radial-gradient(900px 380px at 8% -10%, rgba(0,255,170,.08), transparent 60%),
+    linear-gradient(180deg, rgba(13,31,47,.78), rgba(10,23,36,.68));
   border: 1px solid rgba(255,255,255,.08);
   box-shadow: 0 18px 50px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
@@ -28,7 +29,7 @@
   padding:10px 12px; font-weight:600;
 }
 
-/* card — white, soft shadow like screenshot */
+/* card — white, soft shadow like your reference screenshot */
 .tcpro-card{
   background:#ffffff; color:#1b2b3b;
   border:1px solid #e6eef7; border-radius:16px;
@@ -38,11 +39,11 @@
 .tcpro-card:hover{ box-shadow:0 12px 28px rgba(0,0,0,.18); }
 .tcpro-card-inner{ padding:14px 12px; }
 
-/* a bit more height for the first chart */
+/* taller 1st chart */
 .chart-tall { height: 360px; }
 @media (max-width: 640px){ .chart-tall { height: 300px; } }
 
-/* grid for two cards */
+/* grid for the two charts */
 .tcpro-grid{
   display:grid; grid-template-columns: 1fr 1fr; gap:12px;
 }
@@ -83,7 +84,7 @@
 .tcpro-table .neg{ color:#d94160; font-weight:700; }
 .tcpro-table .muted{ color:#97a9ba; text-align:center; }
 
-/* Mobile/touch stability (turn off heavy effects) */
+/* Mobile/touch stability */
 @media (max-width: 900px), (pointer: coarse){
   #tcpro-particles{ display:none !important; }
   .tcpro-glass{ backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }

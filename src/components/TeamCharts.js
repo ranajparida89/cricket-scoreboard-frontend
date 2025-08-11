@@ -1,5 +1,5 @@
-// ✅ TeamCharts.js — Dashboard-style charts matching your mock
-// Uses: Chart.js + datalabels, GSAP (reveal), React Spring (hover tilt), tsparticles (desktop only)
+// ✅ TeamCharts.js — Dashboard charts with format-aware line selection + richer visuals
+// Uses: Chart.js + chartjs-plugin-datalabels, GSAP (reveal), React Spring (tilt), tsparticles (desktop only)
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getTeamChartData } from "../services/api";
@@ -90,11 +90,47 @@ const Tilt = ({ children, className = "" }) => {
   );
 };
 
+/** gradient + subtle stripes inside the chart panel */
+const panelBg = {
+  id: "panel_bg",
+  beforeDraw(chart) {
+    const { ctx, chartArea } = chart;
+    if (!chartArea) return;
+    const { left, right, top, bottom } = chartArea;
+    // glassy gradient
+    const g = ctx.createLinearGradient(0, top, 0, bottom);
+    g.addColorStop(0, "rgba(18,42,64,.12)");
+    g.addColorStop(1, "rgba(14,28,44,.04)");
+    ctx.save();
+    ctx.fillStyle = g;
+    ctx.fillRect(left, top, right - left, bottom - top);
+
+    // very faint diagonal stripes
+    ctx.globalAlpha = 0.04;
+    ctx.strokeStyle = "#ffffff";
+    const gap = 14;
+    for (let x = left - (bottom - top); x < right; x += gap) {
+      ctx.beginPath();
+      ctx.moveTo(x, bottom);
+      ctx.lineTo(x + (bottom - top), top);
+      ctx.stroke();
+    }
+    ctx.restore();
+  },
+};
+
+/** soft area fill for each line */
+const areaFill = (ctx, chartArea, rgba) => {
+  const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+  g.addColorStop(0, rgba.replace("1)", "0.16)"));
+  g.addColorStop(1, rgba.replace("1)", "0.02)"));
+  return g;
+};
+
 const TeamCharts = () => {
   const [rows, setRows] = useState([]);
   const [format, setFormat] = useState("All"); // All | T20 | ODI | Test
 
-  // shell + animations
   const shellRef = useRef(null);
   const seen = useInView(shellRef, 0.2);
   const reduce = useReducedMotion();
@@ -105,9 +141,10 @@ const TeamCharts = () => {
 
   const particlesInit = async (engine) => await loadFull(engine);
 
+  /* ---------- data fetch ---------- */
   useEffect(() => {
     (async () => {
-      const data = await getTeamChartData();
+      const data = await getTeamChartData(); // <-- your API
       const norm = (data || []).map((t) => ({
         team: t.team_name,
         type: (t.match_type || "").trim().toLowerCase(), // t20/odi/test
@@ -122,32 +159,20 @@ const TeamCharts = () => {
     })();
   }, []);
 
-  // team → format map
+  const formats = ["t20", "odi", "test"];
+
+  /* ---------- maps & filtered sets ---------- */
+  // team → { t20, odi, test }
   const byTeam = useMemo(() => {
     const map = new Map();
     for (const r of rows) {
       if (!map.has(r.team)) map.set(r.team, {});
       map.get(r.team)[r.type] = r;
     }
-    return map; // { team: { t20:{...}, odi:{...}, test:{...} } }
+    return map;
   }, [rows]);
 
-  const formats = ["t20", "odi", "test"];
-
-  // top 4 by total points (across formats)
-  const topTeams = useMemo(() => {
-    const sum = [];
-    byTeam.forEach((obj, name) => {
-      const totalPts = formats.reduce(
-        (s, f) => s + (obj[f]?.points || 0),
-        0
-      );
-      sum.push({ name, totalPts });
-    });
-    return sum.sort((a, b) => b.totalPts - a.totalPts).slice(0, 4).map((t) => t.name);
-  }, [byTeam]);
-
-  // filtered rows by selected format
+  // rows visible in the table/cards based on the dropdown
   const filtered = useMemo(() => {
     if (format === "All") return rows;
     return rows.filter((r) => r.type === format.toLowerCase());
@@ -160,15 +185,13 @@ const TeamCharts = () => {
   const points = filtered.map((r) => r.points);
   const nrr = filtered.map((r) => r.nrr);
 
-  // KPI
+  /* ---------- KPI ---------- */
   const totalMatches = filtered.reduce((s, r) => s + r.matches, 0);
   const totalWins = filtered.reduce((s, r) => s + r.wins, 0);
   const avgWinRate = totalMatches ? Math.round((totalWins / totalMatches) * 100) : 0;
-  const bestTeam =
-    filtered.slice().sort((a, b) => b.points - a.points)[0]?.team || "—";
+  const bestTeam = filtered.slice().sort((a, b) => b.points - a.points)[0]?.team || "—";
   const bestNRRRow = filtered.slice().sort((a, b) => b.nrr - a.nrr)[0];
-  const bestNRR =
-    bestNRRRow?.nrr > 0 ? `+${bestNRRRow.nrr}` : bestNRRRow?.nrr ?? "—";
+  const bestNRR = bestNRRRow?.nrr > 0 ? `+${bestNRRRow.nrr}` : bestNRRRow?.nrr ?? "—";
 
   /* ---------- Chart configs ---------- */
   const basePlugins = {
@@ -183,59 +206,118 @@ const TeamCharts = () => {
     },
   };
   const axes = {
-    x: { ticks: { color: "#455" }, grid: { color: "rgba(0,0,0,.05)" } },
+    x: { ticks: { color: "#475569" }, grid: { color: "rgba(0,0,0,.05)" } },
     y: {
       beginAtZero: true,
-      ticks: { color: "#455" },
+      ticks: { color: "#475569" },
       grid: { color: "rgba(0,0,0,.05)" },
     },
   };
   const delay = (ctx) => (reduce ? 0 : (ctx.dataIndex || 0) * 80);
 
-  // Line: Win-rate across formats for top 4 teams
-  const winRateLine = useMemo(() => {
-    const datasets = topTeams.map((team, i) => {
-      const set = formats.map((f) => {
-        const r = byTeam.get(team)?.[f];
-        const wr = r?.matches ? +(r.wins / r.matches * 100).toFixed(1) : null;
-        return wr;
+  /* ---------- Win-Rate Line (format-aware team pick) ---------- */
+  // palette helpers
+  const paletteHex = ["#0ea5e9", "#fb7185", "#22c55e", "#f59e0b", "#a78bfa", "#14b8a6"];
+  const toRGBA = (hex) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},1)`;
+  };
+
+  // Team selection:
+  // - "All"  → top 4 by total points across formats
+  // - "T20"/"ODI"/"Test" → top 6 by points in that format (so Kenya/HK appear in T20)
+  const lineTeams = useMemo(() => {
+    if (format === "All") {
+      const sums = [];
+      byTeam.forEach((obj, name) => {
+        const total = formats.reduce((s, f) => s + (obj[f]?.points || 0), 0);
+        sums.push({ name, total });
       });
-      const palette = ["#0ea5e9", "#fb7185", "#22c55e", "#f59e0b"];
+      return sums.sort((a, b) => b.total - a.total).slice(0, 4).map((t) => t.name);
+    }
+    const key = format.toLowerCase();
+    const list = rows
+      .filter((r) => r.type === key)
+      .sort((a, b) => b.points - a.points)
+      .slice(0, 6) // show up to 6 lines for the chosen format
+      .map((r) => r.team);
+    return Array.from(new Set(list)); // unique
+  }, [format, byTeam, rows]);
+
+  const winRateLine = useMemo(() => {
+    const datasets = lineTeams.map((team, i) => {
+      const color = toRGBA(paletteHex[i % paletteHex.length]);
+      // Always 3 points (T20/ODI/Test). Use 0 where missing → line is continuous.
+      const data = formats.map((f) => {
+        const r = byTeam.get(team)?.[f];
+        return r?.matches ? +((r.wins / r.matches) * 100).toFixed(1) : 0;
+      });
+
       return {
         label: team,
-        data: set,
-        borderColor: palette[i % palette.length],
-        backgroundColor: palette[i % palette.length],
+        data,
+        borderColor: color,
+        borderWidth: 3,
+        // fancier visuals for lower-ranked lines
+        borderDash: i >= 2 ? [8, 6] : undefined,
+        borderDashOffset: (ctx) =>
+          !reduce && i >= 2 ? (Date.now() / 50) % 200 : 0, // "marching dash"
+        pointRadius: (ctx) => (ctx.raw === 0 ? 2 : 4),
+        pointHoverRadius: 6,
+        pointBackgroundColor: color,
+        pointBorderColor: "#fff",
+        pointBorderWidth: 1,
         tension: 0.35,
-        pointRadius: 4,
         spanGaps: true,
+        fill: true,
+        backgroundColor: (c) => {
+          const { chartArea, ctx } = c.chart;
+          if (!chartArea) return color;
+          return areaFill(ctx, chartArea, color);
+        },
       };
     });
+
     return {
       labels: ["T20", "ODI", "Test"],
       datasets,
     };
-  }, [topTeams, byTeam]);
+  }, [lineTeams, byTeam, reduce]);
 
   const winRateOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     animation: !reduce && { duration: 900, easing: "easeOutQuart" },
     plugins: {
       ...basePlugins,
+      subtitle: {
+        display: true,
+        text:
+          format === "All"
+            ? "Top-4 teams by total points • Value = Win% by format"
+            : `Top teams in ${format} • Value = Win% by format`,
+        color: "#475569",
+        padding: { bottom: 6 },
+      },
       datalabels: { display: false },
       legend: { position: "top", labels: { color: "#233", boxWidth: 14 } },
       title: { display: true, text: "Win Rate Trend", color: "#223", font: { weight: 700 } },
     },
-    scales: axes,
+    scales: {
+      x: { ...axes.x },
+      y: { ...axes.y, max: 100, title: { display: true, text: "Win %" } },
+    },
   };
 
-  // Grouped Bars: Wins/Losses/Draws
+  /* ---------- Grouped Bars: Wins/Losses/Draws ---------- */
   const performanceBarData = {
     labels,
     datasets: [
-      { label: "Wins", data: wins, backgroundColor: "rgba(34,197,94,.85)", borderRadius: 8 },
-      { label: "Losses", data: losses, backgroundColor: "rgba(244,63,94,.85)", borderRadius: 8 },
-      { label: "Draws", data: draws, backgroundColor: "rgba(250,204,21,.9)", borderRadius: 8 },
+      { label: "Wins", data: wins, backgroundColor: "rgba(34,197,94,.88)", borderRadius: 8 },
+      { label: "Losses", data: losses, backgroundColor: "rgba(244,63,94,.88)", borderRadius: 8 },
+      { label: "Draws", data: draws, backgroundColor: "rgba(250,204,21,.95)", borderRadius: 8 },
     ],
   };
   const performanceBarOptions = {
@@ -248,7 +330,7 @@ const TeamCharts = () => {
     scales: axes,
   };
 
-  // Combo: Points (bar) + NRR (line)
+  /* ---------- Combo: Points (bar) + NRR (line) ---------- */
   const combinedData = {
     labels,
     datasets: [
@@ -256,7 +338,7 @@ const TeamCharts = () => {
         type: "bar",
         label: "Points",
         data: points,
-        backgroundColor: "rgba(59,130,246,.9)",
+        backgroundColor: "rgba(59,130,246,.92)",
         borderRadius: 8,
         yAxisID: "y",
       },
@@ -268,6 +350,7 @@ const TeamCharts = () => {
         backgroundColor: "#16e29a",
         tension: 0.35,
         pointRadius: 4,
+        pointBackgroundColor: "#16e29a",
         yAxisID: "y1",
       },
     ],
@@ -282,11 +365,11 @@ const TeamCharts = () => {
     scales: {
       x: axes.x,
       y: { ...axes.y, title: { display: true, text: "Points" } },
-      y1: { position: "right", grid: { drawOnChartArea: false }, ticks: { color: "#455" } },
+      y1: { position: "right", grid: { drawOnChartArea: false }, ticks: { color: "#475569" } },
     },
   };
 
-  // reveal once in view
+  /* ---------- Reveal ---------- */
   useEffect(() => {
     if (!seen || reduce) return;
     const cards = gsap.utils.toArray(".tcpro-card, .tcpro-kpi");
@@ -340,7 +423,13 @@ const TeamCharts = () => {
         {/* Row 1: Win rate line */}
         <Tilt>
           <div className="tcpro-card-inner">
-            <Line data={winRateLine} options={winRateOptions} plugins={[ChartDataLabels]} />
+            <div className="chart-tall">
+              <Line
+                data={winRateLine}
+                options={winRateOptions}
+                plugins={[ChartDataLabels, panelBg]}
+              />
+            </div>
           </div>
         </Tilt>
 
@@ -412,9 +501,7 @@ const TeamCharts = () => {
                   <td className="neg">{r.losses}</td>
                   <td>{r.draws}</td>
                   <td className="pos">{r.points}</td>
-                  <td className={r.nrr >= 0 ? "pos" : "neg"}>
-                    {r.nrr >= 0 ? `+${r.nrr}` : r.nrr}
-                  </td>
+                  <td className={r.nrr >= 0 ? "pos" : "neg"}>{r.nrr >= 0 ? `+${r.nrr}` : r.nrr}</td>
                 </tr>
               ))}
               {!filtered.length && (
