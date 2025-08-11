@@ -11,31 +11,44 @@
   transform-style: preserve-3d;
 }
 
-/* Table base (no heavy borders) */
+/* Wrapper helps header/body visually align */
+.leaderboard-table-wrapper{
+  padding: 0 6px; /* slight side padding so header width matches row cards */
+}
+
+/* Table base */
 .leaderboard-table{
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 8px;   /* row gaps to enhance 3D look */
+  border-collapse: separate; /* needed for row gaps */
+  table-layout: fixed;       /* keep column widths consistent */
+  border-spacing: 0 8px;     /* vertical gaps only */
   background: transparent;
   margin: 0;
 }
 
+/* Header: same "card" look as rows; kill Bootstrap borders */
+.leaderboard-table thead tr{
+  background: linear-gradient(180deg, #0f2234, #0c1b2a);
+  box-shadow: 0 10px 24px rgba(0,0,0,.30);
+}
 .leaderboard-table thead th{
   font-weight: 700;
   color: #dff2ff;
-  background: linear-gradient(180deg, #102437, #0d1f2f);
-  border-bottom: 1px solid rgba(255,255,255,.08);
+  border: 0 !important;  /* remove thin white grid lines */
   font-size: 14px;
   padding: 12px 10px;
   letter-spacing: .2px;
 }
+.leaderboard-table thead th:first-child{ border-top-left-radius: 12px; }
+.leaderboard-table thead th:last-child { border-top-right-radius: 12px; }
 
+/* Body cells */
 .leaderboard-table tbody td{
   padding: 12px 10px;
   font-size: 15px;
   color: #eaf6ff;
   text-align: center;
-  border: none; /* gaps provide separation */
+  border: 0; /* avoid header/body grid mismatch */
 }
 
 /* Each row as a floating card */
@@ -44,7 +57,6 @@
   border: 1px solid rgba(255,255,255,.07);
   border-radius: 12px;
   box-shadow: 0 12px 28px rgba(0,0,0,.35);
-  transform: translateZ(0); /* smoother */
   transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
 }
 .leaderboard-table tbody tr:hover{
@@ -52,14 +64,10 @@
   box-shadow: 0 18px 38px rgba(0,0,0,.42);
 }
 
-/* Subtle zebra baseline still okay through alpha */
-.leaderboard-table tbody tr:nth-child(odd){
-  background: linear-gradient(180deg, rgba(21,36,54,.68), rgba(12,24,38,.58));
-}
-
-/* Emoji medals (no background square) */
+/* Emoji medals */
 .medal-emoji{ font-size: 1.15rem; margin-right: 4px; }
 
+/* Pos/Neg text */
 .pos{ color:#c9ffef; }
 .neg{ color:#ffc2c2; }
 
@@ -68,25 +76,23 @@
   letter-spacing: .2px;
 }
 
-/* ===== NRR bar (animated) ===== */
-.nrr-cell{ position: relative; overflow: hidden; height: 36px; }
+/* ===== NRR tiny bar ===== */
+.nrr-cell{ position: relative; overflow: hidden; height: 34px; }
 .nrr-track{
-  position: absolute; left: 8px; right: 8px; bottom: 8px; height: 7px;
+  position: absolute; left: 8px; right: 8px; bottom: 6px; height: 6px;
   border-radius: 999px; background: rgba(255,255,255,.09);
 }
 .nrr-bar{
-  position: absolute; bottom: 8px; height: 7px; width: var(--w, 0);
+  position: absolute; bottom: 6px; height: 6px; width: var(--w, 0);
   border-radius: 999px;
   box-shadow: 0 0 10px rgba(255,255,255,.16);
-  transition: width .4s ease; /* fallback if JS not run */
+  transition: width .35s ease;
 }
 .from-left  { left: 8px;  transform-origin: left center; }
 .from-right { right: 8px; transform-origin: right center; }
 
 /* ===== Row hover tint synced to NRR bucket ===== */
-.lb-row{
-  cursor: default;
-}
+.lb-row{ cursor: default; }
 
 /* Buckets (row hover tint) */
 .lb-row[data-bucket="green"]:hover  { background-color: rgba(22,226,138,.12); }
@@ -95,19 +101,14 @@
 .lb-row[data-bucket="purple"]:hover { background-color: rgba(165,124,255,.12); }
 .lb-row[data-bucket="red"]:hover    { background-color: rgba(255, 43,  43,.12); }
 
-/* Bar colors match the same bucket */
+/* (We still keep these in case you ever remove the inline gradient) */
 .lb-row[data-bucket="green"]  .nrr-bar{ background: linear-gradient(90deg,#14e29a,#00c986); }
 .lb-row[data-bucket="yellow"] .nrr-bar{ background: linear-gradient(90deg,#ffe76a,#ffb03a); }
 .lb-row[data-bucket="orange"] .nrr-bar{ background: linear-gradient(90deg,#ffb03a,#ff7a3d); }
 .lb-row[data-bucket="purple"] .nrr-bar{ background: linear-gradient(90deg,#a57cff,#6dd6ff); }
 .lb-row[data-bucket="red"]    .nrr-bar{ background: linear-gradient(90deg,#ff6b6b,#ff2b2b); }
 
-/* Crown glow for first row (reinforced with GSAP pulse) */
-.leaderboard-table tbody tr:first-child{
-  outline: 0;
-}
-
-/* Keep things tidy on small screens */
+/* Responsive */
 @media (max-width: 768px){
   .leaderboard-table thead th,
   .leaderboard-table tbody td{
