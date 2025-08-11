@@ -38,6 +38,10 @@
 .tcpro-card:hover{ box-shadow:0 12px 28px rgba(0,0,0,.18); }
 .tcpro-card-inner{ padding:14px 12px; }
 
+/* a bit more height for the first chart */
+.chart-tall { height: 360px; }
+@media (max-width: 640px){ .chart-tall { height: 300px; } }
+
 /* grid for two cards */
 .tcpro-grid{
   display:grid; grid-template-columns: 1fr 1fr; gap:12px;
