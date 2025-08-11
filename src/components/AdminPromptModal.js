@@ -1,22 +1,25 @@
 // src/components/AdminPromptModal.jsx
 // 05-JULY-2025 RANAJ PARIDA -- JWT admin login support (logic preserved)
-// Clean SVG character with precise eye-cover animation.
+// Fix: right-hand transform; add "close eyes" mode when focusing password.
 
 import React, { useMemo, useState } from "react";
 
 export default function AdminPromptModal({ onAdminResponse }) {
-  const [showCredentials, setShowCredentials] = useState(false);
-  const [username, setUsername]         = useState("");
-  const [password, setPassword]         = useState("");
-  const [submitting, setSubmitting]     = useState(false);
-  const [error, setError]               = useState("");
+  // Choose behaviour on password focus: "close" | "cover"
+  const COVER_MODE = "close"; // ← set to "cover" if you want hands over eyes
 
-  // purely-visual states
-  const [coverEyes, setCoverEyes]       = useState(false);
-  const [sad, setSad]                   = useState(false);
-  const [cry, setCry]                   = useState(false);
-  const [shake, setShake]               = useState(false);
-  const [speak, setSpeak]               = useState(false);
+  const [showCredentials, setShowCredentials] = useState(false);
+  const [username, setUsername]     = useState("");
+  const [password, setPassword]     = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError]           = useState("");
+
+  // visual states
+  const [coverEyes, setCoverEyes]   = useState(false);
+  const [sad, setSad]               = useState(false);
+  const [cry, setCry]               = useState(false);
+  const [shake, setShake]           = useState(false);
+  const [speak, setSpeak]           = useState(false);
 
   // === original logic (unchanged) ===
   const handleNo = () => {
@@ -91,6 +94,9 @@ export default function AdminPromptModal({ onAdminResponse }) {
     setSubmitting(false);
   };
 
+  const coverClass =
+    coverEyes ? (COVER_MODE === "cover" ? "cover" : "blink") : "";
+
   return (
     <div className="admin-modal-bg" role="dialog" aria-modal="true" tabIndex={-1}>
       <div className="glass-orbs" aria-hidden>
@@ -124,10 +130,14 @@ export default function AdminPromptModal({ onAdminResponse }) {
             />
 
             {/* ===== Character between fields ===== */}
-            <div className={[
-              "char-wrap",
-              coverEyes ? "cover":"", sad ? "sad":"", cry ? "cry":"", speak ? "speak":""
-            ].join(" ")} aria-hidden>
+            <div
+              className={[
+                "char-wrap",
+                coverClass,
+                sad ? "sad":"", cry ? "cry":"", speak ? "speak":""
+              ].join(" ")}
+              aria-hidden
+            >
               <svg
                 className="avatar"
                 width="180" height="170" viewBox="0 0 180 170"
@@ -168,34 +178,37 @@ export default function AdminPromptModal({ onAdminResponse }) {
                 {/* body / shirt */}
                 <rect x="50" y="78" width="80" height="52" rx="24" fill="url(#shirt)"/>
 
-                {/* arms (each is a group so we can rotate at the shoulder) */}
+                {/* arms */}
                 <g className="arm arm-left" transform="translate(48 92)">
                   <rect x="0" y="0" width="42" height="14" rx="7" fill="url(#skin)"/>
                   <g className="hand hand-left" transform="translate(36 -2)">
                     <rect width="22" height="20" rx="10" fill="url(#skin)"/>
-                    {/* simple finger lines */}
                     <path d="M4 8 H18 M4 12 H18" stroke="rgba(0,0,0,.1)" strokeWidth="2" strokeLinecap="round"/>
                   </g>
                 </g>
 
+                {/* FIX: correct right-hand placement (remove placeholder transforms) */}
                 <g className="arm arm-right" transform="translate(90 92)">
                   <rect x="0" y="0" width="42" height="14" rx="7" fill="url(#skin)"/>
-                  <g className="hand hand-right" transform="translate( -?  -? )"/>
-                  <g className="hand hand-right" transform="translate( -? -? )"/> {/* (we override in CSS) */}
+                  <g className="hand hand-right" transform="translate(36 -2)">
+                    <rect width="22" height="20" rx="10" fill="url(#skin)"/>
+                    <path d="M4 8 H18 M4 12 H18" stroke="rgba(0,0,0,.1)" strokeWidth="2" strokeLinecap="round"/>
+                  </g>
                 </g>
 
                 {/* head */}
                 <g transform="translate(46 18)">
-                  {/* hair on top */}
                   <rect x="24" y="0" width="40" height="16" rx="8" fill="url(#hair)"/>
-                  {/* face */}
-                  <rect x="0" y="14" width="88" height="66" rx="32" fill="url(#skin)" filter="url(#shadow)"/>
+                  <rect x="0" y="14" width="88" height="66" rx="32" fill="url(#skin)"/>
+
                   {/* eyes */}
                   <circle className="eye eye-left"  cx="26" cy="42" r="6" fill="#0f172a"/>
                   <circle className="eye eye-right" cx="62" cy="42" r="6" fill="#0f172a"/>
-                  {/* crying tears (hidden by default) */}
+
+                  {/* tears */}
                   <circle className="tear tear-left"  cx="26" cy="50" r="4" fill="#8ee7ff" opacity="0"/>
                   <circle className="tear tear-right" cx="62" cy="50" r="4" fill="#8ee7ff" opacity="0"/>
+
                   {/* mouth */}
                   <rect className="mouth" x="38" y="56" width="12" height="6" rx="3" fill="#1f2937"/>
                 </g>
@@ -232,13 +245,11 @@ export default function AdminPromptModal({ onAdminResponse }) {
 
       <style>{`
         :root{
-          --glass:#0e1626cc;
           --stroke:rgba(255,255,255,.12);
           --cyan:#00e5ff;
           --violet:#7b61ff;
           --ok:#16d6a7;
           --warn:#ffc857;
-          --err:#ff6b6b;
           --text:#e9f1ff;
           --ease:cubic-bezier(.22,.61,.36,1);
         }
@@ -249,61 +260,40 @@ export default function AdminPromptModal({ onAdminResponse }) {
           z-index:99999;
           font-family:Poppins, system-ui, -apple-system, Segoe UI, Roboto, Arial;
         }
-        .glass-orbs .orb{
-          position:absolute; border-radius:50%; filter:blur(40px); opacity:.55; mix-blend-mode:screen;
-          animation: orb 16s ease-in-out infinite;
-        }
-        .orb1{ width:340px; height:340px; left:8%; top:12%;
-               background:radial-gradient(circle at 30% 30%, #00e5ff, transparent 60%),
-                          radial-gradient(circle at 70% 70%, #6f80ff, transparent 60%); }
-        .orb2{ width:280px; height:280px; right:12%; top:10%;
-               background:radial-gradient(circle at 30% 30%, #ff73fa, transparent 60%),
-                          radial-gradient(circle at 70% 70%, #00ffc6, transparent 60%); animation-duration:20s;}
-        .orb3{ width:420px; height:420px; right:18%; bottom:12%;
-               background:radial-gradient(circle at 30% 30%, #63a3ff, transparent 60%),
-                          radial-gradient(circle at 70% 70%, #00e6b9, transparent 60%); animation-duration:22s;}
+        .glass-orbs .orb{ position:absolute; border-radius:50%; filter:blur(40px); opacity:.55; mix-blend-mode:screen; animation: orb 16s ease-in-out infinite; }
+        .orb1{ width:340px; height:340px; left:8%; top:12%; background:radial-gradient(circle at 30% 30%, #00e5ff, transparent 60%), radial-gradient(circle at 70% 70%, #6f80ff, transparent 60%); }
+        .orb2{ width:280px; height:280px; right:12%; top:10%; background:radial-gradient(circle at 30% 30%, #ff73fa, transparent 60%), radial-gradient(circle at 70% 70%, #00ffc6, transparent 60%); animation-duration:20s;}
+        .orb3{ width:420px; height:420px; right:18%; bottom:12%; background:radial-gradient(circle at 30% 30%, #63a3ff, transparent 60%), radial-gradient(circle at 70% 70%, #00e6b9, transparent 60%); animation-duration:22s;}
         @keyframes orb{ 0%,100%{transform:translate(0,0)} 50%{transform:translate(-30px,-20px)} }
 
         .admin-modal{
           width:min(720px,92vw);
           background:linear-gradient(180deg, rgba(14,22,38,.6), rgba(14,22,38,.45));
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
-          border:1px solid var(--stroke);
-          border-radius:20px;
-          padding:16px 16px 18px;
-          box-shadow:0 20px 50px rgba(0,0,0,.35);
+          backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+          border:1px solid var(--stroke); border-radius:20px;
+          padding:16px; box-shadow:0 20px 50px rgba(0,0,0,.35);
         }
 
-        .title{
-          text-align:center; margin:10px 0 14px; font-size:26px; font-weight:800;
+        .title, .subtitle{
+          text-align:center; font-weight:800;
           background:linear-gradient(90deg,var(--cyan),var(--violet));
           -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
         }
-        .subtitle{
-          text-align:center; margin:6px 0 8px; font-size:20px; font-weight:800;
-          background:linear-gradient(90deg,var(--cyan),var(--violet));
-          -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-        }
+        .title{ font-size:26px; margin:10px 0 14px; }
+        .subtitle{ font-size:20px; margin:6px 0 8px; }
+
         .row{ display:flex; gap:12px; justify-content:center; align-items:center; margin-top:12px; }
-
-        .btn{
-          position:relative; border:none; color:#fff; font-weight:700; letter-spacing:.2px;
-          padding:.7rem 1.2rem; border-radius:12px; cursor:pointer;
-          box-shadow:0 10px 28px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.08);
-          transition: transform .15s var(--ease), filter .2s var(--ease);
-        }
+        .btn{ position:relative; border:none; color:#fff; font-weight:700; letter-spacing:.2px; padding:.7rem 1.2rem; border-radius:12px; cursor:pointer;
+              box-shadow:0 10px 28px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.08); transition: transform .15s var(--ease), filter .2s var(--ease); }
         .btn:hover{ transform:translateY(-1px); filter:brightness(1.06) }
         .yes{ background:linear-gradient(135deg,#00e0ff,#6a8bff) }
-        .no{ background:linear-gradient(135deg,#ff6b6b,#ff5aa0) }
+        .no{  background:linear-gradient(135deg,#ff6b6b,#ff5aa0) }
         .submit{ background:linear-gradient(135deg,#00d7b4,#6a8bff) }
-        .back{ background:linear-gradient(135deg,#2f394a,#455064) }
+        .back{   background:linear-gradient(135deg,#2f394a,#455064) }
 
         .login-card{ padding:12px 12px 16px; border-radius:16px; }
         .login-card.shake{ animation:shake .6s var(--ease); }
-        @keyframes shake{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px)}
-                          40%{transform:translateX(8px)} 60%{transform:translateX(-6px)}
-                          80%{transform:translateX(4px)} }
+        @keyframes shake{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(4px)} }
 
         .inp{
           width:100%; color:var(--text); border:none; outline:none; border-radius:14px;
@@ -316,48 +306,37 @@ export default function AdminPromptModal({ onAdminResponse }) {
         .inp.ok{   box-shadow: inset 0 0 0 1px rgba(22,214,167,.9), 0 0 0 3px rgba(22,214,167,.25) }
         .inp.warn{ box-shadow: inset 0 0 0 1px rgba(255,200,87,.95), 0 0 0 3px rgba(255,200,87,.25) }
 
-        .error-bar{
-          margin-top:12px; text-align:center; padding:.7rem 1rem; border-radius:10px;
-          color:#3c2a00; background:#ffecec; box-shadow: inset 0 0 0 1px rgba(255,107,107,.35);
-        }
+        .error-bar{ margin-top:12px; text-align:center; padding:.7rem 1rem; border-radius:10px; color:#3c2a00; background:#ffecec; box-shadow: inset 0 0 0 1px rgba(255,107,107,.35); }
 
         /* ===== Character ===== */
         .char-wrap{ position:relative; height:170px; display:flex; align-items:center; justify-content:center; }
         .avatar{ overflow:visible; }
 
-        /* make SVG groups transform from their own boxes */
         .arm, .hand, .eye, .mouth, .tear { transform-box: fill-box; transform-origin: center; }
-
-        /* default positions (hands beside body) */
-        .arm-left  { transform-origin: 6px 7px; }   /* shoulder joint for left arm group */
+        .arm-left  { transform-origin: 6px 7px; }
         .arm-right { transform-origin: 6px 7px; }
-        /* precise hand default (near wrist) */
-        .hand-left  { transform-origin: 50% 50%; }
-        .hand-right { transform-origin: 50% 50%; }
+        .hand-left, .hand-right { transform-origin: 50% 50%; }
+        .arm-left, .arm-right, .hand-left, .hand-right { transition: transform .28s var(--ease); }
 
-        /* Cover eyes pose — EXACT requirements:
-            left arm rotate -70deg; right arm rotate 70deg;
-            left hand  translateX(25px) translateY(-25px) scale(1.5)
-            right hand translateX(-25px) translateY(-25px) scale(1.5)
-        */
+        /* Cover-eyes pose (if COVER_MODE === "cover") */
         .char-wrap.cover .arm-left  { transform: rotate(-70deg); }
         .char-wrap.cover .arm-right { transform: rotate( 70deg); }
         .char-wrap.cover .hand-left  { transform: translateX(25px) translateY(-25px) scale(1.5); }
         .char-wrap.cover .hand-right { transform: translateX(-25px) translateY(-25px) scale(1.5); }
 
-        /* smooth */
-        .arm-left, .arm-right, .hand-left, .hand-right { transition: transform .28s var(--ease); }
+        /* Close-eyes pose (default) */
+        .char-wrap.blink .eye{ transform: scaleY(.1) translateY(3px); transition: transform .2s var(--ease); }
 
-        /* Sad – droopy eyes + upside-down mouth */
+        /* Sad */
         .char-wrap.sad .eye{ transform: translateY(2px) scaleY(.75); }
         .char-wrap.sad .mouth{ transform: translateY(2px) rotate(180deg); }
 
-        /* Cry – small round mouth + falling tears */
+        /* Cry */
         .char-wrap.cry .mouth{ width:10px; height:10px; rx:5px; transform:translateY(-2px); }
         .char-wrap.cry .tear{ opacity:1; animation: tear 1s ease-in infinite; }
         @keyframes tear{ 0%{ transform:translateY(0); opacity:0 } 10%{opacity:1} 100%{ transform:translateY(40px); opacity:0 } }
 
-        /* Speech bubble for invalid username */
+        /* Speech bubble */
         .speech{
           position:absolute; top:2px; left:50%; transform:translate(-50%,-110%);
           background:rgba(18,28,46,.9); color:#fff; font-weight:700; font-size:.86rem;
