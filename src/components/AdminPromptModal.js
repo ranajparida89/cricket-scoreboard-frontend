@@ -1,13 +1,12 @@
 // src/components/AdminPromptModal.jsx
 // 05-JULY-2025 RANAJ PARIDA — logic preserved
-// Happy(laugh) on username typing + head-down sad on empty submit
-// Stable head transforms + professional buttons (no Bootstrap collisions)
+// Proper eyelids + precise hand cover + 3D glass UI
 
 import React, { useMemo, useState } from "react";
 
 export default function AdminPromptModal({ onAdminResponse }) {
-  // "close" = eyelids slide; "cover" = hands cover eyes
-  const COVER_MODE = "close";
+  // Choose behaviour on password focus: "close" | "cover"
+  const COVER_MODE = "close"; // set to "cover" for hands-over-eyes
 
   const [showCredentials, setShowCredentials] = useState(false);
   const [username, setUsername]     = useState("");
@@ -22,11 +21,7 @@ export default function AdminPromptModal({ onAdminResponse }) {
   const [shake, setShake]           = useState(false);
   const [speak, setSpeak]           = useState(false);
 
-  // new
-  const [happy, setHappy]           = useState(false);
-  const [headDown, setHeadDown]     = useState(false);
-
-  // logic (unchanged)
+  // === logic (unchanged) ===
   const handleNo = () => {
     localStorage.setItem("isAdmin", "false");
     localStorage.removeItem("admin_jwt");
@@ -41,44 +36,26 @@ export default function AdminPromptModal({ onAdminResponse }) {
     return email || simple;
   }, [username]);
 
-  const onUsernameFocus = () => {
-    setSad(false); setSpeak(false); setHeadDown(false);
-    setHappy(!!username);
-  };
-  const onUsernameBlur  = () => {
-    if (!username) { setSad(true); setHappy(false); }
-  };
-  const onUsernameChange = (e) => {
-    const val = e.target.value;
-    setUsername(val);
-    setHappy(!!val);
-    if (val) { setSad(false); setHeadDown(false); }
-  };
+  const onUsernameFocus = () => { setSad(false); setSpeak(false); };
+  const onUsernameBlur  = () => { if (!username) setSad(true); };
 
-  const onPasswordFocus   = () => { setCoverEyes(true); if (!username) setSad(true); setHappy(false); };
+  const onPasswordFocus   = () => { setCoverEyes(true); if (!username) setSad(true); };
   const onPasswordChange  = e => { setPassword(e.target.value); setCoverEyes(true); };
   const onPasswordBlur    = () => setCoverEyes(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError(""); setCry(false); setSpeak(false); setHappy(false); setHeadDown(false);
+    setError(""); setCry(false); setSpeak(false);
 
-    // both empty → sad + head down
-    if (!username && !password) {
-      setSad(true); setHeadDown(true);
-      setShake(true); setTimeout(()=>setShake(false), 600);
-      setError("Please fill username & password.");
-      return;
-    }
     if (!username || !password) {
-      setCry(true);
-      setShake(true); setTimeout(()=>setShake(false), 600);
+      setCry(true); setShake(true);
+      setTimeout(()=>setShake(false), 600);
       setError("Please fill username & password.");
       return;
     }
     if (!usernameLooksValid) {
-      setSpeak(true);
-      setShake(true); setTimeout(()=>setShake(false), 600);
+      setSpeak(true); setShake(true);
+      setTimeout(()=>setShake(false), 600);
       setError("Invalid username.");
       return;
     }
@@ -99,8 +76,8 @@ export default function AdminPromptModal({ onAdminResponse }) {
         localStorage.setItem("isAdmin", "false");
         localStorage.removeItem("admin_jwt");
         setError(data.error || "Invalid credentials.");
-        setSpeak(true);
-        setShake(true); setTimeout(()=>setShake(false), 600);
+        setSpeak(true); setShake(true);
+        setTimeout(()=>setShake(false), 600);
       }
     } catch {
       localStorage.setItem("isAdmin", "false");
@@ -111,7 +88,9 @@ export default function AdminPromptModal({ onAdminResponse }) {
     setSubmitting(false);
   };
 
-  const coverClass = coverEyes ? (COVER_MODE === "cover" ? "cover" : "blink") : "";
+  const coverClass = coverEyes
+    ? (COVER_MODE === "cover" ? "cover" : "blink")
+    : "";
 
   return (
     <div className="admin-modal-bg" role="dialog" aria-modal="true" tabIndex={-1}>
@@ -125,9 +104,9 @@ export default function AdminPromptModal({ onAdminResponse }) {
         {!showCredentials ? (
           <>
             <h2 className="title">Are you an Admin?</h2>
-            <div className="action-row">
-              <button className="ui-btn ui-primary" onClick={handleYes}>Yes</button>
-              <button className="ui-btn ui-danger" onClick={handleNo}>No</button>
+            <div className="row">
+              <button className="btn yes" onClick={handleYes}>Yes</button>
+              <button className="btn no"  onClick={handleNo}>No</button>
             </div>
           </>
         ) : (
@@ -138,43 +117,51 @@ export default function AdminPromptModal({ onAdminResponse }) {
               type="text"
               placeholder="Admin Username"
               value={username}
-              onChange={onUsernameChange}
+              onChange={e=> setUsername(e.target.value)}
               onFocus={onUsernameFocus}
               onBlur={onUsernameBlur}
               className={`inp ${username ? (usernameLooksValid ? "ok":"warn") : ""}`}
               required
             />
 
-            {/* Character */}
+            {/* ===== Character between fields ===== */}
             <div
               className={[
                 "char-wrap",
-                coverClass,
-                sad ? "sad":"", cry ? "cry":"", speak ? "speak":"",
-                happy ? "happy":"", headDown ? "head-down":""
+                coverClass, sad ? "sad":"", cry ? "cry":"", speak ? "speak":""
               ].join(" ")}
               aria-hidden
             >
-              <svg className="avatar" width="200" height="190" viewBox="0 0 200 190" xmlns="http://www.w3.org/2000/svg">
+              <svg
+                className="avatar"
+                width="200" height="190" viewBox="0 0 200 190"
+                xmlns="http://www.w3.org/2000/svg"
+              >
                 <defs>
                   <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%"  stopColor="#FFD7B3"/><stop offset="100%" stopColor="#E7AD83"/>
+                    <stop offset="0%"  stopColor="#FFD7B3"/>
+                    <stop offset="100%" stopColor="#E7AD83"/>
                   </linearGradient>
                   <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#5b3b2f"/><stop offset="100%" stopColor="#342016"/>
+                    <stop offset="0%" stopColor="#5b3b2f"/>
+                    <stop offset="100%" stopColor="#342016"/>
                   </linearGradient>
                   <linearGradient id="shirt" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6FB2FF"/><stop offset="100%" stopColor="#2E6BFF"/>
+                    <stop offset="0%" stopColor="#6FB2FF"/>
+                    <stop offset="100%" stopColor="#2E6BFF"/>
                   </linearGradient>
                   <linearGradient id="pants" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#1E293B"/><stop offset="100%" stopColor="#0B1220"/>
+                    <stop offset="0%" stopColor="#1E293B"/>
+                    <stop offset="100%" stopColor="#0B1220"/>
                   </linearGradient>
                 </defs>
 
+                {/* ground shadow */}
                 <ellipse cx="100" cy="178" rx="40" ry="7" fill="#000" opacity=".22"/>
 
+                {/* legs + feet */}
                 <g fill="url(#pants)">
-                  <rect x="72" y="132" width="18" height="32" rx="8"/>
+                  <rect x="72"  y="132" width="18" height="32" rx="8"/>
                   <rect x="110" y="132" width="18" height="32" rx="8"/>
                 </g>
                 <g fill="#0b1320">
@@ -182,8 +169,10 @@ export default function AdminPromptModal({ onAdminResponse }) {
                   <rect x="102" y="160" width="36" height="11" rx="6"/>
                 </g>
 
+                {/* body / shirt */}
                 <rect x="58" y="84" width="84" height="56" rx="26" fill="url(#shirt)"/>
 
+                {/* arms */}
                 <g className="arm arm-left" transform="translate(56 98)">
                   <rect x="0" y="0" width="46" height="14" rx="7" fill="url(#skin)"/>
                   <g className="hand hand-left" transform="translate(38 -2)">
@@ -191,6 +180,7 @@ export default function AdminPromptModal({ onAdminResponse }) {
                     <path d="M5 9 H19 M5 13 H19" stroke="rgba(0,0,0,.1)" strokeWidth="2" strokeLinecap="round"/>
                   </g>
                 </g>
+
                 <g className="arm arm-right" transform="translate(98 98)">
                   <rect x="0" y="0" width="46" height="14" rx="7" fill="url(#skin)"/>
                   <g className="hand hand-right" transform="translate(38 -2)">
@@ -199,27 +189,31 @@ export default function AdminPromptModal({ onAdminResponse }) {
                   </g>
                 </g>
 
-                {/* head group (stable origin) */}
-                <g className="head" transform="translate(56 22)">
+                {/* head */}
+                <g transform="translate(56 22)">
+                  {/* hair cap */}
                   <rect x="28" y="-2" width="44" height="18" rx="9" fill="url(#hair)"/>
+                  {/* face */}
                   <rect x="0" y="14" width="100" height="72" rx="34" fill="url(#skin)"/>
 
+                  {/* eyes (pupils) */}
                   <circle className="eye eye-left"  cx="30" cy="44" r="7" fill="#0f172a"/>
                   <circle className="eye eye-right" cx="70" cy="44" r="7" fill="#0f172a"/>
 
+                  {/* eyelids (real, slide down) */}
                   <rect className="lid lid-left"  x="23" y="36" width="14" height="14" rx="7" fill="url(#skin)"/>
                   <rect className="lid lid-right" x="63" y="36" width="14" height="14" rx="7" fill="url(#skin)"/>
 
+                  {/* tears */}
                   <circle className="tear tear-left"  cx="30" cy="53" r="4.2" fill="#8ee7ff" opacity="0"/>
                   <circle className="tear tear-right" cx="70" cy="53" r="4.2" fill="#8ee7ff" opacity="0"/>
 
-                  {/* neutral mouth */}
+                  {/* mouth */}
                   <rect className="mouth" x="44" y="60" width="12" height="6" rx="3" fill="#1f2937"/>
-                  {/* laugh arc (visible when .happy) */}
-                  <path className="smile" d="M36 62 Q50 72 64 62" stroke="#1f2937" strokeWidth="4" fill="none" strokeLinecap="round" opacity="0"/>
                 </g>
               </svg>
 
+              {/* speech bubble */}
               <div className="speech">No No put correct username</div>
             </div>
 
@@ -227,18 +221,18 @@ export default function AdminPromptModal({ onAdminResponse }) {
               type="password"
               placeholder="Admin Password"
               value={password}
-              onFocus={()=>{ setCoverEyes(true); if (!username) setSad(true); setHappy(false); }}
-              onChange={e=>{ setPassword(e.target.value); setCoverEyes(true); }}
-              onBlur={()=> setCoverEyes(false)}
+              onFocus={onPasswordFocus}
+              onChange={onPasswordChange}
+              onBlur={onPasswordBlur}
               className="inp"
               required
             />
 
-            <div className="action-row">
-              <button className="ui-btn ui-primary" type="submit" disabled={submitting}>
+            <div className="row">
+              <button className="btn submit" type="submit" disabled={submitting}>
                 {submitting ? "Logging in..." : "Login"}
               </button>
-              <button className="ui-btn ui-ghost" type="button" onClick={()=>setShowCredentials(false)} disabled={submitting}>
+              <button className="btn back" type="button" onClick={()=>setShowCredentials(false)} disabled={submitting}>
                 Back
               </button>
             </div>
@@ -251,29 +245,37 @@ export default function AdminPromptModal({ onAdminResponse }) {
       <style>{`
         :root{
           --stroke:rgba(255,255,255,.12);
-          --cyan:#00e5ff; --violet:#7b61ff;
-          --ok:#16d6a7; --warn:#ffc857; --text:#e9f1ff;
+          --cyan:#00e5ff;
+          --violet:#7b61ff;
+          --ok:#16d6a7;
+          --warn:#ffc857;
+          --text:#e9f1ff;
           --ease:cubic-bezier(.22,.61,.36,1);
         }
 
-        /* backdrop + floating orbs */
+        /* ===== Backdrop + floating coloured orbs ===== */
         .admin-modal-bg{
           position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
           background:radial-gradient(1200px 700px at 85% 50%, #12253f, #0b1220 55%);
-          z-index:99999; font-family:Poppins, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+          z-index:99999;
+          font-family:Poppins, system-ui, -apple-system, Segoe UI, Roboto, Arial;
         }
         .glass-orbs .orb{
-          position:absolute; border-radius:50%; filter:blur(44px); opacity:.55; mix-blend-mode:screen; animation: orb 18s ease-in-out infinite;
+          position:absolute; border-radius:50%; filter:blur(44px); opacity:.55; mix-blend-mode:screen;
+          animation: orb 18s ease-in-out infinite;
         }
         .orb1{ width:360px; height:360px; left:8%; top:12%;
-               background:radial-gradient(circle at 30% 30%, #00e5ff, transparent 60%), radial-gradient(circle at 70% 70%, #6f80ff, transparent 60%); }
+               background:radial-gradient(circle at 30% 30%, #00e5ff, transparent 60%),
+                          radial-gradient(circle at 70% 70%, #6f80ff, transparent 60%); }
         .orb2{ width:300px; height:300px; right:12%; top:10%;
-               background:radial-gradient(circle at 30% 30%, #ff73fa, transparent 60%), radial-gradient(circle at 70% 70%, #00ffc6, transparent 60%); animation-duration:20s;}
+               background:radial-gradient(circle at 30% 30%, #ff73fa, transparent 60%),
+                          radial-gradient(circle at 70% 70%, #00ffc6, transparent 60%); animation-duration:20s;}
         .orb3{ width:460px; height:460px; right:18%; bottom:10%;
-               background:radial-gradient(circle at 30% 30%, #63a3ff, transparent 60%), radial-gradient(circle at 70% 70%, #00e6b9, transparent 60%); animation-duration:22s;}
+               background:radial-gradient(circle at 30% 30%, #63a3ff, transparent 60%),
+                          radial-gradient(circle at 70% 70%, #00e6b9, transparent 60%); animation-duration:22s;}
         @keyframes orb{ 0%,100%{transform:translate(0,0)} 50%{transform:translate(-30px,-22px)} }
 
-        /* 3D glass card */
+        /* ===== 3D glass card ===== */
         .admin-modal{
           width:min(740px,92vw);
           background:linear-gradient(180deg, rgba(18,26,44,.6), rgba(18,26,44,.45));
@@ -298,10 +300,31 @@ export default function AdminPromptModal({ onAdminResponse }) {
         .title{ font-size:26px; margin:10px 0 14px; }
         .subtitle{ font-size:20px; margin:6px 0 8px; }
 
-        /* inputs */
+        .row{ display:flex; gap:12px; justify-content:center; align-items:center; margin-top:12px; }
+        .btn{
+          position:relative; border:none; color:#fff; font-weight:700; letter-spacing:.2px;
+          padding:.7rem 1.2rem; border-radius:12px; cursor:pointer;
+          box-shadow:0 12px 28px rgba(0,0,0,.28), inset 0 0 0 1px rgba(255,255,255,.08);
+          transition: transform .15s var(--ease), filter .2s var(--ease);
+        }
+        .btn::after{
+          content:""; position:absolute; inset:0; border-radius:inherit;
+          background:linear-gradient(120deg, rgba(255,255,255,.16), transparent 60%);
+          mix-blend-mode:overlay; opacity:.0; transition:opacity .25s var(--ease);
+        }
+        .btn:hover{ transform:translateY(-1px); filter:brightness(1.06) }
+        .btn:hover::after{ opacity:.6 }
+        .yes{ background:linear-gradient(135deg,#00e0ff,#6a8bff) }
+        .no{  background:linear-gradient(135deg,#ff6b6b,#ff5aa0) }
+        .submit{ background:linear-gradient(135deg,#00d7b4,#6a8bff) }
+        .back{   background:linear-gradient(135deg,#2f394a,#455064) }
+
         .login-card{ padding:12px 12px 16px; border-radius:16px; }
         .login-card.shake{ animation:shake .6s var(--ease); }
-        @keyframes shake{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(4px)} }
+        @keyframes shake{
+          0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px)}
+          40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(4px)}
+        }
 
         .inp{
           width:100%; color:var(--text); border:none; outline:none; border-radius:14px;
@@ -319,74 +342,40 @@ export default function AdminPromptModal({ onAdminResponse }) {
           color:#3c2a00; background:#ffecec; box-shadow: inset 0 0 0 1px rgba(255,107,107,.35);
         }
 
-        /* modern buttons (no Bootstrap collisions) */
-        .action-row{ display:flex; gap:12px; justify-content:center; align-items:center; margin-top:12px; }
-        .ui-btn{
-          appearance:none; border:0; display:inline-flex; align-items:center; justify-content:center;
-          height:42px; padding:0 18px; border-radius:12px; font-weight:700; letter-spacing:.2px;
-          color:#fff; cursor:pointer;
-          background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
-          box-shadow:0 12px 28px rgba(0,0,0,.28), inset 0 0 0 1px rgba(255,255,255,.08);
-          transition: transform .15s var(--ease), filter .2s var(--ease), box-shadow .2s var(--ease);
-        }
-        .ui-btn:hover{ transform:translateY(-1px); filter:brightness(1.05); }
-        .ui-btn:active{ transform:translateY(0); filter:brightness(.98); }
-        .ui-btn:disabled{ opacity:.7; cursor:not-allowed; }
-        .ui-btn:focus-visible{
-          outline:none;
-          box-shadow:0 0 0 3px rgba(0,229,255,.25), inset 0 0 0 1px rgba(0,229,255,.6), 0 12px 28px rgba(0,0,0,.28);
-        }
-        .ui-primary{ background:linear-gradient(135deg,#00d7b4,#6a8bff); }
-        .ui-danger{  background:linear-gradient(135deg,#ff6b6b,#ff5aa0); }
-        .ui-ghost{
-          color:#e9f1ff;
-          background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
-          box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
-        }
-
-        /* character styling */
+        /* ===== Character ===== */
         .char-wrap{ position:relative; height:190px; display:flex; align-items:center; justify-content:center; }
         .avatar{ overflow:visible; }
-        .arm, .hand, .eye, .mouth, .tear, .lid, .head { transform-box: fill-box; transform-origin: center; }
+        .arm, .hand, .eye, .mouth, .tear, .lid { transform-box: fill-box; transform-origin: center; }
 
-        /* head stability */
-        .char-wrap .head{ transform-origin: 50% 45%; }
-
+        /* arm joints */
         .arm-left  { transform-origin: 6px 7px; }
         .arm-right { transform-origin: 6px 7px; }
         .hand-left, .hand-right { transform-origin: 50% 50%; }
         .arm-left, .arm-right, .hand-left, .hand-right { transition: transform .28s var(--ease); }
 
-        /* hands cover (if COVER_MODE === "cover") */
+        /* Cover-eyes pose (if COVER_MODE === "cover") */
         .char-wrap.cover .arm-left  { transform: rotate(-70deg); }
         .char-wrap.cover .arm-right { transform: rotate( 70deg); }
         .char-wrap.cover .hand-left  { transform: translateX(25px) translateY(-25px) scale(1.5); }
         .char-wrap.cover .hand-right { transform: translateX(-25px) translateY(-25px) scale(1.5); }
 
-        /* eyelids */
+        /* True eyelids: start tucked above pupils, slide down on blink */
         .lid{ transform: translateY(-16px); transition: transform .22s var(--ease); }
-        .char-wrap.blink .lid{ transform: translateY(0px); }
+        .char-wrap.blink .lid{ transform: translateY(0px); } /* fully covers pupils */
+
+        /* Still show a thin line when closed for clarity */
         .char-wrap.blink .eye{ transform: scaleY(.1) translateY(3px); transition: transform .18s var(--ease); }
 
-        /* sad / cry */
+        /* Sad */
         .char-wrap.sad .eye{ transform: translateY(2px) scaleY(.75); }
         .char-wrap.sad .mouth{ transform: translateY(2px) rotate(180deg); }
+
+        /* Cry */
         .char-wrap.cry .mouth{ width:10px; height:10px; rx:5px; transform:translateY(-2px); }
         .char-wrap.cry .tear{ opacity:1; animation: tear 1s ease-in infinite; }
         @keyframes tear{ 0%{ transform:translateY(0); opacity:0 } 10%{opacity:1} 100%{ transform:translateY(42px); opacity:0 } }
 
-        /* happy (laugh) */
-        .char-wrap.happy .smile{ opacity:1; }
-        .char-wrap.happy .mouth{ opacity:0; }
-        .char-wrap.happy .eye{ transform: scaleY(.65); }
-        .char-wrap.happy .head{ animation: bob 1.2s ease-in-out infinite; }
-        @keyframes bob{ 0%,100%{ transform:translate3d(0,0,0) } 50%{ transform:translate3d(0,2px,0) } }
-
-        /* head-down */
-        .char-wrap.head-down .head{ transform: translateY(6px) rotate(10deg); transition: transform .25s var(--ease); }
-        .char-wrap.head-down .arm-left, .char-wrap.head-down .arm-right{ transform: translateY(2px) rotate(4deg); }
-
-        /* speech bubble */
+        /* Speech bubble */
         .speech{
           position:absolute; top:2px; left:50%; transform:translate(-50%,-110%);
           background:rgba(18,28,46,.92); color:#fff; font-weight:700; font-size:.86rem;
