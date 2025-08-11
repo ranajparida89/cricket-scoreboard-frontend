@@ -1,8 +1,12 @@
+/* =========================
+   MatchHistory.css (full)
+   ========================= */
+
 /* shell + particles */
 .mhfx-shell{ position:relative; width:100%; padding:24px 10px; }
 #mhfx-particles{ position:absolute; inset:0; pointer-events:none; z-index:0; }
 
-/* glass */
+/* glass card */
 .mhfx-glass{
   position:relative; z-index:1;
   border-radius:18px; padding:18px 12px;
@@ -53,7 +57,7 @@
 .mhfx-table tbody td.left{text-align:left}
 .mhfx-table tbody td.right{text-align:right}
 
-/* rows as cards */
+/* rows as floating cards */
 .mhfx-row{
   background: linear-gradient(180deg, rgba(17,32,48,.65), rgba(10,23,35,.55));
   border:1px solid rgba(255,255,255,.07); border-radius:12px;
@@ -64,12 +68,33 @@
 
 .idx{ color:#c9ffef; }
 
-/* -------- Winner: special animation -------- */
-.mhfx-winner{ position:relative; height:38px; }
+/* =========================
+   Winner: centered + layered
+   ========================= */
+.mhfx-winner{
+  position: relative;
+  height: 38px;
+  display: flex;                 /* center the pill */
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: visible;
+}
+
+/* the pill with trophy + name */
 .win-pill{
-  display:inline-flex; align-items:center; gap:8px;
-  background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
-  padding:6px 10px; border-radius:999px; backdrop-filter: blur(3px);
+  position: relative;
+  z-index: 3;                    /* above track/bar/sparkles */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 auto;
+  background: rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  padding:6px 10px;
+  border-radius:999px;
+  backdrop-filter: blur(3px);
 }
 .trophy{ filter: drop-shadow(0 2px 6px rgba(0,0,0,.35)); animation: wobble 2.2s ease-in-out infinite; }
 @keyframes wobble{
@@ -79,24 +104,38 @@
 }
 .name{ font-weight:800; }
 
-/* comet underline */
-.win-track{
-  position:absolute; left:10px; right:10px; bottom:6px; height:6px;
-  border-radius:999px; background: rgba(255,255,255,.09);
-}
+/* comet underline (beneath pill) */
+.win-track,
 .win-bar{
-  position:absolute; left:10px; bottom:6px; height:6px; width:0; border-radius:999px;
+  position:absolute;
+  left:14px;
+  right:14px;
+  bottom:6px;
+  height:6px;
+  border-radius:999px;
+  z-index:1;                     /* under pill */
+}
+.win-track{ background: rgba(255,255,255,.09); }
+.win-bar{
+  left:14px;                     /* explicit for layout engines */
+  width:0;
+  overflow: visible;
   background-image: linear-gradient(90deg,#14e29a,#00c986);
-  filter: drop-shadow(0 0 10px rgba(255,255,255,.16)); overflow:visible;
+  filter: drop-shadow(0 0 10px rgba(255,255,255,.16));
 }
 .win-bar .win-head{
   position:absolute; right:-6px; top:50%; transform: translateY(-50%);
-  width:10px; height:10px; border-radius:50%; background:#fff; opacity:.9;
+  width:10px; height:10px; border-radius:50%;
+  background:#fff; opacity:.9;
   box-shadow:0 0 10px rgba(255,255,255,.9), 0 0 22px rgba(255,255,255,.6);
+  z-index:2;                     /* above bar */
 }
 
-/* sparkles */
-.spark{ position:absolute; pointer-events:none; width:6px; height:6px; border-radius:50%; background:#fff; opacity:0; }
+/* sparkles (above bar, below pill) */
+.spark{
+  position:absolute; pointer-events:none; width:6px; height:6px; border-radius:50%;
+  background:#fff; opacity:0; z-index:2;
+}
 .s1{ left:18px;  top:4px;  animation: sparkle 1.6s ease-in-out .2s infinite; }
 .s2{ left:44px;  top:0;    animation: sparkle 1.9s ease-in-out .4s infinite; }
 .s3{ left:72px;  top:10px; animation: sparkle 1.7s ease-in-out .6s infinite; }
@@ -122,7 +161,7 @@
 }
 @media (max-width: 680px){
   .mhfx-filters{ grid-template-columns:1fr; }
-  /* compact table: hide raw score columns, keep essentials */
+  /* compact: hide raw score columns to keep essentials visible */
   .mhfx-table thead th:nth-child(5),
   .mhfx-table thead th:nth-child(7),
   .mhfx-table tbody td:nth-child(5),
