@@ -1,13 +1,16 @@
 // ✅ src/components/TestRanking.js
-// Ranaj Parida — 2025-04-21
-// Polished glassmorphism UI + framer-motion row animations + rating bars
+// Ranaj Parida — 2025-04-21 (refit to your Leaderboard design & libs)
 
-import React, { useEffect, useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getTestRankings } from "../services/api";
-import "./TeamRanking.css";
+import { gsap } from "gsap";
+import { Animate } from "react-move";
+import { useSpring, animated as a } from "@react-spring/web";
+import Particles from "react-tsparticles";
+import { loadFull } from "tsparticles";
+import "./TestRanking.css";
 
-// Map team → flag
+/* ---------- Flags ---------- */
 const flagMap = {
   india: "🇮🇳", australia: "🇦🇺", england: "🏴", "new zealand": "🇳🇿",
   pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱🇰", ireland: "🇮🇪",
@@ -16,131 +19,205 @@ const flagMap = {
   oman: "🇴🇲", scotland: "🏴", netherlands: "🇳🇱", nepal: "🇳🇵",
 };
 
-const listVariants = {
-  hidden: { opacity: 0, y: 16 },
-  show: {
-    opacity: 1, y: 0,
-    transition: { duration: 0.45, ease: "easeOut", staggerChildren: 0.06, delayChildren: 0.05 },
-  },
+/* ---------- AOI (in-view) ---------- */
+const useInView = (ref, threshold = 0.2) => {
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    if (!ref.current) return;
+    const o = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) setSeen(true);
+    }, { threshold });
+    o.observe(ref.current);
+    return () => o.disconnect();
+  }, [ref, threshold]);
+  return seen;
 };
 
-const rowVariants = {
-  hidden: { opacity: 0, y: 14 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.28 } },
+/* ---------- Helpers ---------- */
+const medal = (i) => (i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "");
+const bucketByPoints = (p, max) => {
+  const r = p / (max || 1);
+  if (r >= 0.75) return "green";
+  if (r >= 0.55) return "yellow";
+  if (r >= 0.35) return "orange";
+  if (r > 0)     return "purple";
+  return "red";
 };
+const bucketGradient = (b) => ({
+  green:  "linear-gradient(90deg,#14e29a,#00c986)",
+  yellow: "linear-gradient(90deg,#ffe76a,#ffb03a)",
+  orange: "linear-gradient(90deg,#ffb03a,#ff7a3d)",
+  purple: "linear-gradient(90deg,#a57cff,#6dd6ff)",
+  red:    "linear-gradient(90deg,#ff6b6b,#ff2b2b)",
+}[b] || "linear-gradient(90deg,#93a6bd,#93a6bd)");
 
+/* ---------- Component ---------- */
 const TestRanking = () => {
-  const [testRankings, setTestRankings] = useState([]);
+  const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch rankings
+  const wrapRef = useRef(null);
+  const bodyRefs = useRef([]);
+  bodyRefs.current = [];
+  const addRowRef = (el) => el && !bodyRefs.current.includes(el) && bodyRefs.current.push(el);
+
+  // tsparticles
+  const particlesInit = async (engine) => { await loadFull(engine); };
+
   useEffect(() => {
-    const fetchData = async () => {
+    (async () => {
       try {
         const data = await getTestRankings();
-        const valid = (Array.isArray(data) ? data : []).filter(
-          (t) => t && t.team_name && t.points != null && t.rating != null
-        );
-        const sorted = valid.sort((a, b) => b.points - a.points);
-        setTestRankings(sorted);
-      } catch (err) {
-        console.error("❌ Failed to load Test Rankings:", err?.message || err);
-        setTestRankings([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+        const clean = (Array.isArray(data) ? data : []).map((t) => ({
+          team_name: t.team_name,
+          matches: Number(t.matches) || 0,
+          wins: Number(t.wins) || 0,
+          losses: Number(t.losses) || 0,
+          draws: t.draws != null ? Number(t.draws) : Math.max(0, (Number(t.matches)||0) - (Number(t.wins)||0) - (Number(t.losses)||0)),
+          points: Number(t.points) || 0,
+        }));
+        const sorted = clean.sort((a,b) => b.points - a.points || b.wins - a.wins);
+        setRows(sorted);
+      } catch (e) {
+        console.error("Test rankings load failed:", e?.message || e);
+        setRows([]);
+      } finally { setLoading(false); }
+    })();
   }, []);
 
-  // Helpful metadata
-  const maxRating = useMemo(() => {
-    const max = Math.max(120, ...testRankings.map((t) => +t.rating || 0));
-    return Math.min(140, Math.max(100, max)); // clamp to a nice range
-  }, [testRankings]);
+  const inView = useInView(wrapRef);
+  const maxPoints = useMemo(() => Math.max(10, ...rows.map(r => r.points)), [rows]);
 
-  const medal = (i) =>
-    i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "";
-
-  const rowClass = (i) =>
-    i === 0 ? "tr-row gold" : i === 1 ? "tr-row silver" : i === 2 ? "tr-row bronze" : "tr-row";
+  // GSAP stagger when visible
+  useEffect(() => {
+    if (!inView || !bodyRefs.current.length) return;
+    gsap.fromTo(bodyRefs.current,
+      { y: 20, opacity: 0, filter: "blur(4px)" },
+      { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.55, stagger: 0.07, ease: "power2.out" }
+    );
+    if (bodyRefs.current[0]) {
+      gsap.fromTo(bodyRefs.current[0],
+        { boxShadow: "0 0 0 rgba(0,255,170,0)" },
+        { boxShadow: "0 0 22px rgba(0,255,170,.35)", duration: 1.1, repeat: 1, yoyo: true }
+      );
+    }
+  }, [inView, rows]);
 
   return (
-    <div className="tr-wrap">
-      <div className="tr-orbs" aria-hidden>
-        <span className="orb o1" />
-        <span className="orb o2" />
-      </div>
+    <div className="trfx-shell">
+      <Particles
+        id="trfx-particles"
+        init={particlesInit}
+        options={{
+          fullScreen: { enable: false },
+          background: { color: { value: "transparent" } },
+          particles: {
+            number: { value: 18, density: { enable: true, area: 800 } },
+            links: { enable: true, distance: 120, opacity: 0.15, width: 1 },
+            move: { enable: true, speed: 1, outModes: { default: "bounce" } },
+            size: { value: { min: 1, max: 3 } },
+            opacity: { value: 0.25 },
+          },
+        }}
+      />
 
-      <motion.div
-        className="tr-card"
-        variants={listVariants}
-        initial="hidden"
-        animate="show"
-      >
-        <div className="tr-header">
-          <h2 className="tr-title">World Test Match Team Rankings</h2>
-          <p className="tr-sub">Live ICC table • auto-updated</p>
+      <div ref={wrapRef} className="trfx-glass">
+        <div className="trfx-header">
+          <span className="trfx-title">World Test Match Team Rankings</span>
         </div>
 
-        <div className="tr-table">
-          <div className="tr-thead">
-            <div className="th rank">Rank</div>
-            <div className="th team">Team</div>
-            <div className="th matches">Matches</div>
-            <div className="th points">Points</div>
-            <div className="th rating">Rating</div>
-          </div>
+        <div className="trfx-table-wrap">
+          <table className="trfx-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Team</th>
+                <th>Matches</th>
+                <th>Wins</th>
+                <th>Losses</th>
+                <th>Draws</th>
+                <th>Points</th>
+              </tr>
+            </thead>
 
-          <div className="tr-tbody">
-            {loading && (
-              <>
-                <div className="skeleton-row" />
-                <div className="skeleton-row" />
-                <div className="skeleton-row" />
-              </>
-            )}
+            <tbody>
+              {loading && (
+                <>
+                  <tr className="skeleton"><td colSpan="7" /></tr>
+                  <tr className="skeleton"><td colSpan="7" /></tr>
+                  <tr className="skeleton"><td colSpan="7" /></tr>
+                </>
+              )}
 
-            {!loading && testRankings.length === 0 && (
-              <div className="tr-empty">No Test match ranking data available.</div>
-            )}
+              {!loading && rows.length === 0 && (
+                <tr><td className="trfx-empty" colSpan="7">No Test ranking data available.</td></tr>
+              )}
 
-            {!loading &&
-              testRankings.map((t, i) => {
-                const flag = flagMap[t.team_name?.toLowerCase()] || "🏳️";
-                const pct = Math.round((Math.min(maxRating, +t.rating) / maxRating) * 100);
+              {!loading && rows.map((r, i) => {
+                const flag = flagMap[r.team_name?.toLowerCase()] || "🏳️";
+                const pct = Math.round((r.points / maxPoints) * 100);
+                const bucket = bucketByPoints(r.points, maxPoints);
+
+                // hover tilt per row
+                const [spr, api] = useSpring(() => ({
+                  rotateX: 0, rotateY: 0, scale: 1,
+                  config: { mass: 1, tension: 280, friction: 24 }
+                }));
+                const onMove = (e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = e.clientX - rect.left;
+                  const y = e.clientY - rect.top;
+                  const rx = -(y / rect.height - 0.5) * 6;
+                  const ry =  (x / rect.width - 0.5) * 6;
+                  api.start({ rotateX: rx, rotateY: ry, scale: 1.01 });
+                };
+                const onLeave = () => api.start({ rotateX: 0, rotateY: 0, scale: 1 });
 
                 return (
-                  <motion.div key={`${t.team_name}-${i}`} className={rowClass(i)} variants={rowVariants}>
-                    <div className="td rank">
-                      <span className="medal">{medal(i)}</span>
-                      <span className="pos">{i + 1}</span>
-                    </div>
-
-                    <div className="td team">
+                  <a.tr
+                    key={`${r.team_name}-${i}`}
+                    ref={addRowRef}
+                    className={`trfx-row bucket-${bucket}`}
+                    style={{
+                      transform: spr.scale.to(
+                        (s) => `perspective(900px) rotateX(${spr.rotateX.get()}deg) rotateY(${spr.rotateY.get()}deg) scale(${s})`
+                      ),
+                    }}
+                    onMouseMove={onMove}
+                    onMouseLeave={onLeave}
+                  >
+                    <td className="rank">
+                      <span className="medal">{medal(i)}</span> {i + 1}
+                    </td>
+                    <td className="team">
                       <span className="flag">{flag}</span>
-                      <span className="name">{t.team_name}</span>
-                    </div>
+                      <span className="name">{r.team_name}</span>
+                    </td>
+                    <td>{r.matches}</td>
+                    <td className="pos">{r.wins}</td>
+                    <td className="neg">{r.losses}</td>
+                    <td>{r.draws}</td>
 
-                    <div className="td matches">{t.matches}</div>
-                    <div className="td points">{t.points}</div>
-
-                    <div className="td rating">
-                      <div className="rating-wrap">
-                        <div className="rating-track" />
-                        <div
-                          className={`rating-bar ${i === 0 ? "g" : i === 1 ? "s" : i === 2 ? "b" : ""}`}
-                          style={{ width: `${pct}%` }}
-                        />
-                        <span className="rating-num">{t.rating}</span>
-                      </div>
-                    </div>
-                  </motion.div>
+                    {/* Points with tiny bar (like NRR) */}
+                    <td className="trfx-points">
+                      <div className="points-track" />
+                      <Animate start={{ w: 0 }} update={{ w: [pct], timing: { duration: 600 } }}>
+                        {({ w }) => (
+                          <div
+                            className="points-bar"
+                            style={{ width: `${w}%`, backgroundImage: bucketGradient(bucket) }}
+                          />
+                        )}
+                      </Animate>
+                      <span className="points-num">{r.points}</span>
+                    </td>
+                  </a.tr>
                 );
               })}
-          </div>
+            </tbody>
+          </table>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };
