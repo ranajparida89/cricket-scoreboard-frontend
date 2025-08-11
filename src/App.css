@@ -246,3 +246,74 @@ body.bg-dark { background-color: #0a0a0a !important; }
     font-size: 14px !important;
   }
 }
+/* =========================================================
+   Samsung S23 Ultra (Chrome, high-DPR) stability overrides
+   - Remove gradients/pseudo glows
+   - Collapse table gaps
+   - Solid row backgrounds
+   - Simple shadows only
+   ========================================================= */
+@media (pointer: coarse) and (-webkit-min-device-pixel-ratio: 2) {
+  /* 1) Glass wrappers: no gradients/pseudo backgrounds */
+  .leaderboard-glass,
+  .lbfx-glass,
+  .trfx-glass,
+  .mhfx-glass {
+    background: #0f1b28 !important;         /* solid, dark navy */
+    box-shadow: 0 6px 16px rgba(0,0,0,.28) !important;
+    border: 1px solid rgba(255,255,255,.06) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .leaderboard-glass::before, .leaderboard-glass::after,
+  .lbfx-glass::before, .lbfx-glass::after,
+  .trfx-glass::before, .trfx-glass::after,
+  .mhfx-glass::before, .mhfx-glass::after { content: none !important; }
+
+  /* 2) Collapse the tables (removes the “stepped” gaps on scroll) */
+  .leaderboard-table,
+  .trfx-table,
+  .mhfx-table {
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+    table-layout: fixed !important;
+  }
+
+  /* 3) Rows: solid background, no per-row shadow */
+  .leaderboard-table tbody tr,
+  .mhfx-table tbody tr {
+    background: #0f1e2d !important;
+    box-shadow: none !important;
+    border-bottom: 1px solid rgba(255,255,255,.06) !important;
+    position: relative; z-index: 0;
+  }
+  .leaderboard-table tbody td,
+  .mhfx-table tbody td { position: relative; z-index: 1; }
+
+  /* 4) Never wrap inside cells → no multi-line bumps */
+  .leaderboard-table thead th,
+  .leaderboard-table tbody td,
+  .trfx-table .th, .trfx-table .td,
+  .mhfx-table thead th, .mhfx-table tbody td {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* 5) Bars/effects: keep them simple & non-filtered */
+  .nrr-track, .win-track { background: rgba(255,255,255,.12) !important; }
+  .nrr-bar, .win-bar, .trophy {
+    filter: none !important;
+    box-shadow: none !important;
+  }
+  .win-bar .win-head { box-shadow: none !important; opacity: .9; }
+
+  /* 6) Slightly tighter spacing for mobile fit */
+  .leaderboard-table thead th,
+  .leaderboard-table tbody td,
+  .mhfx-table thead th,
+  .mhfx-table tbody td {
+    padding: 10px 8px !important;
+    font-size: 14px !important;
+  }
+}
