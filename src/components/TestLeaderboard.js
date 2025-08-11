@@ -7,29 +7,31 @@ import Particles from "react-tsparticles";
 import { loadFull } from "tsparticles";
 import "./TestLeaderboard.css";
 
-/* AOI */
+/* ---------- AOI (in-view) ---------- */
 const useInView = (ref, threshold = 0.2) => {
   const [seen, setSeen] = useState(false);
   useEffect(() => {
     if (!ref.current) return;
-    const o = new IntersectionObserver(([e]) => e.isIntersecting && setSeen(true), { threshold });
+    const o = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) setSeen(true);
+    }, { threshold });
     o.observe(ref.current);
     return () => o.disconnect();
   }, [ref, threshold]);
   return seen;
 };
 
-/* helpers */
+/* ---------- helpers ---------- */
 const medalEmoji = (i) => (i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "");
 const bucketGradient = (ratio) => {
-  if (ratio >= 0.75) return "linear-gradient(90deg,#14e29a,#00c986)";
-  if (ratio >= 0.55) return "linear-gradient(90deg,#ffe76a,#ffb03a)";
-  if (ratio >= 0.35) return "linear-gradient(90deg,#ffb03a,#ff7a3d)";
-  if (ratio > 0)     return "linear-gradient(90deg,#a57cff,#6dd6ff)";
-  return "linear-gradient(90deg,#ff6b6b,#ff2b2b)";
+  if (ratio >= 0.75) return "linear-gradient(90deg,#14e29a,#00c986)";   // green
+  if (ratio >= 0.55) return "linear-gradient(90deg,#ffe76a,#ffb03a)";   // yellow
+  if (ratio >= 0.35) return "linear-gradient(90deg,#ffb03a,#ff7a3d)";   // orange
+  if (ratio > 0)     return "linear-gradient(90deg,#a57cff,#6dd6ff)";   // purple
+  return "linear-gradient(90deg,#ff6b6b,#ff2b2b)";                       // red
 };
 
-/* Row component (hooks live here, not inside map) */
+/* ---------- Row (so hooks aren’t inside a loop) ---------- */
 const TLRow = forwardRef(({ index, row, maxPoints }, ref) => {
   const ratio = (row.points || 0) / (maxPoints || 1);
   const pct = Math.round(ratio * 100);
@@ -40,8 +42,11 @@ const TLRow = forwardRef(({ index, row, maxPoints }, ref) => {
   }));
   const onMove = (e) => {
     const r = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - r.left, y = e.clientY - r.top;
-    api.start({ rotateX: -(y / r.height - 0.5) * 6, rotateY: (x / r.width - 0.5) * 6, scale: 1.01 });
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    const rx = -(y / r.height - 0.5) * 6;
+    const ry =  (x / r.width  - 0.5) * 6;
+    api.start({ rotateX: rx, rotateY: ry, scale: 1.01 });
   };
   const onLeave = () => api.start({ rotateX: 0, rotateY: 0, scale: 1 });
 
@@ -69,28 +74,24 @@ const TLRow = forwardRef(({ index, row, maxPoints }, ref) => {
       <td className="neg">{row.losses}</td>
       <td>{row.draws}</td>
 
-      {/* Points: bar fill + glowing head + number count-up */}
+      {/* Points with special animation: fill + soft pulse for Top 3 */}
       <td className="tlfx-points">
         <div className="points-track" />
-        <Animate start={{ w: 0 }} update={{ w: [pct], timing: { duration: 800 } }}>
+        <Animate start={{ w: 0 }} update={{ w: [pct], timing: { duration: 700 } }}>
           {({ w }) => (
             <div
               className={`points-bar ${index < 3 ? "pulse" : ""}`}
               style={{ width: `${w}%`, backgroundImage: bucketGradient(ratio) }}
-            >
-              <span className="bar-head" />
-            </div>
+            />
           )}
         </Animate>
-
-        <Animate start={{ val: 0 }} update={{ val: [row.points], timing: { duration: 800 } }}>
-          {({ val }) => <span className="points-num">{Math.round(val)}</span>}
-        </Animate>
+        <span className="points-num">{row.points}</span>
       </td>
     </a.tr>
   );
 });
 
+/* ---------- Main ---------- */
 const TestLeaderboard = () => {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -100,12 +101,14 @@ const TestLeaderboard = () => {
   rowRefs.current = [];
   const addRowRef = (el) => el && !rowRefs.current.includes(el) && rowRefs.current.push(el);
 
+  // particles
   const particlesInit = async (engine) => { await loadFull(engine); };
 
   useEffect(() => {
     getTestMatchLeaderboard()
       .then((data) => {
         const arr = Array.isArray(data) ? data : [];
+        // ensure numbers and compute draws if needed
         const normalized = arr.map((t) => ({
           team_name: t.team_name,
           matches: Number(t.matches) || 0,
@@ -126,6 +129,7 @@ const TestLeaderboard = () => {
   const inView = useInView(wrapRef);
   const maxPoints = useMemo(() => Math.max(10, ...teams.map(t => t.points || 0)), [teams]);
 
+  // GSAP: row reveal + crown glow on first row
   useEffect(() => {
     if (!inView || !rowRefs.current.length) return;
     gsap.fromTo(
