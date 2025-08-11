@@ -1,7 +1,7 @@
 // ✅ src/components/TestRanking.js
-// Ranaj Parida — 2025-04-21 (refit to your Leaderboard design & libs)
+// Matches the new Leaderboard look; fixes hook-in-loop by using TestRow
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, forwardRef } from "react";
 import { getTestRankings } from "../services/api";
 import { gsap } from "gsap";
 import { Animate } from "react-move";
@@ -51,7 +51,70 @@ const bucketGradient = (b) => ({
   red:    "linear-gradient(90deg,#ff6b6b,#ff2b2b)",
 }[b] || "linear-gradient(90deg,#93a6bd,#93a6bd)");
 
-/* ---------- Component ---------- */
+/* ---------- Row component (so hooks aren't inside a loop) ---------- */
+const TestRow = forwardRef(({ index, row, maxPoints }, ref) => {
+  const { team_name, matches, wins, losses, draws, points } = row;
+  const flag = flagMap[team_name?.toLowerCase()] || "🏳️";
+  const pct = Math.round((points / maxPoints) * 100);
+  const bucket = bucketByPoints(points, maxPoints);
+
+  const [spr, api] = useSpring(() => ({
+    rotateX: 0, rotateY: 0, scale: 1,
+    config: { mass: 1, tension: 280, friction: 24 },
+  }));
+
+  const onMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const rx = -(y / rect.height - 0.5) * 6;
+    const ry =  (x / rect.width - 0.5) * 6;
+    api.start({ rotateX: rx, rotateY: ry, scale: 1.01 });
+  };
+  const onLeave = () => api.start({ rotateX: 0, rotateY: 0, scale: 1 });
+
+  return (
+    <a.tr
+      ref={ref}
+      className={`trfx-row bucket-${bucket}`}
+      style={{
+        transform: spr.scale.to(
+          (s) => `perspective(900px) rotateX(${spr.rotateX.get()}deg) rotateY(${spr.rotateY.get()}deg) scale(${s})`
+        ),
+      }}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+    >
+      <td className="rank">
+        <span className="medal">{medal(index)}</span> {index + 1}
+      </td>
+      <td className="team">
+        <span className="flag">{flag}</span>
+        <span className="name">{team_name}</span>
+      </td>
+      <td>{matches}</td>
+      <td className="pos">{wins}</td>
+      <td className="neg">{losses}</td>
+      <td>{draws}</td>
+
+      {/* Points with tiny bar */}
+      <td className="trfx-points">
+        <div className="points-track" />
+        <Animate start={{ w: 0 }} update={{ w: [pct], timing: { duration: 600 } }}>
+          {({ w }) => (
+            <div
+              className="points-bar"
+              style={{ width: `${w}%`, backgroundImage: bucketGradient(bucket) }}
+            />
+          )}
+        </Animate>
+        <span className="points-num">{points}</span>
+      </td>
+    </a.tr>
+  );
+});
+
+/* ---------- Main component ---------- */
 const TestRanking = () => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +124,6 @@ const TestRanking = () => {
   bodyRefs.current = [];
   const addRowRef = (el) => el && !bodyRefs.current.includes(el) && bodyRefs.current.push(el);
 
-  // tsparticles
   const particlesInit = async (engine) => { await loadFull(engine); };
 
   useEffect(() => {
@@ -73,7 +135,9 @@ const TestRanking = () => {
           matches: Number(t.matches) || 0,
           wins: Number(t.wins) || 0,
           losses: Number(t.losses) || 0,
-          draws: t.draws != null ? Number(t.draws) : Math.max(0, (Number(t.matches)||0) - (Number(t.wins)||0) - (Number(t.losses)||0)),
+          draws: t.draws != null
+            ? Number(t.draws)
+            : Math.max(0, (Number(t.matches)||0) - (Number(t.wins)||0) - (Number(t.losses)||0)),
           points: Number(t.points) || 0,
         }));
         const sorted = clean.sort((a,b) => b.points - a.points || b.wins - a.wins);
@@ -88,15 +152,17 @@ const TestRanking = () => {
   const inView = useInView(wrapRef);
   const maxPoints = useMemo(() => Math.max(10, ...rows.map(r => r.points)), [rows]);
 
-  // GSAP stagger when visible
+  // GSAP row reveal
   useEffect(() => {
     if (!inView || !bodyRefs.current.length) return;
-    gsap.fromTo(bodyRefs.current,
+    gsap.fromTo(
+      bodyRefs.current,
       { y: 20, opacity: 0, filter: "blur(4px)" },
       { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.55, stagger: 0.07, ease: "power2.out" }
     );
     if (bodyRefs.current[0]) {
-      gsap.fromTo(bodyRefs.current[0],
+      gsap.fromTo(
+        bodyRefs.current[0],
         { boxShadow: "0 0 0 rgba(0,255,170,0)" },
         { boxShadow: "0 0 22px rgba(0,255,170,.35)", duration: 1.1, repeat: 1, yoyo: true }
       );
@@ -139,7 +205,6 @@ const TestRanking = () => {
                 <th>Points</th>
               </tr>
             </thead>
-
             <tbody>
               {loading && (
                 <>
@@ -153,67 +218,15 @@ const TestRanking = () => {
                 <tr><td className="trfx-empty" colSpan="7">No Test ranking data available.</td></tr>
               )}
 
-              {!loading && rows.map((r, i) => {
-                const flag = flagMap[r.team_name?.toLowerCase()] || "🏳️";
-                const pct = Math.round((r.points / maxPoints) * 100);
-                const bucket = bucketByPoints(r.points, maxPoints);
-
-                // hover tilt per row
-                const [spr, api] = useSpring(() => ({
-                  rotateX: 0, rotateY: 0, scale: 1,
-                  config: { mass: 1, tension: 280, friction: 24 }
-                }));
-                const onMove = (e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const x = e.clientX - rect.left;
-                  const y = e.clientY - rect.top;
-                  const rx = -(y / rect.height - 0.5) * 6;
-                  const ry =  (x / rect.width - 0.5) * 6;
-                  api.start({ rotateX: rx, rotateY: ry, scale: 1.01 });
-                };
-                const onLeave = () => api.start({ rotateX: 0, rotateY: 0, scale: 1 });
-
-                return (
-                  <a.tr
-                    key={`${r.team_name}-${i}`}
-                    ref={addRowRef}
-                    className={`trfx-row bucket-${bucket}`}
-                    style={{
-                      transform: spr.scale.to(
-                        (s) => `perspective(900px) rotateX(${spr.rotateX.get()}deg) rotateY(${spr.rotateY.get()}deg) scale(${s})`
-                      ),
-                    }}
-                    onMouseMove={onMove}
-                    onMouseLeave={onLeave}
-                  >
-                    <td className="rank">
-                      <span className="medal">{medal(i)}</span> {i + 1}
-                    </td>
-                    <td className="team">
-                      <span className="flag">{flag}</span>
-                      <span className="name">{r.team_name}</span>
-                    </td>
-                    <td>{r.matches}</td>
-                    <td className="pos">{r.wins}</td>
-                    <td className="neg">{r.losses}</td>
-                    <td>{r.draws}</td>
-
-                    {/* Points with tiny bar (like NRR) */}
-                    <td className="trfx-points">
-                      <div className="points-track" />
-                      <Animate start={{ w: 0 }} update={{ w: [pct], timing: { duration: 600 } }}>
-                        {({ w }) => (
-                          <div
-                            className="points-bar"
-                            style={{ width: `${w}%`, backgroundImage: bucketGradient(bucket) }}
-                          />
-                        )}
-                      </Animate>
-                      <span className="points-num">{r.points}</span>
-                    </td>
-                  </a.tr>
-                );
-              })}
+              {!loading && rows.map((r, i) => (
+                <TestRow
+                  key={`${r.team_name}-${i}`}
+                  ref={addRowRef}
+                  index={i}
+                  row={r}
+                  maxPoints={maxPoints}
+                />
+              ))}
             </tbody>
           </table>
         </div>
