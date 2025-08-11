@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react"; // ✅ FIXED: Added useEffec
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import AppNavbar from "./components/Navbar";
 import MatchForm from "./components/MatchForm";
-// import Leaderboard from "./components/Leaderboard";
 import LeaderboardFX from "./components/LeaderboardFX";
 import TestLeaderboard from "./components/TestLeaderboard"; 
 import MatchHistory from "./components/MatchHistory";
