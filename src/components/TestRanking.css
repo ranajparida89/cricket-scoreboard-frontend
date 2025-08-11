@@ -19,31 +19,50 @@
   text-shadow: 0 2px 12px rgba(0,255,170,.25);
 }
 
+/* ---------- table ---------- */
 .trfx-table-wrap{ overflow-x:auto; padding: 0 6px; }
 .trfx-table{
   width: 100%;
   border-collapse: separate;
   table-layout: fixed;
-  border-spacing: 0 8px;
-  background: transparent;
+  border-spacing: 0 8px;      /* vertical gaps to match card rows */
+  background: transparent !important;
   margin: 0;
 }
+
+/* header row container should not paint a background */
 .trfx-table thead tr{
-  background: linear-gradient(180deg,#0f2234,#0c1b2a);
-  box-shadow: 0 10px 24px rgba(0,0,0,.30);
+  background: transparent !important;
+  box-shadow: none !important;
 }
+
+/* force dark header cells so global .table styles can’t turn them white */
 .trfx-table thead th{
-  color:#dff2ff; font-weight:700; font-size:14px; letter-spacing:.2px;
-  padding:12px 10px; border:0 !important;
+  background: linear-gradient(180deg,#102437,#0d1f2f) !important;  /* ✅ dark, readable */
+  color:#dff2ff !important;
+  font-weight:700; font-size:14px; letter-spacing:.2px;
+  padding:12px 10px;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  border-bottom: 0 !important;
 }
-.trfx-table thead th:first-child{ border-top-left-radius:12px; }
-.trfx-table thead th:last-child { border-top-right-radius:12px; }
+.trfx-table thead th:first-child{
+  border-top-left-radius:12px; border-bottom-left-radius:12px;
+}
+.trfx-table thead th:last-child{
+  border-top-right-radius:12px; border-bottom-right-radius:12px;
+}
+/* subtle dividers between header cells */
+.trfx-table thead th + th{
+  border-left-color: rgba(255,255,255,.06) !important;
+}
 
 .trfx-table tbody td{
   padding: 12px 10px;
   font-size: 15px; color: #eaf6ff;
   text-align: center; border: 0;
 }
+
+/* floating body rows */
 .trfx-row{
   background: linear-gradient(180deg, rgba(17,32,48,.65), rgba(10,23,35,.55));
   border: 1px solid rgba(255,255,255,.07);
@@ -63,6 +82,7 @@
 .pos{ color:#c9ffef; }
 .neg{ color:#ffc2c2; }
 
+/* points mini-bar (like NRR) */
 .trfx-points{ position: relative; height: 34px; }
 .points-track{
   position:absolute; left:8px; right:8px; bottom:6px; height:6px;
@@ -75,12 +95,14 @@
 }
 .points-num{ position: relative; z-index: 1; margin-left: auto; font-weight:700; }
 
+/* row hover tint by bucket */
 .trfx-row.bucket-green:hover  { background-color: rgba(22,226,138,.12); }
 .trfx-row.bucket-yellow:hover { background-color: rgba(255,231,106,.12); }
 .trfx-row.bucket-orange:hover { background-color: rgba(255,176, 58,.12); }
 .trfx-row.bucket-purple:hover { background-color: rgba(165,124,255,.12); }
 .trfx-row.bucket-red:hover    { background-color: rgba(255, 43,  43,.12); }
 
+/* skeleton */
 .skeleton td{
   height: 56px;
   background: linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.08), rgba(255,255,255,.04));
@@ -92,6 +114,7 @@
 
 .trfx-empty{ text-align:center; padding:18px 0; color:#9bb2c8; }
 
+/* responsive */
 @media (max-width: 820px){
   .trfx-table thead th, .trfx-table tbody td{ font-size:14px; padding:10px 8px; }
 }
