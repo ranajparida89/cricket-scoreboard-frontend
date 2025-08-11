@@ -1,0 +1,144 @@
+/* Shell + particles */
+.lbfx-shell{
+  position: relative;
+  width: 100%;
+  padding: 24px 10px;
+}
+#lbfx-particles{
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: .9;
+}
+
+/* Glassy 3D card */
+.lbfx-glass{
+  position: relative;
+  z-index: 1;
+  border-radius: 18px;
+  padding: 18px 12px;
+  background: radial-gradient(1200px 500px at 10% -20%, rgba(0,255,170,.08), transparent 60%),
+              linear-gradient(180deg, rgba(13,31,47,.75), rgba(10,23,36,.65));
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 18px 50px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Header */
+.lbfx-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 6px 12px 14px;
+  border-bottom: 1px dashed rgba(255,255,255,.12);
+}
+.lbfx-title{
+  font-weight:800; letter-spacing:.2px;
+  color:#eaffff; font-size: clamp(16px, 2.1vw, 22px);
+  text-shadow: 0 2px 10px rgba(0,255,170,.2);
+}
+.lbfx-sub{
+  color:#9cd6ff; font-size: 12px; opacity:.8;
+}
+
+/* Table */
+.lbfx-table-wrap{ overflow-x:auto; }
+.lbfx-table{
+  display: grid;
+  grid-auto-rows: minmax(52px, auto);
+  gap: 8px;
+  padding: 10px;
+}
+
+/* Head row */
+.lbfx-row{
+  display: grid;
+  grid-template-columns: 64px 1.2fr repeat(5, 120px) 160px;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(17,32,48,.65), rgba(10,23,35,.55));
+  border: 1px solid rgba(255,255,255,.07);
+  color:#eaf6ff;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.lbfx-head{
+  background: linear-gradient(180deg, #0f2234, #0c1b2a);
+  color:#dff2ff;
+  font-weight:700;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing:.4px;
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+.lbfx-empty{
+  text-align:center; justify-content:center;
+  color:#9bb2c8; height:68px;
+}
+
+/* Data rows */
+.lbfx-item{
+  box-shadow: 0 10px 26px rgba(0,0,0,.35);
+  transition: box-shadow .2s ease, transform .2s ease, background .2s ease;
+}
+.lbfx-item:hover{
+  box-shadow: 0 16px 40px rgba(0,0,0,.42);
+}
+
+/* Columns */
+.lbfx-rank{ font-weight:700 }
+.lbfx-team{ font-weight:800; letter-spacing:.2px; }
+
+/* Pos/Neg coloring */
+.pos{ color:#b5ffe8; }
+.neg{ color:#ffc7c7; }
+
+/* NRR widget */
+.lbfx-nrr{ position: relative; height: 24px; display:flex; align-items:center; }
+.lbfx-nrr .nrr-track{
+  position:absolute; left:8px; right:8px; bottom:4px; height:7px;
+  border-radius:999px; background: rgba(255,255,255,.09);
+}
+.lbfx-nrr .nrr-bar{
+  position:absolute; bottom:4px; height:7px; border-radius:999px;
+  filter: drop-shadow(0 0 10px rgba(255,255,255,.16));
+}
+.lbfx-nrr .from-left{ left:8px; transform-origin:left center; }
+.lbfx-nrr .from-right{ right:8px; transform-origin:right center; }
+.lbfx-nrr .nrr-text{ margin-left:auto; font-weight:700; z-index:1; }
+
+/* Bucket tints + bar colors */
+.bucket-green:hover  { background: linear-gradient(180deg, rgba(0,255,170,.12), rgba(0,0,0,0)); }
+.bucket-yellow:hover { background: linear-gradient(180deg, rgba(255,231,106,.14), rgba(0,0,0,0)); }
+.bucket-orange:hover { background: linear-gradient(180deg, rgba(255,176, 58,.14), rgba(0,0,0,0)); }
+.bucket-purple:hover { background: linear-gradient(180deg, rgba(165,124,255,.14), rgba(0,0,0,0)); }
+.bucket-red:hover    { background: linear-gradient(180deg, rgba(255, 43, 43,.14), rgba(0,0,0,0)); }
+
+.bucket-green  .nrr-bar{ background: linear-gradient(90deg,#14e29a,#00c986); }
+.bucket-yellow .nrr-bar{ background: linear-gradient(90deg,#ffe76a,#ffb03a); }
+.bucket-orange .nrr-bar{ background: linear-gradient(90deg,#ffb03a,#ff7a3d); }
+.bucket-purple .nrr-bar{ background: linear-gradient(90deg,#a57cff,#6dd6ff); }
+.bucket-red    .nrr-bar{ background: linear-gradient(90deg,#ff6b6b,#ff2b2b); }
+
+/* Medals */
+.medal{ font-size: 1.1rem; margin-right: 4px; }
+
+/* Responsive */
+@media (max-width: 1024px){
+  .lbfx-row{ grid-template-columns: 58px 1.2fr repeat(5, 100px) 140px; }
+}
+@media (max-width: 820px){
+  .lbfx-row{ grid-template-columns: 50px 1.2fr repeat(3, 80px) 100px 120px; }
+  /* Hide Losses column on small screens if needed:
+     .lbfx-row > :nth-child(5){ display:none; } */
+}
+@media (max-width: 640px){
+  .lbfx-row{ grid-template-columns: 44px 1.3fr 70px 70px 100px; }
+  /* Show condensed: [#, Team, Matches, Points, NRR] */
+  .lbfx-row > :nth-child(4),
+  .lbfx-row > :nth-child(5),
+  .lbfx-row > :nth-child(6){ display:none; } /* wins/losses/draws hidden on phones */
+}
