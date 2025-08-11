@@ -1,17 +1,11 @@
-/******************************************************
- * TeamCharts.css — glass look, mobile-safe animations
- ******************************************************/
-.tc-shell{
-  position:relative;
-  width:100%;
-  padding:24px 10px;
-}
-#tc-particles{
-  position:absolute; inset:0; pointer-events:none; z-index:0;
-}
+/*******************************************************
+ * TeamCharts.css — dashboard cards like your screenshot
+ *******************************************************/
+.tcpro-shell{ position:relative; width:100%; padding:24px 10px; }
+#tcpro-particles{ position:absolute; inset:0; pointer-events:none; z-index:0; }
 
-/* glass container */
-.tc-glass{
+/* outer glass matches your site */
+.tcpro-glass{
   position:relative; z-index:1;
   border-radius:18px;
   padding:18px 12px;
@@ -22,61 +16,72 @@
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
 
-/* header + filters */
-.tc-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:12px;
-}
-.tc-title{
-  margin:0;
-  color:#bffcff;
+/* header */
+.tcpro-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.tcpro-title{
+  margin:0; color:#bffcff; font-weight:800;
   text-shadow:0 2px 12px rgba(0,255,170,.25);
-  font-weight:800;
 }
-.tc-filter{ display:flex; gap:10px; }
-.team-chart-type-select{
-  background: rgba(255,255,255,.06);
-  color:#eaf6ff;
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:10px;
-  padding:8px 10px;
-  outline:none;
+.tcpro-actions{ display:flex; gap:10px; }
+.tcpro-select{
+  background:#ffffff; color:#1b2b3b; border:1px solid #e6eef7; border-radius:12px;
+  padding:10px 12px; font-weight:600;
 }
 
-/* chart card */
-.tc-card{
-  background: linear-gradient(180deg, rgba(17,32,48,.65), rgba(10,23,35,.55));
-  border:1px solid rgba(255,255,255,.07);
-  border-radius:14px;
-  box-shadow:0 12px 28px rgba(0,0,0,.35);
-  margin:14px 6px;
-  transition: transform .18s ease, box-shadow .18s ease;
+/* card — white, soft shadow like screenshot */
+.tcpro-card{
+  background:#ffffff; color:#1b2b3b;
+  border:1px solid #e6eef7; border-radius:16px;
+  box-shadow:0 6px 18px rgba(0,0,0,.12);
+  margin:12px 6px; transition:box-shadow .18s ease;
 }
-.tc-card:hover{ box-shadow:0 18px 38px rgba(0,0,0,.42); }
-.tc-card-inner{ padding:16px; }
-.tc-card-title{
-  color:#dfefff;
-  font-weight:700;
-  margin-bottom:10px;
-}
-.tc-muted{ color:#9bb2c8; }
+.tcpro-card:hover{ box-shadow:0 12px 28px rgba(0,0,0,.18); }
+.tcpro-card-inner{ padding:14px 12px; }
 
-/* mobile/touch stability */
+/* grid for two cards */
+.tcpro-grid{
+  display:grid; grid-template-columns: 1fr 1fr; gap:12px;
+}
+@media (max-width: 960px){
+  .tcpro-grid{ grid-template-columns: 1fr; }
+}
+
+/* KPIs */
+.tcpro-kpis{
+  display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin:10px 6px 6px;
+}
+.tcpro-kpi{
+  background:#fff; border:1px solid #e6eef7; border-radius:14px;
+  box-shadow:0 6px 18px rgba(0,0,0,.12);
+  padding:10px 12px; text-align:center;
+}
+.kpi-title{ color:#4a5a6a; font-weight:700; font-size:.9rem; }
+.kpi-value{ color:#0f1e2d; font-weight:800; font-size:1.25rem; }
+@media (max-width: 900px){
+  .tcpro-kpis{ grid-template-columns: repeat(2, 1fr); }
+}
+
+/* compact table */
+.tcpro-table-wrap{ overflow-x:auto; margin-top:12px; }
+.tcpro-table{
+  width:100%; border-collapse:separate; border-spacing:0 8px;
+}
+.tcpro-table thead th{
+  background:#f6f9fe; color:#163049; font-weight:800;
+  padding:12px 10px; border:1px solid #e6eef7;
+}
+.tcpro-table tbody td{
+  background:#ffffff; color:#1b2b3b; padding:12px 10px;
+  border:1px solid #e6eef7;
+}
+.tcpro-table .left{ text-align:left; }
+.tcpro-table .pos{ color:#0ea35a; font-weight:700; }
+.tcpro-table .neg{ color:#d94160; font-weight:700; }
+.tcpro-table .muted{ color:#97a9ba; text-align:center; }
+
+/* Mobile/touch stability (turn off heavy effects) */
 @media (max-width: 900px), (pointer: coarse){
-  #tc-particles{ display:none !important; }
-
-  .tc-glass{
-    background:#0f1b28 !important;
-    border:1px solid rgba(255,255,255,.06) !important;
-    box-shadow:0 6px 16px rgba(0,0,0,.28) !important;
-    backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
-  }
-  .tc-card{
-    background:#0f1e2d !important;
-    box-shadow:none !important;
-    transform:none !important;
-  }
+  #tcpro-particles{ display:none !important; }
+  .tcpro-glass{ backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
+  .tcpro-card{ transform:none !important; }
 }
