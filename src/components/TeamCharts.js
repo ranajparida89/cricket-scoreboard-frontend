@@ -1,11 +1,14 @@
 // ✅ src/components/TeamCharts.js
-// ✅ [Ranaj Parida - 2025-04-17 | 4:10 AM]
-// ✅ [ChatGPT | 2025-06-19] Pie chart for Test Win/Loss/Draw with Test team dropdown
+// Redesigned with GSAP (reveal), React Spring (hover tilt),
+// tsparticles background, AOI, and scripted Chart.js animations.
 
-import React, { useEffect, useState } from "react";
-import { getTeamChartData } from "../services/api"; // ✅ Uses team-rankings only for charts
-import './TeamCharts.css'; // <-- for css style
-import { Pie } from "react-chartjs-2"; // For Piechart
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { getTeamChartData } from "../services/api";
+import "./TeamCharts.css";
+
+import { Bar, Line } from "react-chartjs-2";
+import { Pie } from "react-chartjs-2";
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,253 +16,397 @@ import {
   BarElement,
   LineElement,
   PointElement,
-  ArcElement,      // <--- NEW for Pie
+  ArcElement,
   Tooltip,
   Legend,
   Title,
 } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
-import { Bar, Line } from "react-chartjs-2";
 
-// ✅ Register ChartJS modules globally
+// Anim / UX
+import { gsap } from "gsap";
+import { useSpring, animated as a } from "@react-spring/web";
+import Particles from "react-tsparticles";
+import { loadFull } from "tsparticles";
 
+// Register chart.js bits
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
   LineElement,
   PointElement,
-  ArcElement, // <--- ADD THIS!
+  ArcElement,
   Tooltip,
   Legend,
   Title,
   ChartDataLabels
 );
 
+// ---------- tiny utilities ----------
+const usePrefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const useInView = (ref, threshold = 0.25) => {
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    if (!ref.current) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setSeen(true);
+      },
+      { threshold }
+    );
+    obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [ref, threshold]);
+  return seen;
+};
+
+// Hover-tilt chart card
+const TiltCard = ({ children, className = "" }) => {
+  const [spr, api] = useSpring(() => ({
+    rotateX: 0,
+    rotateY: 0,
+    scale: 1,
+    config: { mass: 1, tension: 280, friction: 24 },
+  }));
+
+  const onMove = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    const rx = -(y / r.height - 0.5) * 6;
+    const ry = (x / r.width - 0.5) * 6;
+    api.start({ rotateX: rx, rotateY: ry, scale: 1.01 });
+  };
+  const onLeave = () => api.start({ rotateX: 0, rotateY: 0, scale: 1 });
+
+  return (
+    <a.div
+      className={`tc-card ${className}`}
+      style={{
+        transform: spr.scale.to(
+          (s) =>
+            `perspective(900px) rotateX(${spr.rotateX.get()}deg) rotateY(${spr.rotateY.get()}deg) scale(${s})`
+        ),
+      }}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+    >
+      {children}
+    </a.div>
+  );
+};
+
 const TeamCharts = () => {
   const [teams, setTeams] = useState([]);
   const [filteredType, setFilteredType] = useState("All");
-  const [selectedTestTeam, setSelectedTestTeam] = useState(""); // NEW: for Pie chart team selection
+  const [selectedTestTeam, setSelectedTestTeam] = useState("");
 
-  // ✅ Fetch chart-specific team data (grouped by match_type)
+  // shell refs for reveal
+  const shellRef = useRef(null);
+  const seen = useInView(shellRef, 0.2);
+  const reduce = usePrefersReducedMotion();
+
+  // particles
+  const isTouch =
+    typeof window !== "undefined" &&
+    (window.matchMedia?.("(pointer: coarse)").matches ||
+      /android|iphone|ipad|mobile/i.test(navigator.userAgent || ""));
+
+  const particlesInit = async (engine) => {
+    await loadFull(engine);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       const data = await getTeamChartData();
-
-      // ✅ Normalize match_type for filtering
-      const normalized = data.map((team) => ({
+      const normalized = (data || []).map((team) => ({
         ...team,
         match_type: (team.match_type || "").trim().toLowerCase(),
       }));
-
-      // ✅ Sort by points descending
-      const sorted = normalized.sort((a, b) => b.points - a.points);
+      const sorted = normalized.sort((a, b) => (b.points || 0) - (a.points || 0));
       setTeams(sorted);
     };
-
     fetchData();
   }, []);
 
-  // Compute Test teams for dropdown
-  const testTeams = teams.filter(t => t.match_type === "test").map(t => t.team_name);
-  const uniqueTestTeams = [...new Set(testTeams)];
+  // compute Test team list
+  const uniqueTestTeams = useMemo(() => {
+    const list = teams
+      .filter((t) => t.match_type === "test")
+      .map((t) => t.team_name);
+    return [...new Set(list)];
+  }, [teams]);
 
-  // Auto-select first Test team if not set
   useEffect(() => {
-    if (filteredType === "Test" && uniqueTestTeams.length > 0 && !selectedTestTeam) {
+    if (filteredType === "Test" && uniqueTestTeams.length && !selectedTestTeam) {
       setSelectedTestTeam(uniqueTestTeams[0]);
     }
-    // eslint-disable-next-line
-  }, [filteredType, teams]);
+  }, [filteredType, uniqueTestTeams, selectedTestTeam]);
 
-  // ✅ Filter by selected match_type (T20/ODI/Test/All)
+  // filter
   const filteredTeams =
     filteredType === "All"
       ? teams
-      : teams.filter(
-          (t) =>
-            t.match_type === filteredType.trim().toLowerCase()
-        );
+      : teams.filter((t) => t.match_type === filteredType.toLowerCase());
 
-  // ✅ Extract team chart values
-  const teamNames = filteredTeams.map((t) => t.team_name);
-  const teamPoints = filteredTeams.map((t) => parseInt(t.points));
-  const teamNRR = filteredTeams.map((t) => {
-    const nrr = parseFloat(t.nrr);
-    return isNaN(nrr) ? 0 : parseFloat(nrr.toFixed(2));
+  const labels = filteredTeams.map((t) => t.team_name);
+  const points = filteredTeams.map((t) => +t.points || 0);
+  const nrr = filteredTeams.map((t) => {
+    const v = parseFloat(t.nrr);
+    return isNaN(v) ? 0 : +v.toFixed(2);
   });
 
-  // ✅ Color mapping by match type
-  const matchTypeColor = {
-    t20: "rgba(255, 159, 64, 0.7)",
-    odi: "rgba(54, 162, 235, 0.7)",
-    test: "rgba(153, 102, 255, 0.7)",
-    all: "rgba(75, 192, 192, 0.7)",
+  // theming by type
+  const typeColor = {
+    t20: "rgba(255, 159, 64, 0.85)",
+    odi: "rgba(54, 162, 235, 0.85)",
+    test: "rgba(153, 102, 255, 0.85)",
+    all: "rgba(75, 192, 192, 0.85)",
+  };
+  const color = typeColor[filteredType.toLowerCase()] || typeColor.all;
+
+  // ---------- Chart configs with scripted animation delays ----------
+  const basePlugins = {
+    legend: {
+      position: "top",
+      labels: { color: "#dfefff" },
+    },
+    datalabels: {
+      color: "#fff",
+      font: { weight: "bold" },
+      formatter: (v) => v,
+    },
+    title: {
+      display: false,
+      text: "",
+      color: "#dfefff",
+      font: { size: 14, weight: 700 },
+    },
   };
 
-  const color = matchTypeColor[filteredType.toLowerCase()] || matchTypeColor.all;
+  const sc = {
+    x: { ticks: { color: "#bfe2ff" }, grid: { color: "rgba(255,255,255,.08)" } },
+    y: {
+      beginAtZero: true,
+      ticks: { color: "#bfe2ff" },
+      grid: { color: "rgba(255,255,255,.08)" },
+    },
+  };
 
-  // ✅ Bar chart config for points
+  // Staggered dataset draw – disabled if prefers-reduced-motion
+  const perItemDelay = (ctx) => {
+    const base = 80;
+    if (reduce) return 0;
+    const idx = ctx.dataIndex ?? 0;
+    return idx * base;
+  };
+
   const barData = {
-    labels: teamNames,
+    labels,
     datasets: [
       {
         label: "Points",
-        data: teamPoints,
+        data: points,
         backgroundColor: color,
-        borderRadius: 5,
-        datalabels: {
-          anchor: "end",
-          align: "top",
-          color: "#fff",
-          font: { weight: "bold" },
-        },
+        borderRadius: 6,
       },
     ],
   };
 
-  // ✅ Line chart config for NRR
+  const barOptions = {
+    responsive: true,
+    animation: !reduce && {
+      duration: 700,
+      easing: "easeOutCubic",
+      delay: (ctx) => perItemDelay(ctx),
+    },
+    plugins: basePlugins,
+    scales: sc,
+  };
+
   const lineData = {
-    labels: teamNames,
+    labels,
     datasets: [
       {
         label: "Net Run Rate (NRR)",
-        data: teamNRR,
-        fill: false,
+        data: nrr,
         borderColor: color,
         backgroundColor: color,
-        tension: 0.3,
-        datalabels: {
-          anchor: "end",
-          align: "top",
-          color: "#fff",
-          font: { weight: "bold" },
-        },
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        tension: 0.35,
       },
     ],
   };
 
-  // ✅ Shared chart styling
-  const chartOptions = {
+  const lineOptions = {
     responsive: true,
-    plugins: {
-      legend: {
-        position: "top",
-        labels: { color: "#fff" },
-      },
-      datalabels: {
-        display: true,
-        formatter: (value) => value,
-      },
+    animation: !reduce && {
+      duration: 900,
+      easing: "easeOutQuart",
+      delay: (ctx) => perItemDelay(ctx),
     },
-    scales: {
-      x: { ticks: { color: "#fff" } },
-      y: {
-        beginAtZero: true,
-        ticks: { color: "#fff" },
-      },
-    },
+    plugins: basePlugins,
+    scales: sc,
   };
 
-  // Find data for the selected Test team for Pie chart
   const selectedTeamData =
     filteredType === "Test" && selectedTestTeam
       ? teams.find(
-          t =>
-            t.match_type === "test" &&
-            t.team_name === selectedTestTeam
+          (t) =>
+            t.match_type === "test" && t.team_name === selectedTestTeam
         )
       : null;
 
+  const pieData = selectedTeamData && {
+    labels: ["Wins", "Losses", "Draws"],
+    datasets: [
+      {
+        data: [
+          selectedTeamData?.wins || 0,
+          selectedTeamData?.losses || 0,
+          selectedTeamData?.draws || 0,
+        ],
+        backgroundColor: ["#16e29a", "#ff6b6b", "#ffe76a"],
+        borderColor: ["#0a452f", "#3a0e0e", "#4a3b00"],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const pieOptions = {
+    responsive: true,
+    animation: !reduce && {
+      animateRotate: true,
+      animateScale: true,
+      duration: 800,
+      easing: "easeOutBack",
+    },
+    plugins: {
+      ...basePlugins,
+      datalabels: {
+        color: "#041b2a",
+        font: { weight: "bold" },
+        formatter: (v, ctx) => {
+          const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+          if (!total) return "";
+          const pct = Math.round((v / total) * 100);
+          return `${pct}%`;
+        },
+      },
+      legend: { position: "bottom", labels: { color: "#dfefff" } },
+    },
+  };
+
+  // ---------- GSAP reveal when in view ----------
+  useEffect(() => {
+    if (!seen || reduce) return;
+    const cards = gsap.utils.toArray(".tc-card");
+    gsap.fromTo(
+      cards,
+      { y: 24, opacity: 0, filter: "blur(4px)" },
+      { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.55, stagger: 0.08, ease: "power2.out" }
+    );
+  }, [seen, reduce, filteredType, selectedTestTeam]);
+
   return (
-    <div className="container mt-5">
-      <h3 className="text-center text-info">📊 Team Performance Charts</h3>
-
-      {/* ✅ Match Type Filter Dropdown */}
-      <div className="d-flex justify-content-end mb-3">
-        <select
-          className="team-chart-type-select"
-          value={filteredType}
-          onChange={(e) => setFilteredType(e.target.value)}
-        >
-          <option value="All">All</option>
-          <option value="T20">T20</option>
-          <option value="ODI">ODI</option>
-          <option value="Test">Test</option>
-        </select>
-      </div>
-
-      {/* ✅ Test Team Dropdown for Pie Chart */}
-      {filteredType === "Test" && uniqueTestTeams.length > 0 && (
-        <div className="d-flex justify-content-end mb-3">
-          <select
-            className="team-chart-type-select"
-            value={selectedTestTeam}
-            onChange={e => setSelectedTestTeam(e.target.value)}
-          >
-            {uniqueTestTeams.map(team => (
-              <option key={team} value={team}>
-                {team}
-              </option>
-            ))}
-          </select>
-        </div>
+    <div ref={shellRef} className="tc-shell">
+      {!isTouch && (
+        <Particles
+          id="tc-particles"
+          init={particlesInit}
+          options={{
+            fullScreen: { enable: false },
+            background: { color: { value: "transparent" } },
+            fpsLimit: 60,
+            particles: {
+              number: { value: 22, density: { enable: true, area: 800 } },
+              links: { enable: true, distance: 120, opacity: 0.14, width: 1 },
+              move: { enable: true, speed: 0.6, outModes: { default: "bounce" } },
+              size: { value: { min: 1, max: 3 } },
+              opacity: { value: 0.22 },
+              color: { value: "#7ad1ff" },
+            },
+            detectRetina: true,
+          }}
+        />
       )}
 
-      {/* ✅ Bar Chart for Points */}
-      <div className="card p-4 shadow mt-4 bg-dark text-white">
-        <h5>Points Comparison</h5>
-        <Bar
-          key={`bar-${filteredType}-${teamNames.join("-")}`}
-          data={barData}
-          options={chartOptions}
-          plugins={[ChartDataLabels]}
-        />
-      </div>
+      <div className="tc-glass">
+        <div className="tc-header">
+          <h3 className="tc-title">📊 Team Performance Charts</h3>
 
-      {/* ✅ Pie Chart for Win/Loss/Draw - Test Only */}
-      {filteredType === "Test" && selectedTeamData ? (
-        <div className="card p-4 shadow mt-4 bg-dark text-white">
-          <h5>Win/Loss/Draw Breakdown ({selectedTeamData.team_name})</h5>
-          <Pie
-            data={{
-              labels: ["Wins", "Losses", "Draws"],
-              datasets: [
-                {
-                  data: [
-                    selectedTeamData.wins || 0,
-                    selectedTeamData.losses || 0,
-                    selectedTeamData.draws || 0
-                  ],
-                  backgroundColor: [
-                    "#4CAF50", // Wins - Green
-                    "#F44336", // Losses - Red
-                    "#FFC107"  // Draws - Yellow
-                  ],
-                },
-              ],
-            }}
-            options={{
-              plugins: {
-                legend: { labels: { color: "#fff" } }
-              }
-            }}
-          />
+          <div className="tc-filter">
+            <select
+              className="team-chart-type-select"
+              value={filteredType}
+              onChange={(e) => setFilteredType(e.target.value)}
+            >
+              <option value="All">All</option>
+              <option value="T20">T20</option>
+              <option value="ODI">ODI</option>
+              <option value="Test">Test</option>
+            </select>
+
+            {filteredType === "Test" && uniqueTestTeams.length > 0 && (
+              <select
+                className="team-chart-type-select"
+                value={selectedTestTeam}
+                onChange={(e) => setSelectedTestTeam(e.target.value)}
+              >
+                {uniqueTestTeams.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
         </div>
-      ) : (
-        /* Show NRR line chart for ODI/T20/All */
-        filteredType !== "Test" && (
-          <div className="card p-4 shadow mt-4 bg-dark text-white">
-            <h5>Net Run Rate (NRR)</h5>
-            <Line
-              key={`line-${filteredType}-${teamNames.join("-")}`}
-              data={lineData}
-              options={chartOptions}
+
+        {/* Bar */}
+        <TiltCard>
+          <div className="tc-card-inner">
+            <h5 className="tc-card-title">Points Comparison</h5>
+            <Bar
+              key={`bar-${filteredType}-${labels.join("-")}`}
+              data={barData}
+              options={barOptions}
               plugins={[ChartDataLabels]}
             />
           </div>
-        )
-      )}
+        </TiltCard>
+
+        {/* Pie or Line */}
+        {filteredType === "Test" && pieData ? (
+          <TiltCard>
+            <div className="tc-card-inner">
+              <h5 className="tc-card-title">
+                Win / Loss / Draw &nbsp;
+                <span className="tc-muted">({selectedTeamData.team_name})</span>
+              </h5>
+              <Pie data={pieData} options={pieOptions} plugins={[ChartDataLabels]} />
+            </div>
+          </TiltCard>
+        ) : (
+          <TiltCard>
+            <div className="tc-card-inner">
+              <h5 className="tc-card-title">Net Run Rate (NRR)</h5>
+              <Line
+                key={`line-${filteredType}-${labels.join("-")}`}
+                data={lineData}
+                options={lineOptions}
+                plugins={[ChartDataLabels]}
+              />
+            </div>
+          </TiltCard>
+        )}
+      </div>
     </div>
   );
 };
