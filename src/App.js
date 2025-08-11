@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react"; // ✅ FIXED: Added useEffec
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import AppNavbar from "./components/Navbar";
 import MatchForm from "./components/MatchForm";
+import Leaderboard from "./components/Leaderboard";
 import LeaderboardFX from "./components/LeaderboardFX";
 import TestLeaderboard from "./components/TestLeaderboard"; 
 import MatchHistory from "./components/MatchHistory";
@@ -11,6 +12,7 @@ import TeamChart from "./components/TeamCharts";
 import MatchCards from "./components/MatchCards";
 import TeamsPage from "./components/TeamsPage";
 import TeamDetails from "./components/TeamDetails";
+import "./LeaderboardFX.css";
 import AboutCrickEdge from "./components/AboutCrickEdge";
 import ContactFeedback from "./components/ContactFeedback";
 import PageWrapper from "./components/PageWrapper";
