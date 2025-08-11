@@ -1,3 +1,7 @@
+/*****************************************************
+ * TestLeaderboard.css — desktop pretty, mobile stable
+ *****************************************************/
+
 /* shell + particles */
 .tlfx-shell{ position: relative; width: 100%; padding: 24px 10px; }
 #tlfx-particles{ position:absolute; inset:0; pointer-events:none; z-index:0; }
@@ -22,18 +26,18 @@
   text-shadow: 0 2px 12px rgba(0,255,170,.25);
 }
 
-/* table */
+/* ===== table ===== */
 .tlfx-table-wrap{ overflow-x:auto; padding: 0 6px; }
 .tlfx-table{
   width: 100%;
   border-collapse: separate;
   table-layout: fixed;
-  border-spacing: 0 8px;     /* row gaps like cards */
+  border-spacing: 0 8px;             /* row gaps like cards (desktop) */
   background: transparent !important;
   margin: 0;
 }
 
-/* header cells: force dark slab */
+/* header cells */
 .tlfx-table thead tr{ background: transparent !important; box-shadow:none !important; }
 .tlfx-table thead th{
   background: linear-gradient(180deg,#102437,#0d1f2f) !important;
@@ -42,16 +46,22 @@
   padding:12px 10px;
   border:1px solid rgba(255,255,255,.08) !important;
   border-bottom:0 !important;
+  white-space: nowrap;                 /* keep in one line */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .tlfx-table thead th:first-child{ border-top-left-radius:12px; border-bottom-left-radius:12px; }
 .tlfx-table thead th:last-child { border-top-right-radius:12px; border-bottom-right-radius:12px; }
 .tlfx-table thead th + th{ border-left-color: rgba(255,255,255,.06) !important; }
 
-/* body rows as floating cards */
+/* body rows as floating cards (desktop) */
 .tlfx-table tbody td{
   padding: 12px 10px;
   font-size: 15px; color: #eaf6ff;
   text-align: center; border: 0;
+  white-space: nowrap;                 /* never wrap */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .tlfx-row{
   background: linear-gradient(180deg, rgba(17,32,48,.65), rgba(10,23,35,.55));
@@ -62,18 +72,17 @@
 }
 .tlfx-row:hover{ transform: translateY(-2px); box-shadow: 0 18px 38px rgba(0,0,0,.42); }
 
-/* medal (CSS spin, no framer-motion) */
+/* medal (CSS spin) */
 .medal-3d{ display:inline-block; font-size:1.05rem; margin-right:6px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.35)); }
 .medal-3d.gold   { animation: spinY 2.2s linear infinite; }
 .medal-3d.silver { animation: spinY 2.4s linear infinite; }
 .medal-3d.bronze { animation: spinY 2.6s linear infinite; }
 @keyframes spinY { 0%{ transform: rotateY(0deg) } 100%{ transform: rotateY(360deg) } }
 
-/* text accents */
 .pos{ color:#c9ffef; }
 .neg{ color:#ffc2c2; }
 
-/* special points animation */
+/* ===== special points animation ===== */
 .tlfx-points{ position: relative; height: 34px; }
 .points-track{
   position:absolute; left:8px; right:8px; bottom:6px; height:6px;
@@ -82,11 +91,9 @@
 .points-bar{
   position:absolute; bottom:6px; height:6px; border-radius:999px; width:0;
   filter: drop-shadow(0 0 10px rgba(255,255,255,.16));
-  transition: width .35s ease;  /* fallback if JS disabled */
+  transition: width .35s ease;
 }
-.points-bar.pulse{
-  animation: pointsPulse 1.6s ease-in-out infinite alternate;   /* top3 subtle glow pulse */
-}
+.points-bar.pulse{ animation: pointsPulse 1.6s ease-in-out infinite alternate; }
 @keyframes pointsPulse{
   0%  { box-shadow: 0 0 10px rgba(0,255,170,.15); }
   100%{ box-shadow: 0 0 18px rgba(0,255,170,.35); }
@@ -104,12 +111,46 @@
 }
 @keyframes shimmer{ 0%{ background-position: 0 0; } 100%{ background-position: -200% 0; } }
 
-/* responsive */
-@media (max-width: 820px){
-  .tlfx-table thead th, .tlfx-table tbody td{ font-size:14px; padding:10px 8px; }
+/* ===== Mobile/touch stability (S23-safe) ===== */
+@media (max-width: 900px), (pointer: coarse){
+  /* Solid wrapper, no blur */
+  .tlfx-glass{
+    background:#0f1b28 !important;
+    border:1px solid rgba(255,255,255,.06) !important;
+    box-shadow:0 6px 16px rgba(0,0,0,.28) !important;
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+  }
+
+  /* Collapse row gaps; solid row bg; no per-row shadow/hover lift */
+  .tlfx-table{
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+    table-layout: fixed !important;
+  }
+  .tlfx-row{
+    background:#0f1e2d !important;
+    border:1px solid rgba(255,255,255,.06) !important;
+    box-shadow:none !important;
+    transform:none !important;
+  }
+
+  /* Bars: simple & stable on mobile */
+  .points-track{ background: rgba(255,255,255,.12) !important; }
+  .points-bar{ box-shadow:none !important; filter:none !important; animation:none !important; }
+
+  /* Hide particles on mobile */
+  #tlfx-particles{ display:none !important; }
+
+  /* Tighter spacing */
+  .tlfx-table thead th, .tlfx-table tbody td{
+    font-size:14px !important;
+    padding:10px 8px !important;
+  }
 }
+
+/* Compact columns under 640px */
 @media (max-width: 640px){
-  /* Compact: [Rank, Team, Matches, Points] */
   .tlfx-table thead th:nth-child(4),
   .tlfx-table thead th:nth-child(5),
   .tlfx-table thead th:nth-child(6),

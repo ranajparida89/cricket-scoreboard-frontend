@@ -1,3 +1,7 @@
+/*****************************************************
+ * Leaderboards.css — desktop pretty, mobile stable
+ *****************************************************/
+
 /* ===== Glassy wrapper (frosted card) ===== */
 .leaderboard-glass{
   background: radial-gradient(900px 380px at 8% -10%, rgba(0,255,170,.08), transparent 60%),
@@ -8,25 +12,22 @@
   box-shadow: 0 16px 40px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.06);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  transform-style: preserve-3d;
 }
 
-/* Wrapper helps header/body visually align */
-.leaderboard-table-wrapper{
-  padding: 0 6px; /* slight side padding so header width matches row cards */
-}
+/* Wrapper keeps header/body aligned */
+.leaderboard-table-wrapper{ padding: 0 6px; }
 
-/* Table base */
+/* ===== Table base ===== */
 .leaderboard-table{
   width: 100%;
-  border-collapse: separate; /* needed for row gaps */
-  table-layout: fixed;       /* keep column widths consistent */
-  border-spacing: 0 8px;     /* vertical gaps only */
+  border-collapse: separate;      /* row gaps on desktop */
+  table-layout: fixed;            /* stable widths */
+  border-spacing: 0 8px;          /* vertical gaps only */
   background: transparent;
   margin: 0;
 }
 
-/* Header: same "card" look as rows; kill Bootstrap borders */
+/* ===== Header ===== */
 .leaderboard-table thead tr{
   background: linear-gradient(180deg, #0f2234, #0c1b2a);
   box-shadow: 0 10px 24px rgba(0,0,0,.30);
@@ -34,24 +35,30 @@
 .leaderboard-table thead th{
   font-weight: 700;
   color: #dff2ff;
-  border: 0 !important;  /* remove thin white grid lines */
+  border: 0 !important;
   font-size: 14px;
   padding: 12px 10px;
   letter-spacing: .2px;
+  white-space: nowrap;            /* never wrap (prevents stepped rows) */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .leaderboard-table thead th:first-child{ border-top-left-radius: 12px; }
 .leaderboard-table thead th:last-child { border-top-right-radius: 12px; }
 
-/* Body cells */
+/* ===== Body cells ===== */
 .leaderboard-table tbody td{
   padding: 12px 10px;
   font-size: 15px;
   color: #eaf6ff;
   text-align: center;
-  border: 0; /* avoid header/body grid mismatch */
+  border: 0;
+  white-space: nowrap;            /* keep one line */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Each row as a floating card */
+/* ===== Rows as "cards" (desktop) ===== */
 .leaderboard-table tbody tr{
   background: linear-gradient(180deg, rgba(17,32,48,.65), rgba(10,23,35,.55));
   border: 1px solid rgba(255,255,255,.07);
@@ -66,18 +73,16 @@
 
 /* Emoji medals */
 .medal-emoji{ font-size: 1.15rem; margin-right: 4px; }
-
-/* Pos/Neg text */
 .pos{ color:#c9ffef; }
 .neg{ color:#ffc2c2; }
-
-.team-name{
-  font-weight: 800;
-  letter-spacing: .2px;
-}
+.team-name{ font-weight: 800; letter-spacing: .2px; text-align: left; }
 
 /* ===== NRR tiny bar ===== */
-.nrr-cell{ position: relative; overflow: hidden; height: 34px; }
+.nrr-cell{
+  position: relative;
+  overflow: visible;              /* was hidden → could clip/glitch */
+  height: 34px;
+}
 .nrr-track{
   position: absolute; left: 8px; right: 8px; bottom: 6px; height: 6px;
   border-radius: 999px; background: rgba(255,255,255,.09);
@@ -91,24 +96,58 @@
 .from-left  { left: 8px;  transform-origin: left center; }
 .from-right { right: 8px; transform-origin: right center; }
 
-/* ===== Row hover tint synced to NRR bucket ===== */
+/* Hover tint synced to buckets */
 .lb-row{ cursor: default; }
-
-/* Buckets (row hover tint) */
 .lb-row[data-bucket="green"]:hover  { background-color: rgba(22,226,138,.12); }
 .lb-row[data-bucket="yellow"]:hover { background-color: rgba(255,231,106,.12); }
-.lb-row[data-bucket="orange"]:hover { background-color: rgba(255,176, 58,.12); }
+.lb-row[data-bucket="orange"]:hover { background-color: rgba(255,176,58,.12); }
 .lb-row[data-bucket="purple"]:hover { background-color: rgba(165,124,255,.12); }
-.lb-row[data-bucket="red"]:hover    { background-color: rgba(255, 43,  43,.12); }
+.lb-row[data-bucket="red"]:hover    { background-color: rgba(255, 43, 43,.12); }
 
-/* (We still keep these in case you ever remove the inline gradient) */
+/* Bar colors */
 .lb-row[data-bucket="green"]  .nrr-bar{ background: linear-gradient(90deg,#14e29a,#00c986); }
 .lb-row[data-bucket="yellow"] .nrr-bar{ background: linear-gradient(90deg,#ffe76a,#ffb03a); }
 .lb-row[data-bucket="orange"] .nrr-bar{ background: linear-gradient(90deg,#ffb03a,#ff7a3d); }
 .lb-row[data-bucket="purple"] .nrr-bar{ background: linear-gradient(90deg,#a57cff,#6dd6ff); }
 .lb-row[data-bucket="red"]    .nrr-bar{ background: linear-gradient(90deg,#ff6b6b,#ff2b2b); }
 
-/* Responsive */
+/* ===== Mobile/touch stability (S23-safe) ===== */
+@media (max-width: 900px), (pointer: coarse){
+  /* Solid wrapper, no blur: avoids GPU tiling artifacts */
+  .leaderboard-glass{
+    background:#0f1b28 !important;
+    border:1px solid rgba(255,255,255,.06) !important;
+    box-shadow:0 6px 16px rgba(0,0,0,.28) !important;
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+  }
+
+  /* Collapse gaps, solid row bg, no per-row shadow */
+  .leaderboard-table{
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+    table-layout: fixed !important;
+  }
+  .leaderboard-table tbody tr{
+    background:#0f1e2d !important;
+    box-shadow:none !important;
+    border-bottom:1px solid rgba(255,255,255,.06) !important;
+    transform:none !important;           /* no hover lift on touch */
+  }
+
+  /* Bars: no extra glow/filters on mobile */
+  .nrr-track{ background: rgba(255,255,255,.12) !important; }
+  .nrr-bar{ box-shadow:none !important; filter:none !important; }
+
+  /* Tighter spacing */
+  .leaderboard-table thead th,
+  .leaderboard-table tbody td{
+    padding:10px 8px !important;
+    font-size:14px !important;
+  }
+}
+
+/* Responsive text scale */
 @media (max-width: 768px){
   .leaderboard-table thead th,
   .leaderboard-table tbody td{
