@@ -167,3 +167,41 @@
   .mhfx-table tbody td:nth-child(5),
   .mhfx-table tbody td:nth-child(7){ display:none; }
 }
+/* --- Dark theme for native <select> popup + options (overrides) --- */
+.mhfx-filters select{
+  background-color: rgba(14,32,48,.9) !important;
+  color: #eaf6ff !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  color-scheme: dark; /* hint browsers to use dark popup */
+}
+
+.mhfx-filters select:focus{
+  outline: none !important;
+  border-color: #14e29a !important;
+  box-shadow: 0 0 0 3px rgba(20,226,154,.25) !important;
+}
+
+/* Force dark popup items */
+.mhfx-filters select option,
+.mhfx-filters select optgroup{
+  background-color: #0d1f2f !important;
+  color: #eaf6ff !important;
+}
+
+.mhfx-filters select option:disabled{
+  color: #7f95aa !important;
+}
+
+/* If using Bootstrap's .form-select */
+.mhfx-filters .form-select{
+  background-color: rgba(14,32,48,.9) !important;
+  color: #eaf6ff !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+}
+.mhfx-filters .form-select option{
+  background-color: #0d1f2f !important;
+  color: #eaf6ff !important;
+}
