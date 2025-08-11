@@ -5,25 +5,37 @@
   flex-direction: column;
 }
 
-main {
-  flex: 1;
+main { flex: 1; }
+
+/* ====== Global mobile stability ====== */
+html, body, #root {
+  min-height: 100%;
+  overflow-x: hidden;                 /* prevents 1px horizontal scroll jitter */
+  overscroll-behavior-y: contain;     /* stops edge glow/bounce re-composition */
+  -webkit-font-smoothing: antialiased;
+  -webkit-overflow-scrolling: touch;
+}
+* { -webkit-tap-highlight-color: transparent; }  /* no tap grey flash */
+
+/* Promote heavy layers to their own GPU surfaces */
+.card, .bg-dark,
+.crickedge-footer,
+.navbar, header {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  contain: paint;
 }
 
 /* App Logo Animation */
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
+.App-logo { height: 40vmin; pointer-events: none; }
 @media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+  .App-logo { animation: App-logo-spin infinite 20s linear; }
 }
 
 /* Header & Theme Setup */
 .App-header {
-  background-color: #171922; /* Updated: deeper dark */
+  background-color: #171922; /* deeper dark */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -35,11 +47,10 @@ main {
 
 /* Theme Classes */
 .dark, body.dark, #root.dark {
-  background: #0a0a0a !important; /* Pure black! */
+  background: #0a0a0a !important; /* Pure black */
   color: #fff;
   transition: background 0.3s, color 0.3s;
 }
-
 .light, body.light, #root.light {
   background: #f8f9fa !important;
   color: #212529;
@@ -59,25 +70,17 @@ a, .App-link {
   transition: color 0.2s;
   text-decoration: none;
 }
-a:hover {
-  color: #ffb800;
-  text-decoration: underline;
-}
-.light a, .light .App-link {
-  color: #0d6efd;
-}
-.light a:hover {
-  color: #00b3ff;
-}
+a:hover { color: #ffb800; text-decoration: underline; }
+.light a, .light .App-link { color: #0d6efd; }
+.light a:hover { color: #00b3ff; }
 
 /* Selection highlight */
-::selection {
-  background: #ffd40080;
-}
+::selection { background: #ffd40080; }
 
-/* Footer */
+/* ====== Footer ====== */
+/* CHANGED: width 100vw -> 100% to avoid horizontal overflow flicker */
 .crickedge-footer {
-  width: 100vw;
+  width: 100%;
   background: #0a0a0a;
   display: flex;
   flex-direction: column;
@@ -87,14 +90,12 @@ a:hover {
   margin: 0 auto;
   box-shadow: 0 -2px 30px #0006;
 }
-
 .footer-logo-img {
   width: 120px;
   margin-bottom: 6px;
   filter: drop-shadow(0 0 20px #ffd70066);
   border-radius: 12px;
 }
-
 .footer-copy {
   font-size: 1em;
   color: #FFD700;
@@ -102,11 +103,7 @@ a:hover {
   letter-spacing: 1.2px;
   margin-bottom: 0;
 }
-
-.crickedge-name {
-  font-weight: bold;
-  color: #ffe066;
-}
+.crickedge-name { font-weight: bold; color: #ffe066; }
 
 @media (max-width: 600px) {
   .footer-logo-img { width: 85px; }
@@ -114,14 +111,25 @@ a:hover {
   .crickedge-footer { padding: 10px 0 0 0; }
 }
 
-/* Subtle Glassmorphism for Cards (optional, remove if not wanted) */
+/* ====== Glass blur (scoped & mobile-safe) ====== */
+/* You had backdrop-filter on .card/.bg-dark (global). Keep it, but disable on mobile. */
 .card, .bg-dark {
   backdrop-filter: blur(2.5px);
+  -webkit-backdrop-filter: blur(2.5px);
   background: rgba(30,33,50,0.93) !important;
+}
+
+/* On mobile, disable backdrop-filter to prevent GPU tearing/flicker */
+@media (max-width: 768px) {
+  .card, .bg-dark {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(30,33,50,0.96) !important; /* slightly more opaque */
+  }
 }
 
 /* App logo animation */
 @keyframes App-logo-spin {
-  from { transform: rotate(0deg);}
-  to { transform: rotate(360deg);}
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
