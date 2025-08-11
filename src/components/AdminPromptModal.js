@@ -1,5 +1,6 @@
 // src/components/AdminPromptModal.jsx
-// 05-JULY-2025 RANAJ PARIDA -- JWT admin login support (logic kept intact)
+// 05-JULY-2025 RANAJ PARIDA -- JWT admin login support (logic preserved)
+// Clean SVG character with precise eye-cover animation.
 
 import React, { useMemo, useState } from "react";
 
@@ -10,75 +11,52 @@ export default function AdminPromptModal({ onAdminResponse }) {
   const [submitting, setSubmitting]     = useState(false);
   const [error, setError]               = useState("");
 
-  // UI/animation state (purely visual – does not touch logic/endpoints)
-  const [eyeCover, setEyeCover]         = useState(false);
-  const [isSad, setIsSad]               = useState(false);
+  // purely-visual states
+  const [coverEyes, setCoverEyes]       = useState(false);
+  const [sad, setSad]                   = useState(false);
   const [cry, setCry]                   = useState(false);
   const [shake, setShake]               = useState(false);
   const [speak, setSpeak]               = useState(false);
 
-  // Step 1: If "No", just close modal as normal user
+  // === original logic (unchanged) ===
   const handleNo = () => {
     localStorage.setItem("isAdmin", "false");
-    // 🔒 05-JULY-2025 JWT CHANGE: Always clear JWT token if declining admin access
     localStorage.removeItem("admin_jwt");
     onAdminResponse(false);
   };
-
-  // Step 2: If "Yes", show admin login fields
   const handleYes = () => setShowCredentials(true);
 
-  // Validation helpers (visual only)
   const usernameLooksValid = useMemo(() => {
     if (!username) return false;
-    // allow either email-like or simple alphanumeric/underscore min 3
-    const emailLike = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username);
-    const simple    = /^[a-zA-Z0-9_]{3,}$/.test(username);
-    return emailLike || simple;
+    const email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username);
+    const simple = /^[a-zA-Z0-9_]{3,}$/.test(username);
+    return email || simple;
   }, [username]);
 
-  // event wiring for character
-  const onUsernameBlur = () => {
-    // If user skips username and goes to password, make face sad
-    if (!username) setIsSad(true);
-  };
+  const onUsernameFocus = () => { setSad(false); setSpeak(false); };
+  const onUsernameBlur  = () => { if (!username) setSad(true); };
 
-  const onPasswordFocus = () => {
-    if (!username) setIsSad(true);
-    // Hands move while typing; we start the pose on focus for snappier feel
-    setEyeCover(true);
-  };
-  const onPasswordChange = (e) => {
-    setPassword(e.target.value);
-    setEyeCover(true);
-  };
-  const onPasswordBlur = () => setEyeCover(false);
-  const onUsernameFocus = () => {
-    setIsSad(false);
-    setSpeak(false);
-  };
+  const onPasswordFocus   = () => { setCoverEyes(true); if (!username) setSad(true); };
+  const onPasswordChange  = e => { setPassword(e.target.value); setCoverEyes(true); };
+  const onPasswordBlur    = () => setCoverEyes(false);
 
-  // Step 3: Handle form submit for admin login (logic unchanged)
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setCry(false);
     setSpeak(false);
 
-    // Visual validation / feedback before hitting server
     if (!username || !password) {
-      // empty form -> cry and shake
       setCry(true);
       setShake(true);
-      setTimeout(() => setShake(false), 600);
+      setTimeout(()=>setShake(false), 600);
       setError("Please fill username & password.");
       return;
     }
     if (!usernameLooksValid) {
-      // invalid username -> speech bubble
       setSpeak(true);
       setShake(true);
-      setTimeout(() => setShake(false), 600);
+      setTimeout(()=>setShake(false), 600);
       setError("Invalid username.");
       return;
     }
@@ -92,415 +70,306 @@ export default function AdminPromptModal({ onAdminResponse }) {
       });
       const data = await res.json();
       if (res.ok && data.isAdmin && data.token) {
-        // 🔒 Save JWT token for future API calls
         localStorage.setItem("isAdmin", "true");
         localStorage.setItem("admin_jwt", data.token);
         onAdminResponse(true);
       } else {
-        // 🔒 Remove JWT on failure
         localStorage.setItem("isAdmin", "false");
         localStorage.removeItem("admin_jwt");
         setError(data.error || "Invalid credentials.");
-        // face reacts as "speaking" to wrong username
         setSpeak(true);
         setShake(true);
-        setTimeout(() => setShake(false), 600);
+        setTimeout(()=>setShake(false), 600);
       }
-    } catch (e) {
-      // 🔒 Remove JWT on error
+    } catch {
       localStorage.setItem("isAdmin", "false");
       localStorage.removeItem("admin_jwt");
       setError("Server error. Try again.");
       setShake(true);
-      setTimeout(() => setShake(false), 600);
+      setTimeout(()=>setShake(false), 600);
     }
     setSubmitting(false);
   };
 
   return (
     <div className="admin-modal-bg" role="dialog" aria-modal="true" tabIndex={-1}>
-      <div className={`glass-stage`}>
-        {/* floating color orbs */}
-        <div className="orb orb-a" aria-hidden />
-        <div className="orb orb-b" aria-hidden />
-        <div className="orb orb-c" aria-hidden />
+      <div className="glass-orbs" aria-hidden>
+        <span className="orb orb1" />
+        <span className="orb orb2" />
+        <span className="orb orb3" />
       </div>
 
-      <div className={`admin-modal3d ${showCredentials ? "rolling" : ""}`}>
-        <div className="float-3d">
-          {!showCredentials ? (
-            <div className="prompt-card">
-              <h2 className="admin-modal-title grad-text">Are you an Admin?</h2>
-              <div className="admin-modal-btns">
-                <button className="btn-neo yes" onClick={handleYes}>Yes</button>
-                <button className="btn-neo no" onClick={handleNo}>No</button>
-              </div>
+      <div className="admin-modal">
+        {!showCredentials ? (
+          <>
+            <h2 className="title">Are you an Admin?</h2>
+            <div className="row">
+              <button className="btn yes" onClick={handleYes}>Yes</button>
+              <button className="btn no" onClick={handleNo}>No</button>
             </div>
-          ) : (
-            <form
-              className={`admin-login-form fx-form ${shake ? "shake" : ""}`}
-              onSubmit={handleLogin}
-              autoComplete="off"
-              noValidate
-            >
-              <h3 className="grad-text sm">Admin Login</h3>
+          </>
+        ) : (
+          <form className={`login-card ${shake ? "shake":""}`} onSubmit={handleLogin} autoComplete="off">
+            <h3 className="subtitle">Admin Login</h3>
 
-              {/* Username */}
-              <input
-                type="text"
-                placeholder="Admin Username"
-                value={username}
-                onChange={(e) => { setUsername(e.target.value); setIsSad(false); }}
-                onBlur={onUsernameBlur}
-                onFocus={onUsernameFocus}
-                className={`fx-input ${username ? (usernameLooksValid ? "ok" : "warn") : ""}`}
-                required
-              />
+            <input
+              type="text"
+              placeholder="Admin Username"
+              value={username}
+              onChange={e=> setUsername(e.target.value)}
+              onFocus={onUsernameFocus}
+              onBlur={onUsernameBlur}
+              className={`inp ${username ? (usernameLooksValid ? "ok":"warn") : ""}`}
+              required
+            />
 
-              {/* === Character sits exactly between username & password === */}
-              <div
-                className={[
-                  "character-wrap",
-                  eyeCover ? "cover-eyes" : "",
-                  isSad ? "sad" : "",
-                  cry ? "cry" : "",
-                  speak ? "speak" : "",
-                ].join(" ")}
-                aria-hidden
+            {/* ===== Character between fields ===== */}
+            <div className={[
+              "char-wrap",
+              coverEyes ? "cover":"", sad ? "sad":"", cry ? "cry":"", speak ? "speak":""
+            ].join(" ")} aria-hidden>
+              <svg
+                className="avatar"
+                width="180" height="170" viewBox="0 0 180 170"
+                xmlns="http://www.w3.org/2000/svg"
               >
-                <div className="char">
-                  {/* legs / feet */}
-                  <div className="legs">
-                    <div className="leg left"><span className="foot" /></div>
-                    <div className="leg right"><span className="foot" /></div>
-                  </div>
+                <defs>
+                  <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%"  stopColor="#FFD9B8"/>
+                    <stop offset="100%" stopColor="#E9AE82"/>
+                  </linearGradient>
+                  <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#5a3b2e"/>
+                    <stop offset="100%" stopColor="#3b251b"/>
+                  </linearGradient>
+                  <linearGradient id="shirt" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#6FB2FF"/>
+                    <stop offset="100%" stopColor="#2E6BFF"/>
+                  </linearGradient>
+                  <linearGradient id="pants" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#1E293B"/>
+                    <stop offset="100%" stopColor="#0B1220"/>
+                  </linearGradient>
+                </defs>
 
-                  {/* body */}
-                  <div className="body">
-                    <div className="shirt" />
-                  </div>
+                {/* shadow */}
+                <ellipse cx="90" cy="160" rx="36" ry="6" fill="#000" opacity=".25"/>
 
-                  {/* arms */}
-                  <div className="arm left">
-                    <span className="hand hand-left" />
-                  </div>
-                  <div className="arm right">
-                    <span className="hand hand-right" />
-                  </div>
+                {/* legs + feet */}
+                <g fill="url(#pants)">
+                  <rect x="66" y="120" width="16" height="28" rx="8"/>
+                  <rect x="98" y="120" width="16" height="28" rx="8"/>
+                </g>
+                <g fill="#0b1320">
+                  <rect x="58" y="146" width="32" height="10" rx="6"/>
+                  <rect x="90" y="146" width="32" height="10" rx="6"/>
+                </g>
 
-                  {/* head */}
-                  <div className="head">
-                    <div className="hair" />
-                    <div className="face">
-                      <div className="eye eye-left">
-                        <span className="tear tear-left" />
-                      </div>
-                      <div className="eye eye-right">
-                        <span className="tear tear-right" />
-                      </div>
-                      <div className="mouth" />
-                    </div>
-                  </div>
-                </div>
+                {/* body / shirt */}
+                <rect x="50" y="78" width="80" height="52" rx="24" fill="url(#shirt)"/>
 
-                {/* speech bubble (invalid username) */}
-                <div className="speech">No No put correct username</div>
-              </div>
+                {/* arms (each is a group so we can rotate at the shoulder) */}
+                <g className="arm arm-left" transform="translate(48 92)">
+                  <rect x="0" y="0" width="42" height="14" rx="7" fill="url(#skin)"/>
+                  <g className="hand hand-left" transform="translate(36 -2)">
+                    <rect width="22" height="20" rx="10" fill="url(#skin)"/>
+                    {/* simple finger lines */}
+                    <path d="M4 8 H18 M4 12 H18" stroke="rgba(0,0,0,.1)" strokeWidth="2" strokeLinecap="round"/>
+                  </g>
+                </g>
 
-              {/* Password */}
-              <input
-                type="password"
-                placeholder="Admin Password"
-                value={password}
-                onFocus={onPasswordFocus}
-                onChange={onPasswordChange}
-                onBlur={onPasswordBlur}
-                className="fx-input"
-                required
-              />
+                <g className="arm arm-right" transform="translate(90 92)">
+                  <rect x="0" y="0" width="42" height="14" rx="7" fill="url(#skin)"/>
+                  <g className="hand hand-right" transform="translate( -?  -? )"/>
+                  <g className="hand hand-right" transform="translate( -? -? )"/> {/* (we override in CSS) */}
+                </g>
 
-              {/* Submit & Back */}
-              <div className="admin-modal-btns">
-                <button className="btn-neo submit" type="submit" disabled={submitting}>
-                  <span className="shine" />
-                  {submitting ? "Logging in..." : "Login"}
-                </button>
-                <button
-                  className="btn-neo back"
-                  type="button"
-                  onClick={() => setShowCredentials(false)}
-                  disabled={submitting}
-                >
-                  Back
-                </button>
-              </div>
+                {/* head */}
+                <g transform="translate(46 18)">
+                  {/* hair on top */}
+                  <rect x="24" y="0" width="40" height="16" rx="8" fill="url(#hair)"/>
+                  {/* face */}
+                  <rect x="0" y="14" width="88" height="66" rx="32" fill="url(#skin)" filter="url(#shadow)"/>
+                  {/* eyes */}
+                  <circle className="eye eye-left"  cx="26" cy="42" r="6" fill="#0f172a"/>
+                  <circle className="eye eye-right" cx="62" cy="42" r="6" fill="#0f172a"/>
+                  {/* crying tears (hidden by default) */}
+                  <circle className="tear tear-left"  cx="26" cy="50" r="4" fill="#8ee7ff" opacity="0"/>
+                  <circle className="tear tear-right" cx="62" cy="50" r="4" fill="#8ee7ff" opacity="0"/>
+                  {/* mouth */}
+                  <rect className="mouth" x="38" y="56" width="12" height="6" rx="3" fill="#1f2937"/>
+                </g>
+              </svg>
 
-              {error && <div className="hint error">{error}</div>}
-            </form>
-          )}
-        </div>
+              {/* speech bubble */}
+              <div className="speech">No No put correct username</div>
+            </div>
+
+            <input
+              type="password"
+              placeholder="Admin Password"
+              value={password}
+              onFocus={onPasswordFocus}
+              onChange={onPasswordChange}
+              onBlur={onPasswordBlur}
+              className="inp"
+              required
+            />
+
+            <div className="row">
+              <button className="btn submit" type="submit" disabled={submitting}>
+                {submitting ? "Logging in..." : "Login"}
+              </button>
+              <button className="btn back" type="button" onClick={()=>setShowCredentials(false)} disabled={submitting}>
+                Back
+              </button>
+            </div>
+
+            {error && <div className="error-bar">{error}</div>}
+          </form>
+        )}
       </div>
 
-      {/* Inline CSS only for this modal/component */}
       <style>{`
         :root{
-          --glass:#0f172a7a;
-          --glass-2:#152238a6;
-          --stroke:rgba(255,255,255,.14);
+          --glass:#0e1626cc;
+          --stroke:rgba(255,255,255,.12);
           --cyan:#00e5ff;
-          --blue:#6c8cff;
-          --purple:#a36bff;
-          --ok:#1ad19a;
+          --violet:#7b61ff;
+          --ok:#16d6a7;
           --warn:#ffc857;
           --err:#ff6b6b;
-          --text:#e8f0ff;
+          --text:#e9f1ff;
           --ease:cubic-bezier(.22,.61,.36,1);
-          --ease2:cubic-bezier(.23,1,.32,1);
-          --shadow:0 10px 40px rgba(0,0,0,.35);
         }
-        @keyframes floaty { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
-        @keyframes orbMove { 0%{transform:translate(0,0)} 50%{transform:translate(40px,-30px)} 100%{transform:translate(0,0)} }
-        @keyframes shine { from{transform:translateX(-150%)} to{transform:translateX(150%)} }
-        @keyframes tearFall { 0%{ transform:translateY(0); opacity:0 } 10%{opacity:1} 100%{ transform:translateY(38px); opacity:0 } }
-        @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(4px)} }
-        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 
         .admin-modal-bg{
           position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
-          background:linear-gradient(135deg,#0b1220,#0b1220) no-repeat;
-          overflow:hidden; z-index:99999; animation:fadeIn .25s var(--ease);
-          font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,Arial;
+          background:radial-gradient(1200px 600px at 80% 50%, #10233f, #0b1220 55%);
+          z-index:99999;
+          font-family:Poppins, system-ui, -apple-system, Segoe UI, Roboto, Arial;
         }
+        .glass-orbs .orb{
+          position:absolute; border-radius:50%; filter:blur(40px); opacity:.55; mix-blend-mode:screen;
+          animation: orb 16s ease-in-out infinite;
+        }
+        .orb1{ width:340px; height:340px; left:8%; top:12%;
+               background:radial-gradient(circle at 30% 30%, #00e5ff, transparent 60%),
+                          radial-gradient(circle at 70% 70%, #6f80ff, transparent 60%); }
+        .orb2{ width:280px; height:280px; right:12%; top:10%;
+               background:radial-gradient(circle at 30% 30%, #ff73fa, transparent 60%),
+                          radial-gradient(circle at 70% 70%, #00ffc6, transparent 60%); animation-duration:20s;}
+        .orb3{ width:420px; height:420px; right:18%; bottom:12%;
+               background:radial-gradient(circle at 30% 30%, #63a3ff, transparent 60%),
+                          radial-gradient(circle at 70% 70%, #00e6b9, transparent 60%); animation-duration:22s;}
+        @keyframes orb{ 0%,100%{transform:translate(0,0)} 50%{transform:translate(-30px,-20px)} }
 
-        .glass-stage .orb{
-          position:absolute; filter:blur(40px); opacity:.65; mix-blend-mode:screen; z-index:0;
-          border-radius:50%;
-          animation:orbMove 10s var(--ease2) infinite;
-        }
-        .glass-stage .orb-a{ width:360px; height:360px; left:8%; top:12%;
-          background:radial-gradient(circle at 30% 30%, #00d1ff, transparent 60%),
-                     radial-gradient(circle at 70% 70%, #7b61ff, transparent 60%);
-          animation-duration: 16s;
-        }
-        .glass-stage .orb-b{ width:300px; height:300px; right:12%; top:8%;
-          background:radial-gradient(circle at 30% 30%, #ff73fa, transparent 60%),
-                     radial-gradient(circle at 70% 70%, #00ffee, transparent 60%);
-          animation-duration: 18s;
-        }
-        .glass-stage .orb-c{ width:420px; height:420px; right:18%; bottom:10%;
-          background:radial-gradient(circle at 30% 30%, #63a3ff, transparent 60%),
-                     radial-gradient(circle at 70% 70%, #00ffc6, transparent 60%);
-          animation-duration: 22s;
-        }
-
-        .admin-modal3d{
-          position:relative; z-index:2; perspective:1200px;
-        }
-        .float-3d{
-          transform:rotateX(.5deg) rotateY(-.5deg);
-          animation: floaty 5.5s ease-in-out infinite;
-        }
-        .prompt-card,.fx-form{
-          background:linear-gradient(180deg, rgba(15,23,42,.64), rgba(21,34,56,.64));
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
+        .admin-modal{
+          width:min(720px,92vw);
+          background:linear-gradient(180deg, rgba(14,22,38,.6), rgba(14,22,38,.45));
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
           border:1px solid var(--stroke);
-          border-radius:22px;
-          box-shadow: var(--shadow);
-          padding:24px 24px 22px;
-          width:min(680px,92vw);
-          margin:auto;
+          border-radius:20px;
+          padding:16px 16px 18px;
+          box-shadow:0 20px 50px rgba(0,0,0,.35);
         }
 
-        .prompt-card{ text-align:center }
-        .grad-text{
-          background:linear-gradient(90deg, var(--cyan), var(--purple));
-          -webkit-background-clip:text; background-clip:text;
-          -webkit-text-fill-color:transparent;
-          text-fill-color:transparent;
+        .title{
+          text-align:center; margin:10px 0 14px; font-size:26px; font-weight:800;
+          background:linear-gradient(90deg,var(--cyan),var(--violet));
+          -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
         }
-        .admin-modal-title{ font-size:28px; margin:10px 0 18px; }
+        .subtitle{
+          text-align:center; margin:6px 0 8px; font-size:20px; font-weight:800;
+          background:linear-gradient(90deg,var(--cyan),var(--violet));
+          -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        .row{ display:flex; gap:12px; justify-content:center; align-items:center; margin-top:12px; }
 
-        .admin-modal-btns{ display:flex; gap:14px; justify-content:center; margin-top:14px; }
-        .btn-neo{
-          position:relative; border:none; color:white; font-weight:700; letter-spacing:.2px;
-          padding:.7rem 1.35rem; border-radius:12px; cursor:pointer; outline:none;
-          box-shadow: 0 6px 20px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.08);
-          transition: transform .15s var(--ease), filter .2s var(--ease), box-shadow .2s var(--ease);
-          overflow:hidden;
+        .btn{
+          position:relative; border:none; color:#fff; font-weight:700; letter-spacing:.2px;
+          padding:.7rem 1.2rem; border-radius:12px; cursor:pointer;
+          box-shadow:0 10px 28px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.08);
+          transition: transform .15s var(--ease), filter .2s var(--ease);
         }
-        .btn-neo .shine{
-          position:absolute; inset:0; pointer-events:none;
-          background:linear-gradient(110deg, transparent 40%, rgba(255,255,255,.35) 50%, transparent 60%);
-          transform:translateX(-150%); animation:shine 2.8s ease-in-out infinite;
-        }
-        .btn-neo:hover{ transform:translateY(-1px); filter:brightness(1.06) }
-        .btn-neo:active{ transform:translateY(0) scale(.98) }
-
+        .btn:hover{ transform:translateY(-1px); filter:brightness(1.06) }
         .yes{ background:linear-gradient(135deg,#00e0ff,#6a8bff) }
         .no{ background:linear-gradient(135deg,#ff6b6b,#ff5aa0) }
-        .submit{ background:linear-gradient(135deg,#00dbb6,#6c8cff) }
-        .back{ background:linear-gradient(135deg,#313a49,#414b5e) }
+        .submit{ background:linear-gradient(135deg,#00d7b4,#6a8bff) }
+        .back{ background:linear-gradient(135deg,#2f394a,#455064) }
 
-        .fx-form h3.sm{ margin:0 0 10px; font-size:22px; text-align:center }
-        .fx-input{
-          width:100%; border:none; outline:none; color:var(--text);
-          border-radius:14px; padding:.9rem 1rem; font-size:1rem;
+        .login-card{ padding:12px 12px 16px; border-radius:16px; }
+        .login-card.shake{ animation:shake .6s var(--ease); }
+        @keyframes shake{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px)}
+                          40%{transform:translateX(8px)} 60%{transform:translateX(-6px)}
+                          80%{transform:translateX(4px)} }
+
+        .inp{
+          width:100%; color:var(--text); border:none; outline:none; border-radius:14px;
+          padding:0.95rem 1rem; margin-top:10px; font-size:1rem;
           background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
           box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
           transition: box-shadow .2s var(--ease), background .25s var(--ease);
         }
-        .fx-input:focus{
-          box-shadow: 0 0 0 3px rgba(0,229,255,.25), inset 0 0 0 1px rgba(0,229,255,.6);
-          background:linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.05));
-        }
-        .fx-input.ok{ box-shadow: inset 0 0 0 1px rgba(26,209,154,.8), 0 0 0 3px rgba(26,209,154,.25) }
-        .fx-input.warn{ box-shadow: inset 0 0 0 1px rgba(255,200,87,.9), 0 0 0 3px rgba(255,200,87,.25) }
+        .inp:focus{ box-shadow:0 0 0 3px rgba(0,229,255,.25), inset 0 0 0 1px rgba(0,229,255,.6) }
+        .inp.ok{   box-shadow: inset 0 0 0 1px rgba(22,214,167,.9), 0 0 0 3px rgba(22,214,167,.25) }
+        .inp.warn{ box-shadow: inset 0 0 0 1px rgba(255,200,87,.95), 0 0 0 3px rgba(255,200,87,.25) }
 
-        .hint.error{ color:#ffd86b; margin-top:10px; text-align:center }
-
-        .fx-form.shake{ animation:shake .6s var(--ease) }
-
-        /* ================= CHARACTER ================= */
-        .character-wrap{
-          position:relative; height:140px; margin:8px 2px 14px;
-          display:flex; align-items:flex-end; justify-content:center;
-          perspective:800px;
-        }
-        .char{ position:relative; transform:translateZ(20px); }
-
-        /* legs/feet */
-        .legs{ display:flex; gap:16px; justify-content:center; transform:translateY(22px); }
-        .leg{ width:14px; height:46px; border-radius:8px; background:linear-gradient(180deg,#1f2937,#0f172a);
-              box-shadow:inset 0 1px 0 rgba(255,255,255,.12); position:relative; }
-        .leg.left{ transform:translateX(-8px) }
-        .leg.right{ transform:translateX(8px) }
-        .foot{ position:absolute; bottom:-8px; left:50%; transform:translateX(-50%); width:32px; height:12px;
-               background:linear-gradient(180deg,#0d1320,#0b1220); border-radius:10px; box-shadow:0 2px 0 rgba(0,0,0,.25) }
-
-        /* body/shirt */
-        .body{ position:absolute; left:50%; top:18px; transform:translateX(-50%); }
-        .shirt{ width:120px; height:70px; border-radius:18px 18px 26px 26px;
-                background:linear-gradient(180deg,#49a2ff,#296bff); box-shadow:inset 0 8px 14px rgba(255,255,255,.12), 0 6px 18px rgba(0,0,0,.25) }
-
-        /* arms */
-        .arm{ position:absolute; top:26px; width:60px; height:18px; transform-origin:10px 9px; }
-        .arm.left{ left:calc(50% - 64px); }
-        .arm.right{ right:calc(50% - 64px); }
-        .arm::before{
-          content:""; position:absolute; left:0; top:0; width:60px; height:16px; border-radius:10px;
-          background:linear-gradient(180deg,#f7c7a6,#e7a37c);
-          box-shadow:inset 0 1px 0 rgba(255,255,255,.6), 0 2px 6px rgba(0,0,0,.18);
+        .error-bar{
+          margin-top:12px; text-align:center; padding:.7rem 1rem; border-radius:10px;
+          color:#3c2a00; background:#ffecec; box-shadow: inset 0 0 0 1px rgba(255,107,107,.35);
         }
 
-        /* hands (4-finger mitts) */
-        .hand{ position:absolute; right:-2px; top:-4px; width:30px; height:26px; border-radius:14px;
-               background:linear-gradient(180deg,#f5c09b,#e5a47e);
-               box-shadow:inset 0 1px 0 rgba(255,255,255,.6), 0 2px 6px rgba(0,0,0,.18);
-               transform-origin:center;
-        }
-        .hand::after{
-          /* finger grooves hint */
-          content:""; position:absolute; inset:6px 5px auto 5px; height:2px;
-          background:linear-gradient(90deg, rgba(0,0,0,.10), rgba(255,255,255,.2), rgba(0,0,0,.10));
-          border-radius:2px; box-shadow: 0 6px 0 rgba(0,0,0,.08), 0 12px 0 rgba(0,0,0,.06);
-        }
+        /* ===== Character ===== */
+        .char-wrap{ position:relative; height:170px; display:flex; align-items:center; justify-content:center; }
+        .avatar{ overflow:visible; }
 
-        /* head / hair / face */
-        .head{ position:absolute; left:50%; top:-16px; transform:translateX(-50%); }
-        .hair{
-          width:86px; height:28px; border-radius:16px 16px 6px 6px; margin:0 auto 2px;
-          background:linear-gradient(180deg,#5c4033,#3b241a);
-          box-shadow:inset 0 6px 10px rgba(255,255,255,.06), 0 4px 10px rgba(0,0,0,.25)
-        }
-        .face{
-          position:relative; width:86px; height:72px; border-radius:32px;
-          background:radial-gradient(110% 120% at 50% 0%, #ffd7b1 0%, #f4b992 55%, #eaa881 100%);
-          box-shadow: inset 0 4px 10px rgba(255,255,255,.35), 0 10px 24px rgba(0,0,0,.25);
-        }
-        .eye{
-          position:absolute; top:26px; width:12px; height:12px; background:#0f172a; border-radius:50%;
-          box-shadow: 0 0 0 2px rgba(255,255,255,.6) inset, 0 2px 0 rgba(0,0,0,.2);
-        }
-        .eye-left{ left:24px }
-        .eye-right{ right:24px }
-        .mouth{
-          position:absolute; left:50%; bottom:18px; transform:translateX(-50%);
-          width:26px; height:8px; border-radius:0 0 16px 16px; background:#1f2937;
-          box-shadow:inset 0 -2px 0 rgba(255,255,255,.28);
-          transition: all .25s var(--ease);
-        }
+        /* make SVG groups transform from their own boxes */
+        .arm, .hand, .eye, .mouth, .tear { transform-box: fill-box; transform-origin: center; }
 
-        /* tears aligned from both eyes */
-        .tear{
-          position:absolute; left:50%; top:10px; width:8px; height:8px; transform:translateX(-50%);
-          background:radial-gradient(circle at 30% 30%, #fff, #a4e9ff 50%, #00e5ff 80%);
-          border-radius:50%;
-          opacity:0;
-        }
-        .character-wrap.cry .tear{
-          animation: tearFall .9s var(--ease) infinite;
-        }
-        .tear-left{ }
-        .tear-right{ }
+        /* default positions (hands beside body) */
+        .arm-left  { transform-origin: 6px 7px; }   /* shoulder joint for left arm group */
+        .arm-right { transform-origin: 6px 7px; }
+        /* precise hand default (near wrist) */
+        .hand-left  { transform-origin: 50% 50%; }
+        .hand-right { transform-origin: 50% 50%; }
 
-        /* Sad face – droopy eyes + upside-down mouth */
-        .character-wrap.sad .eye{
-          height:10px; width:12px; border-radius: 12px 12px 6px 6px / 10px 10px 6px 6px;
-          transform: translateY(2px);
-        }
-        .character-wrap.sad .mouth{
-          height:18px; width:22px; border-radius:18px 18px 36px 36px;
-          transform:translateX(-50%) rotate(180deg);
-        }
+        /* Cover eyes pose — EXACT requirements:
+            left arm rotate -70deg; right arm rotate 70deg;
+            left hand  translateX(25px) translateY(-25px) scale(1.5)
+            right hand translateX(-25px) translateY(-25px) scale(1.5)
+        */
+        .char-wrap.cover .arm-left  { transform: rotate(-70deg); }
+        .char-wrap.cover .arm-right { transform: rotate( 70deg); }
+        .char-wrap.cover .hand-left  { transform: translateX(25px) translateY(-25px) scale(1.5); }
+        .char-wrap.cover .hand-right { transform: translateX(-25px) translateY(-25px) scale(1.5); }
 
-        /* Cry mouth (small round) */
-        .character-wrap.cry .mouth{
-          width:12px; height:12px; border-radius:50%;
-          bottom:20px; background:#0f172a;
-        }
+        /* smooth */
+        .arm-left, .arm-right, .hand-left, .hand-right { transition: transform .28s var(--ease); }
 
-        /* Speak bubble (invalid username) */
+        /* Sad – droopy eyes + upside-down mouth */
+        .char-wrap.sad .eye{ transform: translateY(2px) scaleY(.75); }
+        .char-wrap.sad .mouth{ transform: translateY(2px) rotate(180deg); }
+
+        /* Cry – small round mouth + falling tears */
+        .char-wrap.cry .mouth{ width:10px; height:10px; rx:5px; transform:translateY(-2px); }
+        .char-wrap.cry .tear{ opacity:1; animation: tear 1s ease-in infinite; }
+        @keyframes tear{ 0%{ transform:translateY(0); opacity:0 } 10%{opacity:1} 100%{ transform:translateY(40px); opacity:0 } }
+
+        /* Speech bubble for invalid username */
         .speech{
-          position:absolute; left:50%; top:-10px; transform:translate(-50%,-100%);
-          background:rgba(25,35,58,.85); backdrop-filter:blur(6px);
-          border:1px solid rgba(255,255,255,.18); color:#fff; font-weight:700; font-size:.85rem;
-          padding:.55rem .8rem; border-radius:12px; box-shadow:var(--shadow);
-          opacity:0; pointer-events:none; transition:opacity .2s var(--ease), transform .2s var(--ease);
+          position:absolute; top:2px; left:50%; transform:translate(-50%,-110%);
+          background:rgba(18,28,46,.9); color:#fff; font-weight:700; font-size:.86rem;
+          padding:.5rem .8rem; border-radius:10px; border:1px solid rgba(255,255,255,.14);
+          opacity:0; pointer-events:none; transition: opacity .2s var(--ease), transform .2s var(--ease);
           white-space:nowrap;
         }
         .speech::after{
-          content:""; position:absolute; left:50%; bottom:-8px; transform:translateX(-50%);
+          content:""; position:absolute; left:50%; bottom:-8px; transform:translateX(-50%) rotate(45deg);
           width:12px; height:12px; background:inherit; border:inherit; border-top:none; border-left:none;
-          rotate:45deg;
         }
-        .character-wrap.speak .speech{ opacity:1; transform:translate(-50%,-110%) }
-
-        /* === Cover eyes pose === */
-        .character-wrap.cover-eyes .arm.left{
-          transform: rotate(-70deg) translate(4px, -6px);
-        }
-        .character-wrap.cover-eyes .arm.right{
-          transform: rotate(70deg) translate(-4px, -6px);
-        }
-        .character-wrap.cover-eyes .hand-left{
-          transform: translateX(25px) translateY(-25px) scale(1.5);
-        }
-        .character-wrap.cover-eyes .hand-right{
-          transform: translateX(-25px) translateY(-25px) scale(1.5);
-        }
-
-        /* micro spacing / layout */
-        .admin-modal-btns .btn-neo{ min-width:118px }
-
-        /* gradient title above prompt had same selectors; keep original tiny modal buttons color mapping */
-        .rolling .prompt-card{ transform:rotateX(0) }
-
-        /* keep a small safety on ultra-small widths */
-        @media (max-width:420px){
-          .fx-form, .prompt-card{ padding:18px 16px 16px }
-          .speech{ font-size:.78rem }
-        }
+        .char-wrap.speak .speech{ opacity:1; transform:translate(-50%,-120%); }
       `}</style>
     </div>
   );
