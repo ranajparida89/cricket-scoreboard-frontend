@@ -1,111 +1,146 @@
 // ✅ src/components/TestRanking.js
-// ✅ [Ranaj Parida - 2025-04-21 | Debug Enhanced: Final Fix with Live API + Logs + Full Team Display]
+// Ranaj Parida — 2025-04-21
+// Polished glassmorphism UI + framer-motion row animations + rating bars
 
-import React, { useEffect, useState } from "react";
-import { getTestRankings } from "../services/api"; // ✅ Centralized API call
-import "./TeamRanking.css"; // ✅ Reuse ranking styles
+import React, { useEffect, useState, useMemo } from "react";
+import { motion } from "framer-motion";
+import { getTestRankings } from "../services/api";
+import "./TeamRanking.css";
 
-// ✅ Map team names to emoji flags
+// Map team → flag
 const flagMap = {
   india: "🇮🇳", australia: "🇦🇺", england: "🏴", "new zealand": "🇳🇿",
   pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱🇰", ireland: "🇮🇪",
   kenya: "🇰🇪", namibia: "🇳🇦", bangladesh: "🇧🇩", afghanistan: "🇦🇫",
   zimbabwe: "🇿🇼", "west indies": "🏴‍☠️", usa: "🇺🇸", uae: "🇦🇪",
-  oman: "🇴🇲", scotland: "🏴", netherlands: "🇳🇱", nepal: "🇳🇵"
+  oman: "🇴🇲", scotland: "🏴", netherlands: "🇳🇱", nepal: "🇳🇵",
+};
+
+const listVariants = {
+  hidden: { opacity: 0, y: 16 },
+  show: {
+    opacity: 1, y: 0,
+    transition: { duration: 0.45, ease: "easeOut", staggerChildren: 0.06, delayChildren: 0.05 },
+  },
+};
+
+const rowVariants = {
+  hidden: { opacity: 0, y: 14 },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.28 } },
 };
 
 const TestRanking = () => {
   const [testRankings, setTestRankings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch accurate Test Rankings from backend with validation
+  // Fetch rankings
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await getTestRankings();
-
-        console.log("✅ Total teams fetched:", data.length);     // Debug log
-        console.log("🔍 Raw data from API:", data);               // Inspect structure
-
-        // ✅ New Fix: Remove null/undefined ratings or empty team names (if any)
-        const validTeams = data.filter(team =>
-          team && team.team_name && team.rating !== null && team.rating !== undefined
+        const valid = (Array.isArray(data) ? data : []).filter(
+          (t) => t && t.team_name && t.points != null && t.rating != null
         );
-
-        console.log("🛡️ Valid teams after filtering:", validTeams.length);
-
-        // ✅ Sort by Points (desc) – ensures correct leaderboard even with float precision
-        const sorted = validTeams.sort((a, b) => b.points - a.points);
-
-        console.log("✅ Sorted by rating:", sorted);             // Verify correct order
-
-        setTestRankings(sorted); // ✅ Update final state
+        const sorted = valid.sort((a, b) => b.points - a.points);
+        setTestRankings(sorted);
       } catch (err) {
-        console.error("❌ Failed to load Test Rankings:", err.message);
+        console.error("❌ Failed to load Test Rankings:", err?.message || err);
+        setTestRankings([]);
+      } finally {
+        setLoading(false);
       }
     };
-
-    fetchData(); // ✅ Invoke once on component mount
+    fetchData();
   }, []);
 
-  // ✅ Style table rows based on rank
-  const getRowClass = (idx) => {
-    if (idx === 0) return "gold test-row";
-    if (idx === 1) return "silver test-row";
-    if (idx === 2) return "bronze test-row";
-    return "test-row";
-  };
+  // Helpful metadata
+  const maxRating = useMemo(() => {
+    const max = Math.max(120, ...testRankings.map((t) => +t.rating || 0));
+    return Math.min(140, Math.max(100, max)); // clamp to a nice range
+  }, [testRankings]);
 
-  // ✅ Show 🥇🥈🥉 for top 3
-  const getMedalEmoji = (idx) => {
-    if (idx === 0) return <span className="medal-emoji">🥇</span>;
-    if (idx === 1) return <span className="medal-emoji">🥈</span>;
-    if (idx === 2) return <span className="medal-emoji">🥉</span>;
-    return null;
-  };
+  const medal = (i) =>
+    i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "";
 
-  // ✅ Render Test Match Ranking Table
+  const rowClass = (i) =>
+    i === 0 ? "tr-row gold" : i === 1 ? "tr-row silver" : i === 2 ? "tr-row bronze" : "tr-row";
+
   return (
-    <div className="container mt-5">
-      <div className="card bg-dark text-white p-4 shadow">
-        <h2 className="text-center text-info mb-4">📘 ICC Test Match Rankings</h2>
-        <div className="table-responsive">
-          <table className="table table-bordered table-dark table-hover text-center">
-            <thead>
-              <tr>
-                <th>Rank</th>
-                <th>Team</th>
-                <th>Matches</th>
-                <th>Points</th>
-                <th>Rating</th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* ✅ Loop through valid rankings */}
-              {testRankings.map((team, idx) => (
-                <tr key={idx} className={getRowClass(idx)}>
-                  <td>{getMedalEmoji(idx)} {idx + 1}</td>
-                  <td>
-                    {flagMap[team.team_name?.toLowerCase()] || "🏳️"}{" "}
-                    {team.team_name}
-                  </td>
-                  <td>{team.matches}</td>
-                  <td>{team.points}</td>
-                  <td><strong>{team.rating}</strong></td>
-                </tr>
-              ))}
-
-              {/* ✅ Fallback if no data */}
-              {testRankings.length === 0 && (
-                <tr>
-                  <td colSpan="5" className="text-muted">
-                    No Test match ranking data available.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+    <div className="tr-wrap">
+      <div className="tr-orbs" aria-hidden>
+        <span className="orb o1" />
+        <span className="orb o2" />
       </div>
+
+      <motion.div
+        className="tr-card"
+        variants={listVariants}
+        initial="hidden"
+        animate="show"
+      >
+        <div className="tr-header">
+          <h2 className="tr-title">World Test Match Team Rankings</h2>
+          <p className="tr-sub">Live ICC table • auto-updated</p>
+        </div>
+
+        <div className="tr-table">
+          <div className="tr-thead">
+            <div className="th rank">Rank</div>
+            <div className="th team">Team</div>
+            <div className="th matches">Matches</div>
+            <div className="th points">Points</div>
+            <div className="th rating">Rating</div>
+          </div>
+
+          <div className="tr-tbody">
+            {loading && (
+              <>
+                <div className="skeleton-row" />
+                <div className="skeleton-row" />
+                <div className="skeleton-row" />
+              </>
+            )}
+
+            {!loading && testRankings.length === 0 && (
+              <div className="tr-empty">No Test match ranking data available.</div>
+            )}
+
+            {!loading &&
+              testRankings.map((t, i) => {
+                const flag = flagMap[t.team_name?.toLowerCase()] || "🏳️";
+                const pct = Math.round((Math.min(maxRating, +t.rating) / maxRating) * 100);
+
+                return (
+                  <motion.div key={`${t.team_name}-${i}`} className={rowClass(i)} variants={rowVariants}>
+                    <div className="td rank">
+                      <span className="medal">{medal(i)}</span>
+                      <span className="pos">{i + 1}</span>
+                    </div>
+
+                    <div className="td team">
+                      <span className="flag">{flag}</span>
+                      <span className="name">{t.team_name}</span>
+                    </div>
+
+                    <div className="td matches">{t.matches}</div>
+                    <div className="td points">{t.points}</div>
+
+                    <div className="td rating">
+                      <div className="rating-wrap">
+                        <div className="rating-track" />
+                        <div
+                          className={`rating-bar ${i === 0 ? "g" : i === 1 ? "s" : i === 2 ? "b" : ""}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                        <span className="rating-num">{t.rating}</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 };
