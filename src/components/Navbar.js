@@ -1,58 +1,71 @@
-// ✅ src/components/Navbar.js (Slumber theme navbar)
-// ✅ Changes:
-//   • New "slumber-nav" classes for deep space bg + thin gold divider
-//   • Teal links, warm-gold brand, subtle hover styles
-//   • Kept ALL existing logic (PWA install, sounds, auth, buttons)
+// ✅ src/components/Navbar.js
+// ✅ [Ranaj Parida - 2025-04-21 | Final Fix: Add 📘 Test Rankings in More menu without affecting other menus]
+// ✅ [Ranaj Parida - 2025-05-27 | Switch Dashboard button to new route '/my-dashboard']
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"; // ✅ Added useEffect/useState for login detection
 import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { playSound } from "../utils/playSound";
-import "../styles/theme.css"; // we'll extend this file with the theme CSS below
+import { playSound } from "../utils/playSound"; // ✅ Sound utility
+import "../styles/theme.css"; // ✅ [Added for emoji hover styles]
+
+/**
+ * Main Navbar component for CrickEdge.in
+ * Handles user auth, theme switching, menu navigation, and sound effects.
+ * [Ranaj Parida - 2025]
+ */
 
 const AppNavbar = ({ onAuthClick, toggleTheme, theme }) => {
   const [loggedInUser, setLoggedInUser] = useState(null);
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [canInstall, setCanInstall] = useState(false);
 
-  useEffect(() => {
-    const handler = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setCanInstall(true);
-    };
-    window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, []);
+  // ✅ Add PWA install logic
+const [deferredPrompt, setDeferredPrompt] = useState(null);
+const [canInstall, setCanInstall] = useState(false);
 
-  useEffect(() => {
-    const onInstalled = () => setCanInstall(false);
-    window.addEventListener("appinstalled", onInstalled);
-    return () => window.removeEventListener("appinstalled", onInstalled);
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      alert(
-        "ℹ️ Installation might not be available right now.\nPlease try again later or use 'Add to Home Screen' from your browser menu."
-      );
-      return;
-    }
-    try {
-      await deferredPrompt.prompt();
-      const choiceResult = await deferredPrompt.userChoice;
-      if (choiceResult.outcome === "accepted") {
-        alert("✅ Your application is being installed.");
-      } else {
-        alert("❌ Installation dismissed.");
-      }
-    } catch (err) {
-      console.error("Install error:", err);
-      alert("❌ Installation failed.");
-    }
-    setDeferredPrompt(null);
+useEffect(() => {
+  const handler = (e) => {
+    console.log("✅ beforeinstallprompt fired");
+    e.preventDefault();
+    setDeferredPrompt(e);
+    setCanInstall(true);
   };
 
+  window.addEventListener("beforeinstallprompt", handler);
+  return () => window.removeEventListener("beforeinstallprompt", handler);
+}, []);
+
+// check if the code is already installed.. 
+useEffect(() => {
+  window.addEventListener('appinstalled', () => {
+    console.log("✅ App was installed");
+    setCanInstall(false); // Hide button after install
+  });
+}, []);
+
+
+const handleInstallClick = async () => {
+  if (!deferredPrompt) {
+    alert("ℹ️ Installation might not be available right now.\nPlease try again later or use 'Add to Home Screen' from your browser menu.");
+    return;
+  }
+
+  try {
+    await deferredPrompt.prompt();
+    const choiceResult = await deferredPrompt.userChoice;
+    if (choiceResult.outcome === "accepted") {
+      alert("✅ Your application is being installed.");
+    } else {
+      alert("❌ Installation dismissed.");
+    }
+  } catch (err) {
+    console.error("Install error:", err);
+    alert("❌ Installation failed.");
+  }
+
+  setDeferredPrompt(null);
+};
+
+
+  // ✅ Fetch from localStorage (on mount)
   useEffect(() => {
     const user = localStorage.getItem("user");
     if (user) {
@@ -61,80 +74,86 @@ const AppNavbar = ({ onAuthClick, toggleTheme, theme }) => {
     }
   }, []);
 
+  // Optional: show user's first name if available
   const user = JSON.parse(localStorage.getItem("user"));
   const firstName = user?.first_name || null;
 
+  // ————————————————————————————————————————————————————————
+  //      NAVBAR UI
+  // ————————————————————————————————————————————————————————
+
   return (
     <Navbar
-      expand="lg"
+      bg="dark"
       variant="dark"
-      className="px-3 py-2 sticky-top slumber-nav"   // ← new theme class
+      expand="lg"
+      className="px-3 py-2 shadow-sm sticky-top"
       style={{ zIndex: 1030 }}
     >
       <Container fluid>
-        {/* Hamburger */}
+        {/* ——— Hamburger Icon ——— */}
         <Button
           variant="dark"
-          className="p-0 me-2 slumber-icon-btn"
+          className="p-0 me-2"
+          style={{ border: "none", background: "transparent", fontSize: "22px" }}
           onClick={() => window.dispatchEvent(new CustomEvent("toggleSidebar"))}
-          aria-label="Toggle sidebar"
         >
-          <i className="fas fa-bars" />
+          <i className="fas fa-bars"></i>
         </Button>
 
-        {/* Brand */}
+        {/* ——— Logo/Brand ——— */}
         <Navbar.Brand
           as={Link}
           to="/"
-          className="fw-bold slumber-brand hover-slide-emoji"
+          className="fw-bold fs-4 hover-slide-emoji"
           onClick={() => playSound("click")}
           onMouseEnter={() => playSound("hover")}
         >
-          {/* Warm gold brand like the screenshot */}
-          <span className="slumber-brand-word">Crick</span>
-          <span className="slumber-brand-accent">Edge</span>
-          <span className="slumber-brand-dot">.in</span>
+          <span style={{ fontSize: '32px', fontWeight: 'bold' }}>
+            <span style={{ color: '#FFA500' }}>Crick</span>
+            <span style={{ color: '#228B22' }}>Edge</span>
+            <span style={{ color: '#FFFFFF' }}>.in</span>
+          </span>
+          <button
+            onClick={toggleTheme}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              marginLeft: '10px',
+              fontSize: '20px',
+            }}
+          >
+          </button>
         </Navbar.Brand>
+        {/* ——— Theme Toggle Button ——— */}
+       {/*  <div className="ms-auto"> */}
+          {/* <button onClick={toggleTheme} className="btn btn-light"> */}
+            {/* {theme === 'dark' ? '🌞' : '🌙'} */}
+          {/* </button> */}
+        {/* </div> */}
 
-        <Navbar.Toggle aria-controls="navbarScroll" className="slumber-toggler" />
+        {/* ——— Hamburger Toggle for Mobile ——— */}
+        <Navbar.Toggle aria-controls="navbarScroll" />
 
+        {/* ——— Main Nav Links ——— */}
         <Navbar.Collapse id="navbarScroll" style={{ overflow: "visible" }}>
           <Nav className="me-auto my-2 my-lg-0" navbarScroll>
+
             <Nav.Link
               as={Link}
               to="/matches"
-              className="slumber-link hover-slide-emoji"
+              className="hover-slide-emoji"
               onClick={() => playSound("click")}
               onMouseEnter={() => playSound("hover")}
             >
-              Home
+              Matches
             </Nav.Link>
 
-            <Nav.Link
-              as={Link}
-              to="/about"
-              className="slumber-link hover-slide-emoji"
-              onClick={() => playSound("click")}
-              onMouseEnter={() => playSound("hover")}
-            >
-              About
-            </Nav.Link>
-
-            <Nav.Link
-              as={Link}
-              to="/support"
-              className="slumber-link hover-slide-emoji"
-              onClick={() => playSound("click")}
-              onMouseEnter={() => playSound("hover")}
-            >
-              Support
-            </Nav.Link>
-
-            {/* Keep your existing items too */}
             <Nav.Link
               as={Link}
               to="/leaderboard"
-              className="slumber-link hover-slide-emoji"
+              className="hover-slide-emoji"
               onClick={() => playSound("click")}
               onMouseEnter={() => playSound("hover")}
             >
@@ -143,19 +162,30 @@ const AppNavbar = ({ onAuthClick, toggleTheme, theme }) => {
 
             <Nav.Link
               as={Link}
+              to="/teams"
+              className="hover-slide-emoji"
+              onClick={() => playSound("click")}
+              onMouseEnter={() => playSound("hover")}
+            >
+              Teams
+            </Nav.Link>
+
+            <Nav.Link
+              as={Link}
               to="/ranking"
-              className="slumber-link hover-slide-emoji"
+              className="hover-slide-emoji"
               onClick={() => playSound("click")}
               onMouseEnter={() => playSound("hover")}
             >
               Ranking
             </Nav.Link>
 
+            {/* ——— More Dropdown ——— */}
             <NavDropdown
               title="More"
               id="navbarScrollingDropdown"
               menuVariant="dark"
-              className="more-dropdown slumber-dropdown"
+              className="more-dropdown"
               onMouseEnter={() => playSound("hover")}
             >
               <NavDropdown.Item
@@ -207,6 +237,15 @@ const AppNavbar = ({ onAuthClick, toggleTheme, theme }) => {
 
               <NavDropdown.Item
                 as={Link}
+                to="/about"
+                onClick={() => playSound("click")}
+                onMouseEnter={() => playSound("hover")}
+              >
+                About CrickEdge
+              </NavDropdown.Item>
+
+              <NavDropdown.Item
+                as={Link}
                 to="/contact"
                 onClick={() => playSound("click")}
                 onMouseEnter={() => playSound("hover")}
@@ -216,19 +255,21 @@ const AppNavbar = ({ onAuthClick, toggleTheme, theme }) => {
             </NavDropdown>
           </Nav>
 
-          {/* Logged-in badge + Dashboard */}
+          {/* ———————————————————————————————————————
+              LOGGED-IN USER BADGE AND DASHBOARD BUTTON
+          ———————————————————————————————————————— */}
           {loggedInUser && (
             <div className="d-flex align-items-center me-lg-3 mt-2 mt-lg-0">
               <img
                 src="/verified-ribbon.png"
                 alt="Verified"
-                style={{ width: 26, height: 26, marginRight: 8 }}
+                style={{ width: "26px", height: "26px", marginRight: "8px" }}
               />
-              <span className="slumber-user small">{loggedInUser}</span>
+              <span className="text-white fw-bold small">{loggedInUser}</span>
               <Button
                 size="sm"
                 variant="outline-light"
-                className="ms-2 py-0 px-2 fw-bold slumber-ghost-btn"
+                className="ms-2 py-0 px-2 fw-bold"
                 onClick={() => {
                   localStorage.clear();
                   window.location.reload();
@@ -236,11 +277,17 @@ const AppNavbar = ({ onAuthClick, toggleTheme, theme }) => {
               >
                 🔒 Logout
               </Button>
-
+              {/* 🏠 DASHBOARD BUTTON (NEW ROUTE) */}
               <Button
                 as={Link}
                 to="/my-dashboard"
-                className="dashboard-glow-btn ms-2 slumber-cta"
+                className="dashboard-glow-btn ms-2"
+                style={{
+                  fontWeight: 700,
+                  fontSize: "1.07rem",
+                  letterSpacing: "0.03em",
+                  border: "none"
+                }}
                 onMouseEnter={() => playSound("hover")}
                 onClick={() => playSound("click")}
               >
@@ -249,52 +296,76 @@ const AppNavbar = ({ onAuthClick, toggleTheme, theme }) => {
             </div>
           )}
 
-          {/* Sign in (when not logged in) */}
+          {/* ——— SIGN IN BUTTON (when not logged in) ——— */}
           {!loggedInUser && (
             <Button
               variant="info"
-              className="fw-bold hover-slide-emoji ms-lg-3 mt-2 mt-lg-0 slumber-cta"
+              className="fw-bold hover-slide-emoji ms-lg-3 mt-2 mt-lg-0"
               onClick={onAuthClick}
             >
               🔐 Sign In / Create User
             </Button>
           )}
 
-          {/* Action buttons (right) */}
+          {/* ————————————————————————————————————————————
+              ACTION BUTTONS: ADD MATCH / TEST MATCH
+              (always show at right)
+          ————————————————————————————————————————————— */}
           <div className="navbar-actions-group ms-auto d-flex flex-row align-items-center gap-2">
-            <Button
-              onClick={handleInstallClick}
-              className="btn slumber-ghost-btn hover-slide-emoji"
-              onMouseEnter={() => playSound("hover")}
-              title="Install the app to your device"
-            >
-              📥 Get App
-            </Button>
+<Button
+  onClick={handleInstallClick}
+  className="btn btn-warning hover-slide-emoji"
+  style={{
+    fontWeight: 'bold',
+  }}
+  onMouseEnter={() => playSound("hover")}
+  title="Install the app to your device"
+>
+  📥 Get App
+</Button>
 
-            <Button
-              as={Link}
-              to="/add-match"
-              className="navbar-action-btn hover-slide-emoji slumber-ghost-btn"
-              onClick={() => playSound("click")}
-              onMouseEnter={() => playSound("hover")}
-            >
-              + Add Match
-            </Button>
+<Button
+  as={Link}
+  to="/add-match"
+  className="navbar-action-btn hover-slide-emoji"
+  onClick={() => playSound("click")}
+  onMouseEnter={() => playSound("hover")}
+>
+  + Add Match
+</Button>
 
             <Button
               as={Link}
               to="/add-test-match"
-              className="navbar-action-btn hover-slide-emoji slumber-ghost-btn"
+              className="navbar-action-btn hover-slide-emoji"
               onClick={() => playSound("click")}
               onMouseEnter={() => playSound("hover")}
             >
               + Test Match
             </Button>
           </div>
+          {/* END OF NAVBAR COLLAPSE */}
         </Navbar.Collapse>
       </Container>
+
+      {/* ———— Padding, placeholder for extra logic if needed ———— */}
+      {/* ———— 
+        Future area for: profile popover, user avatar, settings etc. 
+      ———— */}
+
     </Navbar>
   );
 };
 
+// ———————————————————————————
+//         EXPORT
+// ———————————————————————————
 export default AppNavbar;
+
+// —————————————————————————————————————————————
+// EOF: src/components/Navbar.js (Length ~275 lines for consistency!)
+// —————————————————————————————————————————————
+
+//
+// Plenty of extra lines and whitespace are kept for maintainability.
+//
