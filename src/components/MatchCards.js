@@ -1,9 +1,9 @@
-// ✅ src/components/MatchCards.js — compact dark cards + gold accents (final)
-// ✅ Matches new MatchCards.css classes:
+// ✅ src/components/MatchCards.js — compact dark cards + gold accents + LIVE/Recent badges
+// ✅ Matches MatchCards.css classes:
 //    • Tabs: .format-toggle + .format-btn (.odi | .t20 | .test) + .active
-//    • Card: .match-card.simple (ripple only)
+//    • Card: .match-card.simple (+ .live when a game is live)
 //    • Section title: .section-heading
-// ✅ No GSAP/Framer — only ripple animation kept.
+// ✅ Only ripple animation kept (no GSAP/Framer).
 
 import React, { useEffect, useMemo, useState } from "react";
 import { getMatchHistory, getTestMatches } from "../services/api";
@@ -30,32 +30,36 @@ const formatMatchTitle = (raw = "") => {
 const getFlag = (teamName) => {
   const n = teamName?.trim().toLowerCase();
   const f = {
-    india: "🇮🇳",
-    australia: "🇦🇺",
-    england: "🏴",
-    "new zealand": "🇳🇿",
-    pakistan: "🇵🇰",
-    "south africa": "🇿🇦",
-    "sri lanka": "🇱🇰",
-    ireland: "🇮🇪",
-    kenya: "🇰🇪",
-    namibia: "🇳🇦",
-    bangladesh: "🇧🇩",
-    afghanistan: "🇦🇫",
-    zimbabwe: "🇿🇼",
-    "west indies": "🏴‍☠️",
-    usa: "🇺🇸",
-    uae: "🇦🇪",
-    oman: "🇴🇲",
-    scotland: "🏴",
-    netherlands: "🇳🇱",
-    nepal: "🇳🇵",
+    india: "🇮🇳", australia: "🇦🇺", england: "🏴", "new zealand": "🇳🇿",
+    pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱🇰", ireland: "🇮🇪",
+    kenya: "🇰🇪", namibia: "🇳🇦", bangladesh: "🇧🇩", afghanistan: "🇦🇫",
+    zimbabwe: "🇿🇼", "west indies": "🏴‍☠️", usa: "🇺🇸", uae: "🇦🇪",
+    oman: "🇴🇲", scotland: "🏴", netherlands: "🇳🇱", nepal: "🇳🇵",
   };
   return f[n] || "🏳️";
 };
 
+/* Status helpers
+   - We consider a match LIVE if `is_live` is true OR winner text is empty/looks "in progress".
+   - We consider a match RECENT if played within ~36h; fall back to first two items. */
+const isLive = (m) => {
+  const w = (m?.winner || "").toLowerCase();
+  return (
+    m?.is_live === true ||
+    (!w || /live|in progress|stumps|day\s+\d|session/.test(w))
+  );
+};
+const isRecent = (m, idx) => {
+  const t = m?.match_time ? Date.parse(m.match_time) : NaN;
+  if (!Number.isNaN(t)) {
+    const hours = (Date.now() - t) / 36e5;
+    return hours >= 0 && hours <= 36;
+  }
+  return idx < 2; // fallback
+};
+
 /* ---------- ripple-only card ---------- */
-function RippleCard({ children }) {
+function RippleCard({ children, live, recent }) {
   const onPointerDown = (e) => {
     const el = e.currentTarget;
     const rect = el.getBoundingClientRect();
@@ -70,7 +74,23 @@ function RippleCard({ children }) {
   };
 
   return (
-    <div className="match-card simple" onPointerDown={onPointerDown} role="article">
+    <div
+      className={`match-card simple${live ? " live" : ""}`}
+      onPointerDown={onPointerDown}
+      role="article"
+    >
+      <div className="status-badges">
+        {live && (
+          <span className="badge-chip badge-live">
+            LIVE
+          </span>
+        )}
+        {!live && recent && (
+          <span className="badge-chip badge-recent">
+            <span className="dot-red" /> Recent
+          </span>
+        )}
+      </div>
       {children}
     </div>
   );
@@ -124,85 +144,97 @@ const MatchCards = () => {
     </>
   );
 
-  const renderLOICard = (m) => (
-    <RippleCard>
-      <div className="match-title">{formatMatchTitle(m.match_name)}</div>
+  const renderLOICard = (m, i) => {
+    const live = isLive(m);
+    const recent = isRecent(m, i);
+    return (
+      <RippleCard live={live} recent={recent}>
+        <div className="match-title">{formatMatchTitle(m.match_name)}</div>
 
-      <div className="teams-row">
-        <div className="team">
+        <div className="teams-row">
+          <div className="team">
+            <div className="name">
+              {getFlag(m.team1)} {m.team1?.toUpperCase()}
+            </div>
+            <div className="score">
+              {m.runs1}/{m.wickets1}
+            </div>
+            <div className="meta">Overs: {formatOvers(m.overs1)}</div>
+          </div>
+
+          <div className="team team--right">
+            <div className="name">
+              {getFlag(m.team2)} {m.team2?.toUpperCase()}
+            </div>
+            <div className="score">
+              {m.runs2}/{m.wickets2}
+            </div>
+            <div className="meta">Overs: {formatOvers(m.overs2)}</div>
+          </div>
+        </div>
+
+        {!live && (
+          <div className="result-line">
+            <strong>
+              🏆{" "}
+              {m.winner === "Draw"
+                ? "Match is drawn."
+                : m.winner?.toLowerCase().includes("won the match")
+                ? m.winner
+                : `${m.winner} won the match!`}
+            </strong>
+          </div>
+        )}
+      </RippleCard>
+    );
+  };
+
+  const renderTestCard = (m, i) => {
+    const live = isLive(m);
+    const recent = isRecent(m, i);
+    return (
+      <RippleCard live={live} recent={recent}>
+        <div className="match-title">{formatMatchTitle(m.match_name)}</div>
+
+        <div className="team-block">
           <div className="name">
             {getFlag(m.team1)} {m.team1?.toUpperCase()}
           </div>
-          <div className="score">
-            {m.runs1}/{m.wickets1}
+          <div className="meta">
+            1st Innings: {m.runs1}/{m.wickets1} ({formatOvers(m.overs1)} ov)
           </div>
-          <div className="meta">Overs: {formatOvers(m.overs1)}</div>
+          <div className="meta">
+            2nd Innings: {m.runs1_2}/{m.wickets1_2} ({formatOvers(m.overs1_2)} ov)
+          </div>
         </div>
 
-        <div className="team" style={{ textAlign: "right" }}>
+        <div className="team-block" style={{ marginTop: 6 }}>
           <div className="name">
             {getFlag(m.team2)} {m.team2?.toUpperCase()}
           </div>
-          <div className="score">
-            {m.runs2}/{m.wickets2}
+          <div className="meta">
+            1st Innings: {m.runs2}/{m.wickets2} ({formatOvers(m.overs2)} ov)
           </div>
-          <div className="meta">Overs: {formatOvers(m.overs2)}</div>
+          <div className="meta">
+            2nd Innings: {m.runs2_2}/{m.wickets2_2} ({formatOvers(m.overs2_2)} ov)
+          </div>
         </div>
-      </div>
 
-      <div className="result-line">
-        <strong>
-          🏆{" "}
-          {m.winner === "Draw"
-            ? "Match is drawn."
-            : m.winner?.toLowerCase().includes("won the match")
-            ? m.winner
-            : `${m.winner} won the match!`}
-        </strong>
-      </div>
-    </RippleCard>
-  );
-
-  const renderTestCard = (m) => (
-    <RippleCard>
-      <div className="match-title">{formatMatchTitle(m.match_name)}</div>
-
-      <div className="team-block">
-        <div className="name">
-          {getFlag(m.team1)} {m.team1?.toUpperCase()}
-        </div>
-        <div className="meta">
-          1st Innings: {m.runs1}/{m.wickets1} ({formatOvers(m.overs1)} ov)
-        </div>
-        <div className="meta">
-          2nd Innings: {m.runs1_2}/{m.wickets1_2} ({formatOvers(m.overs1_2)} ov)
-        </div>
-      </div>
-
-      <div className="team-block" style={{ marginTop: 6 }}>
-        <div className="name">
-          {getFlag(m.team2)} {m.team2?.toUpperCase()}
-        </div>
-        <div className="meta">
-          1st Innings: {m.runs2}/{m.wickets2} ({formatOvers(m.overs2)} ov)
-        </div>
-        <div className="meta">
-          2nd Innings: {m.runs2_2}/{m.wickets2_2} ({formatOvers(m.overs2_2)} ov)
-        </div>
-      </div>
-
-      <div className="result-line">
-        <strong>
-          🏆{" "}
-          {m.winner === "Draw"
-            ? "Match is drawn."
-            : m.winner?.toLowerCase().includes("won the match")
-            ? m.winner
-            : `${m.winner} won the match!`}
-        </strong>
-      </div>
-    </RippleCard>
-  );
+        {!live && (
+          <div className="result-line">
+            <strong>
+              🏆{" "}
+              {m.winner === "Draw"
+                ? "Match is drawn."
+                : m.winner?.toLowerCase().includes("won the match")
+                ? m.winner
+                : `${m.winner} won the match!`}
+            </strong>
+          </div>
+        )}
+      </RippleCard>
+    );
+  };
 
   return (
     <div className="container mt-4">

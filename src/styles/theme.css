@@ -425,3 +425,12 @@ h2, h3, h4 {
 
 /* Limit font override to the Slumber navbar only (UPDATED) */
 .slumber-nav, .slumber-nav * { font-family: inherit; } /* UPDATED: was `.navbar, .navbar *` */
+/* Make 'More' dropdown items match navbar link color */
+.slumber-dropdown .dropdown-item {
+  color: var(--slumber-teal) !important;
+  font-weight: 700;
+}
+.slumber-dropdown .dropdown-item:hover {
+  color: var(--slumber-teal-strong) !important;
+  background: rgba(95,208,199,.12);
+}
