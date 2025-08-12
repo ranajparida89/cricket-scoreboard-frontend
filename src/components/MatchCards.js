@@ -1,166 +1,44 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
-import { getMatchHistory, getTeams, getTestMatches } from "../services/api";
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
-import gsap from "gsap";
+// ✅ src/components/MatchCards.js — compact dark cards + gold accents (complete)
+// ✅ Only ripple effect remains. No 3D/gsap/framer animations.
+// ✅ Buttons use dark theme + gold accent, cards have compact layout.
+
+import React, { useEffect, useState, useMemo } from "react";
+import { getMatchHistory, getTestMatches } from "../services/api";
 import "./MatchCards.css";
 
-/* ---------- utils ---------- */
+/* ---------- helpers ---------- */
 const formatOvers = (decimalOvers = 0) => {
   const fullOvers = Math.floor(decimalOvers);
   const balls = Math.round((decimalOvers - fullOvers) * 6);
   return `${fullOvers}.${balls}`;
 };
-
-/* ✅ NEW: Pretty match title like "Ashes 3rd ODI 2025" */
 const formatMatchTitle = (raw = "") => {
-  // keep only left of the colon; API often appends "TeamAvsTeam" after it
   let s = String(raw).split(":")[0];
-
-  // put spaces between letters and digits in both directions
   s = s
     .replace(/(?<=[A-Za-z])(?=\d)/g, " ")
-    .replace(/(?<=\d)(?=[A-Za-z])/g, " ");
-
-  // make sure common tokens have spacing (ODI, T20, Test, Final, Qualifier, etc.)
-  s = s.replace(/(ODI|T20|TEST|Test|Final|Qualifier|Semi|Quarter)/g, " $1 ");
-
-  // normalize spaces
-  s = s.replace(/\s{2,}/g, " ").trim();
-
-  // Capitalize first word nicely, keep others as-is (your sample uses "Ashes 3rd ODI 2025")
+    .replace(/(?<=\d)(?=[A-Za-z])/g, " ")
+    .replace(/(ODI|T20|TEST|Test|Final|Qualifier|Semi|Quarter)/g, " $1 ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
   return s.replace(/^(\w)/, (m) => m.toUpperCase());
 };
-
-/* ---------- page/list/card variants ---------- */
-const pageVariants = {
-  hidden: { opacity: 0, y: 24 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
-};
-const listVariants = {
-  hidden: {},
-  show:   { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
-};
-const cardVariants = {
-  hidden: { opacity: 0, y: 26, scale: 0.98 },
-  show:   { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4 } },
-  exit:   { opacity: 0, y: -16, transition: { duration: 0.25 } },
-};
-
-/* ---------- flags ---------- */
 const getFlag = (teamName) => {
-  const normalized = teamName?.trim().toLowerCase();
-  const flags = {
-    india: "🇮🇳", australia: "🇦🇺", england: "🏴", "new zealand": "🇳🇿",
-    pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱🇰", ireland: "🇮🇪",
-    kenya: "🇰🇪", namibia: "🇳🇦", bangladesh: "🇧🇩", afghanistan: "🇦🇫",
-    zimbabwe: "🇿🇼", "west indies": "🏴‍☠️", usa: "🇺🇸", uae: "🇦🇪",
-    oman: "🇴🇲", scotland: "🏴", netherlands: "🇳🇱", nepal: "🇳🇵",
+  const n = teamName?.trim().toLowerCase();
+  const f = {
+    india: "🇮🇳", australia: "🇦🇺", england: "🏴",
+    "new zealand": "🇳🇿", pakistan: "🇵🇰", "south africa": "🇿🇦",
+    "sri lanka": "🇱🇰", ireland: "🇮🇪", kenya: "🇰🇪", namibia: "🇳🇦",
+    bangladesh: "🇧🇩", afghanistan: "🇦🇫", zimbabwe: "🇿🇼",
+    "west indies": "🏴‍☠️", usa: "🇺🇸", uae: "🇦🇪", oman: "🇴🇲",
+    scotland: "🏴", netherlands: "🇳🇱", nepal: "🇳🇵",
   };
-  return flags[normalized] || "🏳️";
+  return f[n] || "🏳️";
 };
 
-/* ---------- richer palettes (bolder) ---------- */
-const PALETTES = [
-  ["#00C6FF", "#0072FF"],   // vivid blue
-  ["#00F5A0", "#00D9F5"],   // aqua-mint
-  ["#FF6A88", "#FF99AC"],   // coral-rose
-  ["#7F7FD5", "#86A8E7"],   // indigo-sky
-  ["#F7971E", "#FFD200"],   // amber
-  ["#8EC5FC", "#E0C3FC"],   // lilac-sky
-  ["#00DBDE", "#FC00FF"],   // teal-magenta
-  ["#3AE374", "#2ECC71"],   // green
-];
-
-/* ---------- text animations ---------- */
-const TitleStagger = ({ text }) => {
-  const words = useMemo(() => (text || "").split(" "), [text]);
-  return (
-    <motion.span className="title-stagger" role="heading" aria-level={5}>
-      {words.map((w, i) => (
-        <motion.span
-          key={`${w}-${i}`}
-          className="title-word"
-          initial={{ y: 12, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.28, ease: "easeOut", delay: 0.04 * i }}
-          whileHover={{ y: -2 }}
-        >
-          {w}{i < words.length - 1 ? " " : ""}
-        </motion.span>
-      ))}
-    </motion.span>
-  );
-};
-
-const RevealLine = ({ children, delay = 0 }) => (
-  <motion.span
-    className="reveal-line"
-    initial={{ clipPath: "inset(0 100% 0 0)", opacity: 0.0001 }}
-    animate={{ clipPath: "inset(0 0% 0 0)", opacity: 1 }}
-    transition={{ duration: 0.38, ease: "easeOut", delay }}
-  >
-    {children}
-  </motion.span>
-);
-
-const ScoreFlip = ({ children, delay = 0 }) => (
-  <motion.span
-    className="score-flip"
-    initial={{ rotateX: 90, opacity: 0 }}
-    animate={{ rotateX: 0, opacity: 1 }}
-    transition={{ duration: 0.25, ease: "easeOut", delay }}
-    style={{ display: "inline-block", transformOrigin: "bottom" }}
-  >
-    {children}
-  </motion.span>
-);
-
-/* ---------- Card shell ---------- */
-function CardFX({ children, isRecent, paletteIndex }) {
-  const cardRef = useRef(null);
-  const glowRef = useRef(null);
-  const [isDark, setIsDark] = useState(false);
-  const [c1, c2] = PALETTES[paletteIndex % PALETTES.length];
-
-  const rx = useMotionValue(0);
-  const ry = useMotionValue(0);
-  const rotateX = useTransform(rx, [-1, 1], [8, -8]);
-  const rotateY = useTransform(ry, [-1, 1], [-8, 8]);
-
-  const onMove = (e) => {
-    const el = cardRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const px = (e.clientX - rect.left) / rect.width;
-    const py = (e.clientY - rect.top) / rect.height;
-    ry.set(px * 2 - 1);
-    rx.set(py * 2 - 1);
-    if (glowRef.current) {
-      gsap.to(glowRef.current, {
-        x: (px - 0.5) * rect.width * 0.4,
-        y: (py - 0.5) * rect.height * 0.4,
-        duration: 0.2,
-        ease: "power2.out",
-      });
-    }
-  };
-
-  const onEnter = () => {
-    setIsDark(true);
-    gsap.to(cardRef.current, { boxShadow: "0 18px 44px rgba(0,255,204,0.22)", y: -4, duration: 0.25, ease: "power2.out" });
-    gsap.to(glowRef.current, { opacity: 1, duration: 0.25, ease: "power2.out" });
-  };
-  const onLeave = () => {
-    setIsDark(false);
-    gsap.to(cardRef.current, { boxShadow: "0 6px 18px rgba(0,0,0,0.35)", y: 0, duration: 0.3, ease: "power2.out" });
-    gsap.to(glowRef.current, { opacity: 0, duration: 0.3, ease: "power2.out" });
-    rx.set(0); ry.set(0);
-  };
-
-  const onTap = (e) => {
-    setIsDark(true);
-    const el = cardRef.current;
-    if (!el) return;
+/* ---------- very small ripple-only card shell ---------- */
+function RippleCard({ children }) {
+  const onPointerDown = (e) => {
+    const el = e.currentTarget;
     const rect = el.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -171,287 +49,191 @@ function CardFX({ children, isRecent, paletteIndex }) {
     el.appendChild(ripple);
     ripple.addEventListener("animationend", () => ripple.remove());
   };
-  const onPointerUp = () => setIsDark(false);
 
   return (
-    <motion.div
-      ref={cardRef}
-      className={`match-card advanced h-100 ${isDark ? "is-dark" : ""}`}
-      style={{
-        "--c1": c1, "--c2": c2,
-        rotateX, rotateY, transformPerspective: 900,
-      }}
-      variants={cardVariants}
-      onMouseMove={onMove}
-      onMouseEnter={onEnter}
-      onMouseLeave={onLeave}
-      onPointerDown={onTap}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
-      whileTap={{ scale: 0.99 }}
+    <div
+      className="match-card slumber-compact"
+      onPointerDown={onPointerDown}
+      role="article"
     >
-      <div ref={glowRef} className="card-glow" aria-hidden="true" />
-      <div className="card-shine" aria-hidden="true" />
-      {isRecent && (
-        <motion.div
-          className="live-badge"
-          animate={{ scale: [1, 1.12, 1], boxShadow: ["0 0 0px #00ffcc55","0 0 16px #00ffccaa","0 0 0px #00ffcc55"] }}
-          transition={{ repeat: Infinity, duration: 1.6 }}
-        >
-          <span className="dot-red" /> Recent
-        </motion.div>
-      )}
-      <motion.div className="card-surface" animate={{ y: [0, -2, 0] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}>
-        {children}
-      </motion.div>
-    </motion.div>
+      {children}
+    </div>
   );
 }
 
-/* ---------- main ---------- */
 const MatchCards = () => {
   const [matches, setMatches] = useState([]);
   const [testMatches, setTestMatches] = useState([]);
-  const [teams, setTeams] = useState([]);
-  const [showOdi, setShowOdi] = useState(true);
-  const [showT20, setShowT20] = useState(false);
-  const [showTest, setShowTest] = useState(false);
+  const [tab, setTab] = useState("ODI"); // ODI | T20 | Test
 
   useEffect(() => {
-    const fetchData = async () => {
+    (async () => {
       try {
-        const [matchRes, testRes, teamRes] = await Promise.all([
-          getMatchHistory(), getTestMatches(), getTeams()
+        const [mh, th] = await Promise.all([
+          getMatchHistory(), // returns ODI + T20 together
+          getTestMatches(),
         ]);
-        if (Array.isArray(matchRes)) setMatches(matchRes);
-        if (Array.isArray(testRes)) setTestMatches(testRes);
-        if (Array.isArray(teamRes)) setTeams(teamRes);
-      } catch (err) {
-        console.error("❌ Error fetching match/team data:", err);
+        setMatches(Array.isArray(mh) ? mh : []);
+        setTestMatches(Array.isArray(th) ? th : []);
+      } catch (e) {
+        console.error("Fetch error:", e);
       }
-    };
-    fetchData();
+    })();
   }, []);
 
-  /* ----- renderers ----- */
-  const renderODICard = (match, index) => (
-    <CardFX key={`${match.match_name}-${index}`} isRecent={index === 0} paletteIndex={index}>
-      <h5 className="text-white match-title">
-        <TitleStagger text={formatMatchTitle(match.match_name)} />
-      </h5>
-      <div className="d-flex justify-content-between align-items-center mb-2">
-        <div>
-          <h6 className="mb-1">
-            <RevealLine delay={0.05}>
-              {getFlag(match.team1)} <strong>{match.team1?.toUpperCase()}</strong>{" "}
-              <ScoreFlip delay={0.08}>{match.runs1}/{match.wickets1}</ScoreFlip>
-            </RevealLine>
-          </h6>
-          <p className="overs-info">
-            <RevealLine delay={0.12}>Overs: <ScoreFlip delay={0.16}>{formatOvers(match.overs1)}</ScoreFlip></RevealLine>
-          </p>
-        </div>
-        <div>
-          <h6 className="mb-1">
-            <RevealLine delay={0.05}>
-              {getFlag(match.team2)} <strong>{match.team2?.toUpperCase()}</strong>{" "}
-              <ScoreFlip delay={0.08}>{match.runs2}/{match.wickets2}</ScoreFlip>
-            </RevealLine>
-          </h6>
-          <p className="overs-info">
-            <RevealLine delay={0.12}>Overs: <ScoreFlip delay={0.16}>{formatOvers(match.overs2)}</ScoreFlip></RevealLine>
-          </p>
-        </div>
-      </div>
-      <p className="text-light win-line u-underline u-sheen">
-        <strong>
-          🏆 {match.winner === "Draw"
-            ? "Match is drawn."
-            : match.winner.toLowerCase().includes("won the match")
-              ? match.winner
-              : `${match.winner} won the match!`}
-        </strong>
-      </p>
-    </CardFX>
+  const odiMatches = useMemo(
+    () => matches.filter((m) => m.match_type === "ODI"),
+    [matches]
+  );
+  const t20Matches = useMemo(
+    () => matches.filter((m) => m.match_type === "T20"),
+    [matches]
   );
 
-  const renderT20Card = (match, index) => (
-    <CardFX key={`${match.match_name}-${index}`} isRecent={index === 0} paletteIndex={index + 2}>
-      <h5 className="text-white match-title">
-        <TitleStagger text={formatMatchTitle(match.match_name)} />
-      </h5>
-      <div className="d-flex justify-content-between align-items-center mb-2">
-        <div>
-          <h6 className="mb-1">
-            <RevealLine delay={0.05}>
-              {getFlag(match.team1)} <strong>{match.team1?.toUpperCase()}</strong>{" "}
-              <ScoreFlip delay={0.08}>{match.runs1}/{match.wickets1}</ScoreFlip>
-            </RevealLine>
-          </h6>
-          <p className="overs-info">
-            <RevealLine delay={0.12}>Overs: <ScoreFlip delay={0.16}>{formatOvers(match.overs1)}</ScoreFlip></RevealLine>
-          </p>
-        </div>
-        <div>
-          <h6 className="mb-1">
-            <RevealLine delay={0.05}>
-              {getFlag(match.team2)} <strong>{match.team2?.toUpperCase()}</strong>{" "}
-              <ScoreFlip delay={0.08}>{match.runs2}/{match.wickets2}</ScoreFlip>
-            </RevealLine>
-          </h6>
-          <p className="overs-info">
-            <RevealLine delay={0.12}>Overs: <ScoreFlip delay={0.16}>{formatOvers(match.overs2)}</ScoreFlip></RevealLine>
-          </p>
-        </div>
-      </div>
-      <p className="text-light win-line u-underline u-sheen">
-        <strong>
-          🏆 {match.winner === "Draw"
-            ? "Match is drawn."
-            : match.winner.toLowerCase().includes("won the match")
-              ? match.winner
-              : `${match.winner} won the match!`}
-        </strong>
-      </p>
-    </CardFX>
+  const Button = ({ active, onClick, children }) => (
+    <button
+      onClick={onClick}
+      className="slumber-tab-btn"
+      style={{
+        background: active ? "#0f1b28" : "#0b1622",
+        color: "#e8caa4",
+        border: "1px solid rgba(232,202,164,.38)",
+        boxShadow: active
+          ? "0 0 0 1px rgba(232,202,164,.25), 0 10px 24px rgba(232,202,164,.15)"
+          : "0 6px 16px rgba(0,0,0,.35)",
+      }}
+    >
+      {children}
+    </button>
   );
 
-  const renderTestCard = (match, index) => (
-    <CardFX key={`${match.match_name}-${index}`} isRecent={index === 0} paletteIndex={index + 4}>
-      <h5 className="text-white match-title">
-        <TitleStagger text={formatMatchTitle((match.match_name || "").toUpperCase())} />
-      </h5>
-      <div>
-        <h6 className="text-info">
-          <RevealLine delay={0.05}>{getFlag(match.team1)} {match.team1?.toUpperCase()}</RevealLine>
-        </h6>
-        <p className="overs-info mb-1">
-          <RevealLine delay={0.08}>
-            1st Innings: <ScoreFlip delay={0.12}>{match.runs1}/{match.wickets1}</ScoreFlip>
-            {" "}(<ScoreFlip delay={0.16}>{formatOvers(match.overs1)}</ScoreFlip> ov)
-          </RevealLine>
-        </p>
-        <p className="overs-info mb-1">
-          <RevealLine delay={0.1}>
-            2nd Innings: <ScoreFlip delay={0.14}>{match.runs1_2}/{match.wickets1_2}</ScoreFlip>
-            {" "}(<ScoreFlip delay={0.18}>{formatOvers(match.overs1_2)}</ScoreFlip> ov)
-          </RevealLine>
-        </p>
+  const Section = ({ title, list, render }) => (
+    <>
+      <div className="d-flex align-items-center justify-content-between mb-3">
+        <h3 className="text-light m-0" style={{ letterSpacing: ".2px" }}>
+          {title}
+        </h3>
+        {/* gold divider under section head like the reference */}
       </div>
-      <div className="mt-2">
-        <h6 className="text-info">
-          <RevealLine delay={0.05}>{getFlag(match.team2)} {match.team2?.toUpperCase()}</RevealLine>
-        </h6>
-        <p className="overs-info mb-1">
-          <RevealLine delay={0.08}>
-            1st Innings: <ScoreFlip delay={0.12}>{match.runs2}/{match.wickets2}</ScoreFlip>
-            {" "}(<ScoreFlip delay={0.16}>{formatOvers(match.overs2)}</ScoreFlip> ov)
-          </RevealLine>
-        </p>
-        <p className="overs-info mb-1">
-          <RevealLine delay={0.1}>
-            2nd Innings: <ScoreFlip delay={0.14}>{match.runs2_2}/{match.wickets2_2}</ScoreFlip>
-            {" "}(<ScoreFlip delay={0.18}>{formatOvers(match.overs2_2)}</ScoreFlip> ov)
-          </RevealLine>
-        </p>
+      <div className="slumber-gold-line" />
+      <div className="row g-3 mt-1">
+        {list.length === 0 ? (
+          <p className="text-white mt-2">No {title} available.</p>
+        ) : (
+          list.map((match, i) => (
+            <div key={match.match_name + i} className="col-sm-6 col-lg-4">
+              {render(match, i)}
+            </div>
+          ))
+        )}
       </div>
-      <p className="text-light mt-2 win-line u-underline u-sheen">
-        <strong>
-          🏆 {match.winner === "Draw"
-            ? "Match is drawn."
-            : match.winner.toLowerCase().includes("won the match")
-              ? match.winner
-              : `${match.winner} won the match!`}
-        </strong>
-      </p>
-    </CardFX>
+    </>
   );
 
-  const odiMatches  = matches.filter((m) => m.match_type === "ODI");
-  const t20Matches  = matches.filter((m) => m.match_type === "T20");
+  const renderLOICard = (m) => (
+    <RippleCard>
+      <h6 className="mb-2 text-gold">{formatMatchTitle(m.match_name)}</h6>
+
+      <div className="d-flex justify-content-between small">
+        <div className="me-2">
+          <div className="fw-bold">
+            {getFlag(m.team1)} {m.team1?.toUpperCase()}{" "}
+            <span className="score">{m.runs1}/{m.wickets1}</span>
+          </div>
+          <div className="muted">Overs: {formatOvers(m.overs1)}</div>
+        </div>
+        <div className="ms-2 text-end">
+          <div className="fw-bold">
+            {getFlag(m.team2)} {m.team2?.toUpperCase()}{" "}
+            <span className="score">{m.runs2}/{m.wickets2}</span>
+          </div>
+          <div className="muted">Overs: {formatOvers(m.overs2)}</div>
+        </div>
+      </div>
+
+      <div className="win-line mt-2">
+        <strong>
+          🏆{" "}
+          {m.winner === "Draw"
+            ? "Match is drawn."
+            : m.winner?.toLowerCase().includes("won the match")
+            ? m.winner
+            : `${m.winner} won the match!`}
+        </strong>
+      </div>
+    </RippleCard>
+  );
+
+  const renderTestCard = (m) => (
+    <RippleCard>
+      <h6 className="mb-2 text-gold">{formatMatchTitle(m.match_name)}</h6>
+
+      <div className="small">
+        <div className="fw-bold mb-1">
+          {getFlag(m.team1)} {m.team1?.toUpperCase()}
+        </div>
+        <div className="muted">
+          1st inns: {m.runs1}/{m.wickets1} ({formatOvers(m.overs1)} ov)
+        </div>
+        <div className="muted">
+          2nd inns: {m.runs1_2}/{m.wickets1_2} ({formatOvers(m.overs1_2)} ov)
+        </div>
+      </div>
+
+      <div className="small mt-2">
+        <div className="fw-bold mb-1">
+          {getFlag(m.team2)} {m.team2?.toUpperCase()}
+        </div>
+        <div className="muted">
+          1st inns: {m.runs2}/{m.wickets2} ({formatOvers(m.overs2)} ov)
+        </div>
+        <div className="muted">
+          2nd inns: {m.runs2_2}/{m.wickets2_2} ({formatOvers(m.overs2_2)} ov)
+        </div>
+      </div>
+
+      <div className="win-line mt-2">
+        <strong>
+          🏆{" "}
+          {m.winner === "Draw"
+            ? "Match is drawn."
+            : m.winner?.toLowerCase().includes("won the match")
+            ? m.winner
+            : `${m.winner} won the match!`}
+        </strong>
+      </div>
+    </RippleCard>
+  );
 
   return (
-    <motion.div className="container mt-4" variants={pageVariants} initial="hidden" animate="show">
-      <div className="toggle-buttons">
-        <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.98 }}
-          className={`btn btn-warning ${showOdi ? "active" : ""}`}
-          onClick={() => { setShowOdi(true); setShowT20(false); setShowTest(false); }}>
-          🏏 ODI Matches {showOdi ? "▼" : ""}
-        </motion.button>
-
-        <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.98 }}
-          className={`btn btn-danger ${showT20 ? "active" : ""}`}
-          onClick={() => { setShowT20(true); setShowOdi(false); setShowTest(false); }}>
-          🔥 T20 Matches {showT20 ? "▼" : ""}
-        </motion.button>
-
-        <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.98 }}
-          className={`btn btn-info ${showTest ? "active" : ""}`}
-          onClick={() => { setShowTest(true); setShowOdi(false); setShowT20(false); }}>
-          🧪 Test Matches {showTest ? "▼" : ""}
-        </motion.button>
+    <div className="container mt-4">
+      {/* tabs row */}
+      <div className="d-flex flex-wrap gap-2 mb-3">
+        <Button active={tab === "ODI"} onClick={() => setTab("ODI")}>
+          🏏 ODI
+        </Button>
+        <Button active={tab === "T20"} onClick={() => setTab("T20")}>
+          🔥 T20
+        </Button>
+        <Button active={tab === "Test"} onClick={() => setTab("Test")}>
+          🧪 Test
+        </Button>
       </div>
 
-      {/* ODI */}
-      <AnimatePresence mode="wait">
-        {showOdi && (
-          <motion.div key="odi-list" initial="hidden" animate="show" exit={{ opacity: 0, y: -20 }} variants={listVariants}>
-            <h3 className="text-light mb-3">ODI Matches</h3>
-            <div className="row g-4">
-              {odiMatches.length === 0 ? (
-                <p className="text-white">No ODI matches available.</p>
-              ) : (
-                odiMatches.map((match, index) => (
-                  <div key={match.match_name + index} className="col-md-6 col-lg-4 d-flex">
-                    <div className="w-100 h-100">{renderODICard(match, index)}</div>
-                  </div>
-                ))
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* T20 */}
-      <AnimatePresence mode="wait">
-        {showT20 && (
-          <motion.div key="t20-list" initial="hidden" animate="show" exit={{ opacity: 0, y: -20 }} variants={listVariants}>
-            <h3 className="text-light mt-5 mb-3">T20 Matches</h3>
-            <div className="row g-4">
-              {t20Matches.length === 0 ? (
-                <p className="text-white">No T20 matches available.</p>
-              ) : (
-                t20Matches.map((match, index) => (
-                  <div key={match.match_name + index} className="col-md-6 col-lg-4 d-flex">
-                    <div className="w-100 h-100">{renderT20Card(match, index)}</div>
-                  </div>
-                ))
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Test */}
-      <AnimatePresence mode="wait">
-        {showTest && (
-          <motion.div key="test-list" initial="hidden" animate="show" exit={{ opacity: 0, y: -20 }} variants={listVariants}>
-            <h3 className="text-light mt-5 mb-3">Test Matches</h3>
-            <div className="row g-4">
-              {testMatches.length === 0 ? (
-                <p className="text-white">No Test matches available.</p>
-              ) : (
-                testMatches.map((match, index) => (
-                  <div key={match.match_name + index} className="col-md-6 col-lg-4 d-flex">
-                    <div className="w-100 h-100">{renderTestCard(match, index)}</div>
-                  </div>
-                ))
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+      {tab === "ODI" && (
+        <Section title="ODI Matches" list={odiMatches} render={renderLOICard} />
+      )}
+      {tab === "T20" && (
+        <Section title="T20 Matches" list={t20Matches} render={renderLOICard} />
+      )}
+      {tab === "Test" && (
+        <Section
+          title="Test Matches"
+          list={testMatches}
+          render={renderTestCard}
+        />
+      )}
+    </div>
   );
 };
 
