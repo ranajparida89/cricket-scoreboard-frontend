@@ -1,4 +1,5 @@
-// ✅ TeamCharts.js — charts + "Match Type" column + info coachmark
+// ✅ TeamCharts.js — Team Performance Insights
+// Charts + sorted table (Points→NRR), Win% column, Top-3 row highlight, coachmark
 // Uses: Chart.js + chartjs-plugin-datalabels, GSAP, react-spring, tsparticles
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -38,7 +39,7 @@ ChartJS.register(
   ChartDataLabels
 );
 
-/* ---------- small helpers ---------- */
+/* ---------- helpers ---------- */
 const useReducedMotion = () =>
   typeof window !== "undefined" &&
   window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -92,7 +93,7 @@ const Tilt = ({ children, className = "" }) => {
   );
 };
 
-/** gradient + subtle stripes inside the chart panel */
+/** chart background: gradient + faint stripes */
 const panelBg = {
   id: "panel_bg",
   beforeDraw(chart) {
@@ -100,7 +101,6 @@ const panelBg = {
     if (!chartArea) return;
     const { left, right, top, bottom } = chartArea;
 
-    // glassy gradient
     const g = ctx.createLinearGradient(0, top, 0, bottom);
     g.addColorStop(0, "rgba(18,42,64,.12)");
     g.addColorStop(1, "rgba(14,28,44,.04)");
@@ -108,7 +108,6 @@ const panelBg = {
     ctx.fillStyle = g;
     ctx.fillRect(left, top, right - left, bottom - top);
 
-    // faint diagonal stripes
     ctx.globalAlpha = 0.04;
     ctx.strokeStyle = "#ffffff";
     const gap = 14;
@@ -134,7 +133,7 @@ const TeamCharts = () => {
   const [rows, setRows] = useState([]);
   const [format, setFormat] = useState("All"); // All | T20 | ODI | Test
 
-  // NEW: help states
+  // help/coachmark
   const [showHelp, setShowHelp] = useState(false);
   const [showCoach, setShowCoach] = useState(false);
 
@@ -151,7 +150,7 @@ const TeamCharts = () => {
   /* ---------- data fetch ---------- */
   useEffect(() => {
     (async () => {
-      const data = await getTeamChartData();
+      const data = await getTeamChartData(); // expects fields like: team_name, match_type, matches, wins, losses, draws, points, nrr
       const norm = (data || []).map((t) => ({
         team: t.team_name,
         type: (t.match_type || "").trim().toLowerCase(), // "t20" | "odi" | "test"
@@ -178,24 +177,36 @@ const TeamCharts = () => {
     return map;
   }, [rows]);
 
+  // rows visible based on dropdown
   const filtered = useMemo(() => {
     if (format === "All") return rows;
     return rows.filter((r) => r.type === format.toLowerCase());
   }, [rows, format]);
 
-  const labels = filtered.map((r) => r.team);
-  const wins = filtered.map((r) => r.wins);
-  const losses = filtered.map((r) => r.losses);
-  const draws = filtered.map((r) => r.draws);
-  const points = filtered.map((r) => r.points);
-  const nrr = filtered.map((r) => r.nrr);
+  // 👉 sorted by Points desc, then NRR desc (used for charts + table)
+  const sorted = useMemo(() => {
+    const copy = [...filtered];
+    copy.sort((a, b) => (b.points - a.points) || (b.nrr - a.nrr));
+    return copy;
+  }, [filtered]);
 
-  /* ---------- KPIs ---------- */
+  // labels & series follow the same (sorted) order so table and charts match
+  const labels = sorted.map((r) => r.team);
+  const wins = sorted.map((r) => r.wins);
+  const losses = sorted.map((r) => r.losses);
+  const draws = sorted.map((r) => r.draws);
+  const points = sorted.map((r) => r.points);
+  const nrr = sorted.map((r) => r.nrr);
+
+  const winPct = (r) => (r.matches ? Math.round((r.wins / r.matches) * 100) : 0);
+
+  /* ---------- KPIs (for current filter across all visible teams) ---------- */
   const totalMatches = filtered.reduce((s, r) => s + r.matches, 0);
   const totalWins = filtered.reduce((s, r) => s + r.wins, 0);
+  // This is the overall win-rate across ALL visible teams in the selection
   const avgWinRate = totalMatches ? Math.round((totalWins / totalMatches) * 100) : 0;
-  const bestTeam = filtered.slice().sort((a, b) => b.points - a.points)[0]?.team || "—";
-  const bestNRRRow = filtered.slice().sort((a, b) => b.nrr - a.nrr)[0];
+  const bestTeam = sorted[0]?.team || "—";
+  const bestNRRRow = [...filtered].sort((a, b) => b.nrr - a.nrr)[0];
   const bestNRR = bestNRRRow?.nrr > 0 ? `+${bestNRRRow.nrr}` : bestNRRRow?.nrr ?? "—";
 
   /* ---------- chart configs ---------- */
@@ -220,7 +231,7 @@ const TeamCharts = () => {
   };
   const delay = (ctx) => (reduce ? 0 : (ctx.dataIndex || 0) * 80);
 
-  /* ---------- Win-Rate Line (format-aware) ---------- */
+  /* ---------- Win-Rate Line (format-aware selection of teams) ---------- */
   const paletteHex = ["#0ea5e9", "#fb7185", "#22c55e", "#f59e0b", "#a78bfa", "#14b8a6"];
   const toRGBA = (hex) => {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -231,6 +242,7 @@ const TeamCharts = () => {
 
   const lineTeams = useMemo(() => {
     if (format === "All") {
+      // top-4 by total points across formats
       const sums = [];
       byTeam.forEach((obj, name) => {
         const total = formats.reduce((s, f) => s + (obj[f]?.points || 0), 0);
@@ -238,6 +250,7 @@ const TeamCharts = () => {
       });
       return sums.sort((a, b) => b.total - a.total).slice(0, 4).map((t) => t.name);
     }
+    // top-6 in the selected format
     const key = format.toLowerCase();
     const list = rows
       .filter((r) => r.type === key)
@@ -306,7 +319,7 @@ const TeamCharts = () => {
     },
   };
 
-  /* ---------- Bars & combo ---------- */
+  /* ---------- Bars & combo (use sorted order) ---------- */
   const performanceBarData = {
     labels,
     datasets: [
@@ -374,7 +387,6 @@ const TeamCharts = () => {
     );
   }, [seen, reduce, format]);
 
-  // show coachmark when section enters view
   useEffect(() => {
     if (!seen) return;
     setShowCoach(true);
@@ -407,10 +419,10 @@ const TeamCharts = () => {
 
       <div className="tcpro-glass">
         <div className="tcpro-header">
-          <h3 className="tcpro-title">Dashboard</h3>
+          {/* 🔁 renamed */}
+          <h3 className="tcpro-title">Team Performance Insights</h3>
 
           <div className="tcpro-actions">
-            {/* format dropdown */}
             <select
               className="tcpro-select"
               value={format}
@@ -450,7 +462,7 @@ const TeamCharts = () => {
           </div>
         </Tilt>
 
-        {/* Row 2: two charts */}
+        {/* Row 2 */}
         <div className="tcpro-grid">
           <Tilt>
             <div className="tcpro-card-inner">
@@ -481,7 +493,7 @@ const TeamCharts = () => {
             <div className="kpi-title">Matches</div>
             <div className="kpi-value">{totalMatches}</div>
           </div>
-          <div className="tcpro-kpi">
+          <div className="tcpro-kpi" title="Across all teams in the current filter">
             <div className="kpi-title">Avg Win-Rate</div>
             <div className="kpi-value">{avgWinRate}%</div>
           </div>
@@ -495,24 +507,25 @@ const TeamCharts = () => {
           </div>
         </div>
 
-        {/* Compact table (NOW includes Match Type) */}
+        {/* Table */}
         <div className="tcpro-table-wrap">
           <table className="tcpro-table">
             <thead>
               <tr>
                 <th>Team</th>
-                <th>Match Type</th>{/* NEW */}
+                <th>Match Type</th>
                 <th>Matches</th>
                 <th>Wins</th>
                 <th>Losses</th>
                 <th>Draws</th>
                 <th>Points</th>
+                <th>Win %</th> {/* NEW column */}
                 <th>NRR</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((r) => (
-                <tr key={`${r.team}-${r.type}`}>
+              {sorted.map((r, i) => (
+                <tr key={`${r.team}-${r.type}`} className={i < 3 ? `rank${i + 1}` : ""}>
                   <td className="left">{r.team}</td>
                   <td>
                     <span className={`badge-type ${r.type}`}>{(r.type || "").toUpperCase()}</span>
@@ -522,12 +535,14 @@ const TeamCharts = () => {
                   <td className="neg">{r.losses}</td>
                   <td>{r.draws}</td>
                   <td className="pos">{r.points}</td>
+                  <td className="pos">{winPct(r)}%</td>
                   <td className={r.nrr >= 0 ? "pos" : "neg"}>{r.nrr >= 0 ? `+${r.nrr}` : r.nrr}</td>
                 </tr>
               ))}
-              {!filtered.length && (
+
+              {!sorted.length && (
                 <tr>
-                  <td colSpan="8" className="muted">
+                  <td colSpan="9" className="muted">
                     No data for this selection.
                   </td>
                 </tr>
@@ -537,7 +552,7 @@ const TeamCharts = () => {
         </div>
       </div>
 
-      {/* HELP OVERLAY */}
+      {/* Help overlay */}
       {showHelp && (
         <div className="tcpro-help-modal" role="dialog" aria-modal="true" aria-label="Chart help">
           <div className="tcpro-help-panel">
@@ -550,26 +565,26 @@ const TeamCharts = () => {
 
             <div className="help-body">
               <p>
-                Use the <b>Match Type</b> dropdown in the top-right to switch between T20, ODI and Test.
+                Use the <b>Match Type</b> dropdown (top-right) to switch between T20, ODI and Test.
                 All charts, KPIs and the table sync to your selection.
               </p>
 
               <ul className="help-list">
                 <li>
                   <b>Win Rate Trend</b> — Lines show each team’s <i>win percentage</i> in T20/ODI/Test.
-                  Faint fill = confidence; dashed lines represent lower-ranked teams in this view.
+                  Dashed lines highlight lower-ranked teams in this view.
                 </li>
                 <li>
-                  <b>Performance Bar</b> — Grouped bars of <i>wins / losses / draws</i> for visible teams.
+                  <b>Performance Bar</b> — Grouped bars of <i>wins / losses / draws</i> for the visible teams (same order as the table).
                 </li>
                 <li>
                   <b>Combined Bar + Line</b> — Bars are <i>points</i>; the line overlays <i>NRR</i>.
                 </li>
                 <li>
-                  <b>KPIs</b> — Quick totals for the current filter.
+                  <b>KPIs</b> — “Avg Win-Rate” is the overall rate across all teams in the current filter.
                 </li>
                 <li>
-                  <b>Table</b> — Now includes a <i>Match Type</i> pill so you can see the format per row.
+                  <b>Table</b> — Sorted by <i>Points</i> then <i>NRR</i>, shows <i>Win %</i>, and highlights the top 3 rows.
                 </li>
               </ul>
             </div>

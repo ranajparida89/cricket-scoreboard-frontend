@@ -47,7 +47,7 @@
 @keyframes coachIn{ from{ opacity:0; transform:translate(8px,-50%) } to{ opacity:1; transform:translate(0,-50%) } }
 @keyframes coachPulse{ 0%{ transform:translate(0,-50%) scale(1) } 50%{ transform:translate(0,-50%) scale(1.03) } 100%{ transform:translate(0,-50%) scale(1) } }
 
-/* cards */
+/* white cards */
 .tcpro-card{
   background:#ffffff; color:#1b2b3b;
   border:1px solid #e6eef7; border-radius:16px;
@@ -57,7 +57,7 @@
 .tcpro-card:hover{ box-shadow:0 12px 28px rgba(0,0,0,.18); }
 .tcpro-card-inner{ padding:14px 12px; }
 
-/* taller 1st chart */
+/* taller first chart */
 .chart-tall { height: 360px; }
 @media (max-width: 640px){ .chart-tall { height: 300px; } }
 
@@ -92,14 +92,19 @@
 .tcpro-table .neg{ color:#d94160; font-weight:700; }
 .tcpro-table .muted{ color:#97a9ba; text-align:center; }
 
+/* top-3 row highlight */
+.tcpro-table tbody tr.rank1 td{ background:#fff7d6; border-color:#ffe29a; }
+.tcpro-table tbody tr.rank2 td{ background:#e9fbff; border-color:#bfefff; }
+.tcpro-table tbody tr.rank3 td{ background:#f2eaff; border-color:#ddccff; }
+
 /* match type pill */
 .badge-type{
   display:inline-block; padding:4px 10px; border-radius:999px; font-weight:800; font-size:.75rem;
   letter-spacing:.4px; border:1px solid rgba(0,0,0,.05);
 }
-.badge-type.t20{ background:#fff7ed; color:#b45309; }   /* amber-like */
-.badge-type.odi{ background:#eff6ff; color:#1d4ed8; }   /* blue */
-.badge-type.test{ background:#ecfdf5; color:#047857; }  /* green */
+.badge-type.t20{ background:#fff7ed; color:#b45309; }
+.badge-type.odi{ background:#eff6ff; color:#1d4ed8; }
+.badge-type.test{ background:#ecfdf5; color:#047857; }
 
 /* help modal */
 .tcpro-help-modal{
