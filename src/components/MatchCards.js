@@ -1,8 +1,11 @@
-// ✅ src/components/MatchCards.js — compact dark cards + gold accents (complete)
-// ✅ Only ripple effect remains. No 3D/gsap/framer animations.
-// ✅ Buttons use dark theme + gold accent, cards have compact layout.
+// ✅ src/components/MatchCards.js — compact dark cards + gold accents (final)
+// ✅ Matches new MatchCards.css classes:
+//    • Tabs: .format-toggle + .format-btn (.odi | .t20 | .test) + .active
+//    • Card: .match-card.simple (ripple only)
+//    • Section title: .section-heading
+// ✅ No GSAP/Framer — only ripple animation kept.
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { getMatchHistory, getTestMatches } from "../services/api";
 import "./MatchCards.css";
 
@@ -12,6 +15,7 @@ const formatOvers = (decimalOvers = 0) => {
   const balls = Math.round((decimalOvers - fullOvers) * 6);
   return `${fullOvers}.${balls}`;
 };
+
 const formatMatchTitle = (raw = "") => {
   let s = String(raw).split(":")[0];
   s = s
@@ -22,20 +26,35 @@ const formatMatchTitle = (raw = "") => {
     .trim();
   return s.replace(/^(\w)/, (m) => m.toUpperCase());
 };
+
 const getFlag = (teamName) => {
   const n = teamName?.trim().toLowerCase();
   const f = {
-    india: "🇮🇳", australia: "🇦🇺", england: "🏴",
-    "new zealand": "🇳🇿", pakistan: "🇵🇰", "south africa": "🇿🇦",
-    "sri lanka": "🇱🇰", ireland: "🇮🇪", kenya: "🇰🇪", namibia: "🇳🇦",
-    bangladesh: "🇧🇩", afghanistan: "🇦🇫", zimbabwe: "🇿🇼",
-    "west indies": "🏴‍☠️", usa: "🇺🇸", uae: "🇦🇪", oman: "🇴🇲",
-    scotland: "🏴", netherlands: "🇳🇱", nepal: "🇳🇵",
+    india: "🇮🇳",
+    australia: "🇦🇺",
+    england: "🏴",
+    "new zealand": "🇳🇿",
+    pakistan: "🇵🇰",
+    "south africa": "🇿🇦",
+    "sri lanka": "🇱🇰",
+    ireland: "🇮🇪",
+    kenya: "🇰🇪",
+    namibia: "🇳🇦",
+    bangladesh: "🇧🇩",
+    afghanistan: "🇦🇫",
+    zimbabwe: "🇿🇼",
+    "west indies": "🏴‍☠️",
+    usa: "🇺🇸",
+    uae: "🇦🇪",
+    oman: "🇴🇲",
+    scotland: "🏴",
+    netherlands: "🇳🇱",
+    nepal: "🇳🇵",
   };
   return f[n] || "🏳️";
 };
 
-/* ---------- very small ripple-only card shell ---------- */
+/* ---------- ripple-only card ---------- */
 function RippleCard({ children }) {
   const onPointerDown = (e) => {
     const el = e.currentTarget;
@@ -51,16 +70,13 @@ function RippleCard({ children }) {
   };
 
   return (
-    <div
-      className="match-card slumber-compact"
-      onPointerDown={onPointerDown}
-      role="article"
-    >
+    <div className="match-card simple" onPointerDown={onPointerDown} role="article">
       {children}
     </div>
   );
 }
 
+/* ---------- main ---------- */
 const MatchCards = () => {
   const [matches, setMatches] = useState([]);
   const [testMatches, setTestMatches] = useState([]);
@@ -70,13 +86,13 @@ const MatchCards = () => {
     (async () => {
       try {
         const [mh, th] = await Promise.all([
-          getMatchHistory(), // returns ODI + T20 together
-          getTestMatches(),
+          getMatchHistory(), // ODI + T20
+          getTestMatches(),  // Test table
         ]);
         setMatches(Array.isArray(mh) ? mh : []);
         setTestMatches(Array.isArray(th) ? th : []);
       } catch (e) {
-        console.error("Fetch error:", e);
+        console.error("❌ Fetch error (MatchCards):", e);
       }
     })();
   }, []);
@@ -90,35 +106,13 @@ const MatchCards = () => {
     [matches]
   );
 
-  const Button = ({ active, onClick, children }) => (
-    <button
-      onClick={onClick}
-      className="slumber-tab-btn"
-      style={{
-        background: active ? "#0f1b28" : "#0b1622",
-        color: "#e8caa4",
-        border: "1px solid rgba(232,202,164,.38)",
-        boxShadow: active
-          ? "0 0 0 1px rgba(232,202,164,.25), 0 10px 24px rgba(232,202,164,.15)"
-          : "0 6px 16px rgba(0,0,0,.35)",
-      }}
-    >
-      {children}
-    </button>
-  );
-
+  /* ---------- UI bits ---------- */
   const Section = ({ title, list, render }) => (
     <>
-      <div className="d-flex align-items-center justify-content-between mb-3">
-        <h3 className="text-light m-0" style={{ letterSpacing: ".2px" }}>
-          {title}
-        </h3>
-        {/* gold divider under section head like the reference */}
-      </div>
-      <div className="slumber-gold-line" />
-      <div className="row g-3 mt-1">
+      <h3 className="section-heading">{title}</h3>
+      <div className="row g-3">
         {list.length === 0 ? (
-          <p className="text-white mt-2">No {title} available.</p>
+          <p className="text-white mt-1">No {title} available.</p>
         ) : (
           list.map((match, i) => (
             <div key={match.match_name + i} className="col-sm-6 col-lg-4">
@@ -132,26 +126,31 @@ const MatchCards = () => {
 
   const renderLOICard = (m) => (
     <RippleCard>
-      <h6 className="mb-2 text-gold">{formatMatchTitle(m.match_name)}</h6>
+      <div className="match-title">{formatMatchTitle(m.match_name)}</div>
 
-      <div className="d-flex justify-content-between small">
-        <div className="me-2">
-          <div className="fw-bold">
-            {getFlag(m.team1)} {m.team1?.toUpperCase()}{" "}
-            <span className="score">{m.runs1}/{m.wickets1}</span>
+      <div className="teams-row">
+        <div className="team">
+          <div className="name">
+            {getFlag(m.team1)} {m.team1?.toUpperCase()}
           </div>
-          <div className="muted">Overs: {formatOvers(m.overs1)}</div>
+          <div className="score">
+            {m.runs1}/{m.wickets1}
+          </div>
+          <div className="meta">Overs: {formatOvers(m.overs1)}</div>
         </div>
-        <div className="ms-2 text-end">
-          <div className="fw-bold">
-            {getFlag(m.team2)} {m.team2?.toUpperCase()}{" "}
-            <span className="score">{m.runs2}/{m.wickets2}</span>
+
+        <div className="team" style={{ textAlign: "right" }}>
+          <div className="name">
+            {getFlag(m.team2)} {m.team2?.toUpperCase()}
           </div>
-          <div className="muted">Overs: {formatOvers(m.overs2)}</div>
+          <div className="score">
+            {m.runs2}/{m.wickets2}
+          </div>
+          <div className="meta">Overs: {formatOvers(m.overs2)}</div>
         </div>
       </div>
 
-      <div className="win-line mt-2">
+      <div className="result-line">
         <strong>
           🏆{" "}
           {m.winner === "Draw"
@@ -166,33 +165,33 @@ const MatchCards = () => {
 
   const renderTestCard = (m) => (
     <RippleCard>
-      <h6 className="mb-2 text-gold">{formatMatchTitle(m.match_name)}</h6>
+      <div className="match-title">{formatMatchTitle(m.match_name)}</div>
 
-      <div className="small">
-        <div className="fw-bold mb-1">
+      <div className="team-block">
+        <div className="name">
           {getFlag(m.team1)} {m.team1?.toUpperCase()}
         </div>
-        <div className="muted">
-          1st inns: {m.runs1}/{m.wickets1} ({formatOvers(m.overs1)} ov)
+        <div className="meta">
+          1st Innings: {m.runs1}/{m.wickets1} ({formatOvers(m.overs1)} ov)
         </div>
-        <div className="muted">
-          2nd inns: {m.runs1_2}/{m.wickets1_2} ({formatOvers(m.overs1_2)} ov)
+        <div className="meta">
+          2nd Innings: {m.runs1_2}/{m.wickets1_2} ({formatOvers(m.overs1_2)} ov)
         </div>
       </div>
 
-      <div className="small mt-2">
-        <div className="fw-bold mb-1">
+      <div className="team-block" style={{ marginTop: 6 }}>
+        <div className="name">
           {getFlag(m.team2)} {m.team2?.toUpperCase()}
         </div>
-        <div className="muted">
-          1st inns: {m.runs2}/{m.wickets2} ({formatOvers(m.overs2)} ov)
+        <div className="meta">
+          1st Innings: {m.runs2}/{m.wickets2} ({formatOvers(m.overs2)} ov)
         </div>
-        <div className="muted">
-          2nd inns: {m.runs2_2}/{m.wickets2_2} ({formatOvers(m.overs2_2)} ov)
+        <div className="meta">
+          2nd Innings: {m.runs2_2}/{m.wickets2_2} ({formatOvers(m.overs2_2)} ov)
         </div>
       </div>
 
-      <div className="win-line mt-2">
+      <div className="result-line">
         <strong>
           🏆{" "}
           {m.winner === "Draw"
@@ -207,19 +206,34 @@ const MatchCards = () => {
 
   return (
     <div className="container mt-4">
-      {/* tabs row */}
-      <div className="d-flex flex-wrap gap-2 mb-3">
-        <Button active={tab === "ODI"} onClick={() => setTab("ODI")}>
+      {/* Sticky format toggle row (dark + gold) */}
+      <div className="format-toggle">
+        <button
+          className={`format-btn odi ${tab === "ODI" ? "active" : ""}`}
+          onClick={() => setTab("ODI")}
+          type="button"
+        >
           🏏 ODI
-        </Button>
-        <Button active={tab === "T20"} onClick={() => setTab("T20")}>
+        </button>
+
+        <button
+          className={`format-btn t20 ${tab === "T20" ? "active" : ""}`}
+          onClick={() => setTab("T20")}
+          type="button"
+        >
           🔥 T20
-        </Button>
-        <Button active={tab === "Test"} onClick={() => setTab("Test")}>
+        </button>
+
+        <button
+          className={`format-btn test ${tab === "Test" ? "active" : ""}`}
+          onClick={() => setTab("Test")}
+          type="button"
+        >
           🧪 Test
-        </Button>
+        </button>
       </div>
 
+      {/* Lists */}
       {tab === "ODI" && (
         <Section title="ODI Matches" list={odiMatches} render={renderLOICard} />
       )}
@@ -227,11 +241,7 @@ const MatchCards = () => {
         <Section title="T20 Matches" list={t20Matches} render={renderLOICard} />
       )}
       {tab === "Test" && (
-        <Section
-          title="Test Matches"
-          list={testMatches}
-          render={renderTestCard}
-        />
+        <Section title="Test Matches" list={testMatches} render={renderTestCard} />
       )}
     </div>
   );
