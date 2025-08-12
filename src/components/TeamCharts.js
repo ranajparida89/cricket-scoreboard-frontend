@@ -1,5 +1,5 @@
-// ✅ TeamCharts.js — Dashboard charts with format-aware line selection + richer visuals
-// Uses: Chart.js + chartjs-plugin-datalabels, GSAP (reveal), React Spring (tilt), tsparticles (desktop only)
+// ✅ TeamCharts.js — charts + "Match Type" column + info coachmark
+// Uses: Chart.js + chartjs-plugin-datalabels, GSAP, react-spring, tsparticles
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getTeamChartData } from "../services/api";
@@ -38,7 +38,7 @@ ChartJS.register(
   ChartDataLabels
 );
 
-/* ---------- helpers ---------- */
+/* ---------- small helpers ---------- */
 const useReducedMotion = () =>
   typeof window !== "undefined" &&
   window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -68,9 +68,11 @@ const Tilt = ({ children, className = "" }) => {
     const r = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - r.left;
     const y = e.clientY - r.top;
-    const rx = -(y / r.height - 0.5) * 6;
-    const ry = (x / r.width - 0.5) * 6;
-    api.start({ rotateX: rx, rotateY: ry, scale: 1.01 });
+    api.start({
+      rotateX: -(y / r.height - 0.5) * 6,
+      rotateY: (x / r.width - 0.5) * 6,
+      scale: 1.01,
+    });
   };
   const onLeave = () => api.start({ rotateX: 0, rotateY: 0, scale: 1 });
   return (
@@ -97,6 +99,7 @@ const panelBg = {
     const { ctx, chartArea } = chart;
     if (!chartArea) return;
     const { left, right, top, bottom } = chartArea;
+
     // glassy gradient
     const g = ctx.createLinearGradient(0, top, 0, bottom);
     g.addColorStop(0, "rgba(18,42,64,.12)");
@@ -105,7 +108,7 @@ const panelBg = {
     ctx.fillStyle = g;
     ctx.fillRect(left, top, right - left, bottom - top);
 
-    // very faint diagonal stripes
+    // faint diagonal stripes
     ctx.globalAlpha = 0.04;
     ctx.strokeStyle = "#ffffff";
     const gap = 14;
@@ -119,7 +122,7 @@ const panelBg = {
   },
 };
 
-/** soft area fill for each line */
+/** soft fill below each line */
 const areaFill = (ctx, chartArea, rgba) => {
   const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
   g.addColorStop(0, rgba.replace("1)", "0.16)"));
@@ -130,6 +133,10 @@ const areaFill = (ctx, chartArea, rgba) => {
 const TeamCharts = () => {
   const [rows, setRows] = useState([]);
   const [format, setFormat] = useState("All"); // All | T20 | ODI | Test
+
+  // NEW: help states
+  const [showHelp, setShowHelp] = useState(false);
+  const [showCoach, setShowCoach] = useState(false);
 
   const shellRef = useRef(null);
   const seen = useInView(shellRef, 0.2);
@@ -144,10 +151,10 @@ const TeamCharts = () => {
   /* ---------- data fetch ---------- */
   useEffect(() => {
     (async () => {
-      const data = await getTeamChartData(); // <-- your API
+      const data = await getTeamChartData();
       const norm = (data || []).map((t) => ({
         team: t.team_name,
-        type: (t.match_type || "").trim().toLowerCase(), // t20/odi/test
+        type: (t.match_type || "").trim().toLowerCase(), // "t20" | "odi" | "test"
         matches: +t.matches || 0,
         wins: +t.wins || 0,
         losses: +t.losses || 0,
@@ -161,8 +168,7 @@ const TeamCharts = () => {
 
   const formats = ["t20", "odi", "test"];
 
-  /* ---------- maps & filtered sets ---------- */
-  // team → { t20, odi, test }
+  /* ---------- maps & filtered ---------- */
   const byTeam = useMemo(() => {
     const map = new Map();
     for (const r of rows) {
@@ -172,7 +178,6 @@ const TeamCharts = () => {
     return map;
   }, [rows]);
 
-  // rows visible in the table/cards based on the dropdown
   const filtered = useMemo(() => {
     if (format === "All") return rows;
     return rows.filter((r) => r.type === format.toLowerCase());
@@ -185,7 +190,7 @@ const TeamCharts = () => {
   const points = filtered.map((r) => r.points);
   const nrr = filtered.map((r) => r.nrr);
 
-  /* ---------- KPI ---------- */
+  /* ---------- KPIs ---------- */
   const totalMatches = filtered.reduce((s, r) => s + r.matches, 0);
   const totalWins = filtered.reduce((s, r) => s + r.wins, 0);
   const avgWinRate = totalMatches ? Math.round((totalWins / totalMatches) * 100) : 0;
@@ -193,7 +198,7 @@ const TeamCharts = () => {
   const bestNRRRow = filtered.slice().sort((a, b) => b.nrr - a.nrr)[0];
   const bestNRR = bestNRRRow?.nrr > 0 ? `+${bestNRRRow.nrr}` : bestNRRRow?.nrr ?? "—";
 
-  /* ---------- Chart configs ---------- */
+  /* ---------- chart configs ---------- */
   const basePlugins = {
     legend: { position: "top", labels: { color: "#233" } },
     datalabels: { color: "#111", font: { weight: "bold" } },
@@ -215,8 +220,7 @@ const TeamCharts = () => {
   };
   const delay = (ctx) => (reduce ? 0 : (ctx.dataIndex || 0) * 80);
 
-  /* ---------- Win-Rate Line (format-aware team pick) ---------- */
-  // palette helpers
+  /* ---------- Win-Rate Line (format-aware) ---------- */
   const paletteHex = ["#0ea5e9", "#fb7185", "#22c55e", "#f59e0b", "#a78bfa", "#14b8a6"];
   const toRGBA = (hex) => {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -225,9 +229,6 @@ const TeamCharts = () => {
     return `rgba(${r},${g},${b},1)`;
   };
 
-  // Team selection:
-  // - "All"  → top 4 by total points across formats
-  // - "T20"/"ODI"/"Test" → top 6 by points in that format (so Kenya/HK appear in T20)
   const lineTeams = useMemo(() => {
     if (format === "All") {
       const sums = [];
@@ -241,29 +242,26 @@ const TeamCharts = () => {
     const list = rows
       .filter((r) => r.type === key)
       .sort((a, b) => b.points - a.points)
-      .slice(0, 6) // show up to 6 lines for the chosen format
+      .slice(0, 6)
       .map((r) => r.team);
-    return Array.from(new Set(list)); // unique
+    return Array.from(new Set(list));
   }, [format, byTeam, rows]);
 
   const winRateLine = useMemo(() => {
     const datasets = lineTeams.map((team, i) => {
       const color = toRGBA(paletteHex[i % paletteHex.length]);
-      // Always 3 points (T20/ODI/Test). Use 0 where missing → line is continuous.
       const data = formats.map((f) => {
         const r = byTeam.get(team)?.[f];
         return r?.matches ? +((r.wins / r.matches) * 100).toFixed(1) : 0;
       });
-
       return {
         label: team,
         data,
         borderColor: color,
         borderWidth: 3,
-        // fancier visuals for lower-ranked lines
         borderDash: i >= 2 ? [8, 6] : undefined,
         borderDashOffset: (ctx) =>
-          !reduce && i >= 2 ? (Date.now() / 50) % 200 : 0, // "marching dash"
+          !reduce && i >= 2 ? (Date.now() / 50) % 200 : 0,
         pointRadius: (ctx) => (ctx.raw === 0 ? 2 : 4),
         pointHoverRadius: 6,
         pointBackgroundColor: color,
@@ -280,10 +278,7 @@ const TeamCharts = () => {
       };
     });
 
-    return {
-      labels: ["T20", "ODI", "Test"],
-      datasets,
-    };
+    return { labels: ["T20", "ODI", "Test"], datasets };
   }, [lineTeams, byTeam, reduce]);
 
   const winRateOptions = {
@@ -311,7 +306,7 @@ const TeamCharts = () => {
     },
   };
 
-  /* ---------- Grouped Bars: Wins/Losses/Draws ---------- */
+  /* ---------- Bars & combo ---------- */
   const performanceBarData = {
     labels,
     datasets: [
@@ -330,7 +325,6 @@ const TeamCharts = () => {
     scales: axes,
   };
 
-  /* ---------- Combo: Points (bar) + NRR (line) ---------- */
   const combinedData = {
     labels,
     datasets: [
@@ -369,7 +363,7 @@ const TeamCharts = () => {
     },
   };
 
-  /* ---------- Reveal ---------- */
+  /* ---------- animations ---------- */
   useEffect(() => {
     if (!seen || reduce) return;
     const cards = gsap.utils.toArray(".tcpro-card, .tcpro-kpi");
@@ -380,9 +374,17 @@ const TeamCharts = () => {
     );
   }, [seen, reduce, format]);
 
+  // show coachmark when section enters view
+  useEffect(() => {
+    if (!seen) return;
+    setShowCoach(true);
+    const t = setTimeout(() => setShowCoach(false), 4800);
+    return () => clearTimeout(t);
+  }, [seen]);
+
   return (
     <div ref={shellRef} className="tcpro-shell">
-      {/* desktop only particles */}
+      {/* desktop-only particles */}
       {!isTouch && (
         <Particles
           id="tcpro-particles"
@@ -406,7 +408,9 @@ const TeamCharts = () => {
       <div className="tcpro-glass">
         <div className="tcpro-header">
           <h3 className="tcpro-title">Dashboard</h3>
+
           <div className="tcpro-actions">
+            {/* format dropdown */}
             <select
               className="tcpro-select"
               value={format}
@@ -417,6 +421,23 @@ const TeamCharts = () => {
               <option value="ODI">ODI</option>
               <option value="Test">Test</option>
             </select>
+
+            {/* help / coachmark */}
+            <div className="tcpro-help">
+              <button
+                type="button"
+                className="tcpro-help-btn"
+                aria-label="About these charts"
+                onClick={() => setShowHelp(true)}
+              >
+                i
+              </button>
+              {showCoach && (
+                <div className="tcpro-help-coach">
+                  Tip: Select a <b>Match Type</b> to filter all charts.
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -424,16 +445,12 @@ const TeamCharts = () => {
         <Tilt>
           <div className="tcpro-card-inner">
             <div className="chart-tall">
-              <Line
-                data={winRateLine}
-                options={winRateOptions}
-                plugins={[ChartDataLabels, panelBg]}
-              />
+              <Line data={winRateLine} options={winRateOptions} plugins={[ChartDataLabels, panelBg]} />
             </div>
           </div>
         </Tilt>
 
-        {/* Row 2: Two charts side by side on desktop */}
+        {/* Row 2: two charts */}
         <div className="tcpro-grid">
           <Tilt>
             <div className="tcpro-card-inner">
@@ -478,12 +495,13 @@ const TeamCharts = () => {
           </div>
         </div>
 
-        {/* Compact table */}
+        {/* Compact table (NOW includes Match Type) */}
         <div className="tcpro-table-wrap">
           <table className="tcpro-table">
             <thead>
               <tr>
                 <th>Team</th>
+                <th>Match Type</th>{/* NEW */}
                 <th>Matches</th>
                 <th>Wins</th>
                 <th>Losses</th>
@@ -496,6 +514,9 @@ const TeamCharts = () => {
               {filtered.map((r) => (
                 <tr key={`${r.team}-${r.type}`}>
                   <td className="left">{r.team}</td>
+                  <td>
+                    <span className={`badge-type ${r.type}`}>{(r.type || "").toUpperCase()}</span>
+                  </td>
                   <td>{r.matches}</td>
                   <td className="pos">{r.wins}</td>
                   <td className="neg">{r.losses}</td>
@@ -506,7 +527,7 @@ const TeamCharts = () => {
               ))}
               {!filtered.length && (
                 <tr>
-                  <td colSpan="7" className="muted">
+                  <td colSpan="8" className="muted">
                     No data for this selection.
                   </td>
                 </tr>
@@ -515,6 +536,46 @@ const TeamCharts = () => {
           </table>
         </div>
       </div>
+
+      {/* HELP OVERLAY */}
+      {showHelp && (
+        <div className="tcpro-help-modal" role="dialog" aria-modal="true" aria-label="Chart help">
+          <div className="tcpro-help-panel">
+            <div className="help-hdr">
+              <h4>How to read this section</h4>
+              <button className="help-close" onClick={() => setShowHelp(false)} aria-label="Close">
+                ×
+              </button>
+            </div>
+
+            <div className="help-body">
+              <p>
+                Use the <b>Match Type</b> dropdown in the top-right to switch between T20, ODI and Test.
+                All charts, KPIs and the table sync to your selection.
+              </p>
+
+              <ul className="help-list">
+                <li>
+                  <b>Win Rate Trend</b> — Lines show each team’s <i>win percentage</i> in T20/ODI/Test.
+                  Faint fill = confidence; dashed lines represent lower-ranked teams in this view.
+                </li>
+                <li>
+                  <b>Performance Bar</b> — Grouped bars of <i>wins / losses / draws</i> for visible teams.
+                </li>
+                <li>
+                  <b>Combined Bar + Line</b> — Bars are <i>points</i>; the line overlays <i>NRR</i>.
+                </li>
+                <li>
+                  <b>KPIs</b> — Quick totals for the current filter.
+                </li>
+                <li>
+                  <b>Table</b> — Now includes a <i>Match Type</i> pill so you can see the format per row.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

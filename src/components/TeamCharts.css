@@ -1,10 +1,10 @@
 /*******************************************************
- * TeamCharts.css — polished dashboard look
+ * TeamCharts.css — dashboard + coachmark + type badge
  *******************************************************/
 .tcpro-shell{ position:relative; width:100%; padding:24px 10px; }
 #tcpro-particles{ position:absolute; inset:0; pointer-events:none; z-index:0; }
 
-/* outer glass matches your site */
+/* outer glass */
 .tcpro-glass{
   position:relative; z-index:1;
   border-radius:18px;
@@ -19,17 +19,35 @@
 
 /* header */
 .tcpro-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-.tcpro-title{
-  margin:0; color:#bffcff; font-weight:800;
-  text-shadow:0 2px 12px rgba(0,255,170,.25);
-}
-.tcpro-actions{ display:flex; gap:10px; }
+.tcpro-title{ margin:0; color:#bffcff; font-weight:800; text-shadow:0 2px 12px rgba(0,255,170,.25); }
+.tcpro-actions{ display:flex; align-items:center; gap:10px; }
 .tcpro-select{
   background:#ffffff; color:#1b2b3b; border:1px solid #e6eef7; border-radius:12px;
   padding:10px 12px; font-weight:600;
 }
 
-/* card — white, soft shadow like your reference screenshot */
+/* help button + coachmark */
+.tcpro-help{ position:relative; }
+.tcpro-help-btn{
+  width:38px; height:38px; border-radius:999px; border:0; cursor:pointer;
+  font-weight:900; font-size:18px; line-height:38px;
+  background: radial-gradient(100% 100% at 70% 20%, #c1fff0, #60f4b9 70%, #00d19d);
+  color:#0b2532; box-shadow:0 8px 18px rgba(0,0,0,.25);
+  transition: transform .15s ease;
+}
+.tcpro-help-btn:hover{ transform: translateY(-1px); }
+
+.tcpro-help-coach{
+  position:absolute; right:46px; top:50%; transform:translateY(-50%);
+  background:#0f2234; color:#dff2ff; border:1px solid rgba(255,255,255,.12);
+  border-radius:10px; padding:10px 12px; white-space:nowrap;
+  box-shadow:0 10px 24px rgba(0,0,0,.35);
+  animation: coachIn .35s ease-out both, coachPulse 1.2s ease-in-out 0.35s 3;
+}
+@keyframes coachIn{ from{ opacity:0; transform:translate(8px,-50%) } to{ opacity:1; transform:translate(0,-50%) } }
+@keyframes coachPulse{ 0%{ transform:translate(0,-50%) scale(1) } 50%{ transform:translate(0,-50%) scale(1.03) } 100%{ transform:translate(0,-50%) scale(1) } }
+
+/* cards */
 .tcpro-card{
   background:#ffffff; color:#1b2b3b;
   border:1px solid #e6eef7; border-radius:16px;
@@ -43,18 +61,12 @@
 .chart-tall { height: 360px; }
 @media (max-width: 640px){ .chart-tall { height: 300px; } }
 
-/* grid for the two charts */
-.tcpro-grid{
-  display:grid; grid-template-columns: 1fr 1fr; gap:12px;
-}
-@media (max-width: 960px){
-  .tcpro-grid{ grid-template-columns: 1fr; }
-}
+/* grid */
+.tcpro-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+@media (max-width: 960px){ .tcpro-grid{ grid-template-columns: 1fr; } }
 
 /* KPIs */
-.tcpro-kpis{
-  display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin:10px 6px 6px;
-}
+.tcpro-kpis{ display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin:10px 6px 6px; }
 .tcpro-kpi{
   background:#fff; border:1px solid #e6eef7; border-radius:14px;
   box-shadow:0 6px 18px rgba(0,0,0,.12);
@@ -62,15 +74,11 @@
 }
 .kpi-title{ color:#4a5a6a; font-weight:700; font-size:.9rem; }
 .kpi-value{ color:#0f1e2d; font-weight:800; font-size:1.25rem; }
-@media (max-width: 900px){
-  .tcpro-kpis{ grid-template-columns: repeat(2, 1fr); }
-}
+@media (max-width: 900px){ .tcpro-kpis{ grid-template-columns: repeat(2, 1fr); } }
 
-/* compact table */
+/* table */
 .tcpro-table-wrap{ overflow-x:auto; margin-top:12px; }
-.tcpro-table{
-  width:100%; border-collapse:separate; border-spacing:0 8px;
-}
+.tcpro-table{ width:100%; border-collapse:separate; border-spacing:0 8px; }
 .tcpro-table thead th{
   background:#f6f9fe; color:#163049; font-weight:800;
   padding:12px 10px; border:1px solid #e6eef7;
@@ -84,7 +92,36 @@
 .tcpro-table .neg{ color:#d94160; font-weight:700; }
 .tcpro-table .muted{ color:#97a9ba; text-align:center; }
 
-/* Mobile/touch stability */
+/* match type pill */
+.badge-type{
+  display:inline-block; padding:4px 10px; border-radius:999px; font-weight:800; font-size:.75rem;
+  letter-spacing:.4px; border:1px solid rgba(0,0,0,.05);
+}
+.badge-type.t20{ background:#fff7ed; color:#b45309; }   /* amber-like */
+.badge-type.odi{ background:#eff6ff; color:#1d4ed8; }   /* blue */
+.badge-type.test{ background:#ecfdf5; color:#047857; }  /* green */
+
+/* help modal */
+.tcpro-help-modal{
+  position:fixed; inset:0; background:rgba(2,6,12,.55);
+  display:flex; align-items:center; justify-content:center; padding:16px; z-index:999;
+  backdrop-filter: blur(2px);
+}
+.tcpro-help-panel{
+  width:min(720px, 92vw);
+  background:#0e1a2b; color:#eaf6ff; border:1px solid rgba(255,255,255,.10);
+  border-radius:16px; box-shadow:0 20px 50px rgba(0,0,0,.5);
+}
+.help-hdr{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.08); }
+.help-hdr h4{ margin:0; font-weight:800; letter-spacing:.3px; }
+.help-close{
+  background:transparent; color:#eaf6ff; border:0; font-size:22px; cursor:pointer; line-height:1;
+}
+.help-body{ padding:14px; }
+.help-list{ margin:10px 0 0 18px; }
+.help-list li{ margin:6px 0; }
+
+/* mobile/touch stability */
 @media (max-width: 900px), (pointer: coarse){
   #tcpro-particles{ display:none !important; }
   .tcpro-glass{ backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
