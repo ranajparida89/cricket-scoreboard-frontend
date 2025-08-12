@@ -51,13 +51,13 @@ const getUid = (m) =>
   `${m?.match_name || ""}|${m?.team1 || ""}|${m?.team2 || ""}|${m?.runs1 || ""}|${m?.runs2 || ""}|${m?.created_at || ""}`;
 
 /* Live detection: explicit flag or "in-progress" looking winner text. */
+// Treat these phrases as “in progress”
+const LIVE_RE = /\b(live|in progress|stumps|day\s*\d|session)\b/i;
 const isLiveRow = (m) => {
-  const w = (m?.winner || "").toLowerCase();
-  return (
-    m?.is_live === true ||
-    (!w || /live|in progress|stumps|day\s+\d|session|*abandoned*/.test(w))
-  );
+  const w = m?.winner || "";
+  return m?.is_live === true || (!w || LIVE_RE.test(w));
 };
+
 
 /* Ripple-only card shell */
 function RippleCard({ children, live, recent }) {
