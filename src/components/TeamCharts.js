@@ -1,9 +1,10 @@
-// ✅ TeamCharts.js — Team Performance Insights
-// Charts + sorted table (Points→NRR), Win% column, Top-3 row highlight, coachmark
-// Uses: Chart.js + chartjs-plugin-datalabels, GSAP, react-spring, tsparticles
+// ✅ TeamCharts.js — Team Performance Insights (LOI points, Test points, pointer arrow)
+// Data:
+//  - /api/team-rankings → points + nrr (T20/ODI/Test) and W/L/D for Test
+//  - /api/match-history?match_type=T20|ODI → parse winner text → W/L/D & LOI points (Win=2, Draw/Tie=1, Loss=0)
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { getTeamChartData } from "../services/api";
+import { getTeamChartData, getMatchHistory } from "../services/api";
 import "./TeamCharts.css";
 
 import {
@@ -93,14 +94,13 @@ const Tilt = ({ children, className = "" }) => {
   );
 };
 
-/** chart background: gradient + faint stripes */
+/* panel background */
 const panelBg = {
   id: "panel_bg",
   beforeDraw(chart) {
     const { ctx, chartArea } = chart;
     if (!chartArea) return;
     const { left, right, top, bottom } = chartArea;
-
     const g = ctx.createLinearGradient(0, top, 0, bottom);
     g.addColorStop(0, "rgba(18,42,64,.12)");
     g.addColorStop(1, "rgba(14,28,44,.04)");
@@ -120,8 +120,6 @@ const panelBg = {
     ctx.restore();
   },
 };
-
-/** soft fill below each line */
 const areaFill = (ctx, chartArea, rgba) => {
   const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
   g.addColorStop(0, rgba.replace("1)", "0.16)"));
@@ -129,13 +127,30 @@ const areaFill = (ctx, chartArea, rgba) => {
   return g;
 };
 
+/* ---------- LOI winner parser ---------- */
+const parseLOIOutcome = (winnerStr, team1, team2) => {
+  const w = (winnerStr || "").toLowerCase();
+  const isDraw =
+    w.includes("draw") || w.includes("no result") || w.includes("tie");
+  if (isDraw) return { outcome: "draw" };
+  if (w.includes("won")) {
+    const nameGuess = winnerStr.split(/ won/i)[0].trim();
+    const norm = (s) => (s || "").replace(/[^\w\s]/g, "").trim().toLowerCase();
+    if (norm(nameGuess) === norm(team1)) return { outcome: "win", winner: team1 };
+    if (norm(nameGuess) === norm(team2)) return { outcome: "win", winner: team2 };
+    if (norm(nameGuess).includes(norm(team1))) return { outcome: "win", winner: team1 };
+    if (norm(nameGuess).includes(norm(team2))) return { outcome: "win", winner: team2 };
+  }
+  return { outcome: "unknown" };
+};
+
 const TeamCharts = () => {
   const [rows, setRows] = useState([]);
-  const [format, setFormat] = useState("All"); // All | T20 | ODI | Test
+  const [format, setFormat] = useState("All");
 
-  // help/coachmark
   const [showHelp, setShowHelp] = useState(false);
-  const [showCoach, setShowCoach] = useState(false);
+  const [showCoach, setShowCoach] = useState(false);   // bubble tip
+  const [showPointer, setShowPointer] = useState(false); // arrow pointer
 
   const shellRef = useRef(null);
   const seen = useInView(shellRef, 0.2);
@@ -147,69 +162,130 @@ const TeamCharts = () => {
 
   const particlesInit = async (engine) => await loadFull(engine);
 
-  /* ---------- data fetch ---------- */
+  /* ---------- fetch & unify ---------- */
   useEffect(() => {
     (async () => {
-      const data = await getTeamChartData(); // expects fields like: team_name, match_type, matches, wins, losses, draws, points, nrr
-      const norm = (data || []).map((t) => ({
-        team: t.team_name,
-        type: (t.match_type || "").trim().toLowerCase(), // "t20" | "odi" | "test"
-        matches: +t.matches || 0,
-        wins: +t.wins || 0,
-        losses: +t.losses || 0,
-        draws: +t.draws || 0,
-        points: +t.points || 0,
-        nrr: isNaN(+t.nrr) ? 0 : +(+t.nrr).toFixed(2),
-      }));
-      setRows(norm);
+      // 1) rankings for all formats (Test includes W/L/D; LOI gives points+NRR)
+      const rankingRows = await getTeamChartData();
+      const rKey = (team, type) => `${team.toLowerCase()}|${type.toLowerCase()}`;
+      const rankingMap = new Map();
+      for (const r of rankingRows || []) {
+        if (!r.team_name || !r.match_type) continue;
+        rankingMap.set(
+          rKey(r.team_name, r.match_type),
+          {
+            points: Number(r.points) || 0,
+            nrr: r.nrr == null ? 0 : Number(r.nrr),
+            matches: Number(r.matches) || 0,
+            wins: Number(r.wins) || 0,
+            losses: Number(r.losses) || 0,
+            draws: Number(r.draws) || 0,
+            type: (r.match_type || "").trim(),
+            team: r.team_name,
+          }
+        );
+      }
+
+      // 2) build LOI W/L/D & points from raw match_history (Win=2, Draw/Tie=1)
+      const [t20Hist, odiHist] = await Promise.all([
+        getMatchHistory({ match_type: "T20" }),
+        getMatchHistory({ match_type: "ODI" }),
+      ]);
+      const acc = new Map();
+      const bump = (team, type, field, n = 1) => {
+        const key = rKey(team, type);
+        if (!acc.has(key)) {
+          acc.set(key, { team, type, matches: 0, wins: 0, losses: 0, draws: 0, points: 0, nrr: 0 });
+        }
+        acc.get(key)[field] += n;
+      };
+      const processLOI = (list, type) => {
+        for (const m of list || []) {
+          if (!m.team1 || !m.team2) continue;
+          bump(m.team1, type, "matches");
+          bump(m.team2, type, "matches");
+          const { outcome, winner } = parseLOIOutcome(m.winner, m.team1, m.team2);
+          if (outcome === "draw") {
+            bump(m.team1, type, "draws"); bump(m.team2, type, "draws");
+            bump(m.team1, type, "points", 1); bump(m.team2, type, "points", 1);
+          } else if (outcome === "win" && winner) {
+            const loser = winner === m.team1 ? m.team2 : m.team1;
+            bump(winner, type, "wins"); bump(loser, type, "losses");
+            bump(winner, type, "points", 2);
+          }
+        }
+      };
+      processLOI(t20Hist, "T20");
+      processLOI(odiHist, "ODI");
+
+      // merge NRR / prefer ranking points if present
+      for (const [key, stat] of acc) {
+        const r = rankingMap.get(key);
+        if (r) {
+          stat.nrr = r.nrr ?? 0;
+          if (!Number.isNaN(Number(r.points))) stat.points = Number(r.points);
+        }
+      }
+      // add LOI rows that exist only in rankings
+      for (const [key, r] of rankingMap) {
+        const [, type] = key.split("|");
+        const typeUp = (type || "").toUpperCase();
+        if ((typeUp === "T20" || typeUp === "ODI") && !acc.has(key)) {
+          acc.set(key, {
+            team: r.team, type: typeUp, matches: r.matches || 0,
+            wins: 0, losses: 0, draws: 0, points: r.points || 0, nrr: r.nrr ?? 0,
+          });
+        }
+      }
+
+      // 3) Test direct from rankings (Win=12, Loss=6, Draw=4 already applied in SQL)
+      const testRows = (rankingRows || [])
+        .filter((r) => (r.match_type || "").toUpperCase() === "TEST")
+        .map((r) => ({
+          team: r.team_name, type: "Test",
+          matches: Number(r.matches) || 0,
+          wins: Number(r.wins) || 0,
+          losses: Number(r.losses) || 0,
+          draws: Number(r.draws) || 0,
+          points: Number(r.points) || 0,
+          nrr: 0,
+        }));
+
+      setRows([...Array.from(acc.values()), ...testRows]);
     })();
   }, []);
 
   const formats = ["t20", "odi", "test"];
 
-  /* ---------- maps & filtered ---------- */
-  const byTeam = useMemo(() => {
-    const map = new Map();
-    for (const r of rows) {
-      if (!map.has(r.team)) map.set(r.team, {});
-      map.get(r.team)[r.type] = r;
-    }
-    return map;
-  }, [rows]);
-
-  // rows visible based on dropdown
+  /* ---------- filter + sort ---------- */
   const filtered = useMemo(() => {
     if (format === "All") return rows;
-    return rows.filter((r) => r.type === format.toLowerCase());
+    return rows.filter((r) => r.type?.toLowerCase() === format.toLowerCase());
   }, [rows, format]);
 
-  // 👉 sorted by Points desc, then NRR desc (used for charts + table)
   const sorted = useMemo(() => {
     const copy = [...filtered];
     copy.sort((a, b) => (b.points - a.points) || (b.nrr - a.nrr));
     return copy;
   }, [filtered]);
 
-  // labels & series follow the same (sorted) order so table and charts match
   const labels = sorted.map((r) => r.team);
   const wins = sorted.map((r) => r.wins);
   const losses = sorted.map((r) => r.losses);
   const draws = sorted.map((r) => r.draws);
   const points = sorted.map((r) => r.points);
   const nrr = sorted.map((r) => r.nrr);
-
   const winPct = (r) => (r.matches ? Math.round((r.wins / r.matches) * 100) : 0);
 
-  /* ---------- KPIs (for current filter across all visible teams) ---------- */
-  const totalMatches = filtered.reduce((s, r) => s + r.matches, 0);
-  const totalWins = filtered.reduce((s, r) => s + r.wins, 0);
-  // This is the overall win-rate across ALL visible teams in the selection
+  /* ---------- KPIs ---------- */
+  const totalMatches = filtered.reduce((s, r) => s + (r.matches || 0), 0);
+  const totalWins = filtered.reduce((s, r) => s + (r.wins || 0), 0);
   const avgWinRate = totalMatches ? Math.round((totalWins / totalMatches) * 100) : 0;
   const bestTeam = sorted[0]?.team || "—";
   const bestNRRRow = [...filtered].sort((a, b) => b.nrr - a.nrr)[0];
   const bestNRR = bestNRRRow?.nrr > 0 ? `+${bestNRRRow.nrr}` : bestNRRRow?.nrr ?? "—";
 
-  /* ---------- chart configs ---------- */
+  /* ---------- charts ---------- */
   const basePlugins = {
     legend: { position: "top", labels: { color: "#233" } },
     datalabels: { color: "#111", font: { weight: "bold" } },
@@ -223,15 +299,20 @@ const TeamCharts = () => {
   };
   const axes = {
     x: { ticks: { color: "#475569" }, grid: { color: "rgba(0,0,0,.05)" } },
-    y: {
-      beginAtZero: true,
-      ticks: { color: "#475569" },
-      grid: { color: "rgba(0,0,0,.05)" },
-    },
+    y: { beginAtZero: true, ticks: { color: "#475569" }, grid: { color: "rgba(0,0,0,.05)" } },
   };
-  const delay = (ctx) => (reduce ? 0 : (ctx.dataIndex || 0) * 80);
+  const reduceDelay = useReducedMotion();
+  const delay = (ctx) => (reduceDelay ? 0 : (ctx.dataIndex || 0) * 80);
 
-  /* ---------- Win-Rate Line (format-aware selection of teams) ---------- */
+  const byTeam = useMemo(() => {
+    const map = new Map();
+    for (const r of rows) {
+      if (!map.has(r.team)) map.set(r.team, {});
+      map.get(r.team)[r.type?.toLowerCase()] = r;
+    }
+    return map;
+  }, [rows]);
+
   const paletteHex = ["#0ea5e9", "#fb7185", "#22c55e", "#f59e0b", "#a78bfa", "#14b8a6"];
   const toRGBA = (hex) => {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -242,28 +323,25 @@ const TeamCharts = () => {
 
   const lineTeams = useMemo(() => {
     if (format === "All") {
-      // top-4 by total points across formats
-      const sums = [];
+      const totals = [];
       byTeam.forEach((obj, name) => {
-        const total = formats.reduce((s, f) => s + (obj[f]?.points || 0), 0);
-        sums.push({ name, total });
+        const total = (obj.t20?.points || 0) + (obj.odi?.points || 0) + (obj.test?.points || 0);
+        totals.push({ name, total });
       });
-      return sums.sort((a, b) => b.total - a.total).slice(0, 4).map((t) => t.name);
+      return totals.sort((a, b) => b.total - a.total).slice(0, 4).map((t) => t.name);
     }
-    // top-6 in the selected format
     const key = format.toLowerCase();
-    const list = rows
-      .filter((r) => r.type === key)
+    return rows
+      .filter((r) => r.type?.toLowerCase() === key)
       .sort((a, b) => b.points - a.points)
       .slice(0, 6)
       .map((r) => r.team);
-    return Array.from(new Set(list));
   }, [format, byTeam, rows]);
 
   const winRateLine = useMemo(() => {
     const datasets = lineTeams.map((team, i) => {
       const color = toRGBA(paletteHex[i % paletteHex.length]);
-      const data = formats.map((f) => {
+      const data = ["t20", "odi", "test"].map((f) => {
         const r = byTeam.get(team)?.[f];
         return r?.matches ? +((r.wins / r.matches) * 100).toFixed(1) : 0;
       });
@@ -273,8 +351,7 @@ const TeamCharts = () => {
         borderColor: color,
         borderWidth: 3,
         borderDash: i >= 2 ? [8, 6] : undefined,
-        borderDashOffset: (ctx) =>
-          !reduce && i >= 2 ? (Date.now() / 50) % 200 : 0,
+        borderDashOffset: (ctx) => (!reduce && i >= 2 ? (Date.now() / 50) % 200 : 0),
         pointRadius: (ctx) => (ctx.raw === 0 ? 2 : 4),
         pointHoverRadius: 6,
         pointBackgroundColor: color,
@@ -290,7 +367,6 @@ const TeamCharts = () => {
         },
       };
     });
-
     return { labels: ["T20", "ODI", "Test"], datasets };
   }, [lineTeams, byTeam, reduce]);
 
@@ -319,7 +395,6 @@ const TeamCharts = () => {
     },
   };
 
-  /* ---------- Bars & combo (use sorted order) ---------- */
   const performanceBarData = {
     labels,
     datasets: [
@@ -376,7 +451,7 @@ const TeamCharts = () => {
     },
   };
 
-  /* ---------- animations ---------- */
+  /* ---------- animations & pointers ---------- */
   useEffect(() => {
     if (!seen || reduce) return;
     const cards = gsap.utils.toArray(".tcpro-card, .tcpro-kpi");
@@ -390,13 +465,14 @@ const TeamCharts = () => {
   useEffect(() => {
     if (!seen) return;
     setShowCoach(true);
-    const t = setTimeout(() => setShowCoach(false), 4800);
-    return () => clearTimeout(t);
+    setShowPointer(true);
+    const t1 = setTimeout(() => setShowCoach(false), 4200);
+    const t2 = setTimeout(() => setShowPointer(false), 5200);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [seen]);
 
   return (
     <div ref={shellRef} className="tcpro-shell">
-      {/* desktop-only particles */}
       {!isTouch && (
         <Particles
           id="tcpro-particles"
@@ -419,10 +495,16 @@ const TeamCharts = () => {
 
       <div className="tcpro-glass">
         <div className="tcpro-header">
-          {/* 🔁 renamed */}
           <h3 className="tcpro-title">Team Performance Insights</h3>
 
           <div className="tcpro-actions">
+            {/* pointer arrow that nudges the user to choose match type */}
+            {showPointer && (
+              <div className="tcpro-pointer" role="status">
+                <span className="tcpro-pointer-text">Please select <b>Match Type</b></span>
+              </div>
+            )}
+
             <select
               className="tcpro-select"
               value={format}
@@ -453,7 +535,7 @@ const TeamCharts = () => {
           </div>
         </div>
 
-        {/* Row 1: Win rate line */}
+        {/* Win rate line */}
         <Tilt>
           <div className="tcpro-card-inner">
             <div className="chart-tall">
@@ -462,7 +544,7 @@ const TeamCharts = () => {
           </div>
         </Tilt>
 
-        {/* Row 2 */}
+        {/* Two charts */}
         <div className="tcpro-grid">
           <Tilt>
             <div className="tcpro-card-inner">
@@ -489,27 +571,17 @@ const TeamCharts = () => {
 
         {/* KPIs */}
         <div className="tcpro-kpis">
-          <div className="tcpro-kpi">
-            <div className="kpi-title">Matches</div>
-            <div className="kpi-value">{totalMatches}</div>
-          </div>
+          <div className="tcpro-kpi"><div className="kpi-title">Matches</div><div className="kpi-value">{totalMatches}</div></div>
           <div className="tcpro-kpi" title="Across all teams in the current filter">
-            <div className="kpi-title">Avg Win-Rate</div>
-            <div className="kpi-value">{avgWinRate}%</div>
+            <div className="kpi-title">Avg Win-Rate</div><div className="kpi-value">{avgWinRate}%</div>
           </div>
-          <div className="tcpro-kpi">
-            <div className="kpi-title">Best Team</div>
-            <div className="kpi-value">{bestTeam}</div>
-          </div>
-          <div className="tcpro-kpi">
-            <div className="kpi-title">Best NRR</div>
-            <div className="kpi-value">{bestNRR}</div>
-          </div>
+          <div className="tcpro-kpi"><div className="kpi-title">Best Team</div><div className="kpi-value">{bestTeam}</div></div>
+          <div className="tcpro-kpi"><div className="kpi-title">Best NRR</div><div className="kpi-value">{bestNRR}</div></div>
         </div>
 
-        {/* Table */}
+        {/* Pretty table */}
         <div className="tcpro-table-wrap">
-          <table className="tcpro-table">
+          <table className="tcpro-table tcpro-table--pretty">
             <thead>
               <tr>
                 <th>Team</th>
@@ -519,17 +591,18 @@ const TeamCharts = () => {
                 <th>Losses</th>
                 <th>Draws</th>
                 <th>Points</th>
-                <th>Win %</th> {/* NEW column */}
+                <th>Win %</th>
                 <th>NRR</th>
               </tr>
             </thead>
             <tbody>
               {sorted.map((r, i) => (
                 <tr key={`${r.team}-${r.type}`} className={i < 3 ? `rank${i + 1}` : ""}>
-                  <td className="left">{r.team}</td>
-                  <td>
-                    <span className={`badge-type ${r.type}`}>{(r.type || "").toUpperCase()}</span>
+                  <td className="left">
+                    {i < 3 && <span className={`medal m${i + 1}`} aria-hidden="true" />}
+                    {r.team}
                   </td>
+                  <td><span className={`badge-type ${r.type?.toLowerCase()}`}>{(r.type || "").toUpperCase()}</span></td>
                   <td>{r.matches}</td>
                   <td className="pos">{r.wins}</td>
                   <td className="neg">{r.losses}</td>
@@ -539,13 +612,8 @@ const TeamCharts = () => {
                   <td className={r.nrr >= 0 ? "pos" : "neg"}>{r.nrr >= 0 ? `+${r.nrr}` : r.nrr}</td>
                 </tr>
               ))}
-
               {!sorted.length && (
-                <tr>
-                  <td colSpan="9" className="muted">
-                    No data for this selection.
-                  </td>
-                </tr>
+                <tr><td colSpan="9" className="muted">No data for this selection.</td></tr>
               )}
             </tbody>
           </table>
@@ -558,34 +626,15 @@ const TeamCharts = () => {
           <div className="tcpro-help-panel">
             <div className="help-hdr">
               <h4>How to read this section</h4>
-              <button className="help-close" onClick={() => setShowHelp(false)} aria-label="Close">
-                ×
-              </button>
+              <button className="help-close" onClick={() => setShowHelp(false)} aria-label="Close">×</button>
             </div>
-
             <div className="help-body">
-              <p>
-                Use the <b>Match Type</b> dropdown (top-right) to switch between T20, ODI and Test.
-                All charts, KPIs and the table sync to your selection.
-              </p>
-
+              <p>Use the <b>Match Type</b> dropdown to switch between T20, ODI and Test. All charts & KPIs sync.</p>
               <ul className="help-list">
-                <li>
-                  <b>Win Rate Trend</b> — Lines show each team’s <i>win percentage</i> in T20/ODI/Test.
-                  Dashed lines highlight lower-ranked teams in this view.
-                </li>
-                <li>
-                  <b>Performance Bar</b> — Grouped bars of <i>wins / losses / draws</i> for the visible teams (same order as the table).
-                </li>
-                <li>
-                  <b>Combined Bar + Line</b> — Bars are <i>points</i>; the line overlays <i>NRR</i>.
-                </li>
-                <li>
-                  <b>KPIs</b> — “Avg Win-Rate” is the overall rate across all teams in the current filter.
-                </li>
-                <li>
-                  <b>Table</b> — Sorted by <i>Points</i> then <i>NRR</i>, shows <i>Win %</i>, and highlights the top 3 rows.
-                </li>
+                <li><b>LOI points</b>: Win=2, Loss=0, Tie/Draw/NR=1.</li>
+                <li><b>Test points</b>: Win=12, Loss=6, Draw=4.</li>
+                <li><b>Win Rate Trend</b> shows win% across formats for the top teams.</li>
+                <li><b>Table</b> is sorted by <i>Points</i> then <i>NRR</i> and highlights the top 3.</li>
               </ul>
             </div>
           </div>

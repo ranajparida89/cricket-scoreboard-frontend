@@ -1,10 +1,7 @@
-/*******************************************************
- * TeamCharts.css — dashboard + coachmark + type badge
- *******************************************************/
+/* ========== shell & glass (unchanged basics) ========== */
 .tcpro-shell{ position:relative; width:100%; padding:24px 10px; }
 #tcpro-particles{ position:absolute; inset:0; pointer-events:none; z-index:0; }
 
-/* outer glass */
 .tcpro-glass{
   position:relative; z-index:1;
   border-radius:18px;
@@ -20,11 +17,27 @@
 /* header */
 .tcpro-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
 .tcpro-title{ margin:0; color:#bffcff; font-weight:800; text-shadow:0 2px 12px rgba(0,255,170,.25); }
-.tcpro-actions{ display:flex; align-items:center; gap:10px; }
+.tcpro-actions{ position:relative; display:flex; align-items:center; gap:10px; }
 .tcpro-select{
   background:#ffffff; color:#1b2b3b; border:1px solid #e6eef7; border-radius:12px;
-  padding:10px 12px; font-weight:600;
+  padding:10px 12px; font-weight:600; min-width:120px;
 }
+
+/* pointer arrow next to the select */
+.tcpro-pointer{
+  position:absolute; right:145px; top:-10px;
+  background:#ffffff; color:#0b2435; border:1px solid #e6eef7;
+  padding:8px 12px; border-radius:10px; box-shadow:0 10px 22px rgba(0,0,0,.15);
+  font-weight:700; z-index:2; animation: pointerIn .4s ease-out both, pointerPulse 1.5s ease-in-out .4s 2;
+}
+.tcpro-pointer:after{
+  content:""; position:absolute; right:-8px; top:50%; transform:translateY(-50%);
+  width:0; height:0; border-left:8px solid #fff; border-top:8px solid transparent; border-bottom:8px solid transparent;
+  filter: drop-shadow(0 0 0 #e6eef7);
+}
+@keyframes pointerIn{ from{ opacity:0; transform:translateY(-6px)} to{ opacity:1; transform:translateY(0)} }
+@keyframes pointerPulse{ 0%,100%{ transform:translateY(0)} 50%{ transform:translateY(-2px)} }
+.tcpro-pointer-text{ white-space:nowrap; }
 
 /* help button + coachmark */
 .tcpro-help{ position:relative; }
@@ -42,12 +55,12 @@
   background:#0f2234; color:#dff2ff; border:1px solid rgba(255,255,255,.12);
   border-radius:10px; padding:10px 12px; white-space:nowrap;
   box-shadow:0 10px 24px rgba(0,0,0,.35);
-  animation: coachIn .35s ease-out both, coachPulse 1.2s ease-in-out 0.35s 3;
+  animation: coachIn .35s ease-out both, coachPulse 1.2s ease-in-out .35s 3;
 }
-@keyframes coachIn{ from{ opacity:0; transform:translate(8px,-50%) } to{ opacity:1; transform:translate(0,-50%) } }
-@keyframes coachPulse{ 0%{ transform:translate(0,-50%) scale(1) } 50%{ transform:translate(0,-50%) scale(1.03) } 100%{ transform:translate(0,-50%) scale(1) } }
+@keyframes coachIn{ from{ opacity:0; transform:translate(8px,-50%)} to{ opacity:1; transform:translate(0,-50%)} }
+@keyframes coachPulse{ 0%{ transform:translate(0,-50%) scale(1)} 50%{ transform:translate(0,-50%) scale(1.03)} 100%{ transform:translate(0,-50%) scale(1)} }
 
-/* white cards */
+/* cards */
 .tcpro-card{
   background:#ffffff; color:#1b2b3b;
   border:1px solid #e6eef7; border-radius:16px;
@@ -57,11 +70,10 @@
 .tcpro-card:hover{ box-shadow:0 12px 28px rgba(0,0,0,.18); }
 .tcpro-card-inner{ padding:14px 12px; }
 
-/* taller first chart */
+/* charts */
 .chart-tall { height: 360px; }
 @media (max-width: 640px){ .chart-tall { height: 300px; } }
 
-/* grid */
 .tcpro-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
 @media (max-width: 960px){ .tcpro-grid{ grid-template-columns: 1fr; } }
 
@@ -76,26 +88,24 @@
 .kpi-value{ color:#0f1e2d; font-weight:800; font-size:1.25rem; }
 @media (max-width: 900px){ .tcpro-kpis{ grid-template-columns: repeat(2, 1fr); } }
 
-/* table */
+/* ========== pretty table ========== */
 .tcpro-table-wrap{ overflow-x:auto; margin-top:12px; }
 .tcpro-table{ width:100%; border-collapse:separate; border-spacing:0 8px; }
 .tcpro-table thead th{
-  background:#f6f9fe; color:#163049; font-weight:800;
-  padding:12px 10px; border:1px solid #e6eef7;
+  position:sticky; top:0; z-index:1;
+  background:#0e2337; color:#d8ecff; font-weight:900; letter-spacing:.2px;
+  padding:12px 10px; border:1px solid rgba(255,255,255,.06);
+  text-transform:uppercase; font-size:.78rem;
 }
-.tcpro-table tbody td{
-  background:#ffffff; color:#1b2b3b; padding:12px 10px;
-  border:1px solid #e6eef7;
+.tcpro-table--pretty tbody td{
+  background:#ffffff; color:#0f1e2d; padding:12px 10px;
+  border:1px solid #e6eef7; transition: background .15s ease, transform .15s ease;
 }
+.tcpro-table--pretty tbody tr:hover td{ background:#f9fbff; }
 .tcpro-table .left{ text-align:left; }
 .tcpro-table .pos{ color:#0ea35a; font-weight:700; }
 .tcpro-table .neg{ color:#d94160; font-weight:700; }
 .tcpro-table .muted{ color:#97a9ba; text-align:center; }
-
-/* top-3 row highlight */
-.tcpro-table tbody tr.rank1 td{ background:#fff7d6; border-color:#ffe29a; }
-.tcpro-table tbody tr.rank2 td{ background:#e9fbff; border-color:#bfefff; }
-.tcpro-table tbody tr.rank3 td{ background:#f2eaff; border-color:#ddccff; }
 
 /* match type pill */
 .badge-type{
@@ -105,6 +115,17 @@
 .badge-type.t20{ background:#fff7ed; color:#b45309; }
 .badge-type.odi{ background:#eff6ff; color:#1d4ed8; }
 .badge-type.test{ background:#ecfdf5; color:#047857; }
+
+/* medals for top-3 */
+.medal{ display:inline-block; width:18px; height:18px; border-radius:50%; margin-right:8px; vertical-align:-3px; box-shadow:0 1px 3px rgba(0,0,0,.25); }
+.medal.m1{ background: radial-gradient(circle at 35% 30%, #fff5c6, #f7c948 65%, #b08900); }
+.medal.m2{ background: radial-gradient(circle at 35% 30%, #f6f7fb, #cbd5e1 65%, #64748b); }
+.medal.m3{ background: radial-gradient(circle at 35% 30%, #ffe2c5, #f59e0b 65%, #8a4f08); }
+
+/* top-3 row soft glows */
+.tcpro-table tbody tr.rank1 td{ background: linear-gradient(180deg,#fff7e0,#fff) ; box-shadow:0 2px 10px rgba(255,184,0,.18); }
+.tcpro-table tbody tr.rank2 td{ background: linear-gradient(180deg,#eef2f8,#fff) ; box-shadow:0 2px 10px rgba(140,140,140,.16); }
+.tcpro-table tbody tr.rank3 td{ background: linear-gradient(180deg,#fde8e8,#fff) ; box-shadow:0 2px 10px rgba(235,120,80,.16); }
 
 /* help modal */
 .tcpro-help-modal{
@@ -119,9 +140,7 @@
 }
 .help-hdr{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.08); }
 .help-hdr h4{ margin:0; font-weight:800; letter-spacing:.3px; }
-.help-close{
-  background:transparent; color:#eaf6ff; border:0; font-size:22px; cursor:pointer; line-height:1;
-}
+.help-close{ background:transparent; color:#eaf6ff; border:0; font-size:22px; cursor:pointer; line-height:1; }
 .help-body{ padding:14px; }
 .help-list{ margin:10px 0 0 18px; }
 .help-list li{ margin:6px 0; }
@@ -131,4 +150,5 @@
   #tcpro-particles{ display:none !important; }
   .tcpro-glass{ backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
   .tcpro-card{ transform:none !important; }
+  .tcpro-pointer{ right:120px; }
 }
