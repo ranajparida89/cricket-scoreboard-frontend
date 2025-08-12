@@ -1,9 +1,8 @@
-// ✅ src/components/MatchCards.js — compact dark cards + gold accents + LIVE/Recent badges
-// ✅ Matches MatchCards.css classes:
-//    • Tabs: .format-toggle + .format-btn (.odi | .t20 | .test) + .active
-//    • Card: .match-card.simple (+ .live when a game is live)
-//    • Section title: .section-heading
-// ✅ Only ripple animation kept (no GSAP/Framer).
+// ✅ src/components/MatchCards.js — compact dark cards + gold accents + LIVE/Recent badges (fixed)
+// - Exactly ONE “Recent” per format (ODI/T20/Test)
+// - LIVE uses blue-tinted card + "LIVE" chip
+// - Mobile alignment stable (two equal columns → stack on very small screens)
+// - Only ripple kept (no heavy animations)
 
 import React, { useEffect, useMemo, useState } from "react";
 import { getMatchHistory, getTestMatches } from "../services/api";
@@ -11,13 +10,13 @@ import "./MatchCards.css";
 
 /* ---------- helpers ---------- */
 const formatOvers = (decimalOvers = 0) => {
-  const fullOvers = Math.floor(decimalOvers);
-  const balls = Math.round((decimalOvers - fullOvers) * 6);
-  return `${fullOvers}.${balls}`;
+  const fullOvers = Math.floor(decimalOvers || 0);
+  const balls = Math.round(((decimalOvers || 0) - fullOvers) * 6);
+  return `${fullOvers}.${isFinite(balls) ? Math.max(0, Math.min(5, balls)) : 0}`;
 };
 
 const formatMatchTitle = (raw = "") => {
-  let s = String(raw).split(":")[0];
+  let s = String(raw || "").split(":")[0];
   s = s
     .replace(/(?<=[A-Za-z])(?=\d)/g, " ")
     .replace(/(?<=\d)(?=[A-Za-z])/g, " ")
@@ -28,7 +27,7 @@ const formatMatchTitle = (raw = "") => {
 };
 
 const getFlag = (teamName) => {
-  const n = teamName?.trim().toLowerCase();
+  const n = (teamName || "").trim().toLowerCase();
   const f = {
     india: "🇮🇳", australia: "🇦🇺", england: "🏴", "new zealand": "🇳🇿",
     pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱🇰", ireland: "🇮🇪",
@@ -39,26 +38,28 @@ const getFlag = (teamName) => {
   return f[n] || "🏳️";
 };
 
-/* Status helpers
-   - We consider a match LIVE if `is_live` is true OR winner text is empty/looks "in progress".
-   - We consider a match RECENT if played within ~36h; fall back to first two items. */
-const isLive = (m) => {
+/* Parse a timestamp from API (best-effort). */
+const getWhen = (m) => {
+  const tried = m?.match_time || m?.created_at || m?.updated_at;
+  const t = tried ? Date.parse(tried) : NaN;
+  return Number.isNaN(t) ? null : t;
+};
+
+/* Create a fairly unique, stable id per match row. */
+const getUid = (m) =>
+  m?.match_id ??
+  `${m?.match_name || ""}|${m?.team1 || ""}|${m?.team2 || ""}|${m?.runs1 || ""}|${m?.runs2 || ""}|${m?.created_at || ""}`;
+
+/* Live detection: explicit flag or "in-progress" looking winner text. */
+const isLiveRow = (m) => {
   const w = (m?.winner || "").toLowerCase();
   return (
     m?.is_live === true ||
-    (!w || /live|in progress|stumps|day\s+\d|session/.test(w))
+    (!w || /live|in progress|stumps|day\s+\d|session|*abandoned*/.test(w))
   );
 };
-const isRecent = (m, idx) => {
-  const t = m?.match_time ? Date.parse(m.match_time) : NaN;
-  if (!Number.isNaN(t)) {
-    const hours = (Date.now() - t) / 36e5;
-    return hours >= 0 && hours <= 36;
-  }
-  return idx < 2; // fallback
-};
 
-/* ---------- ripple-only card ---------- */
+/* Ripple-only card shell */
 function RippleCard({ children, live, recent }) {
   const onPointerDown = (e) => {
     const el = e.currentTarget;
@@ -80,11 +81,7 @@ function RippleCard({ children, live, recent }) {
       role="article"
     >
       <div className="status-badges">
-        {live && (
-          <span className="badge-chip badge-live">
-            LIVE
-          </span>
-        )}
+        {live && <span className="badge-chip badge-live">LIVE</span>}
         {!live && recent && (
           <span className="badge-chip badge-recent">
             <span className="dot-red" /> Recent
@@ -100,14 +97,14 @@ function RippleCard({ children, live, recent }) {
 const MatchCards = () => {
   const [matches, setMatches] = useState([]);
   const [testMatches, setTestMatches] = useState([]);
-  const [tab, setTab] = useState("ODI"); // ODI | T20 | Test
+  const [tab, setTab] = useState("ODI"); // "ODI" | "T20" | "Test"
 
   useEffect(() => {
     (async () => {
       try {
         const [mh, th] = await Promise.all([
           getMatchHistory(), // ODI + T20
-          getTestMatches(),  // Test table
+          getTestMatches(),  // Test
         ]);
         setMatches(Array.isArray(mh) ? mh : []);
         setTestMatches(Array.isArray(th) ? th : []);
@@ -117,14 +114,42 @@ const MatchCards = () => {
     })();
   }, []);
 
-  const odiMatches = useMemo(
-    () => matches.filter((m) => m.match_type === "ODI"),
-    [matches]
-  );
-  const t20Matches = useMemo(
-    () => matches.filter((m) => m.match_type === "T20"),
-    [matches]
-  );
+  /* Split + (if possible) sort by time DESC so the latest is first. */
+  const odiMatches = useMemo(() => {
+    const list = matches.filter((m) => m.match_type === "ODI");
+    const anyTime = list.some((m) => getWhen(m));
+    return anyTime ? [...list].sort((a, b) => (getWhen(b) ?? 0) - (getWhen(a) ?? 0)) : list;
+  }, [matches]);
+
+  const t20Matches = useMemo(() => {
+    const list = matches.filter((m) => m.match_type === "T20");
+    const anyTime = list.some((m) => getWhen(m));
+    return anyTime ? [...list].sort((a, b) => (getWhen(b) ?? 0) - (getWhen(a) ?? 0)) : list;
+  }, [matches]);
+
+  const testList = useMemo(() => {
+    const list = Array.isArray(testMatches) ? testMatches : [];
+    const anyTime = list.some((m) => getWhen(m));
+    return anyTime ? [...list].sort((a, b) => (getWhen(b) ?? 0) - (getWhen(a) ?? 0)) : list;
+  }, [testMatches]);
+
+  /* Pick EXACTLY ONE most recent uid per format. If we have times, take max;
+     otherwise just pick the first item of the (possibly unsorted) list. */
+  const recentUID = useMemo(() => {
+    const pick = (list) => {
+      if (!list.length) return null;
+      const withTime = list
+        .map((m) => ({ m, t: getWhen(m) ?? -Infinity }))
+        .sort((a, b) => b.t - a.t);
+      const best = isFinite(withTime[0].t) ? withTime[0].m : list[0];
+      return getUid(best);
+    };
+    return {
+      ODI: pick(odiMatches),
+      T20: pick(t20Matches),
+      Test: pick(testList),
+    };
+  }, [odiMatches, t20Matches, testList]);
 
   /* ---------- UI bits ---------- */
   const Section = ({ title, list, render }) => (
@@ -135,7 +160,7 @@ const MatchCards = () => {
           <p className="text-white mt-1">No {title} available.</p>
         ) : (
           list.map((match, i) => (
-            <div key={match.match_name + i} className="col-sm-6 col-lg-4">
+            <div key={`${getUid(match)}-${i}`} className="col-sm-6 col-lg-4">
               {render(match, i)}
             </div>
           ))
@@ -144,9 +169,9 @@ const MatchCards = () => {
     </>
   );
 
-  const renderLOICard = (m, i) => {
-    const live = isLive(m);
-    const recent = isRecent(m, i);
+  const renderLOICard = (m) => {
+    const live = isLiveRow(m);
+    const recent = recentUID[m.match_type] === getUid(m);
     return (
       <RippleCard live={live} recent={recent}>
         <div className="match-title">{formatMatchTitle(m.match_name)}</div>
@@ -179,7 +204,7 @@ const MatchCards = () => {
               🏆{" "}
               {m.winner === "Draw"
                 ? "Match is drawn."
-                : m.winner?.toLowerCase().includes("won the match")
+                : (m.winner || "").toLowerCase().includes("won the match")
                 ? m.winner
                 : `${m.winner} won the match!`}
             </strong>
@@ -189,9 +214,9 @@ const MatchCards = () => {
     );
   };
 
-  const renderTestCard = (m, i) => {
-    const live = isLive(m);
-    const recent = isRecent(m, i);
+  const renderTestCard = (m) => {
+    const live = isLiveRow(m);
+    const recent = recentUID.Test === getUid(m);
     return (
       <RippleCard live={live} recent={recent}>
         <div className="match-title">{formatMatchTitle(m.match_name)}</div>
@@ -226,7 +251,7 @@ const MatchCards = () => {
               🏆{" "}
               {m.winner === "Draw"
                 ? "Match is drawn."
-                : m.winner?.toLowerCase().includes("won the match")
+                : (m.winner || "").toLowerCase().includes("won the match")
                 ? m.winner
                 : `${m.winner} won the match!`}
             </strong>
@@ -273,7 +298,7 @@ const MatchCards = () => {
         <Section title="T20 Matches" list={t20Matches} render={renderLOICard} />
       )}
       {tab === "Test" && (
-        <Section title="Test Matches" list={testMatches} render={renderTestCard} />
+        <Section title="Test Matches" list={testList} render={renderTestCard} />
       )}
     </div>
   );

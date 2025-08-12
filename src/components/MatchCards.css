@@ -8,7 +8,7 @@
   --line: rgba(232,202,164,.28);
 }
 
-/* Section headings */
+/* Section heading with thin gold divider */
 .section-heading{
   color: var(--gold-strong);
   font-family: "Josefin Sans","Karla",sans-serif;
@@ -18,10 +18,10 @@
   margin-bottom: 12px;
 }
 
-/* ===== Format toggle buttons (dark + gold) ===== */
+/* ===== Sticky format toggle (dark + gold) ===== */
 .format-toggle{
   position: sticky;
-  top: 86px; /* below navbar */
+  top: 86px; /* sits below navbar */
   z-index: 9;
   display:flex; flex-wrap:wrap; gap:10px;
   background: linear-gradient(180deg, rgba(8,23,34,.92), rgba(7,19,29,.92));
@@ -45,12 +45,12 @@
 .format-btn:hover{ transform: translateY(-1px); box-shadow:0 10px 24px rgba(232,202,164,.16); }
 .format-btn.active{ color:#041014; background: linear-gradient(180deg,#1f4d58,#163b45); border-color: var(--gold); box-shadow: 0 10px 26px rgba(232,202,164,.25); }
 
-/* palette per format */
+/* palette per format (subtle) */
 .format-btn.odi{ background:#102a3f; }
 .format-btn.t20{ background:#2a1e2f; }
 .format-btn.test{ background:#13312a; }
 
-/* ===== Match card (smaller, dark, gold rim) ===== */
+/* ===== Match card (compact, dark, gold rim) ===== */
 .match-card{
   position:relative;
   border-radius:14px;
@@ -64,7 +64,7 @@
 }
 .match-card.simple:hover{ box-shadow: 0 14px 34px rgba(232,202,164,.16); }
 
-/* LIVE state – subtle blue tint + border */
+/* LIVE state – blue tint + border */
 .match-card.live{
   background:
     radial-gradient(900px 360px at 80% -30%, rgba(13,110,253,.15), transparent 60%),
@@ -85,18 +85,14 @@
   box-shadow: 0 4px 10px rgba(0,0,0,.25);
   font-size:.82rem;
 }
-.badge-live{
-  background:#0d6efd; color:#fff; border-color:#2a7dff;
-}
-.badge-recent{
-  background:#0f1b28; color:#fff; border-color:#ff6b6b;
-}
+.badge-live{ background:#0d6efd; color:#fff; border-color:#2a7dff; }
+.badge-recent{ background:#0f1b28; color:#fff; border-color:#ff6b6b; }
 .dot-red{
   width:11px; height:11px; border-radius:50%; background:#ff3b30;
   box-shadow:0 0 10px #ff3b3088, 0 0 2px #ff3b30;
 }
 
-/* Typography inside card */
+/* Title + glowing team text */
 .match-title{
   color: var(--gold-strong);
   font-family: "Josefin Sans","Karla",sans-serif;
@@ -105,7 +101,7 @@
   text-shadow: 0 0 10px rgba(232,202,164,.22);
 }
 
-/* Two evenly aligned team columns (mobile-safe) */
+/* Two equal columns so numbers line up on mobile/desktop */
 .teams-row{
   display:grid;
   grid-template-columns: 1fr 1fr;
@@ -113,18 +109,33 @@
   margin-bottom:8px;
   align-items:start;
 }
+/* Right column aligns to the right on wider screens */
 .team--right{ text-align:right; }
 
 .team .name,
 .team .meta{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-.team .name{ font-weight:800; color:#fff; text-shadow:0 0 6px rgba(255,255,255,.28), 0 0 14px rgba(232,202,164,.18); }
-.team .score{ font-weight:900; font-size:1.05rem; color:#fff; text-shadow:0 0 6px rgba(255,255,255,.28), 0 0 14px rgba(232,202,164,.18); }
-.team .meta{ font-size:.9rem; color:#d7e7f5; opacity:.9; font-variant-numeric:tabular-nums; }
+.team .name{
+  font-weight:800; color:#fff;
+  text-shadow:0 0 6px rgba(255,255,255,.28), 0 0 14px rgba(232,202,164,.18);
+}
+.team .score{
+  font-weight:900; font-size:1.05rem; color:#fff;
+  text-shadow:0 0 6px rgba(255,255,255,.28), 0 0 14px rgba(232,202,164,.18);
+}
+.team .meta{
+  font-size:.9rem; color:#d7e7f5; opacity:.9;
+  font-variant-numeric:tabular-nums;
+}
 
 .team-block{ margin-bottom:6px; }
-.team-block .name{ font-weight:800; color:#fff; text-shadow:0 0 6px rgba(255,255,255,.28), 0 0 14px rgba(232,202,164,.18); }
-.team-block .meta{ font-size:.9rem; color:#d7e7f5; opacity:.9; font-variant-numeric:tabular-nums; }
+.team-block .name{
+  font-weight:800; color:#fff;
+  text-shadow:0 0 6px rgba(255,255,255,.28), 0 0 14px rgba(232,202,164,.18);
+}
+.team-block .meta{
+  font-size:.9rem; color:#d7e7f5; opacity:.9; font-variant-numeric:tabular-nums;
+}
 
 .result-line{
   margin-top:6px;
@@ -146,7 +157,7 @@
   to{ transform:translate(-50%,-50%) scale(14); opacity:0; }
 }
 
-/* Responsive */
+/* Responsive: stack columns on very small phones */
 @media (max-width:768px){
   .match-card{ padding:14px; }
   .format-btn{ min-width: 150px; }
