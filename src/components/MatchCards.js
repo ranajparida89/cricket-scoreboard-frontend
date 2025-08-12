@@ -1,7 +1,7 @@
-// ✅ src/components/MatchCards.js — compact dark cards + gold accents + LIVE/Recent badges (fixed)
+// ✅ src/components/MatchCards.js — compact dark cards + gold accents + LIVE/Recent (alignment fixed)
 // - Exactly ONE “Recent” per format (ODI/T20/Test)
 // - LIVE uses blue-tinted card + "LIVE" chip
-// - Mobile alignment stable (two equal columns → stack on very small screens)
+// - Alignment stable: each side uses a single row (name | score) → mobile/desktop line up
 // - Only ripple kept (no heavy animations)
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -12,7 +12,8 @@ import "./MatchCards.css";
 const formatOvers = (decimalOvers = 0) => {
   const fullOvers = Math.floor(decimalOvers || 0);
   const balls = Math.round(((decimalOvers || 0) - fullOvers) * 6);
-  return `${fullOvers}.${isFinite(balls) ? Math.max(0, Math.min(5, balls)) : 0}`;
+  const clamped = isFinite(balls) ? Math.max(0, Math.min(5, balls)) : 0;
+  return `${fullOvers}.${clamped}`;
 };
 
 const formatMatchTitle = (raw = "") => {
@@ -38,28 +39,26 @@ const getFlag = (teamName) => {
   return f[n] || "🏳️";
 };
 
-/* Parse a timestamp from API (best-effort). */
+/* Timestamps (best-effort) */
 const getWhen = (m) => {
   const tried = m?.match_time || m?.created_at || m?.updated_at;
   const t = tried ? Date.parse(tried) : NaN;
   return Number.isNaN(t) ? null : t;
 };
 
-/* Create a fairly unique, stable id per match row. */
+/* Stable row id */
 const getUid = (m) =>
   m?.match_id ??
   `${m?.match_name || ""}|${m?.team1 || ""}|${m?.team2 || ""}|${m?.runs1 || ""}|${m?.runs2 || ""}|${m?.created_at || ""}`;
 
-/* Live detection: explicit flag or "in-progress" looking winner text. */
-// Treat these phrases as “in progress”
+/* Live detection */
 const LIVE_RE = /\b(live|in progress|stumps|day\s*\d|session)\b/i;
 const isLiveRow = (m) => {
   const w = m?.winner || "";
   return m?.is_live === true || (!w || LIVE_RE.test(w));
 };
 
-
-/* Ripple-only card shell */
+/* Ripple-only shell */
 function RippleCard({ children, live, recent }) {
   const onPointerDown = (e) => {
     const el = e.currentTarget;
@@ -75,17 +74,11 @@ function RippleCard({ children, live, recent }) {
   };
 
   return (
-    <div
-      className={`match-card simple${live ? " live" : ""}`}
-      onPointerDown={onPointerDown}
-      role="article"
-    >
+    <div className={`match-card simple${live ? " live" : ""}`} onPointerDown={onPointerDown} role="article">
       <div className="status-badges">
         {live && <span className="badge-chip badge-live">LIVE</span>}
         {!live && recent && (
-          <span className="badge-chip badge-recent">
-            <span className="dot-red" /> Recent
-          </span>
+          <span className="badge-chip badge-recent"><span className="dot-red" /> Recent</span>
         )}
       </div>
       {children}
@@ -102,10 +95,7 @@ const MatchCards = () => {
   useEffect(() => {
     (async () => {
       try {
-        const [mh, th] = await Promise.all([
-          getMatchHistory(), // ODI + T20
-          getTestMatches(),  // Test
-        ]);
+        const [mh, th] = await Promise.all([getMatchHistory(), getTestMatches()]);
         setMatches(Array.isArray(mh) ? mh : []);
         setTestMatches(Array.isArray(th) ? th : []);
       } catch (e) {
@@ -114,7 +104,7 @@ const MatchCards = () => {
     })();
   }, []);
 
-  /* Split + (if possible) sort by time DESC so the latest is first. */
+  /* Split + sort by time DESC when possible */
   const odiMatches = useMemo(() => {
     const list = matches.filter((m) => m.match_type === "ODI");
     const anyTime = list.some((m) => getWhen(m));
@@ -133,22 +123,15 @@ const MatchCards = () => {
     return anyTime ? [...list].sort((a, b) => (getWhen(b) ?? 0) - (getWhen(a) ?? 0)) : list;
   }, [testMatches]);
 
-  /* Pick EXACTLY ONE most recent uid per format. If we have times, take max;
-     otherwise just pick the first item of the (possibly unsorted) list. */
+  /* Exactly one “recent” per format */
   const recentUID = useMemo(() => {
     const pick = (list) => {
       if (!list.length) return null;
-      const withTime = list
-        .map((m) => ({ m, t: getWhen(m) ?? -Infinity }))
-        .sort((a, b) => b.t - a.t);
+      const withTime = list.map((m) => ({ m, t: getWhen(m) ?? -Infinity })).sort((a, b) => b.t - a.t);
       const best = isFinite(withTime[0].t) ? withTime[0].m : list[0];
       return getUid(best);
     };
-    return {
-      ODI: pick(odiMatches),
-      T20: pick(t20Matches),
-      Test: pick(testList),
-    };
+    return { ODI: pick(odiMatches), T20: pick(t20Matches), Test: pick(testList) };
   }, [odiMatches, t20Matches, testList]);
 
   /* ---------- UI bits ---------- */
@@ -177,22 +160,20 @@ const MatchCards = () => {
         <div className="match-title">{formatMatchTitle(m.match_name)}</div>
 
         <div className="teams-row">
+          {/* LEFT */}
           <div className="team">
-            <div className="name">
-              {getFlag(m.team1)} {m.team1?.toUpperCase()}
-            </div>
-            <div className="score">
-              {m.runs1}/{m.wickets1}
+            <div className="rowline">
+              <div className="name">{getFlag(m.team1)} {m.team1?.toUpperCase()}</div>
+              <div className="score">{m.runs1}/{m.wickets1}</div>
             </div>
             <div className="meta">Overs: {formatOvers(m.overs1)}</div>
           </div>
 
+          {/* RIGHT */}
           <div className="team team--right">
-            <div className="name">
-              {getFlag(m.team2)} {m.team2?.toUpperCase()}
-            </div>
-            <div className="score">
-              {m.runs2}/{m.wickets2}
+            <div className="rowline">
+              <div className="name">{getFlag(m.team2)} {m.team2?.toUpperCase()}</div>
+              <div className="score">{m.runs2}/{m.wickets2}</div>
             </div>
             <div className="meta">Overs: {formatOvers(m.overs2)}</div>
           </div>
@@ -222,27 +203,15 @@ const MatchCards = () => {
         <div className="match-title">{formatMatchTitle(m.match_name)}</div>
 
         <div className="team-block">
-          <div className="name">
-            {getFlag(m.team1)} {m.team1?.toUpperCase()}
-          </div>
-          <div className="meta">
-            1st Innings: {m.runs1}/{m.wickets1} ({formatOvers(m.overs1)} ov)
-          </div>
-          <div className="meta">
-            2nd Innings: {m.runs1_2}/{m.wickets1_2} ({formatOvers(m.overs1_2)} ov)
-          </div>
+          <div className="name">{getFlag(m.team1)} {m.team1?.toUpperCase()}</div>
+          <div className="meta">1st Innings: {m.runs1}/{m.wickets1} ({formatOvers(m.overs1)} ov)</div>
+          <div className="meta">2nd Innings: {m.runs1_2}/{m.wickets1_2} ({formatOvers(m.overs1_2)} ov)</div>
         </div>
 
         <div className="team-block" style={{ marginTop: 6 }}>
-          <div className="name">
-            {getFlag(m.team2)} {m.team2?.toUpperCase()}
-          </div>
-          <div className="meta">
-            1st Innings: {m.runs2}/{m.wickets2} ({formatOvers(m.overs2)} ov)
-          </div>
-          <div className="meta">
-            2nd Innings: {m.runs2_2}/{m.wickets2_2} ({formatOvers(m.overs2_2)} ov)
-          </div>
+          <div className="name">{getFlag(m.team2)} {m.team2?.toUpperCase()}</div>
+          <div className="meta">1st Innings: {m.runs2}/{m.wickets2} ({formatOvers(m.overs2)} ov)</div>
+          <div className="meta">2nd Innings: {m.runs2_2}/{m.wickets2_2} ({formatOvers(m.overs2_2)} ov)</div>
         </div>
 
         {!live && (
@@ -263,43 +232,16 @@ const MatchCards = () => {
 
   return (
     <div className="container mt-4">
-      {/* Sticky format toggle row (dark + gold) */}
+      {/* Sticky format toggle (dark + gold) */}
       <div className="format-toggle">
-        <button
-          className={`format-btn odi ${tab === "ODI" ? "active" : ""}`}
-          onClick={() => setTab("ODI")}
-          type="button"
-        >
-          🏏 ODI
-        </button>
-
-        <button
-          className={`format-btn t20 ${tab === "T20" ? "active" : ""}`}
-          onClick={() => setTab("T20")}
-          type="button"
-        >
-          🔥 T20
-        </button>
-
-        <button
-          className={`format-btn test ${tab === "Test" ? "active" : ""}`}
-          onClick={() => setTab("Test")}
-          type="button"
-        >
-          🧪 Test
-        </button>
+        <button className={`format-btn odi ${tab === "ODI" ? "active" : ""}`} onClick={() => setTab("ODI")} type="button">🏏 ODI</button>
+        <button className={`format-btn t20 ${tab === "T20" ? "active" : ""}`} onClick={() => setTab("T20")} type="button">🔥 T20</button>
+        <button className={`format-btn test ${tab === "Test" ? "active" : ""}`} onClick={() => setTab("Test")} type="button">🧪 Test</button>
       </div>
 
-      {/* Lists */}
-      {tab === "ODI" && (
-        <Section title="ODI Matches" list={odiMatches} render={renderLOICard} />
-      )}
-      {tab === "T20" && (
-        <Section title="T20 Matches" list={t20Matches} render={renderLOICard} />
-      )}
-      {tab === "Test" && (
-        <Section title="Test Matches" list={testList} render={renderTestCard} />
-      )}
+      {tab === "ODI"  && <Section title="ODI Matches"  list={odiMatches} render={renderLOICard} />}
+      {tab === "T20"  && <Section title="T20 Matches"  list={t20Matches} render={renderLOICard} />}
+      {tab === "Test" && <Section title="Test Matches" list={testList}   render={renderTestCard} />}
     </div>
   );
 };

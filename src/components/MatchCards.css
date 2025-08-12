@@ -92,7 +92,7 @@
   box-shadow:0 0 10px #ff3b3088, 0 0 2px #ff3b30;
 }
 
-/* Title + glowing team text */
+/* Title + subtle golden glow */
 .match-title{
   color: var(--gold-strong);
   font-family: "Josefin Sans","Karla",sans-serif;
@@ -109,18 +109,29 @@
   margin-bottom:8px;
   align-items:start;
 }
-/* Right column aligns to the right on wider screens */
-.team--right{ text-align:right; }
 
-.team .name,
-.team .meta{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* SINGLE ROW per side: Name | Score */
+.rowline{
+  display:grid;
+  grid-template-columns: 1fr auto;       /* name expands, score hugs right */
+  align-items: baseline;
+  column-gap: 8px;
+}
+.rowline .name,
+.rowline .score{ min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
+/* Right column text should read right-aligned */
+.team--right .name,
+.team--right .score{ text-align:right; }
+
+/* Glowing team text + tabular numbers for neat alignment */
 .team .name{
   font-weight:800; color:#fff;
   text-shadow:0 0 6px rgba(255,255,255,.28), 0 0 14px rgba(232,202,164,.18);
 }
 .team .score{
   font-weight:900; font-size:1.05rem; color:#fff;
+  font-variant-numeric: tabular-nums;
   text-shadow:0 0 6px rgba(255,255,255,.28), 0 0 14px rgba(232,202,164,.18);
 }
 .team .meta{
@@ -165,7 +176,7 @@
 @media (max-width:400px){
   .teams-row{ grid-template-columns: 1fr; gap:8px; }
   .team--right{
-    text-align:left;
+    text-align:left;             /* block flows left when stacked */
     border-top:1px dashed var(--line);
     padding-top:6px; margin-top:6px;
   }
