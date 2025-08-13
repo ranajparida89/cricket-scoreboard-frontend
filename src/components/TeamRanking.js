@@ -1,22 +1,17 @@
-// ✅ src/components/TeamRanking.js — Glass leaderboard-style rankings (ODI & T20)
-// - Top-3 animated (gold/silver/bronze) with golden shadow pulse
-// - Rating bar scaled to max rating per format
-// - Correct flags (🇭🇰 Hong Kong; West Indies uses crest image /flags/wi.svg)
+// ✅ TeamRanking.js — Neutral glass table + tiny top-3 badges (no colored rows)
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import "./TeamRanking.css";
 
-/* ---------- Flag helpers ---------- */
-// West Indies uses a crest image; others use emoji
+/* ---------- Flags ---------- */
 const getFlagData = (teamName = "") => {
   const n = String(teamName).trim().toLowerCase();
 
-  // Emoji flags
   const EMOJI = {
     india: "🇮🇳",
     australia: "🇦🇺",
-    england: "🏴",           // St George’s Cross
+    england: "🏴",             // St George’s Cross
     "new zealand": "🇳🇿",
     pakistan: "🇵🇰",
     "south africa": "🇿🇦",
@@ -28,7 +23,7 @@ const getFlagData = (teamName = "") => {
     afghanistan: "🇦🇫",
     zimbabwe: "🇿🇼",
     netherlands: "🇳🇱",
-    scotland: "🏴",          // Saltire
+    scotland: "🏴",            // Saltire
     nepal: "🇳🇵",
     oman: "🇴🇲",
     uae: "🇦🇪",
@@ -41,11 +36,9 @@ const getFlagData = (teamName = "") => {
     png: "🇵🇬",
   };
 
-  // West Indies => crest
   if (/(^|\b)west indies(\b|$)|\bwi\b/.test(n)) {
     return { type: "img", src: "/flags/wi.svg", alt: "West Indies" };
   }
-
   const emoji = EMOJI[n];
   return emoji
     ? { type: "emoji", value: emoji, alt: teamName }
@@ -71,36 +64,45 @@ const Flag = ({ team }) => {
   );
 };
 
+/* ---------- Small rank badge for top-3 ---------- */
+const RankBadge = ({ idx }) => {
+  if (idx > 2) return null;
+  const map = [
+    { cls: "gold", text: "🥇" },
+    { cls: "silver", text: "🥈" },
+    { cls: "bronze", text: "🥉" },
+  ];
+  const { cls, text } = map[idx];
+  return <span className={`rank-badge ${cls}`}>{text}</span>;
+};
+
 /* ---------- Component ---------- */
 const TeamRanking = () => {
   const [rankings, setRankings] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // fetch
   useEffect(() => {
-    const fetchRankings = async () => {
+    (async () => {
       try {
         const res = await axios.get(
           "https://cricket-scoreboard-backend.onrender.com/api/team-rankings"
         );
         setRankings(Array.isArray(res.data) ? res.data : []);
-      } catch (err) {
-        console.error("Error fetching rankings:", err);
+      } catch (e) {
+        console.error("Error fetching rankings:", e);
         setRankings([]);
       } finally {
         setLoading(false);
       }
-    };
-    fetchRankings();
+    })();
   }, []);
 
-  // group by match type (only ODI & T20)
   const grouped = useMemo(() => {
     const out = { ODI: [], T20: [] };
     if (!Array.isArray(rankings)) return out;
-    for (const t of rankings) {
-      if (t?.match_type === "ODI") out.ODI.push(t);
-      if (t?.match_type === "T20") out.T20.push(t);
+    for (const r of rankings) {
+      if (r?.match_type === "ODI") out.ODI.push(r);
+      if (r?.match_type === "T20") out.T20.push(r);
     }
     return out;
   }, [rankings]);
@@ -109,41 +111,25 @@ const TeamRanking = () => {
     [...list].sort((a, b) => {
       const ar = parseFloat(a?.rating) || 0;
       const br = parseFloat(b?.rating) || 0;
-      if (br !== ar) return br - ar; // rating desc
+      if (br !== ar) return br - ar;
       const ap = parseInt(a?.points) || 0;
       const bp = parseInt(b?.points) || 0;
-      return bp - ap; // then points desc
+      return bp - ap;
     });
 
-  const Medal = ({ idx }) =>
-    idx === 0 ? (
-      <span className="medal sparkle">🥇</span>
-    ) : idx === 1 ? (
-      <span className="medal sparkle">🥈</span>
-    ) : idx === 2 ? (
-      <span className="medal sparkle">🥉</span>
-    ) : null;
-
   const Row = ({ team, idx, maxRating }) => {
-    const rowClass =
-      idx === 0 ? "gold" : idx === 1 ? "silver" : idx === 2 ? "bronze" : "";
     const rating = Math.max(0, parseFloat(team?.rating) || 0);
     const pct = maxRating > 0 ? Math.min(100, (rating / maxRating) * 100) : 0;
-    const barClass = idx === 0 ? "g" : idx === 1 ? "s" : idx === 2 ? "b" : "";
 
     return (
-      <div className={`tr-row ${rowClass}`}>
+      <div className="tr-row">
         <div className="td rank">
-          <span className="medal-spot">
-            <Medal idx={idx} />
-          </span>
           <span className="pos">{idx + 1}</span>
         </div>
 
         <div className="td team">
-          <span className="flag">
-            <Flag team={team?.team_name} />
-          </span>
+          <RankBadge idx={idx} />
+          <Flag team={team?.team_name} />
           <span className="name">{team?.team_name || "-"}</span>
         </div>
 
@@ -153,7 +139,7 @@ const TeamRanking = () => {
         <div className="td">
           <div className="rating-wrap">
             <div className="rating-track" />
-            <div className={`rating-bar ${barClass}`} style={{ width: `${pct}%` }} />
+            <div className="rating-bar" style={{ width: `${pct}%` }} />
             <div className="rating-num">{Number(rating).toFixed(2)}</div>
           </div>
         </div>
@@ -191,7 +177,12 @@ const TeamRanking = () => {
             )}
             {!loading &&
               sorted.map((team, idx) => (
-                <Row key={`${type}-${team?.team_name}-${idx}`} team={team} idx={idx} maxRating={maxRating} />
+                <Row
+                  key={`${type}-${team?.team_name}-${idx}`}
+                  team={team}
+                  idx={idx}
+                  maxRating={maxRating}
+                />
               ))}
           </div>
         </div>
@@ -201,19 +192,14 @@ const TeamRanking = () => {
 
   return (
     <div className="tr-wrap">
-      <div className="tr-orbs">
-        <span className="orb o1" />
-        <span className="orb o2" />
-      </div>
-
       <div className="tr-card">
         <header className="tr-header">
           <h2 className="tr-title">🌍 ODI and T20 Team Rankings</h2>
-          <div className="tr-sub">Live table with animated top-3 & gold glow</div>
+          <div className="tr-sub">Live table with subtle badges for the top 3</div>
         </header>
 
-        {grouped.ODI && grouped.ODI.length > 0 && <Section type="ODI" data={grouped.ODI} />}
-        {grouped.T20 && grouped.T20.length > 0 && <Section type="T20" data={grouped.T20} />}
+        {grouped.ODI?.length > 0 && <Section type="ODI" data={grouped.ODI} />}
+        {grouped.T20?.length > 0 && <Section type="T20" data={grouped.T20} />}
       </div>
     </div>
   );

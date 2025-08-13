@@ -1,4 +1,4 @@
-/* ✅ TeamRanking.css — Glass leaderboard look + medal glow + golden shadow */
+/* ✅ Neutral glass table, no colored rows; tiny medal badges for top-3 */
 
 .tr-wrap{
   position:relative;
@@ -8,22 +8,7 @@
   background:transparent;
 }
 
-.tr-orbs .orb{
-  position:absolute; border-radius:50%; filter:blur(44px);
-  opacity:.55; mix-blend-mode:screen;
-  animation: orbFloat 18s ease-in-out infinite;
-}
-.tr-orbs .o1{ width:360px; height:360px; left:6%; top:-40px;
-  background:radial-gradient(circle at 30% 30%, #00e5ff, transparent 60%),
-             radial-gradient(circle at 70% 70%, #6f80ff, transparent 60%);
-}
-.tr-orbs .o2{ width:300px; height:300px; right:6%; bottom:-60px;
-  background:radial-gradient(circle at 30% 30%, #ff73fa, transparent 60%),
-             radial-gradient(circle at 70% 70%, #00ffc6, transparent 60%);
-  animation-duration: 22s;
-}
-@keyframes orbFloat{ 0%,100%{ transform:translate(0,0)} 50%{ transform:translate(-26px,-18px)} }
-
+/* Glass card */
 .tr-card{
   width:min(1100px,96vw);
   background:linear-gradient(180deg, rgba(14,22,38,.6), rgba(14,22,38,.45));
@@ -40,7 +25,6 @@
   font-size:28px; font-weight:900; letter-spacing:.3px;
   background:linear-gradient(90deg,#00e5ff,#7b61ff);
   -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-  text-shadow: 0 2px 12px rgba(0,229,255,.18);
 }
 .tr-sub{ color:#9fb6cc; font-size:13px; letter-spacing:.2px; }
 
@@ -66,88 +50,62 @@
 .th{ padding:4px 6px; }
 .tr-tbody{ display:flex; flex-direction:column; gap:8px; }
 
-/* Skeleton while loading */
+/* Skeleton */
 .skeleton-row{
   height:54px; border-radius:12px;
-  background:
-    linear-gradient(90deg, rgba(255,255,255,.05), rgba(255,255,255,.08), rgba(255,255,255,.05));
+  background:linear-gradient(90deg, rgba(255,255,255,.05), rgba(255,255,255,.08), rgba(255,255,255,.05));
   animation: shimmer 1.6s linear infinite;
 }
 @keyframes shimmer{ 0%{background-position:-200px 0} 100%{background-position:200px 0} }
 
-/* Rows */
+/* Rows (neutral) */
 .tr-row{
   position:relative; padding:10px 12px; border-radius:12px;
   color:#eaf6ff; font-size:15px;
-  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.02));
   border:1px solid rgba(255,255,255,.08);
-  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
-  overflow:hidden;
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
 }
-.tr-row::before{
-  content:""; position:absolute; inset:6px; border-radius:10px; z-index:0;
-  background:transparent; box-shadow:none; transition: background .18s ease, box-shadow .18s ease;
-}
-.tr-row:hover{ transform:translateY(-2px); }
-.tr-row:hover::before{
-  background:rgba(0,229,255,.08);
-  box-shadow:0 0 0 1px rgba(0,229,255,.25), 0 10px 26px rgba(0,229,255,.12);
+.tr-row:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(0,0,0,.20);
 }
 
-/* Top-3 special glow + golden shadow pulse */
-.tr-row.gold::before   { background:linear-gradient(180deg, rgba(255,214,98,.12), transparent); }
-.tr-row.silver::before { background:linear-gradient(180deg, rgba(206,219,233,.12), transparent); }
-.tr-row.bronze::before { background:linear-gradient(180deg, rgba(238,168,114,.12), transparent); }
-
-.tr-row.gold{
-  animation: goldPulse 2.8s ease-in-out infinite;
-  box-shadow: 0 0 0 1px rgba(255,215,99,.35), 0 14px 28px rgba(255,215,99,.12);
-}
-@keyframes goldPulse{
-  0%,100%{ box-shadow: 0 0 0 1px rgba(255,215,99,.35), 0 14px 28px rgba(255,215,99,.12); }
-  50%   { box-shadow: 0 0 0 6px rgba(255,215,99,.10), 0 20px 40px rgba(255,215,99,.22); }
-}
-.tr-row.silver{ box-shadow: 0 0 0 1px rgba(206,219,233,.25); }
-.tr-row.bronze{ box-shadow: 0 0 0 1px rgba(238,168,114,.25); }
-
-.td{ position:relative; z-index:1; display:flex; align-items:center; gap:8px; }
+.td{ display:flex; align-items:center; gap:8px; }
 .td.rank .pos{ font-weight:800; }
-.medal-spot{ width:22px; display:inline-flex; justify-content:center; }
-.medal.sparkle{
-  filter: drop-shadow(0 0 6px rgba(255,255,255,.45));
-  animation: medalGlow 1.8s ease-in-out infinite;
-}
-@keyframes medalGlow{
-  0%,100%{ transform:translateY(0) scale(1); opacity:1; }
-  50%    { transform:translateY(-1px) scale(1.04); opacity:.95; }
-}
 
 /* Team cell */
 .flag-emoji{ font-size:18px; }
-.flag-icon{ display:inline-block; margin-right:0; }
+.flag-icon{ display:inline-block; }
 .td.team .name{ font-weight:800; letter-spacing:.2px; }
 
-/* Rating bar */
-.rating-wrap{ position:relative; width:100%; height:12px; border-radius:999px; }
-.rating-track{
-  position:absolute; inset:0; border-radius:999px; background:rgba(255,255,255,.10);
+/* Top-3 badges (small pills) */
+.rank-badge{
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:26px; height:20px; padding:0 6px; margin-right:4px;
+  border-radius:999px; font-weight:800; font-size:12px;
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
 }
+.rank-badge.gold  { border-color:#ffd75a55; box-shadow:0 0 10px #ffd75a30; }
+.rank-badge.silver{ border-color:#cfd8e355; box-shadow:0 0 10px #cfd8e330; }
+.rank-badge.bronze{ border-color:#ffb07c55; box-shadow:0 0 10px #ffb07c30; }
+
+/* Rating bar (neutral) */
+.rating-wrap{ position:relative; width:100%; height:12px; border-radius:999px; }
+.rating-track{ position:absolute; inset:0; border-radius:999px; background:rgba(255,255,255,.10); }
 .rating-bar{
   position:absolute; left:0; top:0; bottom:0; width:0; border-radius:999px;
-  background:linear-gradient(90deg,#35ffa9,#6aa8ff);
-  box-shadow:0 0 10px rgba(255,255,255,.18);
+  background:linear-gradient(90deg,#00e6e6,#6aa8ff);
+  box-shadow:0 0 10px rgba(0,230,230,.25);
   animation: widthIn .9s ease-out forwards;
 }
-.rating-bar.g{ background:linear-gradient(90deg,#ffd75a,#ff9f1c); }
-.rating-bar.s{ background:linear-gradient(90deg,#cfd8e3,#94a3b8); }
-.rating-bar.b{ background:linear-gradient(90deg,#ffb07c,#ff7a3d); }
-
 .rating-num{
   position:absolute; right:6px; top:50%; transform:translateY(-50%);
   font-weight:800; font-size:12px; color:#09121f; padding:2px 6px; border-radius:999px;
   background:rgba(255,255,255,.85);
 }
-
 @keyframes widthIn{ from{ width:0 } }
 
 /* Empty state */
@@ -156,7 +114,7 @@
   border:1px dashed rgba(255,255,255,.12); border-radius:12px;
 }
 
-/* Responsiveness */
+/* Responsive */
 @media (max-width: 720px){
   .tr-thead, .tr-row{ grid-template-columns: 68px 1.4fr 100px 100px 1.2fr; }
   .tr-title{ font-size:22px; }
