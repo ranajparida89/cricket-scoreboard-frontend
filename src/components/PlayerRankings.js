@@ -1,3 +1,4 @@
+// src/components/PlayerRankings.js
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import "./PlayerRankings.css";
@@ -33,25 +34,22 @@ const PlayerRankings = () => {
   }, []);
 
   useEffect(() => {
-    fetchRankings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    (async () => {
+      try {
+        setLoading(true);
+        const url = `https://cricket-scoreboard-backend.onrender.com/api/rankings/players?type=${activeTab}&match_type=${matchType}`;
+        const res = await axios.get(url);
+        const data = Array.isArray(res.data) ? res.data : [];
+        setRankingData(
+          [...data].sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0))
+        );
+      } catch (e) {
+        console.error("Failed to fetch rankings:", e);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [activeTab, matchType]);
-
-  const fetchRankings = async () => {
-    try {
-      setLoading(true);
-      const url = `https://cricket-scoreboard-backend.onrender.com/api/rankings/players?type=${activeTab}&match_type=${matchType}`;
-      const res = await axios.get(url);
-      const data = Array.isArray(res.data) ? res.data : [];
-      setRankingData(
-        [...data].sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0))
-      );
-    } catch (err) {
-      console.error("Failed to fetch rankings:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const onExportCSV = () => {
     const rows = [["Position", "Player", "Team", "Rating", "Index%"]];
@@ -60,9 +58,7 @@ const PlayerRankings = () => {
       const pct = top > 0 ? Math.round((Number(p.rating || 0) / top) * 100) : 0;
       rows.push([i + 1, p.player_name, p.team_name, p.rating, pct]);
     });
-    const csv = rows
-      .map(r => r.map(String).map(s => `"${s.replace(/"/g, '""')}"`).join(","))
-      .join("\n");
+    const csv = rows.map(r => r.map(String).map(s => `"${s.replace(/"/g,'""')}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -83,7 +79,6 @@ const PlayerRankings = () => {
         <h2 className="pr-title">
           <span className="bat">🏏</span> CrickEdge Player Rankings
         </h2>
-
         <button
           type="button"
           className="pr-info"
@@ -127,7 +122,7 @@ const PlayerRankings = () => {
         </div>
 
         <div className="tools">
-          <button type="button" className="tool ghost" onClick={fetchRankings}>
+          <button type="button" className="tool ghost" onClick={() => window.location.reload()}>
             ⟳ Refresh
           </button>
           <button type="button" className="tool cta" onClick={onExportCSV}>
@@ -136,12 +131,8 @@ const PlayerRankings = () => {
         </div>
       </div>
 
-      {/* Podium Top-3 (dark, subtle tints) */}
+      {/* Podium top-3 (dark tints) */}
       <section className="podium" aria-label="Top three players">
-        {top3.length === 0 && (
-          <div className="empty">No data available for this selection.</div>
-        )}
-
         {top3.map((p, i) => {
           const cls = i === 0 ? "gold" : i === 1 ? "silver" : "bronze";
           const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉";
@@ -152,93 +143,79 @@ const PlayerRankings = () => {
               <div className="podium-rank">#{i + 1}</div>
               <div className="podium-name">{p.player_name}</div>
               <div className="podium-team">{p.team_name}</div>
-              <div className="podium-rating">
-                {Number(p.rating || 0).toLocaleString()}
-              </div>
+              <div className="podium-rating">{Number(p.rating || 0).toLocaleString()}</div>
             </article>
           );
         })}
       </section>
 
-      {/* Leaderboard-style table */}
-      <div
-        className={`rk-table-wrap ${isScrolling ? "is-scrolling" : ""}`}
-        ref={tableWrapRef}
-      >
-        <table className="ranking-table" role="table" aria-label="All rankings">
-          <thead>
-            <tr>
-              <th className="num">Pos</th>
-              <th>Player</th>
-              <th>Team</th>
-              <th className="num">Rating</th>
-              <th className="bar">Index</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              [...Array(8)].map((_, i) => (
-                <tr key={`sk-${i}`} className="sk-row">
-                  <td className="num">—</td>
-                  <td><span className="sk" /></td>
-                  <td><span className="sk" /></td>
-                  <td className="num"><span className="sk sk-num" /></td>
-                  <td className="bar"><span className="sk sk-bar" /></td>
-                </tr>
+      {/* ===== Leaderboard-style GRID (not a <table>) ===== */}
+      <div className={`lb-wrap ${isScrolling ? "is-scrolling" : ""}`} ref={tableWrapRef}>
+        {/* Head */}
+        <div className="lb-head" role="rowgroup">
+          <div className="cell head num">Pos</div>
+          <div className="cell head">Player</div>
+          <div className="cell head">Team</div>
+          <div className="cell head num">Rating</div>
+          <div className="cell head">Index</div>
+        </div>
+
+        {/* Body */}
+        <div className="lb-body" role="rowgroup">
+          {loading
+            ? [...Array(10)].map((_, i) => (
+                <div className="lb-row sk" key={`sk-${i}`}>
+                  <div className="cell num">—</div>
+                  <div className="cell"><span className="skbar w160" /></div>
+                  <div className="cell"><span className="skbar w120" /></div>
+                  <div className="cell num"><span className="skbar w60" /></div>
+                  <div className="cell">
+                    <div className="rating-bar"><span style={{ width: "30%" }} /><em>—</em></div>
+                  </div>
+                </div>
               ))
-            ) : (
-              sorted.map((p, i) => {
+            : sorted.map((p, i) => {
                 const rating = Number(p.rating || 0);
                 const pct = topRating > 0 ? Math.max(2, (rating / topRating) * 100) : 0;
                 const pctLabel = Math.round(pct);
                 const smallMedal = i < 3 ? (i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉") : null;
 
                 return (
-                  <tr key={p.player_name + i} className={i < 3 ? "toprow" : ""}>
-                    <td className="num">{i + 1}</td>
-                    <td className="cell-player">
+                  <div className={`lb-row ${i < 3 ? "top" : ""}`} key={p.player_name + i} role="row">
+                    <div className="cell num">{i + 1}</div>
+                    <div className="cell player">
                       {smallMedal && <span className="mini-medal" aria-hidden>{smallMedal}</span>}
                       <strong>{p.player_name}</strong>
-                    </td>
-                    <td>{p.team_name}</td>
-                    <td className="num">{rating}</td>
-                    <td className="bar">
-                      <div className="rating-bar" aria-label={`Index ${pctLabel}%`}>
+                    </div>
+                    <div className="cell">{p.team_name}</div>
+                    <div className="cell num">{rating}</div>
+                    <div className="cell">
+                      <div className="rating-bar">
                         <span style={{ width: `${pct}%` }} />
                         <em>{pctLabel}%</em>
                       </div>
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 );
-              })
-            )}
-          </tbody>
-        </table>
+              })}
+        </div>
       </div>
 
-      {/* Info Modal */}
+      {/* Info modal */}
       {showInfo && (
         <div className="pr-modal" role="dialog" aria-modal="true">
           <div className="pr-modal-card">
-            <button
-              className="pr-modal-close"
-              onClick={() => setShowInfo(false)}
-              aria-label="Close"
-            >
-              ✖
-            </button>
+            <button className="pr-modal-close" onClick={() => setShowInfo(false)} aria-label="Close">✖</button>
             <h3>About Player Rankings</h3>
             <p>
-              This page lists <b>{TAB_LABELS[activeTab]}</b> rankings for{" "}
-              <b>{matchType}</b>. Top cards show the best three players with soft,
-              dark medal tints. In the table, <b>Index</b> is each rating as a
-              percentage of the current #1.
+              Category: <b>{TAB_LABELS[activeTab]}</b> · Format: <b>{matchType}</b>.
+              The grid below matches our leaderboard look. The <b>Index</b> bar is the
+              player’s rating as % of the current #1.
             </p>
             <ul className="modal-bullets">
-              <li>Switch category with the tabs.</li>
-              <li>Toggle Test/ODI/T20 with the chips.</li>
-              <li>Rows have a subtle 3D lift; scrolling gives a tiny “pop”.</li>
-              <li>Use <b>Refresh</b> and <b>Export CSV</b> on the right.</li>
+              <li>Use tabs and chips to change category/format.</li>
+              <li>Rows float slightly on hover; list pops subtly while scrolling.</li>
+              <li>Use <b>Export CSV</b> to download what you see.</li>
             </ul>
           </div>
         </div>
