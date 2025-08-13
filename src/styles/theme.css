@@ -434,3 +434,20 @@ h2, h3, h4 {
   color: var(--slumber-teal-strong) !important;
   background: rgba(95,208,199,.12);
 }
+/* === Pull-to-refresh restore (global) ================================ */
+/* Paste this at the very bottom of theme.css */
+html, body {
+  height: auto !important;
+  overflow-y: auto !important;          /* allow root to scroll */
+  overscroll-behavior-y: auto !important;/* enable Chrome Android pull-to-refresh */
+  touch-action: pan-y !important;        /* don't block vertical pan */
+  -webkit-overflow-scrolling: touch;     /* smooth inertial scroll on iOS */
+}
+
+/* If any app shell wrapper was trapping scroll, release it */
+#root, .App, .page-wrapper, .content-wrapper {
+  max-height: none !important;
+  height: auto !important;
+  overflow: visible !important;
+  overscroll-behavior: auto !important;
+}
