@@ -1,12 +1,125 @@
-// ✅ src/components/MatchCards.js — compact dark cards + gold accents + LIVE/Recent (alignment fixed)
+// ✅ src/components/MatchCards.js — compact dark cards + gold accents + LIVE/Recent (with flags + team codes)
 // - Exactly ONE “Recent” per format (ODI/T20/Test)
 // - LIVE uses blue-tinted card + "LIVE" chip
-// - Alignment stable: each side uses a single row (name | score) → mobile/desktop line up
+// - Alignment stable (two equal columns; name+score in a single rowline)
 // - Only ripple kept (no heavy animations)
+// - Flags: emoji for countries, crest image for West Indies
+// - Team codes: ENG, AUS, SL, RSA (per your request) + ICC-style codes for others
 
 import React, { useEffect, useMemo, useState } from "react";
 import { getMatchHistory, getTestMatches } from "../services/api";
 import "./MatchCards.css";
+
+/* ------------------------------------------
+   Small flag helper (emoji for most teams,
+   crest image for West Indies)
+-------------------------------------------*/
+const getFlagData = (teamName = "") => {
+  const n = String(teamName).trim().toLowerCase();
+
+  // Emoji flags for countries
+  const EMOJI = {
+    india: "🇮🇳",
+    australia: "🇦🇺",
+    england: "🏴",              // St George’s Cross
+    "new zealand": "🇳🇿",
+    pakistan: "🇵🇰",
+    "south africa": "🇿🇦",
+    "sri lanka": "🇱🇰",
+    ireland: "🇮🇪",
+    kenya: "🇰🇪",
+    namibia: "🇳🇦",
+    bangladesh: "🇧🇩",
+    afghanistan: "🇦🇫",
+    zimbabwe: "🇿🇼",
+    netherlands: "🇳🇱",
+    scotland: "🏴",             // Saltire
+    nepal: "🇳🇵",
+    oman: "🇴🇲",
+    uae: "🇦🇪",
+    "united arab emirates": "🇦🇪",
+    usa: "🇺🇸",
+    "united states": "🇺🇸",
+    "hong kong": "🇭🇰",
+    hongkong: "🇭🇰",
+    "papua new guinea": "🇵🇬",
+    png: "🇵🇬",
+  };
+
+  // West Indies → crest (no country emoji)
+  if (/(^|\b)west indies(\b|$)|\bwi\b/.test(n)) {
+    return { type: "img", src: "/flags/wi.svg", alt: "West Indies" };
+  }
+
+  const emoji = EMOJI[n];
+  if (emoji) return { type: "emoji", value: emoji, alt: teamName };
+  return { type: "emoji", value: "🏳️", alt: teamName || "Unknown" };
+};
+
+const Flag = ({ team }) => {
+  const f = getFlagData(team);
+  if (f.type === "img") {
+    return (
+      <img
+        className="flag-icon"
+        src={f.src}
+        alt={f.alt}
+        style={{ width: 20, height: 14, objectFit: "contain", marginRight: 6 }}
+      />
+    );
+  }
+  return (
+    <span
+      className="flag-emoji"
+      role="img"
+      aria-label={f.alt}
+      style={{ marginRight: 6 }}
+    >
+      {f.value}
+    </span>
+  );
+};
+
+/* ------------------------------------------
+   Team codes (per your request)
+   - England → ENG
+   - Australia → AUS
+   - Sri Lanka → SL
+   - South Africa → RSA
+   - Plus common ICC codes for others
+-------------------------------------------*/
+const getTeamCode = (teamName = "") => {
+  const n = String(teamName).trim().toLowerCase();
+  const MAP = {
+    india: "IND",
+    australia: "AUS", aus: "AUS",
+    england: "ENG", eng: "ENG",
+    "new zealand": "NZ", nz: "NZ",
+    pakistan: "PAK",
+    "south africa": "RSA", sa: "RSA", rsa: "RSA",
+    "sri lanka": "SL", sl: "SL",
+    ireland: "IRE",
+    kenya: "KEN",
+    namibia: "NAM",
+    bangladesh: "BAN",
+    afghanistan: "AFG",
+    zimbabwe: "ZIM",
+    netherlands: "NED",
+    scotland: "SCO",
+    nepal: "NEP",
+    oman: "OMA",
+    uae: "UAE", "united arab emirates": "UAE",
+    usa: "USA", "united states": "USA",
+    "hong kong": "HKG", hongkong: "HKG",
+    "papua new guinea": "PNG", png: "PNG",
+    "west indies": "WI", wi: "WI",
+  };
+  if (MAP[n]) return MAP[n];
+
+  // Fallback: first 3 letters uppercased
+  const letters = n.replace(/[^a-z]/g, "");
+  return (letters.slice(0, 3) || "UNK").toUpperCase();
+};
 
 /* ---------- helpers ---------- */
 const formatOvers = (decimalOvers = 0) => {
@@ -25,18 +138,6 @@ const formatMatchTitle = (raw = "") => {
     .replace(/\s{2,}/g, " ")
     .trim();
   return s.replace(/^(\w)/, (m) => m.toUpperCase());
-};
-
-const getFlag = (teamName) => {
-  const n = (teamName || "").trim().toLowerCase();
-  const f = {
-    india: "🇮🇳", australia: "🇦🇺", england: "🏴", "new zealand": "🇳🇿",
-    pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱🇰", ireland: "🇮🇪",
-    kenya: "🇰🇪", namibia: "🇳🇦", bangladesh: "🇧🇩", afghanistan: "🇦🇫",
-    zimbabwe: "🇿🇼", "west indies": "🏴‍☠️", usa: "🇺🇸", uae: "🇦🇪",
-    oman: "🇴🇲", scotland: "🏴", netherlands: "🇳🇱", nepal: "🇳🇵",
-  };
-  return f[n] || "🏳️";
 };
 
 /* Timestamps (best-effort) */
@@ -162,8 +263,13 @@ const MatchCards = () => {
         <div className="teams-row">
           {/* LEFT */}
           <div className="team">
-            <div className="rowline">
-              <div className="name">{getFlag(m.team1)} {m.team1?.toUpperCase()}</div>
+            <div
+              className="rowline"
+              style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}
+            >
+              <div className="name">
+                <Flag team={m.team1} /> {getTeamCode(m.team1)}
+              </div>
               <div className="score">{m.runs1}/{m.wickets1}</div>
             </div>
             <div className="meta">Overs: {formatOvers(m.overs1)}</div>
@@ -171,8 +277,13 @@ const MatchCards = () => {
 
           {/* RIGHT */}
           <div className="team team--right">
-            <div className="rowline">
-              <div className="name">{getFlag(m.team2)} {m.team2?.toUpperCase()}</div>
+            <div
+              className="rowline"
+              style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}
+            >
+              <div className="name">
+                <Flag team={m.team2} /> {getTeamCode(m.team2)}
+              </div>
               <div className="score">{m.runs2}/{m.wickets2}</div>
             </div>
             <div className="meta">Overs: {formatOvers(m.overs2)}</div>
@@ -203,15 +314,27 @@ const MatchCards = () => {
         <div className="match-title">{formatMatchTitle(m.match_name)}</div>
 
         <div className="team-block">
-          <div className="name">{getFlag(m.team1)} {m.team1?.toUpperCase()}</div>
-          <div className="meta">1st Innings: {m.runs1}/{m.wickets1} ({formatOvers(m.overs1)} ov)</div>
-          <div className="meta">2nd Innings: {m.runs1_2}/{m.wickets1_2} ({formatOvers(m.overs1_2)} ov)</div>
+          <div className="name">
+            <Flag team={m.team1} /> {getTeamCode(m.team1)}
+          </div>
+          <div className="meta">
+            1st Innings: {m.runs1}/{m.wickets1} ({formatOvers(m.overs1)} ov)
+          </div>
+          <div className="meta">
+            2nd Innings: {m.runs1_2}/{m.wickets1_2} ({formatOvers(m.overs1_2)} ov)
+          </div>
         </div>
 
         <div className="team-block" style={{ marginTop: 6 }}>
-          <div className="name">{getFlag(m.team2)} {m.team2?.toUpperCase()}</div>
-          <div className="meta">1st Innings: {m.runs2}/{m.wickets2} ({formatOvers(m.overs2)} ov)</div>
-          <div className="meta">2nd Innings: {m.runs2_2}/{m.wickets2_2} ({formatOvers(m.overs2_2)} ov)</div>
+          <div className="name">
+            <Flag team={m.team2} /> {getTeamCode(m.team2)}
+          </div>
+          <div className="meta">
+            1st Innings: {m.runs2}/{m.wickets2} ({formatOvers(m.overs2)} ov)
+          </div>
+          <div className="meta">
+            2nd Innings: {m.runs2_2}/{m.wickets2_2} ({formatOvers(m.overs2_2)} ov)
+          </div>
         </div>
 
         {!live && (
