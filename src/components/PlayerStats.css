@@ -1,7 +1,7 @@
-/* ✅ PlayerStats.css — perfect column alignment + dark theme */
+/* ✅ PlayerStats.css — perfect alignment, dark theme, soft medals, tooltips */
 
-/* Card shell */
 .ps-card{
+  position: relative;
   width:min(1200px,96vw);
   margin: 0 auto;
   background:linear-gradient(180deg, rgba(14,22,38,.6), rgba(14,22,38,.45));
@@ -11,14 +11,46 @@
   padding:18px;
   color:#eaf6ff;
 }
+
 .ps-header{ text-align:center; margin-bottom:6px; }
+.ps-header--mini { margin-bottom:10px; }
+
 .ps-title{
   margin:4px 0 2px; font-size:26px; font-weight:900; letter-spacing:.3px;
   background:linear-gradient(90deg,#00e5ff,#7b61ff);
   -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
   text-shadow: 0 2px 12px rgba(0,229,255,.18);
+  display:flex; align-items:center; gap:8px; justify-content:center;
+}
+.ps-title .dot{ width:10px; height:10px; border-radius:50%; background:#00e5ff; box-shadow:0 0 12px #00e5ff88; display:inline-block; }
+
+.ps-title-small{
+  margin: 2px 0 0; text-align:center; font-weight:900; color:#e8caa4;
+  text-shadow: 0 0 10px rgba(232,202,164,.22);
 }
 .ps-sub{ color:#9fb6cc; font-size:13px; letter-spacing:.2px; }
+
+/* Info button (top-right of each ps-card) */
+.ps-info{
+  position:absolute; top:10px; right:12px;
+  width:24px; height:24px; border-radius:50%;
+  border:1px solid rgba(255,255,255,.16);
+  background:#0f1b28; color:#eaf6ff; font-weight:900; line-height:22px;
+  text-align:center; cursor:pointer;
+}
+.ps-info:hover{ filter: brightness(1.1); }
+
+/* Pure CSS tooltip */
+.ps-info[data-tip]::after{
+  content: attr(data-tip);
+  position:absolute; right:28px; top:50%; transform:translateY(-50%);
+  max-width: 340px;
+  background: #08131f; color:#dfeffc; font-size:12.5px; line-height:1.35;
+  border:1px solid rgba(255,255,255,.08); border-radius:10px;
+  padding:8px 10px; box-shadow:0 12px 28px rgba(0,0,0,.4);
+  opacity:0; pointer-events:none; transition: opacity .15s ease;
+}
+.ps-info:hover::after, .ps-info:focus::after{ opacity:1; }
 
 /* Filters */
 .ps-filters{ display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 12px; }
@@ -36,29 +68,15 @@
    MATCH-WISE TABLE (Grid)
    ============================ */
 .ps-grid{
-  --c-player: 1.3fr;
-  --c-team: 1fr;
-  --c-type: .7fr;
-  --c-match: 1.6fr;
-  --c-against: 1fr;
-  --c-runs: .6fr;
-  --c-balls: .6fr;
-  --c-sr: .7fr;
-  --c-wkts: .6fr;
-  --c-rg: .7fr;
-  --c-50s: .6fr;
-  --c-100s: .6fr;
-  --c-dismissed: .9fr;
-
+  /* one source of truth for column sizes */
+  --ps-cols:
+    1.3fr 1fr .7fr 1.6fr 1fr .6fr .6fr .7fr .6fr .7fr .6fr .6fr .9fr;
   font-variant-numeric: tabular-nums; /* digits align */
 }
 .ps-head, .ps-row{
   display:grid;
-  grid-template-columns:
-    var(--c-player) var(--c-team) var(--c-type) var(--c-match) var(--c-against)
-    var(--c-runs) var(--c-balls) var(--c-sr) var(--c-wkts) var(--c-rg) var(--c-50s) var(--c-100s) var(--c-dismissed);
+  grid-template-columns: var(--ps-cols);
   align-items:center;
-  column-gap: 0;
 }
 .ps-head{
   padding:10px 12px; border-radius:12px; font-weight:800; font-size:14px;
@@ -75,13 +93,16 @@
 }
 .ps-row:hover{ transform: translateY(-2px); }
 
-.cell{ padding:2px 8px; display:flex; align-items:center; min-width:0; }
+.cell{ padding:6px 8px; display:flex; align-items:center; min-width:0; }
 .cell.num{ justify-content:flex-end; }
+.ps-head .num{ justify-content:flex-end; }
 .cell.head{ color:#dff2ff; }
-.cell.player .player-link{
-  background:transparent; border:none; color:#fff; font-weight:900; padding:0; cursor:pointer;
+
+/* dark-theme player link (no harsh white) */
+.player-link{
+  background:transparent; border:none; color:#dbe7ef; font-weight:800; padding:0; cursor:pointer;
 }
-.cell.player .player-link:hover{ text-decoration: underline; }
+.player-link:hover{ color:#ffffff; text-decoration: underline; }
 
 /* Empty state */
 .ps-empty{
@@ -106,21 +127,13 @@
 /* ============================
    OVERALL SUMMARY (Ranked)
    ============================ */
-.ps-title-small{
-  margin: 2px 0 10px; text-align:center; font-weight:900; color:#e8caa4;
-  text-shadow: 0 0 10px rgba(232,202,164,.22);
-}
-
 .ps-grid-sum{
-  --s-rank:.6fr; --s-player:1.4fr; --s-team:1fr; --s-type:.8fr;
-  --s-matches:.8fr; --s-runs:.9fr; --s-wkts:.8fr; --s-50s:.8fr; --s-100s:.8fr;
+  --sum-cols: .7fr 1.4fr 1fr .8fr .9fr 1fr .9fr .8fr .8fr;
   font-variant-numeric: tabular-nums;
 }
 .ps-head-sum, .ps-row-sum{
   display:grid;
-  grid-template-columns:
-    var(--s-rank) var(--s-player) var(--s-team) var(--s-type)
-    var(--s-matches) var(--s-runs) var(--s-wkts) var(--s-50s) var(--s-100s);
+  grid-template-columns: var(--sum-cols);
   align-items:center;
 }
 .ps-head-sum{
@@ -129,24 +142,30 @@
   border:1px solid rgba(255,255,255,.08);
 }
 .ps-row-sum{
+  position:relative;
   padding:10px 12px; border-radius:12px; margin-top:8px;
-  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.02));
   border:1px solid rgba(255,255,255,.08);
 }
-.ps-row-sum .cell{ padding:2px 8px; }
+.ps-row-sum .cell{ padding:6px 8px; }
 .ps-row-sum .cell.num{ justify-content:flex-end; }
 
-/* Top-3 glow */
-.ps-row-sum.gold::before,
-.ps-row-sum.silver::before,
-.ps-row-sum.bronze::before{
-  content:""; position:absolute; inset:auto; /* allow glow via box-shadow only */
+/* Subtle medals + soft tint (much easier on eyes) */
+.medal{ margin-right:8px; filter: drop-shadow(0 0 4px rgba(0,0,0,.25)); }
+.ps-row-sum.gold{
+  background:linear-gradient(180deg, rgba(255,214,98,.09), rgba(255,214,98,.03));
+  box-shadow: 0 8px 20px rgba(255,214,98,.10);
 }
-.ps-row-sum.gold   { box-shadow: 0 0 0 1px rgba(255,214,98,.35), 0 10px 26px rgba(255,214,98,.18); background:linear-gradient(180deg, rgba(255,214,98,.14), transparent); }
-.ps-row-sum.silver { box-shadow: 0 0 0 1px rgba(206,219,233,.35), 0 10px 26px rgba(206,219,233,.18); background:linear-gradient(180deg, rgba(206,219,233,.12), transparent); }
-.ps-row-sum.bronze { box-shadow: 0 0 0 1px rgba(238,168,114,.35), 0 10px 26px rgba(238,168,114,.18); background:linear-gradient(180deg, rgba(238,168,114,.10), transparent); }
+.ps-row-sum.silver{
+  background:linear-gradient(180deg, rgba(206,219,233,.08), rgba(206,219,233,.03));
+  box-shadow: 0 8px 20px rgba(206,219,233,.10);
+}
+.ps-row-sum.bronze{
+  background:linear-gradient(180deg, rgba(238,168,114,.08), rgba(238,168,114,.03));
+  box-shadow: 0 8px 20px rgba(238,168,114,.10);
+}
 
-/* Modal basics (uses your existing class names) */
+/* Modal basics */
 .player-modal-overlay{
   position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999;
   display:flex; align-items:center; justify-content:center; padding:16px;
