@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import "./PlayerRankings.css";
 
@@ -15,6 +15,23 @@ const PlayerRankings = () => {
   const [loading, setLoading] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
 
+  // for the “pop a little while scrolling” effect
+  const [isScrolling, setIsScrolling] = useState(false);
+  const tableWrapRef = useRef(null);
+  const scrollTimerRef = useRef(null);
+
+  useEffect(() => {
+    const el = tableWrapRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      setIsScrolling(true);
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+      scrollTimerRef.current = setTimeout(() => setIsScrolling(false), 160);
+    };
+    el.addEventListener("scroll", onScroll);
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
+
   useEffect(() => {
     fetchRankings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -25,7 +42,6 @@ const PlayerRankings = () => {
       setLoading(true);
       const url = `https://cricket-scoreboard-backend.onrender.com/api/rankings/players?type=${activeTab}&match_type=${matchType}`;
       const res = await axios.get(url);
-      // ensure numeric + sorted (desc)
       const data = Array.isArray(res.data) ? res.data : [];
       setRankingData(
         [...data].sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0))
@@ -38,11 +54,15 @@ const PlayerRankings = () => {
   };
 
   const onExportCSV = () => {
-    const rows = [["Position", "Player", "Team", "Rating"]];
-    rankingData.forEach((p, i) =>
-      rows.push([i + 1, p.player_name, p.team_name, p.rating])
-    );
-    const csv = rows.map(r => r.map(String).map(s => `"${s.replace(/"/g,'""')}"`).join(",")).join("\n");
+    const rows = [["Position", "Player", "Team", "Rating", "Index%"]];
+    const top = Number(rankingData[0]?.rating || 0);
+    rankingData.forEach((p, i) => {
+      const pct = top > 0 ? Math.round((Number(p.rating || 0) / top) * 100) : 0;
+      rows.push([i + 1, p.player_name, p.team_name, p.rating, pct]);
+    });
+    const csv = rows
+      .map(r => r.map(String).map(s => `"${s.replace(/"/g,'""')}"`).join(","))
+      .join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -116,7 +136,7 @@ const PlayerRankings = () => {
         </div>
       </div>
 
-      {/* Podium Top-3 */}
+      {/* Podium Top-3 (dark tints) */}
       <section className="podium" aria-label="Top three players">
         {top3.length === 0 && (
           <div className="empty">No data available for this selection.</div>
@@ -127,7 +147,7 @@ const PlayerRankings = () => {
           const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉";
           return (
             <article key={p.player_name + i} className={`podium-card ${cls}`}>
-              <div className="shine" aria-hidden />
+              <div className="sheen" aria-hidden />
               <div className="medal-badge">{medal}</div>
               <div className="podium-rank">#{i + 1}</div>
               <div className="podium-name">{p.player_name}</div>
@@ -141,7 +161,10 @@ const PlayerRankings = () => {
       </section>
 
       {/* Table */}
-      <div className="rk-table-wrap">
+      <div
+        className={`rk-table-wrap ${isScrolling ? "is-scrolling" : ""}`}
+        ref={tableWrapRef}
+      >
         <table className="ranking-table" role="table" aria-label="All rankings">
           <thead>
             <tr>
@@ -167,6 +190,7 @@ const PlayerRankings = () => {
               sorted.map((p, i) => {
                 const rating = Number(p.rating || 0);
                 const pct = topRating > 0 ? Math.max(2, (rating / topRating) * 100) : 0;
+                const pctLabel = Math.round(pct);
                 const smallMedal = i < 3 ? (i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉") : null;
 
                 return (
@@ -181,6 +205,7 @@ const PlayerRankings = () => {
                     <td className="bar">
                       <div className="rating-bar">
                         <span style={{ width: `${pct}%` }} />
+                        <em>{pctLabel}%</em>
                       </div>
                     </td>
                   </tr>
@@ -205,15 +230,15 @@ const PlayerRankings = () => {
             <h3>About Player Rankings</h3>
             <p>
               This page lists <b>{TAB_LABELS[activeTab]}</b> rankings for{" "}
-              <b>{matchType}</b>. The cards at the top highlight the best three
-              players with soft medal badges. The table below includes all ranked
-              players; the “Index” bar shows each rating as a percentage of the
-              current leader.
+              <b>{matchType}</b>. The top cards show the best three players
+              (dark tinted medals). In the table, <b>Index</b> shows each rating
+              as a percentage of the current #1.
             </p>
             <ul className="modal-bullets">
-              <li>Use the tabs to switch skill categories.</li>
-              <li>Use the format chips to toggle Test/ODI/T20.</li>
-              <li>“Refresh” fetches latest data; “Export CSV” downloads the table.</li>
+              <li>Switch category with the tabs.</li>
+              <li>Toggle Test/ODI/T20 with the chips.</li>
+              <li>Hover rows for a 3D lift; scrolling gives a subtle pop effect.</li>
+              <li>Use <b>Refresh</b> and <b>Export CSV</b> on the right.</li>
             </ul>
           </div>
         </div>

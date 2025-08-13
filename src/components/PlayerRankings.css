@@ -1,12 +1,14 @@
-/* Dark, premium look with teal + gold accents */
+/* Dark, premium look with teal + gold accents (leaderboard style) */
 :root{
   --deep:#081722;
   --deeper:#07131d;
+  --panel:#0f1b28;
   --teal:#5fd0c7;
   --teal-strong:#38c7bb;
   --gold:#e8caa4;
   --ink:#eaf6ff;
-  --line: rgba(232,202,164,.20);
+  --ink-dim:#cfe0ee;
+  --line: rgba(232,202,164,.22);
 }
 
 .pr-wrap{
@@ -38,7 +40,7 @@
 .pr-info{
   position:absolute; top:4px; right:6px;
   width:26px; height:26px; border-radius:50%;
-  background:#0f1b28; color:#dff2ff; font-weight:900;
+  background:var(--panel); color:#dff2ff; font-weight:900;
   border:1px solid rgba(255,255,255,.14); cursor:pointer;
 }
 .pr-info:hover{ filter:brightness(1.1); }
@@ -50,7 +52,7 @@
 }
 .seg{
   display:flex; gap:6px; padding:4px; border-radius:12px;
-  background: linear-gradient(180deg,#0f1b28,#0a1520);
+  background: linear-gradient(180deg,var(--panel),#0a1520);
   border: 1px solid rgba(255,255,255,.08);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
 }
@@ -67,7 +69,7 @@
 .chips{ display:flex; gap:8px; justify-content:center; }
 .chip{
   padding:8px 12px; border-radius:999px;
-  background:#0f1b28; color:#9fc9d8; border:1px solid rgba(255,255,255,.08);
+  background:var(--panel); color:#9fc9d8; border:1px solid rgba(255,255,255,.08);
   font-weight:900; cursor:pointer; letter-spacing:.3px;
 }
 .chip.active{
@@ -78,7 +80,7 @@
 .tools{ display:flex; gap:8px; justify-content:flex-end; }
 .tool{
   padding:8px 12px; border-radius:10px; font-weight:800; letter-spacing:.2px; cursor:pointer;
-  border:1px solid rgba(255,255,255,.10); background:#0f1b28; color:#dfeffc;
+  border:1px solid rgba(255,255,255,.10); background:var(--panel); color:#dfeffc;
 }
 .tool.ghost:hover{ border-color:var(--teal); color:#fff; }
 .tool.cta{
@@ -87,15 +89,17 @@
 }
 .tool.cta:hover{ filter:brightness(1.06); }
 
-/* Podium Top-3 */
+/* =========================
+   Podium Top-3 (Dark tints)
+   ========================= */
 .podium{
   display:grid; grid-template-columns: repeat(3,1fr); gap:12px; margin: 6px 0 12px;
 }
 .podium-card{
   position:relative; overflow:hidden;
   padding:14px 12px; border-radius:16px;
-  border:1px solid rgba(255,255,255,.08);
-  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  border:1px solid var(--line);
+  background: linear-gradient(180deg, #0f1b28, #0a1520); /* darker base */
   box-shadow: 0 16px 40px rgba(0,0,0,.35);
   text-align:center;
 }
@@ -105,47 +109,56 @@
 .podium-card .podium-name{
   margin-top:2px; font-weight:900; font-size:18px; color:#fff;
 }
-.podium-card .podium-team{
-  font-weight:700; color:#cfe0ee;
-}
+.podium-card .podium-team{ font-weight:700; color:var(--ink-dim); }
 .podium-card .podium-rating{
   margin-top:6px; font-size:22px; font-weight:900; color:#fff;
   text-shadow: 0 0 12px rgba(232,202,164,.18);
 }
-
 .podium-card .medal-badge{
   position:absolute; left:10px; top:10px; width:34px; height:34px;
   line-height:34px; text-align:center; border-radius:50%;
-  background:#0f1b28; border:1px solid rgba(255,255,255,.12);
+  background:var(--panel); border:1px solid rgba(255,255,255,.12);
   box-shadow:0 6px 16px rgba(0,0,0,.35);
   animation: float 3.2s ease-in-out infinite;
 }
-@keyframes float {
-  0%,100%{ transform: translateY(0) }
-  50%{ transform: translateY(-4px) }
-}
+@keyframes float { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-4px) } }
 
-/* unique “sheen” sweep */
-.podium-card .shine{
-  position:absolute; inset:-20%; background:
-    linear-gradient(105deg, transparent 40%, rgba(255,255,255,.14) 50%, transparent 60%);
+/* gentle sheen (low opacity) */
+.podium-card .sheen{
+  position:absolute; inset:-20%;
+  background: linear-gradient(105deg, transparent 45%, rgba(255,255,255,.08) 50%, transparent 55%);
   transform: translateX(-60%);
-  animation: sheen 3.6s linear infinite;
+  animation: sheen 4s linear infinite;
   pointer-events:none;
 }
 @keyframes sheen {
-  0%{ transform: translateX(-60%) rotate(0.001deg); }
-  100%{ transform: translateX(60%) rotate(0.001deg); }
+  0%{ transform: translateX(-60%) }
+  100%{ transform: translateX(60%) }
 }
 
-/* medal color tints (soft) */
-.podium-card.gold   { background: linear-gradient(180deg, rgba(255,214,98,.11), rgba(255,214,98,.03)); }
-.podium-card.silver { background: linear-gradient(180deg, rgba(206,219,233,.10), rgba(206,219,233,.03)); }
-.podium-card.bronze { background: linear-gradient(180deg, rgba(238,168,114,.10), rgba(238,168,114,.03)); }
+/* medal tints (subtle, dark) */
+.podium-card.gold   { box-shadow: inset 0 0 0 1px rgba(255,214,98,.22), 0 16px 40px rgba(0,0,0,.35); }
+.podium-card.silver { box-shadow: inset 0 0 0 1px rgba(206,219,233,.20), 0 16px 40px rgba(0,0,0,.35); }
+.podium-card.bronze { box-shadow: inset 0 0 0 1px rgba(238,168,114,.20), 0 16px 40px rgba(0,0,0,.35); }
 
-/* Table */
-.rk-table-wrap{ overflow-x:auto; border-radius:14px; border:1px solid rgba(255,255,255,.06); }
-.ranking-table{ width:100%; border-collapse:separate; border-spacing:0; font-variant-numeric:tabular-nums; }
+/* =========================
+   Table (Leaderboard style)
+   ========================= */
+.rk-table-wrap{
+  overflow-x:auto;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.06);
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+  perspective: 1200px; /* for subtle 3D */
+}
+.rk-table-wrap.is-scrolling tbody tr{
+  transform: translateZ(0.0001px) scale(1.002);
+}
+
+.ranking-table{
+  width:100%; border-collapse:separate; border-spacing:0;
+  font-variant-numeric: tabular-nums;
+}
 .ranking-table thead th{
   position:sticky; top:0; z-index:2;
   background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
@@ -156,26 +169,33 @@
 .ranking-table thead th.bar{ width:220px; }
 
 .ranking-table tbody tr{
-  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+  background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.015));
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
 }
 .ranking-table tbody tr + tr td{ border-top:1px solid rgba(255,255,255,.06); }
 
-.ranking-table td{
-  padding:12px; text-align:left;
+/* hover = subtle 3D pop */
+.ranking-table tbody tr:hover{
+  transform: translateY(-3px) scale(1.006);
+  box-shadow: 0 10px 24px rgba(0,0,0,.28), inset 0 0 0 1px rgba(232,202,164,.16);
+  background: linear-gradient(180deg, rgba(232,202,164,.07), rgba(255,255,255,.02));
 }
+
+.ranking-table td{ padding:12px; text-align:left; }
 .ranking-table td.num{ text-align:right; }
 .ranking-table td.bar{ width:220px; }
 
-.cell-player{ display:flex; align-items:center; gap:8px; }
+.cell-player{ display:flex; align-items:center; gap:8px; min-width: 180px; }
 .mini-medal{ filter: drop-shadow(0 0 6px rgba(0,0,0,.3)); }
 
 .toprow{
   box-shadow: inset 0 0 0 1px rgba(232,202,164,.22);
-  background: linear-gradient(180deg, rgba(232,202,164,.09), rgba(232,202,164,.02));
+  background: linear-gradient(180deg, rgba(232,202,164,.08), rgba(232,202,164,.02));
 }
 
+/* Index bar with label */
 .rating-bar{
-  position:relative; height:10px; border-radius:999px;
+  position:relative; height:12px; border-radius:999px;
   background:rgba(255,255,255,.08); overflow:hidden;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
 }
@@ -184,6 +204,12 @@
   background: linear-gradient(90deg, #00e5ff, #7b61ff);
   border-radius:999px;
   animation: growIn .5s ease;
+}
+.rating-bar > em{
+  position:absolute; right:8px; top:50%;
+  transform: translateY(-50%); font-style:normal; font-weight:900;
+  font-size:12px; color:#dff2ff; text-shadow:0 0 6px rgba(0,0,0,.5);
+  pointer-events:none;
 }
 @keyframes growIn { from{ width:0 } }
 
