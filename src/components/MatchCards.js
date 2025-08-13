@@ -56,25 +56,14 @@ const getFlagData = (teamName = "") => {
   return { type: "emoji", value: "🏳️", alt: teamName || "Unknown" };
 };
 
+// after
 const Flag = ({ team }) => {
   const f = getFlagData(team);
   if (f.type === "img") {
-    return (
-      <img
-        className="flag-icon"
-        src={f.src}
-        alt={f.alt}
-        style={{ width: 20, height: 14, objectFit: "contain", marginRight: 6 }}
-      />
-    );
+    return <img className="flag-icon" src={f.src} alt={f.alt} />;
   }
   return (
-    <span
-      className="flag-emoji"
-      role="img"
-      aria-label={f.alt}
-      style={{ marginRight: 6 }}
-    >
+    <span className="flag-emoji" role="img" aria-label={f.alt}>
       {f.value}
     </span>
   );
