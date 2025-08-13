@@ -21,7 +21,7 @@
 /* ===== Sticky format toggle (dark + gold) ===== */
 .format-toggle{
   position: sticky;
-  top: 86px; /* sits below navbar */
+  top: 86px;
   z-index: 9;
   display:flex; flex-wrap:wrap; gap:10px;
   background: linear-gradient(180deg, rgba(8,23,34,.92), rgba(7,19,29,.92));
@@ -45,12 +45,11 @@
 .format-btn:hover{ transform: translateY(-1px); box-shadow:0 10px 24px rgba(232,202,164,.16); }
 .format-btn.active{ color:#041014; background: linear-gradient(180deg,#1f4d58,#163b45); border-color: var(--gold); box-shadow: 0 10px 26px rgba(232,202,164,.25); }
 
-/* palette per format (subtle) */
 .format-btn.odi{ background:#102a3f; }
 .format-btn.t20{ background:#2a1e2f; }
 .format-btn.test{ background:#13312a; }
 
-/* ===== Match card (compact, dark, gold rim) ===== */
+/* ===== Match card ===== */
 .match-card{
   position:relative;
   border-radius:14px;
@@ -61,6 +60,7 @@
   border:1px solid var(--line);
   box-shadow: 0 10px 28px rgba(232,202,164,.12);
   color:#eaf6ff;
+  overflow:hidden;                  /* ⬅️ prevent any spill */
 }
 .match-card.simple:hover{ box-shadow: 0 14px 34px rgba(232,202,164,.16); }
 
@@ -92,7 +92,7 @@
   box-shadow:0 0 10px #ff3b3088, 0 0 2px #ff3b30;
 }
 
-/* Title + subtle golden glow */
+/* Title */
 .match-title{
   color: var(--gold-strong);
   font-family: "Josefin Sans","Karla",sans-serif;
@@ -101,30 +101,32 @@
   text-shadow: 0 0 10px rgba(232,202,164,.22);
 }
 
-/* Two equal columns so numbers line up on mobile/desktop */
+/* === Mobile-safe layout fixes === */
 .teams-row{
   display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:16px;
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr);  /* ⬅️ allow shrink */
+  gap:12px;                                           /* a bit tighter */
   margin-bottom:8px;
   align-items:start;
 }
+.teams-row > .team{ min-width:0; }                    /* ⬅️ allow shrink */
 
-/* SINGLE ROW per side: Name | Score */
 .rowline{
   display:grid;
-  grid-template-columns: 1fr auto;       /* name expands, score hugs right */
+  grid-template-columns: minmax(0,1fr) auto;          /* ⬅️ name shrinks */
   align-items: baseline;
   column-gap: 8px;
 }
 .rowline .name,
-.rowline .score{ min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rowline .score{
+  min-width:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
 
-/* Right column text should read right-aligned */
+/* Right column */
 .team--right .name,
 .team--right .score{ text-align:right; }
 
-/* Glowing team text + tabular numbers for neat alignment */
 .team .name{
   font-weight:800; color:#fff;
   text-shadow:0 0 6px rgba(255,255,255,.28), 0 0 14px rgba(232,202,164,.18);
@@ -135,8 +137,7 @@
   text-shadow:0 0 6px rgba(255,255,255,.28), 0 0 14px rgba(232,202,164,.18);
 }
 .team .meta{
-  font-size:.9rem; color:#d7e7f5; opacity:.9;
-  font-variant-numeric:tabular-nums;
+  font-size:.9rem; color:#d7e7f5; opacity:.9; font-variant-numeric:tabular-nums;
 }
 
 .team-block{ margin-bottom:6px; }
@@ -155,7 +156,7 @@
   color:#dfeffc;
 }
 
-/* Ripple (only animation we keep) */
+/* Ripple */
 .tap-ripple{
   position:absolute; width:22px; height:22px; border-radius:50%;
   transform:translate(-50%,-50%) scale(0);
@@ -168,19 +169,28 @@
   to{ transform:translate(-50%,-50%) scale(14); opacity:0; }
 }
 
-/* Responsive: stack columns on very small phones */
-@media (max-width:768px){
-  .match-card{ padding:14px; }
-  .format-btn{ min-width: 150px; }
+/* ====== Responsive tweaks ====== */
+
+/* slightly reduce gutters on phones for more usable width */
+.mc-container .row.g-3{ --bs-gutter-x: .75rem; }
+@media (max-width: 480px){
+  .mc-container .row.g-3{ --bs-gutter-x: .5rem; }
 }
-@media (max-width:400px){
+
+/* stack earlier + scale badges a touch on small screens */
+@media (max-width:520px){
   .teams-row{ grid-template-columns: 1fr; gap:8px; }
   .team--right{
-    text-align:left;             /* block flows left when stacked */
+    text-align:left;
     border-top:1px dashed var(--line);
     padding-top:6px; margin-top:6px;
   }
-  .team .name{ font-size:.95rem; }
-  .team .score{ font-size:1rem; }
-  .team .meta{ font-size:.82rem; }
+  .status-badges{ right:6px; transform: scale(.92); }
+}
+
+/* smallest phones: tighten spacing slightly */
+@media (max-width:360px){
+  .rowline{ column-gap:6px; }
+  .match-card{ padding:14px 12px; }
+  .format-btn{ min-width: 140px; }
 }

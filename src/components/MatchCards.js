@@ -354,7 +354,7 @@ const MatchCards = () => {
   };
 
   return (
-    <div className="container mt-4">
+    <div className="container mt-4 mc-container">
       {/* Sticky format toggle (dark + gold) */}
       <div className="format-toggle">
         <button className={`format-btn odi ${tab === "ODI" ? "active" : ""}`} onClick={() => setTab("ODI")} type="button">🏏 ODI</button>
