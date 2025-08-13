@@ -230,3 +230,14 @@
   .flag-emoji,
   .flag-icon{ display:none; }
 }
+/* Hide flags on tiny screens to prevent overlap */
+@media (max-width: 430px){
+  .flag-emoji,
+  .flag-icon { 
+    display: none !important;
+  }
+  /* tighten spacing when the flag disappears */
+  .rowline .name { 
+    gap: 0;
+  }
+}
