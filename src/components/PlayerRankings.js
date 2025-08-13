@@ -15,7 +15,7 @@ const PlayerRankings = () => {
   const [loading, setLoading] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
 
-  // for the “pop a little while scrolling” effect
+  // subtle “pop while scrolling” effect
   const [isScrolling, setIsScrolling] = useState(false);
   const tableWrapRef = useRef(null);
   const scrollTimerRef = useRef(null);
@@ -61,7 +61,7 @@ const PlayerRankings = () => {
       rows.push([i + 1, p.player_name, p.team_name, p.rating, pct]);
     });
     const csv = rows
-      .map(r => r.map(String).map(s => `"${s.replace(/"/g,'""')}"`).join(","))
+      .map(r => r.map(String).map(s => `"${s.replace(/"/g, '""')}"`).join(","))
       .join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -136,7 +136,7 @@ const PlayerRankings = () => {
         </div>
       </div>
 
-      {/* Podium Top-3 (dark tints) */}
+      {/* Podium Top-3 (dark, subtle tints) */}
       <section className="podium" aria-label="Top three players">
         {top3.length === 0 && (
           <div className="empty">No data available for this selection.</div>
@@ -160,7 +160,7 @@ const PlayerRankings = () => {
         })}
       </section>
 
-      {/* Table */}
+      {/* Leaderboard-style table */}
       <div
         className={`rk-table-wrap ${isScrolling ? "is-scrolling" : ""}`}
         ref={tableWrapRef}
@@ -203,7 +203,7 @@ const PlayerRankings = () => {
                     <td>{p.team_name}</td>
                     <td className="num">{rating}</td>
                     <td className="bar">
-                      <div className="rating-bar">
+                      <div className="rating-bar" aria-label={`Index ${pctLabel}%`}>
                         <span style={{ width: `${pct}%` }} />
                         <em>{pctLabel}%</em>
                       </div>
@@ -230,14 +230,14 @@ const PlayerRankings = () => {
             <h3>About Player Rankings</h3>
             <p>
               This page lists <b>{TAB_LABELS[activeTab]}</b> rankings for{" "}
-              <b>{matchType}</b>. The top cards show the best three players
-              (dark tinted medals). In the table, <b>Index</b> shows each rating
-              as a percentage of the current #1.
+              <b>{matchType}</b>. Top cards show the best three players with soft,
+              dark medal tints. In the table, <b>Index</b> is each rating as a
+              percentage of the current #1.
             </p>
             <ul className="modal-bullets">
               <li>Switch category with the tabs.</li>
               <li>Toggle Test/ODI/T20 with the chips.</li>
-              <li>Hover rows for a 3D lift; scrolling gives a subtle pop effect.</li>
+              <li>Rows have a subtle 3D lift; scrolling gives a tiny “pop”.</li>
               <li>Use <b>Refresh</b> and <b>Export CSV</b> on the right.</li>
             </ul>
           </div>

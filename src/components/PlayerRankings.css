@@ -1,4 +1,4 @@
-/* Dark, premium look with teal + gold accents (leaderboard style) */
+/* Dark premium board with teal + gold notes (leaderboard style) */
 :root{
   --deep:#081722;
   --deeper:#07131d;
@@ -89,9 +89,7 @@
 }
 .tool.cta:hover{ filter:brightness(1.06); }
 
-/* =========================
-   Podium Top-3 (Dark tints)
-   ========================= */
+/* ========= Podium (dark subtle tints) ========= */
 .podium{
   display:grid; grid-template-columns: repeat(3,1fr); gap:12px; margin: 6px 0 12px;
 }
@@ -99,16 +97,12 @@
   position:relative; overflow:hidden;
   padding:14px 12px; border-radius:16px;
   border:1px solid var(--line);
-  background: linear-gradient(180deg, #0f1b28, #0a1520); /* darker base */
+  background: linear-gradient(180deg, #0f1b28, #0a1520);
   box-shadow: 0 16px 40px rgba(0,0,0,.35);
   text-align:center;
 }
-.podium-card .podium-rank{
-  color:#9fb6cc; font-weight:900; letter-spacing:.2px;
-}
-.podium-card .podium-name{
-  margin-top:2px; font-weight:900; font-size:18px; color:#fff;
-}
+.podium-card .podium-rank{ color:#9fb6cc; font-weight:900; letter-spacing:.2px; }
+.podium-card .podium-name{ margin-top:2px; font-weight:900; font-size:18px; color:#fff; }
 .podium-card .podium-team{ font-weight:700; color:var(--ink-dim); }
 .podium-card .podium-rating{
   margin-top:6px; font-size:22px; font-weight:900; color:#fff;
@@ -123,7 +117,7 @@
 }
 @keyframes float { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-4px) } }
 
-/* gentle sheen (low opacity) */
+/* gentle sheen */
 .podium-card .sheen{
   position:absolute; inset:-20%;
   background: linear-gradient(105deg, transparent 45%, rgba(255,255,255,.08) 50%, transparent 55%);
@@ -131,25 +125,19 @@
   animation: sheen 4s linear infinite;
   pointer-events:none;
 }
-@keyframes sheen {
-  0%{ transform: translateX(-60%) }
-  100%{ transform: translateX(60%) }
-}
+@keyframes sheen { 0%{ transform: translateX(-60%) } 100%{ transform: translateX(60%) } }
 
-/* medal tints (subtle, dark) */
 .podium-card.gold   { box-shadow: inset 0 0 0 1px rgba(255,214,98,.22), 0 16px 40px rgba(0,0,0,.35); }
 .podium-card.silver { box-shadow: inset 0 0 0 1px rgba(206,219,233,.20), 0 16px 40px rgba(0,0,0,.35); }
 .podium-card.bronze { box-shadow: inset 0 0 0 1px rgba(238,168,114,.20), 0 16px 40px rgba(0,0,0,.35); }
 
-/* =========================
-   Table (Leaderboard style)
-   ========================= */
+/* ========= Leaderboard table ========= */
 .rk-table-wrap{
   overflow-x:auto;
   border-radius:14px;
   border:1px solid rgba(255,255,255,.06);
   background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-  perspective: 1200px; /* for subtle 3D */
+  perspective: 1200px; /* 3D context */
 }
 .rk-table-wrap.is-scrolling tbody tr{
   transform: translateZ(0.0001px) scale(1.002);
@@ -174,7 +162,7 @@
 }
 .ranking-table tbody tr + tr td{ border-top:1px solid rgba(255,255,255,.06); }
 
-/* hover = subtle 3D pop */
+/* hover = subtle 3D lift like sc1 */
 .ranking-table tbody tr:hover{
   transform: translateY(-3px) scale(1.006);
   box-shadow: 0 10px 24px rgba(0,0,0,.28), inset 0 0 0 1px rgba(232,202,164,.16);
@@ -193,7 +181,7 @@
   background: linear-gradient(180deg, rgba(232,202,164,.08), rgba(232,202,164,.02));
 }
 
-/* Index bar with label */
+/* Index bar with % label */
 .rating-bar{
   position:relative; height:12px; border-radius:999px;
   background:rgba(255,255,255,.08); overflow:hidden;
@@ -215,7 +203,7 @@
 
 .empty{ text-align:center; color:#9fb6cc; padding:18px 0; }
 
-/* Skeleton rows for loading */
+/* Loading skeleton */
 .sk-row .sk{
   display:inline-block; background: linear-gradient(90deg,#27495e,#1b3243,#27495e);
   background-size: 220% 100%; animation: sk 1.2s infinite linear;
