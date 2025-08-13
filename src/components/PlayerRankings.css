@@ -238,6 +238,7 @@
   .ranking-table thead th.bar, .ranking-table td.bar{ width:160px; }
 }
 /* ===== Leaderboard-style GRID (matches your LO leaderboard) ===== */
+/* ===== Leaderboard-style GRID (scoped to PlayerRankings only) ===== */
 .lb-wrap{
   --c-pos:.6fr; --c-player:1.8fr; --c-team:1.1fr; --c-rating:.8fr; --c-index:1.2fr;
   overflow:auto;
@@ -249,25 +250,27 @@
   max-height: 70vh; /* optional */
 }
 
+/* subtle pop while scrolling */
+.lb-wrap.is-scrolling .lb-row{ transform: translateZ(0.0001px) scale(1.002); }
+
 /* sticky header bar */
-.lb-head{
+.lb-wrap .lb-head{
   position: sticky; top:0; z-index: 5;
   display:grid;
   grid-template-columns: var(--c-pos) var(--c-player) var(--c-team) var(--c-rating) var(--c-index);
   background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
   border:1px solid rgba(255,255,255,.08);
-  color:#dff2ff;
-  font-weight:800;
+  color:#dff2ff; font-weight:800;
   border-radius:10px;
   padding:10px 12px;
   margin-bottom:8px;
 }
 
 /* body = rows as cards */
-.lb-body{ display:flex; flex-direction:column; gap:8px; }
+.lb-wrap .lb-body{ display:flex; flex-direction:column; gap:8px; }
 
 /* one row card */
-.lb-row{
+.lb-wrap .lb-row{
   display:grid;
   grid-template-columns: var(--c-pos) var(--c-player) var(--c-team) var(--c-rating) var(--c-index);
   align-items:center;
@@ -277,37 +280,34 @@
   padding:10px 12px;
   transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
 }
-.lb-wrap.is-scrolling .lb-row{ transform: translateZ(0.0001px) scale(1.002); }
-.lb-row:hover{
+.lb-wrap .lb-row:hover{
   transform: translateY(-3px) scale(1.006);
   box-shadow: 0 10px 24px rgba(0,0,0,.28), inset 0 0 0 1px rgba(232,202,164,.16);
   background: linear-gradient(180deg, rgba(232,202,164,.07), rgba(255,255,255,.02));
 }
-
-/* top 3 accent like leaderboard */
-.lb-row.top{
+.lb-wrap .lb-row.top{
   box-shadow: inset 0 0 0 1px rgba(232,202,164,.22);
   background: linear-gradient(180deg, rgba(232,202,164,.08), rgba(232,202,164,.02));
 }
 
-.cell{ display:flex; align-items:center; gap:8px; min-width:0; }
-.cell.num{ justify-content:flex-end; }
-.cell.head{ font-weight:800; }
-.cell.player strong{ font-weight:900; }
-.mini-medal{ filter: drop-shadow(0 0 6px rgba(0,0,0,.3)); }
+.lb-wrap .cell{ display:flex; align-items:center; gap:8px; min-width:0; }
+.lb-wrap .cell.num{ justify-content:flex-end; }
+.lb-wrap .cell.head{ font-weight:800; }
+.lb-wrap .cell.player strong{ font-weight:900; }
+.lb-wrap .mini-medal{ filter: drop-shadow(0 0 6px rgba(0,0,0,.3)); }
 
 /* index bar inside last cell */
-.rating-bar{
+.lb-wrap .rating-bar{
   position:relative; width:100%; height:12px; border-radius:999px;
   background:rgba(255,255,255,.08); overflow:hidden;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
 }
-.rating-bar > span{
+.lb-wrap .rating-bar > span{
   display:block; height:100%;
   background: linear-gradient(90deg, #00e5ff, #7b61ff);
   border-radius:999px; animation: growIn .5s ease;
 }
-.rating-bar > em{
+.lb-wrap .rating-bar > em{
   position:absolute; right:8px; top:50%;
   transform: translateY(-50%); font-style:normal; font-weight:900;
   font-size:12px; color:#dff2ff; text-shadow:0 0 6px rgba(0,0,0,.5);
@@ -315,13 +315,14 @@
 }
 @keyframes growIn { from{ width:0 } }
 
-/* skeleton look while loading */
-.lb-row.sk{ opacity:.7; }
-.skbar{ display:inline-block; height:12px; border-radius:6px;
+/* loading skeleton */
+.lb-wrap .lb-row.sk{ opacity:.7; }
+.lb-wrap .skbar{
+  display:inline-block; height:12px; border-radius:6px;
   background: linear-gradient(90deg,#27495e,#1b3243,#27495e);
   background-size:220% 100%; animation: sk 1.2s infinite linear;
 }
-.skbar.w160{ width:160px; } .skbar.w120{ width:120px; } .skbar.w60{ width:60px; }
+.lb-wrap .skbar.w160{ width:160px; }
+.lb-wrap .skbar.w120{ width:120px; }
+.lb-wrap .skbar.w60{ width:60px; }
 @keyframes sk { 0%{background-position:0 0} 100%{background-position:220% 0} }
-
-/* keep your modal & podium styles above/below as you have them */
