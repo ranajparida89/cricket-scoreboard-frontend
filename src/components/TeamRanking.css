@@ -1,13 +1,16 @@
-/* ✅ TeamRanking.css — Glass table, neon title, row tints, rating bars */
+/* ✅ TeamRanking.css — Glass leaderboard look + medal glow + golden shadow */
 
 .tr-wrap{
-  position:relative; padding:26px 14px; display:flex; justify-content:center;
+  position:relative;
+  padding:26px 14px;
+  display:flex;
+  justify-content:center;
   background:transparent;
 }
 
-/* floating color orbs */
 .tr-orbs .orb{
-  position:absolute; border-radius:50%; filter:blur(44px); opacity:.55; mix-blend-mode:screen;
+  position:absolute; border-radius:50%; filter:blur(44px);
+  opacity:.55; mix-blend-mode:screen;
   animation: orbFloat 18s ease-in-out infinite;
 }
 .tr-orbs .o1{ width:360px; height:360px; left:6%; top:-40px;
@@ -39,15 +42,17 @@
   -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
   text-shadow: 0 2px 12px rgba(0,229,255,.18);
 }
-.tr-sub{
-  color:#9fb6cc; font-size:13px; letter-spacing:.2px;
+.tr-sub{ color:#9fb6cc; font-size:13px; letter-spacing:.2px; }
+
+.tr-subhead{
+  margin:14px 2px 8px;
+  color:#f2d7b7; font-weight:800; letter-spacing:.25px;
+  border-bottom:1px solid rgba(232,202,164,.28);
+  padding-bottom:6px;
 }
 
-/* Table layout (CSS grid) */
-.tr-table{
-  width:100%;
-  display:flex; flex-direction:column; gap:8px;
-}
+/* Grid table */
+.tr-table{ width:100%; display:flex; flex-direction:column; gap:8px; }
 .tr-thead, .tr-row{
   display:grid; grid-template-columns: 90px 1.6fr 120px 120px 1.2fr;
   align-items:center;
@@ -89,16 +94,37 @@
   box-shadow:0 0 0 1px rgba(0,229,255,.25), 0 10px 26px rgba(0,229,255,.12);
 }
 
-.tr-row.gold::before   { background:linear-gradient(180deg, rgba(255,214,98,.10), transparent); }
-.tr-row.silver::before { background:linear-gradient(180deg, rgba(206,219,233,.10), transparent); }
-.tr-row.bronze::before { background:linear-gradient(180deg, rgba(238,168,114,.10), transparent); }
+/* Top-3 special glow + golden shadow pulse */
+.tr-row.gold::before   { background:linear-gradient(180deg, rgba(255,214,98,.12), transparent); }
+.tr-row.silver::before { background:linear-gradient(180deg, rgba(206,219,233,.12), transparent); }
+.tr-row.bronze::before { background:linear-gradient(180deg, rgba(238,168,114,.12), transparent); }
+
+.tr-row.gold{
+  animation: goldPulse 2.8s ease-in-out infinite;
+  box-shadow: 0 0 0 1px rgba(255,215,99,.35), 0 14px 28px rgba(255,215,99,.12);
+}
+@keyframes goldPulse{
+  0%,100%{ box-shadow: 0 0 0 1px rgba(255,215,99,.35), 0 14px 28px rgba(255,215,99,.12); }
+  50%   { box-shadow: 0 0 0 6px rgba(255,215,99,.10), 0 20px 40px rgba(255,215,99,.22); }
+}
+.tr-row.silver{ box-shadow: 0 0 0 1px rgba(206,219,233,.25); }
+.tr-row.bronze{ box-shadow: 0 0 0 1px rgba(238,168,114,.25); }
 
 .td{ position:relative; z-index:1; display:flex; align-items:center; gap:8px; }
 .td.rank .pos{ font-weight:800; }
-.td.rank .medal{ margin-right:6px; font-size:18px; }
+.medal-spot{ width:22px; display:inline-flex; justify-content:center; }
+.medal.sparkle{
+  filter: drop-shadow(0 0 6px rgba(255,255,255,.45));
+  animation: medalGlow 1.8s ease-in-out infinite;
+}
+@keyframes medalGlow{
+  0%,100%{ transform:translateY(0) scale(1); opacity:1; }
+  50%    { transform:translateY(-1px) scale(1.04); opacity:.95; }
+}
 
 /* Team cell */
-.td.team .flag{ font-size:20px; }
+.flag-emoji{ font-size:18px; }
+.flag-icon{ display:inline-block; margin-right:0; }
 .td.team .name{ font-weight:800; letter-spacing:.2px; }
 
 /* Rating bar */
@@ -132,14 +158,10 @@
 
 /* Responsiveness */
 @media (max-width: 720px){
-  .tr-thead, .tr-row{
-    grid-template-columns: 68px 1.4fr 100px 100px 1.2fr;
-  }
+  .tr-thead, .tr-row{ grid-template-columns: 68px 1.4fr 100px 100px 1.2fr; }
   .tr-title{ font-size:22px; }
 }
 @media (max-width: 520px){
-  .tr-thead, .tr-row{
-    grid-template-columns: 60px 1.6fr 90px 90px 1fr;
-  }
+  .tr-thead, .tr-row{ grid-template-columns: 60px 1.6fr 90px 90px 1fr; }
   .td.team .name{ font-size:14px; }
 }
