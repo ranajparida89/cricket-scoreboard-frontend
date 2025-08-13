@@ -1,73 +1,13 @@
-// ✅ src/components/MatchCards.js — compact dark cards + gold accents + LIVE/Recent (with flags + team codes)
+// ✅ src/components/MatchCards.js — compact dark cards + gold accents + LIVE/Recent (no flags)
 // - Exactly ONE “Recent” per format (ODI/T20/Test)
 // - LIVE uses blue-tinted card + "LIVE" chip
 // - Alignment stable (two equal columns; name+score in a single rowline)
 // - Only ripple kept (no heavy animations)
-// - Flags: emoji for countries, crest image for West Indies
 // - Team codes: ENG, AUS, SL, RSA (per your request) + ICC-style codes for others
 
 import React, { useEffect, useMemo, useState } from "react";
 import { getMatchHistory, getTestMatches } from "../services/api";
 import "./MatchCards.css";
-
-/* ------------------------------------------
-   Small flag helper (emoji for most teams,
-   crest image for West Indies)
--------------------------------------------*/
-const getFlagData = (teamName = "") => {
-  const n = String(teamName).trim().toLowerCase();
-
-  // Emoji flags for countries
-  const EMOJI = {
-    india: "🇮🇳",
-    australia: "🇦🇺",
-    england: "🏴",              // St George’s Cross
-    "new zealand": "🇳🇿",
-    pakistan: "🇵🇰",
-    "south africa": "🇿🇦",
-    "sri lanka": "🇱🇰",
-    ireland: "🇮🇪",
-    kenya: "🇰🇪",
-    namibia: "🇳🇦",
-    bangladesh: "🇧🇩",
-    afghanistan: "🇦🇫",
-    zimbabwe: "🇿🇼",
-    netherlands: "🇳🇱",
-    scotland: "🏴",             // Saltire
-    nepal: "🇳🇵",
-    oman: "🇴🇲",
-    uae: "🇦🇪",
-    "united arab emirates": "🇦🇪",
-    usa: "🇺🇸",
-    "united states": "🇺🇸",
-    "hong kong": "🇭🇰",
-    hongkong: "🇭🇰",
-    "papua new guinea": "🇵🇬",
-    png: "🇵🇬",
-  };
-
-  // West Indies → crest (no country emoji)
-  if (/(^|\b)west indies(\b|$)|\bwi\b/.test(n)) {
-    return { type: "img", src: "/flags/wi.svg", alt: "West Indies" };
-  }
-
-  const emoji = EMOJI[n];
-  if (emoji) return { type: "emoji", value: emoji, alt: teamName };
-  return { type: "emoji", value: "🏳️", alt: teamName || "Unknown" };
-};
-
-// after
-const Flag = ({ team }) => {
-  const f = getFlagData(team);
-  if (f.type === "img") {
-    return <img className="flag-icon" src={f.src} alt={f.alt} />;
-  }
-  return (
-    <span className="flag-emoji" role="img" aria-label={f.alt}>
-      {f.value}
-    </span>
-  );
-};
 
 /* ------------------------------------------
    Team codes (per your request)
@@ -252,13 +192,8 @@ const MatchCards = () => {
         <div className="teams-row">
           {/* LEFT */}
           <div className="team">
-            <div
-              className="rowline"
-              style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}
-            >
-              <div className="name">
-                <Flag team={m.team1} /> {getTeamCode(m.team1)}
-              </div>
+            <div className="rowline">
+              <div className="name">{getTeamCode(m.team1)}</div>
               <div className="score">{m.runs1}/{m.wickets1}</div>
             </div>
             <div className="meta">Overs: {formatOvers(m.overs1)}</div>
@@ -266,13 +201,8 @@ const MatchCards = () => {
 
           {/* RIGHT */}
           <div className="team team--right">
-            <div
-              className="rowline"
-              style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}
-            >
-              <div className="name">
-                <Flag team={m.team2} /> {getTeamCode(m.team2)}
-              </div>
+            <div className="rowline">
+              <div className="name">{getTeamCode(m.team2)}</div>
               <div className="score">{m.runs2}/{m.wickets2}</div>
             </div>
             <div className="meta">Overs: {formatOvers(m.overs2)}</div>
@@ -303,27 +233,15 @@ const MatchCards = () => {
         <div className="match-title">{formatMatchTitle(m.match_name)}</div>
 
         <div className="team-block">
-          <div className="name">
-            <Flag team={m.team1} /> {getTeamCode(m.team1)}
-          </div>
-          <div className="meta">
-            1st Innings: {m.runs1}/{m.wickets1} ({formatOvers(m.overs1)} ov)
-          </div>
-          <div className="meta">
-            2nd Innings: {m.runs1_2}/{m.wickets1_2} ({formatOvers(m.overs1_2)} ov)
-          </div>
+          <div className="name">{getTeamCode(m.team1)}</div>
+          <div className="meta">1st Innings: {m.runs1}/{m.wickets1} ({formatOvers(m.overs1)} ov)</div>
+          <div className="meta">2nd Innings: {m.runs1_2}/{m.wickets1_2} ({formatOvers(m.overs1_2)} ov)</div>
         </div>
 
         <div className="team-block" style={{ marginTop: 6 }}>
-          <div className="name">
-            <Flag team={m.team2} /> {getTeamCode(m.team2)}
-          </div>
-          <div className="meta">
-            1st Innings: {m.runs2}/{m.wickets2} ({formatOvers(m.overs2)} ov)
-          </div>
-          <div className="meta">
-            2nd Innings: {m.runs2_2}/{m.wickets2_2} ({formatOvers(m.overs2_2)} ov)
-          </div>
+          <div className="name">{getTeamCode(m.team2)}</div>
+          <div className="meta">1st Innings: {m.runs2}/{m.wickets2} ({formatOvers(m.overs2)} ov)</div>
+          <div className="meta">2nd Innings: {m.runs2_2}/{m.wickets2_2} ({formatOvers(m.overs2_2)} ov)</div>
         </div>
 
         {!live && (

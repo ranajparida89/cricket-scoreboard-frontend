@@ -60,7 +60,7 @@
   border:1px solid var(--line);
   box-shadow: 0 10px 28px rgba(232,202,164,.12);
   color:#eaf6ff;
-  overflow:hidden;                  /* ⬅️ prevent any spill */
+  overflow:hidden; /* prevent any spill */
 }
 .match-card.simple:hover{ box-shadow: 0 14px 34px rgba(232,202,164,.16); }
 
@@ -104,18 +104,18 @@
 /* === Mobile-safe layout fixes === */
 .teams-row{
   display:grid;
-  grid-template-columns: minmax(0,1fr) minmax(0,1fr);  /* ⬅️ allow shrink */
-  gap:12px;                                           /* a bit tighter */
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr); /* allow shrink */
+  gap:12px;
   margin-bottom:8px;
   align-items:start;
 }
-.teams-row > .team{ min-width:0; }                    /* ⬅️ allow shrink */
+.teams-row > .team{ min-width:0; }
 
 .rowline{
   display:grid;
-  grid-template-columns: minmax(0,1fr) auto;          /* ⬅️ name shrinks */
+  grid-template-columns: minmax(0,1fr) auto; /* name shrinks, score hugs right */
   align-items: baseline;
-  column-gap: 8px;
+  column-gap: 10px; /* slightly larger since no flag */
 }
 .rowline .name,
 .rowline .score{
@@ -193,51 +193,4 @@
   .rowline{ column-gap:6px; }
   .match-card{ padding:14px 12px; }
   .format-btn{ min-width: 140px; }
-}
-/* fixed-size box so flags never overlap text */
-.flag-emoji,
-.flag-icon{
-  display:inline-block;
-  width:1.25em;            /* consistent width for emoji */
-  min-width:1.25em;
-  height:1.05em;           /* nudges baseline for Android */
-  line-height:1;
-  margin-right:6px;
-  vertical-align:-2px;
-  pointer-events:none;
-}
-
-/* crest (West Indies) */
-.flag-icon{
-  width:18px;
-  height:14px;
-  object-fit:contain;
-}
-
-/* name cell becomes a tiny flex row with a stable gap */
-.rowline .name{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  min-width:0;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-/* hide flags on ultra-small phones to maximize room */
-@media (max-width: 380px){
-  .flag-emoji,
-  .flag-icon{ display:none; }
-}
-/* Hide flags on tiny screens to prevent overlap */
-@media (max-width: 430px){
-  .flag-emoji,
-  .flag-icon { 
-    display: none !important;
-  }
-  /* tighten spacing when the flag disappears */
-  .rowline .name { 
-    gap: 0;
-  }
 }
