@@ -1,6 +1,6 @@
 // ✅ src/components/SquadLineup.js
-// ✅ 14-Aug-2025 — Team-wise + Format-wise Squad & Lineup builder with DnD + Rive animations
-// Uses helpers from src/services/api.js: fetchPlayers, suggestPlayers, createPlayer, updatePlayer, deletePlayer, getLineup, saveLineup
+// ✅ Team-wise + Format-wise Squad & Lineup with DnD + Rive + Toasts + Team Manager
+// NOTE: Rive .riv files already in src/assets/rive (empty_lineup.riv, save_success.riv, drop_glow.riv [optional])
 
 import React, { useEffect, useMemo, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
@@ -15,11 +15,10 @@ import {
 } from "../services/api";
 import "./SquadLineup.css";
 
-/* ──────────────────────────────────────────────────────────────────────────
-   Rive minimal wrapper (safe, lazy, respects reduced motion)
-   ────────────────────────────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────
+   Rive wrapper (safe, lazy, respects reduced motion)
+   ──────────────────────────────────────────────────────────── */
 import { useRive, Layout, Fit, Alignment } from "@rive-app/react-canvas";
-
 function RiveSlot({ src, className = "", autoplay = true }) {
   const prefersReduced =
     typeof window !== "undefined" &&
@@ -31,7 +30,7 @@ function RiveSlot({ src, className = "", autoplay = true }) {
     layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
   });
 
-  if (!src) return null; // no asset yet (safe)
+  if (!src) return null;
   return (
     <div className={className} aria-hidden="true">
       {RiveComponent ? <RiveComponent /> : null}
@@ -39,7 +38,10 @@ function RiveSlot({ src, className = "", autoplay = true }) {
   );
 }
 
-const TEAMS = [
+/* ────────────────────────────────────────────────────────────
+   Local helpers
+   ──────────────────────────────────────────────────────────── */
+const DEFAULT_TEAMS = [
   "India",
   "Australia",
   "England",
@@ -64,25 +66,68 @@ const roleIcon = (p) => {
   if (role.includes("bat")) return "🥇";
   return "🏏";
 };
+const sigOf = (team, format, lineup, c, v) =>
+  JSON.stringify({
+    team,
+    format,
+    c,
+    v,
+    arr: lineup.map((x) => [x.player_id, x.order_no, !!x.is_twelfth]),
+  });
+
+/* ────────────────────────────────────────────────────────────
+   Simple Toasts (non-blocking UI messages)
+   ──────────────────────────────────────────────────────────── */
+function Toasts({ toasts, onClose }) {
+  return (
+    <div className="sq-toasts">
+      {toasts.map((t) => (
+        <div key={t.id} className={`sq-toast ${t.type || "info"}`} onClick={() => onClose(t.id)}>
+          {t.message}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function SquadLineup({ isAdmin = true }) {
-  const [team, setTeam] = useState("India");
-  const [format, setFormat] = useState("ODI");
+  /* Teams (now user-extensible) */
+  const [teams, setTeams] = useState(() => {
+    const saved = localStorage.getItem("crickedge_teams");
+    return saved ? JSON.parse(saved) : DEFAULT_TEAMS;
+  });
+  const [team, setTeam] = useState(teams[0] || "India");
+  const [showTeamModal, setShowTeamModal] = useState(false);
+  const [newTeamName, setNewTeamName] = useState("");
 
+  /* Format & data */
+  const [format, setFormat] = useState("ODI");
   const [squad, setSquad] = useState([]);
   const [lineup, setLineup] = useState([]);
   const [captainId, setCaptainId] = useState(null);
   const [viceId, setViceId] = useState(null);
+  const [lastSavedSig, setLastSavedSig] = useState(null);
 
+  /* Add player */
   const [addName, setAddName] = useState("");
   const [addRole, setAddRole] = useState("Batsman");
   const [suggests, setSuggests] = useState([]);
   const [editing, setEditing] = useState(null);
 
+  /* Filters */
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState("ALL");
 
-  // Rive assets (lazy import so missing files don't break the build)
+  /* UI / Effects */
+  const [justAddedId, setJustAddedId] = useState(null); // for highlight anim
+  const [toasts, setToasts] = useState([]);
+  const pushToast = (message, type = "info", ttl = 2400) => {
+    const id = Math.random().toString(36).slice(2);
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => setToasts((prev) => prev.filter((x) => x.id !== id)), ttl);
+  };
+
+  /* Rive assets */
   const [riv, setRiv] = useState({ empty: null, success: null, glow: null });
   useEffect(() => {
     let alive = true;
@@ -90,23 +135,22 @@ export default function SquadLineup({ isAdmin = true }) {
       try {
         const empty = (await import("../assets/rive/empty_lineup.riv")).default;
         const success = (await import("../assets/rive/save_success.riv")).default;
-        // optional:
         let glow = null;
         try {
           glow = (await import("../assets/rive/drop_glow.riv")).default;
-        } catch { /* optional file might not exist */ }
+        } catch {}
         if (alive) setRiv({ empty, success, glow });
       } catch {
-        // If you haven't added any .riv files yet, that's OK.
         if (alive) setRiv({ empty: null, success: null, glow: null });
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, []);
-
   const [showSaveCongrats, setShowSaveCongrats] = useState(false);
 
-  // Load Squad + existing Lineup
+  /* Load squad + lineup when team/format changes */
   useEffect(() => {
     let active = true;
     (async () => {
@@ -135,24 +179,35 @@ export default function SquadLineup({ isAdmin = true }) {
           setLineup(enriched);
           setCaptainId(L.captain_id || null);
           setViceId(L.vice_id || null);
+          setLastSavedSig(sigOf(team, format, enriched, L.captain_id || null, L.vice_id || null));
         } else {
           setLineup([]);
           setCaptainId(null);
           setViceId(null);
+          setLastSavedSig(sigOf(team, format, [], null, null));
         }
       } catch (e) {
         console.error("Load squad/lineup failed", e);
+        setLineup([]);
+        setCaptainId(null);
+        setViceId(null);
+        setLastSavedSig(sigOf(team, format, [], null, null));
       }
     })();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [team, format]);
 
-  // Suggestions for Add Player
+  /* Suggestions for Add Player */
   useEffect(() => {
     let mounted = true;
     (async () => {
       const q = addName.trim();
-      if (q.length < 2) { setSuggests([]); return; }
+      if (q.length < 2) {
+        setSuggests([]);
+        return;
+      }
       try {
         const s = await suggestPlayers(team, q);
         if (mounted) setSuggests(s || []);
@@ -160,7 +215,9 @@ export default function SquadLineup({ isAdmin = true }) {
         if (mounted) setSuggests([]);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [addName, team]);
 
   const inLineup = (pid) => lineup.some((x) => x.player_id === pid);
@@ -174,7 +231,7 @@ export default function SquadLineup({ isAdmin = true }) {
       .sort((a, b) => a.player_name.localeCompare(b.player_name));
   }, [squad, lineup, search, filterRole]);
 
-  // DnD
+  /* Drag & Drop */
   const onDragEnd = (result) => {
     const { source, destination } = result;
     if (!destination) return;
@@ -191,7 +248,10 @@ export default function SquadLineup({ isAdmin = true }) {
 
     // Squad → Lineup
     if (source.droppableId === "squad" && destination.droppableId === "lineup") {
-      if (lineup.length >= MAX_LINEUP) { alert(`Max ${MAX_LINEUP} players allowed in lineup`); return; }
+      if (lineup.length >= MAX_LINEUP) {
+        pushToast(`Max ${MAX_LINEUP} players allowed in lineup`, "error");
+        return;
+      }
       const player = availableSquad[source.index];
       if (!player || inLineup(player.id)) return;
       const newItem = {
@@ -201,6 +261,8 @@ export default function SquadLineup({ isAdmin = true }) {
         obj: player,
       };
       setLineup([...lineup, newItem]);
+      setJustAddedId(player.id); // highlight
+      setTimeout(() => setJustAddedId(null), 900);
       return;
     }
 
@@ -215,19 +277,29 @@ export default function SquadLineup({ isAdmin = true }) {
     }
   };
 
-  // Add / Edit / Delete
+  /* Add / Edit / Delete */
   const onAddPlayer = async () => {
     const name = addName.trim();
     if (!name) return;
-    if (squad.some((p) => ciEq(p.player_name, name))) { alert("Player already exists in this team's squad"); return; }
+    if (squad.some((p) => ciEq(p.player_name, name))) {
+      pushToast("Player already exists in this team's squad", "error");
+      return;
+    }
     try {
       const created = await createPlayer({
-        player_name: name, team_name: team, lineup_type: format, skill_type: addRole,
+        player_name: name,
+        team_name: team,
+        lineup_type: format,
+        skill_type: addRole,
       });
       setSquad((prev) => [...prev, created].sort((a, b) => a.player_name.localeCompare(b.player_name)));
-      setAddName(""); setSuggests([]);
+      setAddName("");
+      setSuggests([]);
+      setJustAddedId(created.id);
+      setTimeout(() => setJustAddedId(null), 900);
+      pushToast(`Added ${created.player_name} to ${team} (${format})`, "success");
     } catch (e) {
-      alert(e?.response?.data?.error || "Failed to add player");
+      pushToast(e?.response?.data?.error || "Failed to add player", "error");
     }
   };
 
@@ -246,11 +318,12 @@ export default function SquadLineup({ isAdmin = true }) {
       setSquad((prev) =>
         prev.map((p) => (p.id === upd.id ? upd : p)).sort((a, b) => a.player_name.localeCompare(b.player_name))
       );
-      setLineup((prev) =>
-        prev.map((x) => (x.player_id === upd.id ? { ...x, obj: { ...x.obj, ...upd } } : x))
-      );
+      setLineup((prev) => prev.map((x) => (x.player_id === upd.id ? { ...x, obj: { ...x.obj, ...upd } } : x)));
       setEditing(null);
-    } catch (e) { alert(e?.response?.data?.error || "Update failed"); }
+      pushToast("Player updated", "success");
+    } catch (e) {
+      pushToast(e?.response?.data?.error || "Update failed", "error");
+    }
   };
 
   const doDeletePlayer = async (pid) => {
@@ -264,47 +337,117 @@ export default function SquadLineup({ isAdmin = true }) {
       });
       if (captainId === pid) setCaptainId(null);
       if (viceId === pid) setViceId(null);
-    } catch { alert("Failed to delete player"); }
+      pushToast("Player deleted", "success");
+    } catch {
+      pushToast("Failed to delete player", "error");
+    }
   };
 
-  // C / VC
-  const toggleCaptain = (pid) => { if (pid === viceId) setViceId(null); setCaptainId((prev) => (prev === pid ? null : pid)); };
-  const toggleVice = (pid) => { if (pid === captainId) setCaptainId(null); setViceId((prev) => (prev === pid ? null : pid)); };
+  /* C / VC */
+  const toggleCaptain = (pid) => {
+    if (pid === viceId) setViceId(null);
+    setCaptainId((prev) => (prev === pid ? null : pid));
+  };
+  const toggleVice = (pid) => {
+    if (pid === captainId) setCaptainId(null);
+    setViceId((prev) => (prev === pid ? null : pid));
+  };
 
-  // Save lineup
+  /* Save lineup with “already saved” logic */
   const doSave = async () => {
-    if (lineup.length < MIN_LINEUP) return alert(`At least ${MIN_LINEUP} players required`);
-    if (!captainId || !viceId) return alert("Select exactly one Captain and one Vice-captain");
-    if (captainId === viceId) return alert("Captain and Vice-captain must be different");
+    const currentSig = sigOf(team, format, lineup, captainId, viceId);
+    if (currentSig === lastSavedSig) {
+      pushToast("Already saved. Make changes to save again.", "info");
+      return;
+    }
+
+    if (lineup.length < MIN_LINEUP) return pushToast(`At least ${MIN_LINEUP} players required`, "error");
+    if (!captainId || !viceId) return pushToast("Pick one Captain and one Vice-captain", "error");
+    if (captainId === viceId) return pushToast("Captain and Vice-captain must be different", "error");
+
     const payload = {
       team_name: team,
       lineup_type: format,
       captain_player_id: captainId,
       vice_captain_player_id: viceId,
-      players: lineup.map((x) => ({ player_id: x.player_id, order_no: x.order_no, is_twelfth: !!x.is_twelfth })),
+      players: lineup.map((x) => ({
+        player_id: x.player_id,
+        order_no: x.order_no,
+        is_twelfth: !!x.is_twelfth,
+      })),
     };
+
     try {
       await saveLineup(payload);
       setShowSaveCongrats(true);
       setTimeout(() => setShowSaveCongrats(false), 1400);
-    } catch (e) { alert(e?.response?.data?.error || "Failed to save lineup"); }
+      setLastSavedSig(currentSig);
+      pushToast("Lineup saved", "success");
+    } catch (e) {
+      pushToast(e?.response?.data?.error || "Failed to save lineup", "error");
+    }
   };
 
+  /* Team manager (add) */
+  const addTeam = () => {
+    const name = newTeamName.trim();
+    if (!name) return;
+    if (teams.some((t) => ciEq(t, name))) {
+      pushToast("Team already exists", "error");
+      return;
+    }
+    const next = [...teams, name].sort((a, b) => a.localeCompare(b));
+    setTeams(next);
+    localStorage.setItem("crickedge_teams", JSON.stringify(next));
+    setTeam(name);
+    setNewTeamName("");
+    setShowTeamModal(false);
+    pushToast(`Team "${name}" added`, "success");
+  };
+
+  /* UI */
   return (
     <div className="sq-wrap">
+      {/* Toasts */}
+      <Toasts toasts={toasts} onClose={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />
+
       {/* Header */}
       <header className="sq-header">
         <div className="sq-team-tabs">
-          <select value={team} onChange={(e) => setTeam(e.target.value)} className="sq-select">
-            {TEAMS.map((t) => (<option key={t} value={t}>{t}</option>))}
-          </select>
+          <div className="sq-team-select">
+            <select value={team} onChange={(e) => setTeam(e.target.value)} className="sq-select">
+              {teams.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <button className="sq-icon-btn" title="Add Team" onClick={() => setShowTeamModal(true)} type="button">
+              ➕
+            </button>
+          </div>
+
           <div className="sq-format-tabs">
             {FORMATS.map((f) => (
-              <button key={f} className={`sq-tab ${format === f ? "active" : ""}`} onClick={() => setFormat(f)} type="button">
+              <button
+                key={f}
+                className={`sq-tab ${format === f ? "active" : ""}`}
+                onClick={() => setFormat(f)}
+                type="button"
+              >
                 {f}
               </button>
             ))}
           </div>
+
+          <button
+            className="sq-icon-btn info"
+            title="How this page works"
+            onClick={() => pushToast("Tip: click the (i) in the top right for full help.", "info")}
+            type="button"
+          >
+            i
+          </button>
         </div>
 
         <div className="sq-addbar">
@@ -324,22 +467,34 @@ export default function SquadLineup({ isAdmin = true }) {
                     onClick={() => setAddName(s.name)}
                     title={ci(s.team) === ci(team) ? "Already in this team's squad" : `Found in ${s.team}`}
                   >
-                    {s.name}{ci(s.team) === ci(team) && <span className="sq-suggest-note"> • already in squad</span>}
+                    {s.name}
+                    {ci(s.team) === ci(team) && <span className="sq-suggest-note"> • already in squad</span>}
                   </div>
                 ))}
               </div>
             )}
           </div>
           <select className="sq-role" value={addRole} onChange={(e) => setAddRole(e.target.value)}>
-            <option>Batsman</option><option>Bowler</option><option>All Rounder</option><option>Wicketkeeper/Batsman</option>
+            <option>Batsman</option>
+            <option>Bowler</option>
+            <option>All Rounder</option>
+            <option>Wicketkeeper/Batsman</option>
           </select>
-          <button className="sq-btn" onClick={onAddPlayer} type="button">Add</button>
+          <button className="sq-btn" onClick={onAddPlayer} type="button">
+            Add
+          </button>
         </div>
       </header>
 
-      {/* Filters */}
+      {/* Filters row — this searches within the selected team's SQUAD */}
       <div className="sq-filters">
-        <input className="sq-input" placeholder="Search squad…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input
+          className="sq-input"
+          placeholder="Search this squad by player name…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          title="Search is for players in the selected team's squad"
+        />
         <select className="sq-select" value={filterRole} onChange={(e) => setFilterRole(e.target.value)}>
           <option value="ALL">All Roles</option>
           <option value="Batsman">Batsman</option>
@@ -360,7 +515,12 @@ export default function SquadLineup({ isAdmin = true }) {
                 {availableSquad.map((p, idx) => (
                   <Draggable key={`s-${p.id}`} draggableId={`s-${p.id}`} index={idx}>
                     {(prov) => (
-                      <div className="sq-card" ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps}>
+                      <div
+                        className={`sq-card ${justAddedId === p.id ? "flash-in" : ""}`}
+                        ref={prov.innerRef}
+                        {...prov.draggableProps}
+                        {...prov.dragHandleProps}
+                      >
                         <div className="sq-card-left">
                           <span className="sq-ico">{roleIcon(p)}</span>
                           <div>
@@ -369,9 +529,18 @@ export default function SquadLineup({ isAdmin = true }) {
                           </div>
                         </div>
                         <div className="sq-actions">
-                          <button className="sq-icon-btn" title="Edit" onClick={() => setEditing(p)} type="button">✏️</button>
+                          <button className="sq-icon-btn" title="Edit" onClick={() => setEditing(p)} type="button">
+                            ✏️
+                          </button>
                           {isAdmin && (
-                            <button className="sq-icon-btn danger" title="Delete" onClick={() => doDeletePlayer(p.id)} type="button">🗑️</button>
+                            <button
+                              className="sq-icon-btn danger"
+                              title="Delete"
+                              onClick={() => doDeletePlayer(p.id)}
+                              type="button"
+                            >
+                              🗑️
+                            </button>
                           )}
                         </div>
                       </div>
@@ -379,7 +548,9 @@ export default function SquadLineup({ isAdmin = true }) {
                   </Draggable>
                 ))}
                 {provided.placeholder}
-                {!availableSquad.length && <div className="sq-empty">All squad players are currently in lineup or filtered out.</div>}
+                {!availableSquad.length && (
+                  <div className="sq-empty">All squad players are currently in lineup or filtered out.</div>
+                )}
               </div>
             )}
           </Droppable>
@@ -388,7 +559,6 @@ export default function SquadLineup({ isAdmin = true }) {
           <Droppable droppableId="lineup">
             {(provided, snapshot) => (
               <div className="sq-panel lineup" ref={provided.innerRef} {...provided.droppableProps}>
-                {/* Optional glow ONLY while dragging over, if you added the file */}
                 {snapshot.isDraggingOver && riv.glow && (
                   <div className="sq-drop-glow">
                     <RiveSlot src={riv.glow} className="sq-rive on" />
@@ -400,7 +570,12 @@ export default function SquadLineup({ isAdmin = true }) {
                 {lineup.map((x, idx) => (
                   <Draggable key={`l-${x.player_id}`} draggableId={`l-${x.player_id}`} index={idx}>
                     {(prov) => (
-                      <div className="sq-card" ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps}>
+                      <div
+                        className={`sq-card ${justAddedId === x.player_id ? "flash-in" : ""}`}
+                        ref={prov.innerRef}
+                        {...prov.draggableProps}
+                        {...prov.dragHandleProps}
+                      >
                         <div className="sq-card-left">
                           <span className="sq-order">{idx + 1}</span>
                           <span className="sq-ico">{roleIcon(x.obj)}</span>
@@ -410,15 +585,40 @@ export default function SquadLineup({ isAdmin = true }) {
                           {x.player_id === viceId && <span className="sq-tag teal">VC</span>}
                         </div>
                         <div className="sq-actions">
-                          <button className={`sq-chip ${x.player_id === captainId ? "on" : ""}`} onClick={() => toggleCaptain(x.player_id)} title="Set Captain" type="button">C</button>
-                          <button className={`sq-chip ${x.player_id === viceId ? "on" : ""}`} onClick={() => toggleVice(x.player_id)} title="Set Vice-captain" type="button">VC</button>
-                          <button className="sq-icon-btn" title="Remove from lineup" onClick={() => {
-                            const items = lineup.filter((it) => it.player_id !== x.player_id);
-                            if (x.player_id === captainId) setCaptainId(null);
-                            if (x.player_id === viceId) setViceId(null);
-                            const reseq = items.map((p, i) => ({ ...p, order_no: i + 1, is_twelfth: i === 11 }));
-                            setLineup(reseq);
-                          }} type="button">➖</button>
+                          <button
+                            className={`sq-chip ${x.player_id === captainId ? "on" : ""}`}
+                            onClick={() => toggleCaptain(x.player_id)}
+                            title="Set Captain"
+                            type="button"
+                          >
+                            C
+                          </button>
+                          <button
+                            className={`sq-chip ${x.player_id === viceId ? "on" : ""}`}
+                            onClick={() => toggleVice(x.player_id)}
+                            title="Set Vice-captain"
+                            type="button"
+                          >
+                            VC
+                          </button>
+                          <button
+                            className="sq-icon-btn"
+                            title="Remove from lineup"
+                            onClick={() => {
+                              const items = lineup.filter((it) => it.player_id !== x.player_id);
+                              if (x.player_id === captainId) setCaptainId(null);
+                              if (x.player_id === viceId) setViceId(null);
+                              const reseq = items.map((p, i) => ({
+                                ...p,
+                                order_no: i + 1,
+                                is_twelfth: i === 11,
+                              }));
+                              setLineup(reseq);
+                            }}
+                            type="button"
+                          >
+                            ➖
+                          </button>
                         </div>
                       </div>
                     )}
@@ -442,11 +642,13 @@ export default function SquadLineup({ isAdmin = true }) {
       {/* Sticky Save Bar */}
       <div className="sq-savebar">
         <div>
-          <strong>{lineup.length}</strong> selected •{" "}
-          C: {captainId ? (squad.find((p) => p.id === captainId)?.player_name || "—") : "—"} •{" "}
-          VC: {viceId ? (squad.find((p) => p.id === viceId)?.player_name || "—") : "—"}
+          <strong>{lineup.length}</strong> selected • C:{" "}
+          {captainId ? squad.find((p) => p.id === captainId)?.player_name || "—" : "—"} • VC:{" "}
+          {viceId ? squad.find((p) => p.id === viceId)?.player_name || "—" : "—"}
         </div>
-        <button className="sq-btn primary" onClick={doSave} type="button">Save Lineup</button>
+        <button className="sq-btn primary" onClick={doSave} type="button">
+          Save Lineup
+        </button>
       </div>
 
       {/* Save success overlay (brief) */}
@@ -456,29 +658,76 @@ export default function SquadLineup({ isAdmin = true }) {
         </div>
       )}
 
-      {/* Edit Modal */}
+      {/* Edit Player Modal */}
       {editing && (
         <div className="sq-modal" role="dialog" aria-modal="true">
           <div className="sq-modal-card">
             <div className="sq-modal-title">Edit Player</div>
 
             <label className="sq-lab">Name</label>
-            <input className="sq-input" value={editing.player_name || ""} onChange={(e) => setEditing({ ...editing, player_name: e.target.value })} />
+            <input
+              className="sq-input"
+              value={editing.player_name || ""}
+              onChange={(e) => setEditing({ ...editing, player_name: e.target.value })}
+            />
 
             <label className="sq-lab">Role</label>
-            <select className="sq-input" value={editing.skill_type || "Batsman"} onChange={(e) => setEditing({ ...editing, skill_type: e.target.value })}>
-              <option>Batsman</option><option>Bowler</option><option>All Rounder</option><option>Wicketkeeper/Batsman</option>
+            <select
+              className="sq-input"
+              value={editing.skill_type || "Batsman"}
+              onChange={(e) => setEditing({ ...editing, skill_type: e.target.value })}
+            >
+              <option>Batsman</option>
+              <option>Bowler</option>
+              <option>All Rounder</option>
+              <option>Wicketkeeper/Batsman</option>
             </select>
 
             <label className="sq-lab">Batting Style</label>
-            <input className="sq-input" value={editing.batting_style || ""} onChange={(e) => setEditing({ ...editing, batting_style: e.target.value })} />
+            <input
+              className="sq-input"
+              value={editing.batting_style || ""}
+              onChange={(e) => setEditing({ ...editing, batting_style: e.target.value })}
+            />
 
             <label className="sq-lab">Bowling Type</label>
-            <input className="sq-input" value={editing.bowling_type || ""} onChange={(e) => setEditing({ ...editing, bowling_type: e.target.value })} />
+            <input
+              className="sq-input"
+              value={editing.bowling_type || ""}
+              onChange={(e) => setEditing({ ...editing, bowling_type: e.target.value })}
+            />
 
             <div className="sq-modal-actions">
-              <button className="sq-btn" onClick={() => setEditing(null)} type="button">Cancel</button>
-              <button className="sq-btn primary" onClick={doUpdatePlayer} type="button">Update</button>
+              <button className="sq-btn" onClick={() => setEditing(null)} type="button">
+                Cancel
+              </button>
+              <button className="sq-btn primary" onClick={doUpdatePlayer} type="button">
+                Update
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Team Modal */}
+      {showTeamModal && (
+        <div className="sq-modal" role="dialog" aria-modal="true">
+          <div className="sq-modal-card">
+            <div className="sq-modal-title">Add New Team</div>
+            <label className="sq-lab">Team name</label>
+            <input
+              className="sq-input"
+              value={newTeamName}
+              onChange={(e) => setNewTeamName(e.target.value)}
+              placeholder="e.g., Ireland"
+            />
+            <div className="sq-modal-actions">
+              <button className="sq-btn" onClick={() => setShowTeamModal(false)} type="button">
+                Cancel
+              </button>
+              <button className="sq-btn primary" onClick={addTeam} type="button">
+                Add Team
+              </button>
             </div>
           </div>
         </div>
