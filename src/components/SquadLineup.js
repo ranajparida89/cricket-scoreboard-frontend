@@ -318,7 +318,7 @@ export default function SquadLineup({ isAdmin = true }) {
     }
   };
 
-  /* Add */
+  /* Add (create new player) */
   const onAddPlayer = async () => {
     const name = addName.trim();
     if (!name) return;
@@ -338,7 +338,7 @@ export default function SquadLineup({ isAdmin = true }) {
         skill_type: skillTypeOut,
         batting_style: addVals.batting_style || "",
         bowling_type,
-        // NOTE: no profile_url on create (avoids unique URL conflicts)
+        // do NOT send profile_url on create
       });
       setSquad((prev) => [...prev, created].sort((a, b) => a.player_name.localeCompare(b.player_name)));
       setAddName(""); setSuggests([]);
@@ -503,7 +503,7 @@ export default function SquadLineup({ isAdmin = true }) {
     });
   };
 
-  /* Import selected from another format (no profile_url in payload to avoid 409) */
+  /* Import selected — LINK existing players by id into the target format */
   const doImportSelected = async () => {
     const picks = importList.filter((p) => importPick.has(p.id));
     if (!picks.length) return pushToast("Select at least one player to import", "error");
@@ -514,20 +514,17 @@ export default function SquadLineup({ isAdmin = true }) {
     for (const p of picks) {
       try {
         await createPlayer({
-          player_name: p.player_name,
+          // IMPORTANT: use player_id to link rather than re-create by name
+          player_id: p.id,
           team_name: team,
-          lineup_type: format,      // target format
-          skill_type: p.skill_type,
-          batting_style: p.batting_style,
-          bowling_type: p.bowling_type,
-          // IMPORTANT: don't send profile_url here (unique per person)
+          lineup_type: format, // target format
         });
         added++;
       } catch (e) {
+        const status = e?.response?.status;
         const msg = e?.response?.data?.error || "";
-        if (/exist/i.test(msg) || /conflict|duplicate/i.test(msg)) skipped++;
-        else failed++;
-        console.error("Import error:", p.player_name, e);
+        if (status === 409 || /exist|conflict|duplicate/i.test(msg)) skipped++;
+        else { failed++; console.error("Import error:", p.player_name, e); }
       }
     }
 
@@ -571,7 +568,7 @@ export default function SquadLineup({ isAdmin = true }) {
     });
   };
 
-  /* Copy a single player to selected formats (no profile_url to avoid URL-unique conflicts) */
+  /* Copy — LINK by player_id into each selected format */
   const doCopyPlayer = async () => {
     if (!copyFromPlayer) return;
     const targets = Array.from(copyTargets);
@@ -581,13 +578,9 @@ export default function SquadLineup({ isAdmin = true }) {
       for (const tf of targets) {
         if (copyExists[tf]) continue; // already there
         await createPlayer({
-          player_name: copyFromPlayer.player_name,
+          player_id: copyFromPlayer.id, // link existing player
           team_name: team,
           lineup_type: tf,
-          skill_type: copyFromPlayer.skill_type,
-          batting_style: copyFromPlayer.batting_style,
-          bowling_type: copyFromPlayer.bowling_type,
-          // no profile_url here
         });
       }
       pushToast("Player copied to selected format(s)", "success");
@@ -640,7 +633,7 @@ export default function SquadLineup({ isAdmin = true }) {
             )}
           </div>
 
-          <select className="sq-role" value={addRole} onChange={(e) => setAddRole(e.target.value)}>
+        <select className="sq-role" value={addRole} onChange={(e) => setAddRole(e.target.value)}>
             <option>Batsman</option>
             <option>Bowler</option>
             <option>All Rounder</option>
