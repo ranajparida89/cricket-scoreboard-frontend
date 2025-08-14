@@ -536,18 +536,28 @@ export default function SquadLineup({ isAdmin = true }) {
      - FORMAT (current) -> lineup : same as old "squad -> lineup"
      - lineup -> FORMAT (current) : remove from lineup only
   */
+
+  // 🔧 FIX #2: make copy optimistic so the drop doesn't snap back.
   const ensureInFormat = async (srcPlayer, destFormat) => {
-    // already there?
-    const exists = (lists[destFormat] || []).some((p) =>
-      ciEq(p.player_name, srcPlayer.player_name)
-    );
-    if (exists) {
+    // already there by name?
+    if ((lists[destFormat] || []).some((p) => ciEq(p.player_name, srcPlayer.player_name))) {
       pushToast(`${srcPlayer.player_name} already in ${destFormat}`, "info");
       return false;
     }
 
+    // 1) optimistic add with a temporary id
+    const tempId = `tmp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    setLists((prev) => ({
+      ...prev,
+      [destFormat]: [
+        ...prev[destFormat],
+        { ...srcPlayer, id: tempId, lineup_type: destFormat },
+      ],
+    }));
+
+    // 2) persist on server
     try {
-      await createPlayer({
+      const created = await createPlayer({
         player_name: srcPlayer.player_name,
         team_name: team,
         lineup_type: destFormat,
@@ -555,13 +565,26 @@ export default function SquadLineup({ isAdmin = true }) {
         batting_style: srcPlayer.batting_style,
         bowling_type: srcPlayer.bowling_type,
       });
-      await loadAll(team);
+
+      // replace temp with real record
+      setLists((prev) => ({
+        ...prev,
+        [destFormat]: prev[destFormat].map((p) => (p.id === tempId ? created : p)),
+      }));
+
       pushToast(`Added to ${destFormat}`, "success");
       return true;
     } catch (e) {
+      // 3) rollback on failure
+      setLists((prev) => ({
+        ...prev,
+        [destFormat]: prev[destFormat].filter((p) => p.id !== tempId),
+      }));
+
       const s = e?.response?.status;
       if (s === 409) {
         pushToast("Already exists", "info");
+        try { await loadAll(team); } catch {}
         return false;
       }
       console.error(e);
@@ -595,17 +618,21 @@ export default function SquadLineup({ isAdmin = true }) {
       return;
     }
 
-    // FORMAT(current) -> lineup (add)
+    // 🔧 FIX #3: FORMAT(current) -> lineup (read from the visible list; guard duplicates)
     if (FORMATS.includes(srcId) && dstId === "lineup" && srcId === format) {
-      const srcList = listFiltered(srcId).filter(
-        (p) => !lineup.some((x) => x.player_id === p.id)
-      );
-      const player = srcList[source.index];
+      const visible = listFiltered(srcId);     // exactly what the user sees
+      const player = visible[source.index];
       if (!player) return;
+
+      if (lineup.some((x) => x.player_id === player.id)) {
+        pushToast("Already in lineup", "info");
+        return;
+      }
       if (lineup.length >= MAX_LINEUP) {
         pushToast(`Max ${MAX_LINEUP} players allowed in lineup`, "error");
         return;
       }
+
       const newItem = {
         player_id: player.id,
         order_no: lineup.length + 1,
@@ -800,7 +827,8 @@ export default function SquadLineup({ isAdmin = true }) {
               <div className="sq-panel" ref={provided.innerRef} {...provided.droppableProps}>
                 <div className="sq-panel-title">🧢 Bench (Master Squad)</div>
                 {benchFiltered.map((p, idx) => (
-                  <Draggable key={`b-${idx}`} draggableId={`b-${idx}`} index={idx}>
+                  // 🔧 FIX #1: stable draggable id based on the player, not the index
+                  <Draggable key={`bench-${p.id || idx}`} draggableId={`bench-${p.id || idx}`} index={idx}>
                     {(prov) => (
                       <div
                         className={`sq-card ${presenceClass(p.player_name)}`}
@@ -902,7 +930,7 @@ export default function SquadLineup({ isAdmin = true }) {
                 🎯 {format} Lineup ({lineup.length}/{MAX_LINEUP})
               </div>
 
-              {/* source list for lineup = current format squad minus already-in-lineup */}
+              {/* lineup cards */}
               {lineup.map((x, idx) => (
                 <Draggable key={`l-${x.player_id}`} draggableId={`l-${x.player_id}`} index={idx}>
                   {(prov) => (
