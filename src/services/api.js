@@ -123,6 +123,45 @@ export const getTestMatchLeaderboard = async () => {
   return res.json();
 };
 
+/* ============================================
+   SQUAD & LINEUP (Team-wise + Format-wise)
+   Base: ${API_URL}/squads/*
+   ============================================ */
+
+// Get squad (players) for a team+format
+export const fetchPlayers = (team, format) =>
+  axios
+    .get(`${API_URL}/squads/players`, { params: { team, format } })
+    .then((r) => r.data);
+
+// Typeahead suggestions (shows “already in squad” in UI)
+export const suggestPlayers = (team, q) =>
+  axios
+    .get(`${API_URL}/squads/suggest`, { params: { team, q } })
+    .then((r) => r.data);
+
+// Create a player (server enforces team+name case-insensitive uniqueness)
+export const createPlayer = (payload) =>
+  axios.post(`${API_URL}/squads/players`, payload).then((r) => r.data);
+
+// Update a player
+export const updatePlayer = (id, payload) =>
+  axios.put(`${API_URL}/squads/players/${id}`, payload).then((r) => r.data);
+
+// Delete a player
+export const deletePlayer = (id) =>
+  axios.delete(`${API_URL}/squads/players/${id}`).then((r) => r.data);
+
+// Get latest saved lineup for team+format
+export const getLineup = (team, format) =>
+  axios
+    .get(`${API_URL}/squads/lineup`, { params: { team, format } })
+    .then((r) => r.data);
+
+// Save lineup (expects { team_name, lineup_type, captain_player_id, vice_captain_player_id, players:[{player_id,order_no,is_twelfth}] })
+export const saveLineup = (payload) =>
+  axios.post(`${API_URL}/squads/lineup`, payload).then((r) => r.data);
+
 // src/services/api.js
 export const getUserDashboardData = async (userId) => {
   const [favorites, posts, achievements, widgets, activity, profile, notifications, settings] = await Promise.all([
