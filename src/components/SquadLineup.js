@@ -491,30 +491,45 @@ export default function SquadLineup({ isAdmin = true }) {
     });
   };
 
+  /* FIX: robust, per-player import with summary */
   const doImportSelected = async () => {
     const picks = importList.filter((p) => importPick.has(p.id));
     if (!picks.length) return pushToast("Select at least one player to import", "error");
+
+    setImportLoading(true);
+    let added = 0, skipped = 0, failed = 0;
+
+    for (const p of picks) {
+      try {
+        await createPlayer({
+          player_name: p.player_name,
+          team_name: team,
+          lineup_type: format,      // target format (e.g., TEST)
+          skill_type: p.skill_type,
+          batting_style: p.batting_style,
+          bowling_type: p.bowling_type,
+          profile_url: p.profile_url,
+        });
+        added++;
+      } catch (e) {
+        const msg = e?.response?.data?.error || "";
+        if (/exist/i.test(msg) || /duplicate/i.test(msg)) {
+          skipped++;
+        } else {
+          failed++;
+        }
+      }
+    }
+
     try {
-      await Promise.all(
-        picks.map((p) =>
-          createPlayer({
-            player_name: p.player_name,
-            team_name: team,
-            lineup_type: format,
-            skill_type: p.skill_type,
-            batting_style: p.batting_style,
-            bowling_type: p.bowling_type,
-            profile_url: p.profile_url,
-          })
-        )
-      );
       const list = await fetchPlayers(team, format);
       setSquad(list);
+    } finally {
+      setImportLoading(false);
       setShowImport(false);
       setImportPick(new Set());
-      pushToast(`Imported ${picks.length} player(s) from ${importFromFormat}`, "success");
-    } catch (e) {
-      pushToast(e?.response?.data?.error || "Import failed", "error");
+      const summary = `Added ${added}${skipped ? ` • Skipped ${skipped}` : ""}${failed ? ` • Failed ${failed}` : ""}`;
+      pushToast(summary, failed ? "error" : "success");
     }
   };
 
@@ -525,8 +540,8 @@ export default function SquadLineup({ isAdmin = true }) {
     setCopyExists({});
     try {
       setCopyLoading(true);
-      const others = FORMATS.filter((f) => f !== p.lineup_type && f !== format ? true : f !== format);
-      // check existence in each target format
+      // FIX: clean target formats: everything except the current format
+      const others = FORMATS.filter((f) => f !== format);
       const lists = await Promise.all(others.map((f) => fetchPlayers(team, f)));
       const existMap = {};
       others.forEach((f, i) => {
@@ -554,8 +569,7 @@ export default function SquadLineup({ isAdmin = true }) {
     try {
       setCopyLoading(true);
       for (const tf of targets) {
-        // skip if already exists
-        if (copyExists[tf]) continue;
+        if (copyExists[tf]) continue; // already there
         await createPlayer({
           player_name: copyFromPlayer.player_name,
           team_name: team,
@@ -802,7 +816,9 @@ export default function SquadLineup({ isAdmin = true }) {
             </div>
             <div className="sq-modal-actions">
               <button className="sq-btn" onClick={() => setShowImport(false)} type="button">Close</button>
-              <button className="sq-btn primary" onClick={doImportSelected} type="button">Add Selected</button>
+              <button className="sq-btn primary" onClick={doImportSelected} disabled={importLoading} type="button">
+                {importLoading ? "Adding…" : `Add Selected${importPick.size ? ` (${importPick.size})` : ""}`}
+              </button>
             </div>
           </div>
         </div>
@@ -829,7 +845,9 @@ export default function SquadLineup({ isAdmin = true }) {
             </div>
             <div className="sq-modal-actions">
               <button className="sq-btn" onClick={() => setCopyFromPlayer(null)} type="button">Cancel</button>
-              <button className="sq-btn primary" onClick={doCopyPlayer} disabled={copyLoading} type="button">Copy</button>
+              <button className="sq-btn primary" onClick={doCopyPlayer} disabled={copyLoading} type="button">
+                {copyLoading ? "Copying…" : "Copy"}
+              </button>
             </div>
           </div>
         </div>
