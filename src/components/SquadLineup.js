@@ -1,6 +1,7 @@
 // src/components/SquadLineup.js
 // Team-wise Master Bench + ODI/T20/TEST squads with copy-by-drag + Lineup builder
-// Rive toasts retained. No "Import" or "Copy to" modals anymore.
+// 🔧 Updated: per-format uniqueness, hide in-lineup from current format column,
+//             fix lineup->squad drop snapback, add "Info" button & suggestions.
 
 import React, { useEffect, useMemo, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
@@ -223,6 +224,9 @@ export default function SquadLineup({ isAdmin = true }) {
   const [viceId, setViceId] = useState(null);
   const [lastSavedSig, setLastSavedSig] = useState(null);
 
+  /* UI: help/info modal */
+  const [showInfo, setShowInfo] = useState(false); // 🔧
+
   /* Add/Edit */
   const [addName, setAddName] = useState("");
   const [addRole, setAddRole] = useState("Batsman");
@@ -366,7 +370,20 @@ export default function SquadLineup({ isAdmin = true }) {
     };
   }, [addName, team]);
 
-  /* Presence map for highlighting (by name) */
+  /* 🔧 Presence map by FORMAT -> name (for hinting/validation) */
+  const presenceByFormat = useMemo(() => {
+    const m = new Map(); // name -> { ODI:bool, T20:bool, TEST:bool }
+    for (const f of FORMATS) {
+      for (const p of (lists[f] || [])) {
+        const key = ci(p.player_name);
+        if (!m.has(key)) m.set(key, {});
+        m.get(key)[f] = true;
+      }
+    }
+    return m;
+  }, [lists]);
+
+  /* Presence count (for “in all three formats” ring) */
   const presenceCount = useMemo(() => {
     const map = new Map();
     for (const f of FORMATS) {
@@ -386,46 +403,58 @@ export default function SquadLineup({ isAdmin = true }) {
       .sort((a, b) => a.player_name.localeCompare(b.player_name));
   }, [bench, searchLc]);
 
-  const listFiltered = (fmt) =>
+  // 🔧 UI list: hide players already in the *current* format's lineup
+  const listForBoard = (fmt) =>
     (lists[fmt] || [])
+      .filter((p) => !(fmt === format && lineup.some((x) => x.player_id === p.id)))
       .filter((p) => !searchLc || ci(p.player_name).includes(searchLc))
       .sort((a, b) => a.player_name.localeCompare(b.player_name));
 
-  /* Add to Bench (local only) */
-  const onAddToBench = () => {
-    const name = addName.trim();
-    if (!name) return;
+const onAddToBench = () => {
+  const name = addName.trim();
+  if (!name) return;
 
-    // Already somewhere in bench?
-    if (bench.some((p) => ciEq(p.player_name, name))) {
-      pushToast("Already on bench", "error");
-      return;
-    }
+  // Already somewhere in bench?
+  if (bench.some((p) => ciEq(p.player_name, name))) {
+    pushToast("Already on bench", "error");
+    return;
+  }
 
-    const newObj = {
-      id: `bench-${Date.now()}`,
-      player_name: name,
-      skill_type:
-        addRole === "All Rounder" && addVals.allrounder_type
-          ? `All Rounder (${addVals.allrounder_type})`
-          : addRole,
-      batting_style: addVals.batting_style || "",
-      bowling_type: buildBowlingType(addVals),
-    };
+  // Info only: Bench can hold it; per-format uniqueness is enforced on drop (and by DB index)
+  const nameKey = ci(name);
+  if (presenceByFormat.get(nameKey)?.[format]) {
+    pushToast(
+      `${name} is already in ${format} squad — you can still add to Bench and copy to other formats.`,
+      "info"
+    );
+    // NOTE: no return here
+  }
 
-    setBench((prev) => [...prev, newObj]);
-    setAddName("");
-    setSuggests([]);
-    setAddVals({
-      batting_style: "",
-      bowl_kind: "",
-      bowl_arm: "",
-      pace_type: "",
-      spin_type: "",
-      allrounder_type: "",
-    });
-    pushToast(`Added ${newObj.player_name} to bench`, "success");
+  const newObj = {
+    id: `bench-${Date.now()}`,
+    player_name: name,
+    skill_type:
+      addRole === "All Rounder" && addVals.allrounder_type
+        ? `All Rounder (${addVals.allrounder_type})`
+        : addRole,
+    batting_style: addVals.batting_style || "",
+    bowling_type: buildBowlingType(addVals),
   };
+
+  setBench((prev) => [...prev, newObj]);
+  setAddName("");
+  setSuggests([]);
+  setAddVals({
+    batting_style: "",
+    bowl_kind: "",
+    bowl_arm: "",
+    pace_type: "",
+    spin_type: "",
+    allrounder_type: "",
+  });
+  pushToast(`Added ${newObj.player_name} to bench`, "success");
+};
+
 
   /* Update player (format squad only) */
   const openEdit = (p) => {
@@ -490,9 +519,7 @@ export default function SquadLineup({ isAdmin = true }) {
         profile_url: editing.profile_url,
       });
 
-      // refresh lists
       await loadAll(team);
-      // reflect in lineup cards as well
       setLineup((prev) =>
         prev.map((x) =>
           x.player_id === upd.id ? { ...x, obj: { ...x.obj, ...upd } } : x
@@ -513,7 +540,6 @@ export default function SquadLineup({ isAdmin = true }) {
     try {
       await deletePlayer(pid);
       await loadAll(team);
-      // cleanup lineup if necessary
       setLineup((prev) => {
         const items = prev.filter((x) => x.player_id !== pid);
         return items.map((x, i) => ({
@@ -533,19 +559,22 @@ export default function SquadLineup({ isAdmin = true }) {
   /* Drag & Drop rules
      - bench -> FORMAT : create on server (copy), keep on bench
      - FORMAT -> other FORMAT : create on server (copy), keep in source
-     - FORMAT (current) -> lineup : same as old "squad -> lineup"
-     - lineup -> FORMAT (current) : remove from lineup only
+     - FORMAT (current) -> lineup : move-like add (hide from current format column)
+     - lineup -> FORMAT (current) : remove from lineup only (no snap back)
   */
 
-  // 🔧 FIX #2: make copy optimistic so the drop doesn't snap back.
+  // 🔧 Allow same name in different formats; block if same format already has the name
   const ensureInFormat = async (srcPlayer, destFormat) => {
-    // already there by name?
-    if ((lists[destFormat] || []).some((p) => ciEq(p.player_name, srcPlayer.player_name))) {
-      pushToast(`${srcPlayer.player_name} already in ${destFormat}`, "info");
+    // already there by name in the *dest* format?
+    const exists = (lists[destFormat] || []).some((p) =>
+      ciEq(p.player_name, srcPlayer.player_name)
+    );
+    if (exists) {
+      pushToast(`${srcPlayer.player_name} already in ${destFormat} squad`, "error");
       return false;
     }
 
-    // 1) optimistic add with a temporary id
+    // optimistic add with a temporary id (for smooth copy UX)
     const tempId = `tmp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     setLists((prev) => ({
       ...prev,
@@ -555,7 +584,6 @@ export default function SquadLineup({ isAdmin = true }) {
       ],
     }));
 
-    // 2) persist on server
     try {
       const created = await createPlayer({
         player_name: srcPlayer.player_name,
@@ -566,7 +594,6 @@ export default function SquadLineup({ isAdmin = true }) {
         bowling_type: srcPlayer.bowling_type,
       });
 
-      // replace temp with real record
       setLists((prev) => ({
         ...prev,
         [destFormat]: prev[destFormat].map((p) => (p.id === tempId ? created : p)),
@@ -575,7 +602,6 @@ export default function SquadLineup({ isAdmin = true }) {
       pushToast(`Added to ${destFormat}`, "success");
       return true;
     } catch (e) {
-      // 3) rollback on failure
       setLists((prev) => ({
         ...prev,
         [destFormat]: prev[destFormat].filter((p) => p.id !== tempId),
@@ -583,7 +609,7 @@ export default function SquadLineup({ isAdmin = true }) {
 
       const s = e?.response?.status;
       if (s === 409) {
-        pushToast("Already exists", "info");
+        pushToast("Already exists in that format", "info");
         try { await loadAll(team); } catch {}
         return false;
       }
@@ -602,8 +628,8 @@ export default function SquadLineup({ isAdmin = true }) {
 
     // FORMAT -> FORMAT copy
     if (FORMATS.includes(srcId) && FORMATS.includes(dstId)) {
-      if (srcId === dstId) return; // do nothing
-      const srcList = listFiltered(srcId);
+      if (srcId === dstId) return; // no-op
+      const srcList = listForBoard(srcId); // 🔧 read exactly what's on screen
       const p = srcList[source.index];
       if (!p) return;
       await ensureInFormat(p, dstId);
@@ -618,9 +644,9 @@ export default function SquadLineup({ isAdmin = true }) {
       return;
     }
 
-    // 🔧 FIX #3: FORMAT(current) -> lineup (read from the visible list; guard duplicates)
+    // FORMAT(current) -> lineup (add, “move-like”: hide from column via listForBoard)
     if (FORMATS.includes(srcId) && dstId === "lineup" && srcId === format) {
-      const visible = listFiltered(srcId);     // exactly what the user sees
+      const visible = listForBoard(srcId); // 🔧 exactly what user sees
       const player = visible[source.index];
       if (!player) return;
 
@@ -643,7 +669,7 @@ export default function SquadLineup({ isAdmin = true }) {
       return;
     }
 
-    // lineup -> FORMAT(current) (remove)
+    // lineup -> FORMAT(current) (remove and "touch" destination list to avoid snap-back)
     if (srcId === "lineup" && FORMATS.includes(dstId) && dstId === format) {
       const items = Array.from(lineup);
       const [removed] = items.splice(source.index, 1);
@@ -655,6 +681,9 @@ export default function SquadLineup({ isAdmin = true }) {
         is_twelfth: i === 11,
       }));
       setLineup(reseq);
+
+      // 🔧 "touch" the format list so rbd treats this as a handled cross-list drop
+      setLists((prev) => ({ ...prev, [format]: [...prev[format]] }));
       return;
     }
 
@@ -764,22 +793,35 @@ export default function SquadLineup({ isAdmin = true }) {
           <div className="sq-add-left">
             <input
               className="sq-input"
-              placeholder="Add player to Bench (type for suggestions)…"
+              placeholder={`Add player to Bench (type for suggestions)…`}
               value={addName}
               onChange={(e) => setAddName(e.target.value)}
             />
             {!!suggests.length && (
               <div className="sq-suggest">
-                {suggests.map((s) => (
-                  <div
-                    key={`${s.name}-${s.team}`}
-                    className="sq-suggest-item"
-                    onClick={() => setAddName(s.name)}
-                    title={`Found in ${s.team}`}
-                  >
-                    {s.name}
-                  </div>
-                ))}
+                {suggests.map((s) => {
+                  const nameKey = ci(s.name);
+                  const pf = presenceByFormat.get(nameKey) || {};
+                  const alreadyHere = !!pf[format];
+                  return (
+                    <div
+                      key={`${s.name}-${s.team}`}
+                      className={`sq-suggest-item ${alreadyHere ? "exists" : ""}`}
+                      onClick={() => setAddName(s.name)}
+                      title={`Found in ${s.team}`}
+                    >
+                      <span>{s.name}</span>
+                      <span className="sq-suggest-note">
+                        {/* 🔧 show where this name already exists */}
+                        {["ODI","T20","TEST"].map((F) => (
+                          <span key={F} style={{marginLeft:8, opacity: pf[F] ? 1 : .5}}>
+                            {F}{pf[F] ? "✓" : "—"}
+                          </span>
+                        ))}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -797,6 +839,16 @@ export default function SquadLineup({ isAdmin = true }) {
 
           <button className="sq-btn" onClick={onAddToBench} type="button">
             Add to Bench
+          </button>
+
+          {/* 🔧 Info button */}
+          <button
+            className="sq-icon-btn info"
+            title="Info"
+            onClick={() => setShowInfo(true)}
+            type="button"
+          >
+            ℹ️
           </button>
         </div>
 
@@ -827,7 +879,6 @@ export default function SquadLineup({ isAdmin = true }) {
               <div className="sq-panel" ref={provided.innerRef} {...provided.droppableProps}>
                 <div className="sq-panel-title">🧢 Bench (Master Squad)</div>
                 {benchFiltered.map((p, idx) => (
-                  // 🔧 FIX #1: stable draggable id based on the player, not the index
                   <Draggable key={`bench-${p.id || idx}`} draggableId={`bench-${p.id || idx}`} index={idx}>
                     {(prov) => (
                       <div
@@ -865,7 +916,7 @@ export default function SquadLineup({ isAdmin = true }) {
                   <div className="sq-panel-title">
                     {F} Squad ({lists[F]?.length || 0})
                   </div>
-                  {listFiltered(F).map((p, idx) => (
+                  {listForBoard(F).map((p, idx) => (
                     <Draggable key={`${F}-${p.id}`} draggableId={`${F}-${p.id}`} index={idx}>
                       {(prov) => (
                         <div
@@ -908,8 +959,12 @@ export default function SquadLineup({ isAdmin = true }) {
                     </Draggable>
                   ))}
                   {provided.placeholder}
-                  {!listFiltered(F).length && (
-                    <div className="sq-empty">Drag here from Bench or from another format.</div>
+                  {!listForBoard(F).length && (
+                    <div className="sq-empty">
+                      {F === format
+                        ? "Drag from this column to Lineup above; players in lineup are hidden here."
+                        : "Drag here from Bench or from another format."}
+                    </div>
                   )}
                 </div>
               )}
@@ -930,7 +985,6 @@ export default function SquadLineup({ isAdmin = true }) {
                 🎯 {format} Lineup ({lineup.length}/{MAX_LINEUP})
               </div>
 
-              {/* lineup cards */}
               {lineup.map((x, idx) => (
                 <Draggable key={`l-${x.player_id}`} draggableId={`l-${x.player_id}`} index={idx}>
                   {(prov) => (
@@ -984,6 +1038,8 @@ export default function SquadLineup({ isAdmin = true }) {
                               is_twelfth: i === 11,
                             }));
                             setLineup(reseq);
+                            // 🔧 touch format list to keep rbd happy if you then drag
+                            setLists((prev) => ({ ...prev, [format]: [...prev[format]] }));
                           }}
                           type="button"
                         >
@@ -1072,6 +1128,26 @@ export default function SquadLineup({ isAdmin = true }) {
               </button>
               <button className="sq-btn primary" onClick={doUpdatePlayer} type="button">
                 Update
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🔧 Info Modal */}
+      {showInfo && (
+        <div className="sq-modal" role="dialog" aria-modal="true">
+          <div className="sq-modal-card">
+            <div className="sq-modal-title">How it works</div>
+            <ul className="sq-help-list">
+              <li><b>Duplicates allowed across formats</b> (ODI/T20/TEST), but <b>not within the same format</b> for a team.</li>
+              <li>Drag from <b>Bench</b> or another <b>Format</b> to copy into a format. If a name already exists there, we block it.</li>
+              <li>Drag from <b>{format} Lineup</b> back to the <b>{format} Squad</b> column to remove from lineup. The squad column hides players who are already in lineup.</li>
+              <li>Type a name — suggestions show where that name already exists (ODI/T20/TEST).</li>
+            </ul>
+            <div className="sq-modal-actions">
+              <button className="sq-btn" onClick={() => setShowInfo(false)} type="button">
+                Close
               </button>
             </div>
           </div>
