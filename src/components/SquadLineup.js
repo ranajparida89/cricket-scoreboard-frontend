@@ -1,776 +1,374 @@
 // src/components/SquadLineup.js
-// Team-wise Master Bench + ODI/T20/TEST squads with copy-by-drag + Lineup builder
-// 🔧 Updated: per-format uniqueness, hide in-lineup from current format column,
-//             fix lineup->squad drop snapback, add "Info" button & suggestions.
+// CrickEdge — Team-wise Squads + Drag-and-drop Lineup builder (Pro)
+// - Unlimited squad, 11 (max 12) in lineup
+// - Per-format duplicate allowed across formats; not allowed inside same lineup
+// - Captain / Vice-Captain enforce 1 each
+// - Suggestions + validation + toasts
+// - Clean UI + sticky save bar
 
 import React, { useEffect, useMemo, useState } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import axios from "axios";
 import {
-  fetchPlayers,
-  suggestPlayers,
-  createPlayer,
-  updatePlayer,
-  deletePlayer,
-  getLineup,
-  saveLineup,
-} from "../services/api";
+  DragDropContext,
+  Droppable,
+  Draggable,
+} from "react-beautiful-dnd";
 import "./SquadLineup.css";
 
-/* Rive */
-import { useRive, Layout, Fit, Alignment } from "@rive-app/react-canvas";
-function RiveSlot({ src, className = "", autoplay = true }) {
-  const prefersReduced =
-    typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  const { RiveComponent } = useRive({
-    src,
-    autoplay: autoplay && !prefersReduced,
-    layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
-  });
-  if (!src) return null;
-  return (
-    <div className={className} aria-hidden="true">
-      {RiveComponent ? <RiveComponent /> : null}
-    </div>
-  );
-}
+/* ---------- Config ---------- */
+const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
+// If your real endpoints differ, just adjust these helpers.
+const api = {
+  // players by team+format
+  fetchPlayers: (team, format) =>
+    axios
+      .get(`${API_BASE}/players`, { params: { team_name: team, lineup_type: format } })
+      .then((r) => r.data || []),
 
-/* Helpers */
-const DEFAULT_TEAMS = [
-  "India",
-  "Australia",
-  "England",
-  "New Zealand",
-  "Pakistan",
-  "South Africa",
-  "Sri Lanka",
-  "Bangladesh",
-  "Afghanistan",
-];
+  // create player row in players (a Squad member)
+  createPlayer: (payload) =>
+    axios.post(`${API_BASE}/players`, payload).then((r) => r.data),
+
+  updatePlayer: (id, payload) =>
+    axios.put(`${API_BASE}/players/${id}`, payload).then((r) => r.data),
+
+  deletePlayer: (id) =>
+    axios.delete(`${API_BASE}/players/${id}`),
+
+  // lineup get/save
+  getLineup: (team, format) =>
+    axios
+      .get(`${API_BASE}/lineup`, { params: { team_name: team, lineup_type: format } })
+      .then((r) => r.data || { lineup: [], captain_id: null, vice_id: null }),
+
+  saveLineup: (payload) =>
+    axios.post(`${API_BASE}/lineup`, payload).then((r) => r.data),
+
+  // suggestions: by partial name inside current team across formats
+  suggest: (team, q) =>
+    axios
+      .get(`${API_BASE}/players/suggest`, { params: { team_name: team, q } })
+      .then((r) => r.data || []),
+};
+
 const FORMATS = ["ODI", "T20", "TEST"];
+const DEFAULT_TEAMS = ["India", "Australia", "England", "New Zealand", "Pakistan", "South Africa", "Sri Lanka", "Bangladesh", "Afghanistan"];
+
 const MAX_LINEUP = 12;
 const MIN_LINEUP = 11;
 
 const ci = (s) => (s || "").trim().toLowerCase();
 const ciEq = (a, b) => ci(a) === ci(b);
 
-const iconFor = (p) => {
-  const role = (p?.skill_type || "").toLowerCase();
-  if (role.includes("wicket")) return "🧤🏏";
-  if (role.includes("all")) return "🏏🔴";
-  if (role.includes("bowl")) return "🔴";
-  return "🏏";
-};
-
-function Toasts({ toasts, onClose }) {
-  return (
-    <div className="sq-toasts">
-      {toasts.map((t) => (
-        <div
-          key={t.id}
-          className={`sq-toast ${t.type || "info"}`}
-          onClick={() => onClose(t.id)}
-        >
-          {t.message}
-        </div>
-      ))}
-    </div>
-  );
+/* ---------- tiny toast ---------- */
+function useToasts() {
+  const [toasts, setToasts] = useState([]);
+  const push = (message, type = "info", ttl = 2600) => {
+    const id = Math.random().toString(36).slice(2);
+    setToasts((p) => [...p, { id, message, type }]);
+    setTimeout(() => setToasts((p) => p.filter((t) => t.id !== id)), ttl);
+  };
+  return { toasts, push, close: (id) => setToasts((p) => p.filter((t) => t.id !== id)) };
 }
+const Toasts = ({ list, onClose }) => (
+  <div className="sq-toasts">
+    {list.map((t) => (
+      <div key={t.id} className={`sq-toast ${t.type}`} onClick={() => onClose(t.id)}>
+        {t.message}
+      </div>
+    ))}
+  </div>
+);
 
-/* Role-aware fields (Add + Edit) */
-function RoleFields({ role, values, setValues }) {
-  const set = (k, v) => setValues((prev) => ({ ...prev, [k]: v }));
-
-  const showBatting = ["batsman", "wicketkeeper/batsman", "all rounder"].includes(
-    (role || "").toLowerCase()
-  );
-  const showBowling = ["bowler", "all rounder"].includes(
-    (role || "").toLowerCase()
-  );
-
-  return (
-    <div className="sq-role-fields">
-      {showBatting && (
-        <>
-          <label className="sq-lab">Batting Style</label>
-          <div className="sq-grid-2">
-            <select
-              className="sq-input"
-              value={values.batting_style || ""}
-              onChange={(e) => set("batting_style", e.target.value)}
-            >
-              <option value="">Select…</option>
-              <option>Right-hand Bat</option>
-              <option>Left-hand Bat</option>
-            </select>
-            {String(role).toLowerCase() === "all rounder" && (
-              <select
-                className="sq-input"
-                value={values.allrounder_type || ""}
-                onChange={(e) => set("allrounder_type", e.target.value)}
-                title="Allrounder Type"
-              >
-                <option value="">Allrounder Type…</option>
-                <option>Batting Allrounder</option>
-                <option>Bowling Allrounder</option>
-                <option>Genuine Allrounder</option>
-              </select>
-            )}
-          </div>
-        </>
-      )}
-
-      {showBowling && (
-        <>
-          <label className="sq-lab">Bowling</label>
-          <div className="sq-grid-3">
-            <select
-              className="sq-input"
-              value={values.bowl_kind || ""}
-              onChange={(e) => set("bowl_kind", e.target.value)}
-            >
-              <option value="">Select Kind…</option>
-              <option>Pace</option>
-              <option>Spin</option>
-            </select>
-
-            <select
-              className="sq-input"
-              value={values.bowl_arm || ""}
-              onChange={(e) => set("bowl_arm", e.target.value)}
-              disabled={!values.bowl_kind}
-            >
-              <option value="">Arm…</option>
-              <option>Right-arm</option>
-              <option>Left-arm</option>
-            </select>
-
-            {values.bowl_kind === "Pace" ? (
-              <select
-                className="sq-input"
-                value={values.pace_type || ""}
-                onChange={(e) => set("pace_type", e.target.value)}
-              >
-                <option value="">Type…</option>
-                <option>Fast</option>
-                <option>Medium Fast</option>
-              </select>
-            ) : values.bowl_kind === "Spin" ? (
-              <select
-                className="sq-input"
-                value={values.spin_type || ""}
-                onChange={(e) => set("spin_type", e.target.value)}
-              >
-                <option value="">Spin…</option>
-                <option>Off Spin</option>
-                <option>Leg Spin</option>
-                <option>Left-arm Orthodox</option>
-                <option>Left-arm Wrist Spin</option>
-              </select>
-            ) : (
-              <select className="sq-input" disabled>
-                <option>Type…</option>
-              </select>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-/* bowling_type builder */
-function buildBowlingType(vals) {
-  if (!vals?.bowl_kind) return "";
-  const arm = vals.bowl_arm ? `${vals.bowl_arm} ` : "";
-  if (vals.bowl_kind === "Pace" && vals.pace_type)
-    return `${arm}${vals.pace_type}`.trim();
-  if (vals.bowl_kind === "Spin" && vals.spin_type)
-    return `${arm}${vals.spin_type}`.trim();
-  return "";
-}
-
-/* -------- Component -------- */
+/* ---------- Component ---------- */
 export default function SquadLineup({ isAdmin = true }) {
-  /* Teams */
-  const [teams, setTeams] = useState(() => {
-    const saved = localStorage.getItem("crickedge_teams");
-    return saved ? JSON.parse(saved) : DEFAULT_TEAMS;
-  });
-  const [team, setTeam] = useState(teams[0] || "India");
-
-  /* Bench (master squad) – persisted per team in localStorage only */
-  const benchKey = (t) => `crickedge_bench_${ci(t)}`;
-  const [bench, setBench] = useState(() => {
-    try {
-      const raw = localStorage.getItem(benchKey(team));
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  });
-  useEffect(() => {
-    try {
-      localStorage.setItem(benchKey(team), JSON.stringify(bench));
-    } catch {}
-  }, [bench, team]);
-
-  /* Format state */
+  /* team/format */
+  const [teams, setTeams] = useState(DEFAULT_TEAMS);
+  const [team, setTeam] = useState("India");
   const [format, setFormat] = useState("ODI");
-  const [lists, setLists] = useState({ ODI: [], T20: [], TEST: [] }); // server squads
-  const [lineup, setLineup] = useState([]); // current format lineup
+
+  /* server data */
+  const [squad, setSquad] = useState([]);         // players[] for this team+format
+  const [lineup, setLineup] = useState([]);       // [{player_id, order_no, is_twelfth, obj}]
   const [captainId, setCaptainId] = useState(null);
   const [viceId, setViceId] = useState(null);
-  const [lastSavedSig, setLastSavedSig] = useState(null);
 
-  /* UI: help/info modal */
-  const [showInfo, setShowInfo] = useState(false); // 🔧
-
-  /* Add/Edit */
-  const [addName, setAddName] = useState("");
-  const [addRole, setAddRole] = useState("Batsman");
-  const [addVals, setAddVals] = useState({
-    batting_style: "",
-    bowl_kind: "",
-    bowl_arm: "",
-    pace_type: "",
-    spin_type: "",
-    allrounder_type: "",
-  });
-
-  const [editing, setEditing] = useState(null);
-  const [editVals, setEditVals] = useState({});
-
-  const [suggests, setSuggests] = useState([]);
+  /* UI state */
   const [search, setSearch] = useState("");
+  const [addName, setAddName] = useState("");
+  const [role, setRole] = useState("Batsman");
+  const [battingStyle, setBattingStyle] = useState("");
+  const [bowlingKind, setBowlingKind] = useState("");
+  const [bowlingArm, setBowlingArm] = useState("");
+  const [paceType, setPaceType] = useState("");
+  const [spinType, setSpinType] = useState("");
+  const [addNote, setAddNote] = useState("");     // server message when duplicate 23505, etc.
+  const [suggests, setSuggests] = useState([]);
 
-  /* Toasts */
-  const [toasts, setToasts] = useState([]);
-  const pushToast = (message, type = "info", ttl = 2600) => {
-    const id = Math.random().toString(36).slice(2);
-    setToasts((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => setToasts((prev) => prev.filter((x) => x.id !== id)), ttl);
+  const { toasts, push, close } = useToasts();
+
+  /* helpers */
+  const buildBowlingType = () => {
+    if (!bowlingKind) return "";
+    const arm = bowlingArm ? `${bowlingArm} ` : "";
+    if (bowlingKind === "Pace" && paceType) return `${arm}${paceType}`.trim();
+    if (bowlingKind === "Spin" && spinType) return `${arm}${spinType}`.trim();
+    return "";
   };
 
-  /* Rive */
-  const [riv, setRiv] = useState({ empty: null, success: null, glow: null });
-  const [showSaveCongrats, setShowSaveCongrats] = useState(false);
+  /* load squad + lineup when team/format change */
   useEffect(() => {
+    (async () => {
+      try {
+        const [s, L] = await Promise.all([api.fetchPlayers(team, format), api.getLineup(team, format)]);
+        setSquad(s || []);
+        const items = (L.lineup || []).map((it, i) => ({
+          player_id: it.player_id,
+          order_no: it.order_no ?? i + 1,
+          is_twelfth: !!it.is_twelfth,
+          obj: {
+            id: it.player_id,
+            player_name: it.player_name,
+            team_name: team,
+            lineup_type: format,
+            skill_type: it.skill_type,
+            batting_style: it.batting_style,
+            bowling_type: it.bowling_type,
+            profile_url: it.profile_url,
+          },
+        }));
+        setLineup(items);
+        setCaptainId(L.captain_id || null);
+        setViceId(L.vice_id || null);
+      } catch (e) {
+        console.error(e);
+        push("Failed to load data", "error");
+      }
+    })();
+  }, [team, format]);
+
+  /* suggestions while typing name */
+  useEffect(() => {
+    const q = addName.trim();
+    if (q.length < 2) {
+      setSuggests([]);
+      return;
+    }
     let alive = true;
     (async () => {
       try {
-        const empty = (await import("../assets/rive/empty_lineup.riv")).default;
-        const success = (await import("../assets/rive/save_success.riv")).default;
-        let glow = null;
-        try {
-          glow = (await import("../assets/rive/drop_glow.riv")).default;
-        } catch {}
-        if (alive) setRiv({ empty, success, glow });
+        const s = await api.suggest(team, q);
+        if (alive) setSuggests(s);
       } catch {
-        if (alive) setRiv({ empty: null, success: null, glow: null });
+        if (alive) setSuggests([]);
       }
     })();
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  /* Load squads (ODI/T20/TEST) + current lineup when team/format changes */
-  const loadAll = async (t) => {
-    const [odi, t20, test] = await Promise.all([
-      fetchPlayers(t, "ODI"),
-      fetchPlayers(t, "T20"),
-      fetchPlayers(t, "TEST"),
-    ]);
-    setLists({ ODI: odi || [], T20: t20 || [], TEST: test || [] });
-  };
-
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        await loadAll(team);
-        const L = await getLineup(team, format);
-        if (!active) return;
-
-        if (L?.lineup?.length) {
-          const enriched = L.lineup.map((it, i) => ({
-            player_id: it.player_id,
-            order_no: it.order_no ?? i + 1,
-            is_twelfth: !!it.is_twelfth,
-            obj: {
-              id: it.player_id,
-              player_name: it.player_name,
-              skill_type: it.skill_type,
-              batting_style: it.batting_style,
-              bowling_type: it.bowling_type,
-              profile_url: it.profile_url,
-            },
-          }));
-          setLineup(enriched);
-          setCaptainId(L.captain_id || null);
-          setViceId(L.vice_id || null);
-          setLastSavedSig(
-            JSON.stringify({
-              team,
-              format,
-              c: L.captain_id || null,
-              v: L.vice_id || null,
-              arr: enriched.map((x) => [
-                x.player_id,
-                x.order_no,
-                !!x.is_twelfth,
-              ]),
-            })
-          );
-        } else {
-          setLineup([]);
-          setCaptainId(null);
-          setViceId(null);
-          setLastSavedSig(
-            JSON.stringify({ team, format, c: null, v: null, arr: [] })
-          );
-        }
-
-        // refresh bench from storage for this team
-        try {
-          const raw = localStorage.getItem(benchKey(team));
-          setBench(raw ? JSON.parse(raw) : []);
-        } catch {
-          setBench([]);
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, [team, format]);
-
-  /* Suggestions */
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      const q = addName.trim();
-      if (q.length < 2) {
-        setSuggests([]);
-        return;
-      }
-      try {
-        const s = await suggestPlayers(team, q);
-        if (mounted) setSuggests(s || []);
-      } catch {
-        if (mounted) setSuggests([]);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
+    return () => (alive = false);
   }, [addName, team]);
 
-  /* 🔧 Presence map by FORMAT -> name (for hinting/validation) */
-  const presenceByFormat = useMemo(() => {
-    const m = new Map(); // name -> { ODI:bool, T20:bool, TEST:bool }
-    for (const f of FORMATS) {
-      for (const p of (lists[f] || [])) {
-        const key = ci(p.player_name);
-        if (!m.has(key)) m.set(key, {});
-        m.get(key)[f] = true;
-      }
-    }
-    return m;
-  }, [lists]);
-
-  /* Presence count (for “in all three formats” ring) */
-  const presenceCount = useMemo(() => {
-    const map = new Map();
-    for (const f of FORMATS) {
-      (lists[f] || []).forEach((p) => {
-        const key = ci(p.player_name);
-        map.set(key, (map.get(key) || 0) + 1);
-      });
-    }
-    return map; // name -> 1/2/3
-  }, [lists]);
-
-  /* Filtered lists for display */
-  const searchLc = ci(search);
-  const benchFiltered = useMemo(() => {
-    return bench
-      .filter((p) => !searchLc || ci(p.player_name).includes(searchLc))
+  /* hide from squad list when already chosen in current lineup */
+  const listForSquad = useMemo(() => {
+    const idsInLineup = new Set(lineup.map((x) => x.player_id));
+    const q = ci(search);
+    return (squad || [])
+      .filter((p) => !idsInLineup.has(p.id))
+      .filter((p) => !q || ci(p.player_name).includes(q))
       .sort((a, b) => a.player_name.localeCompare(b.player_name));
-  }, [bench, searchLc]);
+  }, [squad, lineup, search]);
 
-  // 🔧 UI list: hide players already in the *current* format's lineup
-  const listForBoard = (fmt) =>
-    (lists[fmt] || [])
-      .filter((p) => !(fmt === format && lineup.some((x) => x.player_id === p.id)))
-      .filter((p) => !searchLc || ci(p.player_name).includes(searchLc))
-      .sort((a, b) => a.player_name.localeCompare(b.player_name));
+  const lineupFiltered = useMemo(
+    () => lineup.slice().sort((a, b) => a.order_no - b.order_no),
+    [lineup]
+  );
 
-const onAddToBench = () => {
-  const name = addName.trim();
-  if (!name) return;
+  /* quick composition hints */
+  const comp = useMemo(() => {
+    const wk = lineupFiltered.filter((x) => /wicket/i.test(x.obj.skill_type || "")).length;
+    const ar = lineupFiltered.filter((x) => /all\s*rounder/i.test(x.obj.skill_type || "")).length;
+    const bowl = lineupFiltered.filter((x) => /bowl/i.test(x.obj.skill_type || "")).length;
+    const bat = lineupFiltered.length - bowl - ar - wk;
+    return { wk, ar, bowl, bat };
+  }, [lineupFiltered]);
 
-  // Already somewhere in bench?
-  if (bench.some((p) => ciEq(p.player_name, name))) {
-    pushToast("Already on bench", "error");
-    return;
-  }
-
-  // Info only: Bench can hold it; per-format uniqueness is enforced on drop (and by DB index)
-  const nameKey = ci(name);
-  if (presenceByFormat.get(nameKey)?.[format]) {
-    pushToast(
-      `${name} is already in ${format} squad — you can still add to Bench and copy to other formats.`,
-      "info"
-    );
-    // NOTE: no return here
-  }
-
-  const newObj = {
-    id: `bench-${Date.now()}`,
-    player_name: name,
-    skill_type:
-      addRole === "All Rounder" && addVals.allrounder_type
-        ? `All Rounder (${addVals.allrounder_type})`
-        : addRole,
-    batting_style: addVals.batting_style || "",
-    bowling_type: buildBowlingType(addVals),
-  };
-
-  setBench((prev) => [...prev, newObj]);
-  setAddName("");
-  setSuggests([]);
-  setAddVals({
-    batting_style: "",
-    bowl_kind: "",
-    bowl_arm: "",
-    pace_type: "",
-    spin_type: "",
-    allrounder_type: "",
-  });
-  pushToast(`Added ${newObj.player_name} to bench`, "success");
-};
-
-
-  /* Update player (format squad only) */
-  const openEdit = (p) => {
-    setEditing(p);
-    const vals = {
-      batting_style: p.batting_style || "",
-      bowl_kind: "",
-      bowl_arm: "",
-      pace_type: "",
-      spin_type: "",
-      allrounder_type: "",
-    };
-
-    if ((p.skill_type || "").toLowerCase().startsWith("all rounder (batting"))
-      vals.allrounder_type = "Batting Allrounder";
-    else if (
-      (p.skill_type || "").toLowerCase().startsWith("all rounder (bowling")
-    )
-      vals.allrounder_type = "Bowling Allrounder";
-    else if (
-      (p.skill_type || "").toLowerCase().startsWith("all rounder (genuine")
-    )
-      vals.allrounder_type = "Genuine Allrounder";
-
-    const bt = p.bowling_type || "";
-    if (bt) {
-      const isPace = /Fast/i.test(bt);
-      vals.bowl_kind = isPace ? "Pace" : "Spin";
-      vals.bowl_arm = /Left-arm/i.test(bt)
-        ? "Left-arm"
-        : /Right-arm/i.test(bt)
-        ? "Right-arm"
-        : "";
-      if (isPace) vals.pace_type = /Medium/i.test(bt) ? "Medium Fast" : "Fast";
-      else {
-        if (/Off Spin/i.test(bt)) vals.spin_type = "Off Spin";
-        else if (/Leg Spin/i.test(bt)) vals.spin_type = "Leg Spin";
-        else if (/Left-arm Orthodox/i.test(bt)) vals.spin_type = "Left-arm Orthodox";
-        else if (/Left-arm Wrist Spin/i.test(bt)) vals.spin_type = "Left-arm Wrist Spin";
-      }
-    }
-    setEditVals(vals);
-  };
-
-  const doUpdatePlayer = async () => {
-    if (!editing) return;
-    const bowling_type = buildBowlingType(editVals);
-    const skillTypeOut = editing.skill_type?.startsWith("All Rounder")
-      ? editVals.allrounder_type
-        ? `All Rounder (${editVals.allrounder_type})`
-        : "All Rounder"
-      : editing.skill_type;
+  /* add to squad (unlimited; DB index will reject same name inside same team+format) */
+  const onAddToSquad = async () => {
+    const name = addName.trim();
+    if (!name) return;
 
     try {
-      const upd = await updatePlayer(editing.id, {
-        player_name: editing.player_name,
+      const created = await api.createPlayer({
+        player_name: name,
         team_name: team,
-        lineup_type: editing.lineup_type,
-        skill_type: skillTypeOut,
-        batting_style: editVals.batting_style || "",
-        bowling_type,
-        profile_url: editing.profile_url,
+        lineup_type: format,
+        skill_type: role,
+        batting_style: battingStyle || "",
+        bowling_type: buildBowlingType(),
       });
-
-      await loadAll(team);
-      setLineup((prev) =>
-        prev.map((x) =>
-          x.player_id === upd.id ? { ...x, obj: { ...x.obj, ...upd } } : x
-        )
-      );
-
-      setEditing(null);
-      pushToast("Player updated", "success");
+      setSquad((prev) => [...prev, created]);
+      setAddName("");
+      setAddNote("");
+      setSuggests([]);
+      setBattingStyle("");
+      setBowlingKind("");
+      setBowlingArm("");
+      setPaceType("");
+      setSpinType("");
+      push(`Added ${created.player_name} to ${team} ${format} squad`, "success");
     } catch (e) {
-      console.error(e);
-      pushToast(e?.response?.data?.error || "Update failed", "error");
+      const msg =
+        e?.response?.status === 409 || e?.response?.status === 23505
+          ? "That name already exists in this squad."
+          : e?.response?.data?.error || "Failed to add";
+      setAddNote(msg);
+      push(msg, "error");
     }
   };
 
-  /* Delete from a format squad */
-  const doDeletePlayer = async (pid) => {
-    if (!window.confirm("Delete this player from the format squad?")) return;
+  /* edit/delete from squad list */
+  const onDeletePlayer = async (id) => {
+    if (!window.confirm("Delete this player from the squad?")) return;
     try {
-      await deletePlayer(pid);
-      await loadAll(team);
-      setLineup((prev) => {
-        const items = prev.filter((x) => x.player_id !== pid);
-        return items.map((x, i) => ({
-          ...x,
-          order_no: i + 1,
-          is_twelfth: i === 11,
-        }));
-      });
-      if (captainId === pid) setCaptainId(null);
-      if (viceId === pid) setViceId(null);
-      pushToast("Deleted from this format squad", "success");
+      await api.deletePlayer(id);
+      setSquad((p) => p.filter((x) => x.id !== id));
+      // also remove from lineup if present
+      setLineup((p) => p.filter((x) => x.player_id !== id).map((x, i) => ({
+        ...x, order_no: i + 1, is_twelfth: i === 11
+      })));
+      if (captainId === id) setCaptainId(null);
+      if (viceId === id) setViceId(null);
+      push("Deleted", "success");
     } catch {
-      pushToast("Failed to delete", "error");
+      push("Delete failed", "error");
     }
   };
 
-  /* Drag & Drop rules
-     - bench -> FORMAT : create on server (copy), keep on bench
-     - FORMAT -> other FORMAT : create on server (copy), keep in source
-     - FORMAT (current) -> lineup : move-like add (hide from current format column)
-     - lineup -> FORMAT (current) : remove from lineup only (no snap back)
-  */
-
-  // 🔧 Allow same name in different formats; block if same format already has the name
-  const ensureInFormat = async (srcPlayer, destFormat) => {
-    // already there by name in the *dest* format?
-    const exists = (lists[destFormat] || []).some((p) =>
-      ciEq(p.player_name, srcPlayer.player_name)
-    );
-    if (exists) {
-      pushToast(`${srcPlayer.player_name} already in ${destFormat} squad`, "error");
-      return false;
-    }
-
-    // optimistic add with a temporary id (for smooth copy UX)
-    const tempId = `tmp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    setLists((prev) => ({
-      ...prev,
-      [destFormat]: [
-        ...prev[destFormat],
-        { ...srcPlayer, id: tempId, lineup_type: destFormat },
-      ],
-    }));
-
-    try {
-      const created = await createPlayer({
-        player_name: srcPlayer.player_name,
-        team_name: team,
-        lineup_type: destFormat,
-        skill_type: srcPlayer.skill_type,
-        batting_style: srcPlayer.batting_style,
-        bowling_type: srcPlayer.bowling_type,
-      });
-
-      setLists((prev) => ({
-        ...prev,
-        [destFormat]: prev[destFormat].map((p) => (p.id === tempId ? created : p)),
-      }));
-
-      pushToast(`Added to ${destFormat}`, "success");
-      return true;
-    } catch (e) {
-      setLists((prev) => ({
-        ...prev,
-        [destFormat]: prev[destFormat].filter((p) => p.id !== tempId),
-      }));
-
-      const s = e?.response?.status;
-      if (s === 409) {
-        pushToast("Already exists in that format", "info");
-        try { await loadAll(team); } catch {}
-        return false;
-      }
-      console.error(e);
-      pushToast(e?.response?.data?.error || "Failed to add", "error");
-      return false;
-    }
-  };
-
-  const onDragEnd = async (result) => {
+  /* drag rules */
+  const handleDragEnd = (result) => {
     const { source, destination } = result;
     if (!destination) return;
+    const src = source.droppableId;
+    const dst = destination.droppableId;
 
-    const srcId = source.droppableId;
-    const dstId = destination.droppableId;
-
-    // FORMAT -> FORMAT copy
-    if (FORMATS.includes(srcId) && FORMATS.includes(dstId)) {
-      if (srcId === dstId) return; // no-op
-      const srcList = listForBoard(srcId); // 🔧 read exactly what's on screen
+    // Squad -> Lineup
+    if (src === "squad" && dst === "lineup") {
+      const srcList = listForSquad;
       const p = srcList[source.index];
       if (!p) return;
-      await ensureInFormat(p, dstId);
-      return;
-    }
 
-    // BENCH -> FORMAT copy
-    if (srcId === "bench" && FORMATS.includes(dstId)) {
-      const p = benchFiltered[source.index];
-      if (!p) return;
-      await ensureInFormat(p, dstId);
-      return;
-    }
-
-    // FORMAT(current) -> lineup (add, “move-like”: hide from column via listForBoard)
-    if (FORMATS.includes(srcId) && dstId === "lineup" && srcId === format) {
-      const visible = listForBoard(srcId); // 🔧 exactly what user sees
-      const player = visible[source.index];
-      if (!player) return;
-
-      if (lineup.some((x) => x.player_id === player.id)) {
-        pushToast("Already in lineup", "info");
+      if (lineupFiltered.length >= MAX_LINEUP) {
+        push(`Max ${MAX_LINEUP} players allowed in lineup`, "error");
         return;
       }
-      if (lineup.length >= MAX_LINEUP) {
-        pushToast(`Max ${MAX_LINEUP} players allowed in lineup`, "error");
+      // deny duplicate by id OR by CI name
+      if (
+        lineupFiltered.some(
+          (x) => x.player_id === p.id || ciEq(x.obj.player_name, p.player_name)
+        )
+      ) {
+        push("Already in lineup", "info");
         return;
       }
-
       const newItem = {
-        player_id: player.id,
-        order_no: lineup.length + 1,
-        is_twelfth: lineup.length + 1 === 12,
-        obj: { ...player, lineup_type: format },
+        player_id: p.id,
+        order_no: lineupFiltered.length + 1,
+        is_twelfth: lineupFiltered.length + 1 === 12,
+        obj: p,
       };
       setLineup((prev) => [...prev, newItem]);
       return;
     }
 
-    // lineup -> FORMAT(current) (remove and "touch" destination list to avoid snap-back)
-    if (srcId === "lineup" && FORMATS.includes(dstId) && dstId === format) {
-      const items = Array.from(lineup);
-      const [removed] = items.splice(source.index, 1);
-      if (removed?.player_id === captainId) setCaptainId(null);
-      if (removed?.player_id === viceId) setViceId(null);
+    // Lineup -> Squad (remove)
+    if (src === "lineup" && dst === "squad") {
+      const items = Array.from(lineupFiltered);
+      items.splice(source.index, 1);
       const reseq = items.map((x, i) => ({
         ...x,
         order_no: i + 1,
         is_twelfth: i === 11,
       }));
+      // clear C/VC if removed
+      const removed = lineupFiltered[source.index];
+      if (removed?.player_id === captainId) setCaptainId(null);
+      if (removed?.player_id === viceId) setViceId(null);
       setLineup(reseq);
-
-      // 🔧 "touch" the format list so rbd treats this as a handled cross-list drop
-      setLists((prev) => ({ ...prev, [format]: [...prev[format]] }));
       return;
     }
 
-    // lineup re-order
-    if (srcId === "lineup" && dstId === "lineup") {
-      const items = Array.from(lineup);
+    // Lineup re-order
+    if (src === "lineup" && dst === "lineup") {
+      const items = Array.from(lineupFiltered);
       const [moved] = items.splice(source.index, 1);
       items.splice(destination.index, 0, moved);
-      const reseq = items.map((x, i) => ({
-        ...x,
-        order_no: i + 1,
-        is_twelfth: i === 11,
-      }));
-      setLineup(reseq);
-      return;
+      setLineup(
+        items.map((x, i) => ({
+          ...x,
+          order_no: i + 1,
+          is_twelfth: i === 11,
+        }))
+      );
     }
   };
 
-  /* Save lineup */
-  const doSave = async () => {
-    const currentSig = JSON.stringify({
-      team,
-      format,
-      c: captainId,
-      v: viceId,
-      arr: lineup.map((x) => [x.player_id, x.order_no, !!x.is_twelfth]),
-    });
-
-    if (currentSig === lastSavedSig) {
-      pushToast("Already saved. Make changes to save again.", "info");
+  /* save lineup */
+  const onSave = async () => {
+    if (lineupFiltered.length < MIN_LINEUP) {
+      push(`At least ${MIN_LINEUP} players required`, "error");
       return;
     }
-    if (lineup.length < MIN_LINEUP)
-      return pushToast(`At least ${MIN_LINEUP} players required`, "error");
-    if (!captainId || !viceId)
-      return pushToast("Pick one Captain and one Vice-captain", "error");
-    if (captainId === viceId)
-      return pushToast("Captain and Vice-captain must be different", "error");
-
+    if (!captainId || !viceId) {
+      push("Pick one Captain and one Vice-captain", "error");
+      return;
+    }
+    if (captainId === viceId) {
+      push("Captain and Vice-captain must be different", "error");
+      return;
+    }
     try {
-      await saveLineup({
+      await api.saveLineup({
         team_name: team,
         lineup_type: format,
         captain_player_id: captainId,
         vice_captain_player_id: viceId,
-        players: lineup.map((x) => ({
+        players: lineupFiltered.map((x) => ({
           player_id: x.player_id,
           order_no: x.order_no,
           is_twelfth: !!x.is_twelfth,
         })),
       });
-      setShowSaveCongrats(true);
-      setTimeout(() => setShowSaveCongrats(false), 1400);
-      setLastSavedSig(currentSig);
-      pushToast("Lineup saved", "success");
+      push("Lineup saved", "success");
     } catch (e) {
-      console.error(e);
-      pushToast(e?.response?.data?.error || "Failed to save lineup", "error");
+      push(e?.response?.data?.error || "Failed to save lineup", "error");
     }
   };
 
-  /* Edit dialog helpers */
-  const presenceClass = (name) =>
-    presenceCount.get(ci(name)) === 3 ? "multi-all" : "";
+  /* small UI helpers */
+  const skillIcon = (s) => {
+    const k = (s || "").toLowerCase();
+    if (k.includes("wicket")) return "🧤";
+    if (k.includes("all")) return "🏏🔴";
+    if (k.includes("bowl")) return "🔴";
+    return "🏏";
+  };
+
+  /* presence flags to annotate suggestions */
+  const presence = useMemo(() => {
+    const namesInSquad = new Set((squad || []).map((p) => ci(p.player_name)));
+    const namesInLineup = new Set(lineupFiltered.map((x) => ci(x.obj.player_name)));
+    return { namesInSquad, namesInLineup };
+  }, [squad, lineupFiltered]);
 
   return (
     <div className="sq-wrap sq-full">
-      <Toasts
-        toasts={toasts}
-        onClose={(id) =>
-          setToasts((prev) => prev.filter((t) => t.id !== id))
-        }
-      />
+      <Toasts list={toasts} onClose={close} />
 
       {/* Header */}
       <header className="sq-header">
         <div className="sq-team-tabs">
           <div className="sq-team-select">
-            <select
-              value={team}
-              onChange={(e) => setTeam(e.target.value)}
-              className="sq-select"
-            >
+            <select className="sq-select" value={team} onChange={(e) => setTeam(e.target.value)}>
               {teams.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
+                <option key={t} value={t}>{t}</option>
               ))}
             </select>
           </div>
@@ -789,106 +387,124 @@ const onAddToBench = () => {
           </div>
         </div>
 
+        {/* Add to Squad */}
         <div className="sq-addbar">
           <div className="sq-add-left">
             <input
               className="sq-input"
-              placeholder={`Add player to Bench (type for suggestions)…`}
+              placeholder={`Add to ${team} ${format} squad… (type to see suggestions)`}
               value={addName}
               onChange={(e) => setAddName(e.target.value)}
             />
             {!!suggests.length && (
               <div className="sq-suggest">
                 {suggests.map((s) => {
-                  const nameKey = ci(s.name);
-                  const pf = presenceByFormat.get(nameKey) || {};
-                  const alreadyHere = !!pf[format];
+                  const key = ci(s.name || s.player_name || "");
+                  const text = s.name || s.player_name;
+                  const inSquad = presence.namesInSquad.has(key);
+                  const inLineup = presence.namesInLineup.has(key);
                   return (
                     <div
-                      key={`${s.name}-${s.team}`}
-                      className={`sq-suggest-item ${alreadyHere ? "exists" : ""}`}
-                      onClick={() => setAddName(s.name)}
-                      title={`Found in ${s.team}`}
+                      key={`${text}-${s.team || "t"}`}
+                      className="sq-suggest-item"
+                      onClick={() => setAddName(text)}
+                      title={`Found in ${s.team || team}`}
                     >
-                      <span>{s.name}</span>
+                      <span>{text}</span>
                       <span className="sq-suggest-note">
-                        {/* 🔧 show where this name already exists */}
-                        {["ODI","T20","TEST"].map((F) => (
-                          <span key={F} style={{marginLeft:8, opacity: pf[F] ? 1 : .5}}>
-                            {F}{pf[F] ? "✓" : "—"}
-                          </span>
-                        ))}
+                        {inSquad && <span>• in Squad</span>}
+                        {inLineup && <span style={{ marginLeft: 6 }}>• in Line-up</span>}
                       </span>
                     </div>
                   );
                 })}
               </div>
             )}
+            {!!addNote && <div className="sq-note">{addNote}</div>}
           </div>
 
-          <select
-            className="sq-role"
-            value={addRole}
-            onChange={(e) => setAddRole(e.target.value)}
-          >
+          <select className="sq-role" value={role} onChange={(e) => setRole(e.target.value)}>
             <option>Batsman</option>
             <option>Bowler</option>
             <option>All Rounder</option>
             <option>Wicketkeeper/Batsman</option>
           </select>
 
-          <button className="sq-btn" onClick={onAddToBench} type="button">
-            Add to Bench
-          </button>
+          {/* batting/bowling quick fields */}
+          <select className="sq-role" value={battingStyle} onChange={(e) => setBattingStyle(e.target.value)}>
+            <option value="">Batting…</option>
+            <option>Right-hand Bat</option>
+            <option>Left-hand Bat</option>
+          </select>
 
-          {/* 🔧 Info button */}
-          <button
-            className="sq-icon-btn info"
-            title="Info"
-            onClick={() => setShowInfo(true)}
-            type="button"
-          >
-            ℹ️
-          </button>
+          <select className="sq-role" value={bowlingKind} onChange={(e) => { setBowlingKind(e.target.value); setPaceType(""); setSpinType(""); }}>
+            <option value="">Bowl…</option>
+            <option>Pace</option>
+            <option>Spin</option>
+          </select>
+
+          <select className="sq-role" value={bowlingArm} onChange={(e) => setBowlingArm(e.target.value)}>
+            <option value="">Arm…</option>
+            <option>Right-arm</option>
+            <option>Left-arm</option>
+          </select>
+
+          {bowlingKind === "Pace" ? (
+            <select className="sq-role" value={paceType} onChange={(e) => setPaceType(e.target.value)}>
+              <option value="">Type…</option>
+              <option>Fast</option>
+              <option>Medium Fast</option>
+            </select>
+          ) : bowlingKind === "Spin" ? (
+            <select className="sq-role" value={spinType} onChange={(e) => setSpinType(e.target.value)}>
+              <option value="">Spin…</option>
+              <option>Off Spin</option>
+              <option>Leg Spin</option>
+              <option>Left-arm Orthodox</option>
+              <option>Left-arm Wrist Spin</option>
+            </select>
+          ) : (
+            <select className="sq-role" disabled><option>Type…</option></select>
+          )}
+
+          <button className="sq-btn" onClick={onAddToSquad} type="button">Add to Squad</button>
         </div>
-
-        <RoleFields role={addRole} values={addVals} setValues={setAddVals} />
       </header>
 
-      {/* Quick Legend */}
-      <div className="sq-legend">
-        <span className="sq-dot all" /> in all three formats
-      </div>
-
-      {/* Search */}
+      {/* Search + quick composition */}
       <div className="sq-filters">
         <input
           className="sq-input"
-          placeholder="Search by name…"
+          placeholder="Search squad…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        <div className="sq-comp">
+          <span className="sq-badge">Bat: {comp.bat}</span>
+          <span className="sq-badge">AR: {comp.ar}</span>
+          <span className="sq-badge">Bowl: {comp.bowl}</span>
+          <span className="sq-badge">WK: {comp.wk}</span>
+        </div>
       </div>
 
-      {/* Quad Board + Lineup */}
-      <DragDropContext onDragEnd={onDragEnd}>
+      {/* Squad + Lineup board */}
+      <DragDropContext onDragEnd={handleDragEnd}>
         <div className="quad-grid">
-          {/* Bench */}
-          <Droppable droppableId="bench">
+          {/* Squad */}
+          <Droppable droppableId="squad">
             {(provided) => (
               <div className="sq-panel" ref={provided.innerRef} {...provided.droppableProps}>
-                <div className="sq-panel-title">🧢 Bench (Master Squad)</div>
-                {benchFiltered.map((p, idx) => (
-                  <Draggable key={`bench-${p.id || idx}`} draggableId={`bench-${p.id || idx}`} index={idx}>
+                <div className="sq-panel-title">🧢 Squad — {team} {format} ({squad.length})</div>
+                {listForSquad.map((p, idx) => (
+                  <Draggable key={`p-${p.id}`} draggableId={`p-${p.id}`} index={idx}>
                     {(prov) => (
-                      <div
-                        className={`sq-card ${presenceClass(p.player_name)}`}
+                      <div className="sq-card"
                         ref={prov.innerRef}
                         {...prov.draggableProps}
                         {...prov.dragHandleProps}
                       >
                         <div className="sq-card-left">
-                          <span className="sq-ico">{iconFor(p)}</span>
+                          <span className="sq-ico">{skillIcon(p.skill_type)}</span>
                           <div>
                             <div className="sq-name">{p.player_name}</div>
                             <div className="sq-sub">
@@ -896,270 +512,98 @@ const onAddToBench = () => {
                             </div>
                           </div>
                         </div>
+                        <div className="sq-actions">
+                          {isAdmin && (
+                            <button className="sq-icon-btn danger" title="Delete" onClick={() => onDeletePlayer(p.id)} type="button">🗑️</button>
+                          )}
+                        </div>
                       </div>
                     )}
                   </Draggable>
                 ))}
                 {provided.placeholder}
-                {!benchFiltered.length && (
-                  <div className="sq-empty">Add players to the Bench, then drag to ODI/T20/TEST.</div>
+                {!listForSquad.length && (
+                  <div className="sq-empty">
+                    All chosen players are currently in the Line-up. Add more to the squad or drag back from Line-up.
+                  </div>
                 )}
               </div>
             )}
           </Droppable>
 
-          {/* ODI / T20 / TEST columns */}
-          {FORMATS.map((F) => (
-            <Droppable key={F} droppableId={F}>
-              {(provided) => (
-                <div className="sq-panel" ref={provided.innerRef} {...provided.droppableProps}>
-                  <div className="sq-panel-title">
-                    {F} Squad ({lists[F]?.length || 0})
-                  </div>
-                  {listForBoard(F).map((p, idx) => (
-                    <Draggable key={`${F}-${p.id}`} draggableId={`${F}-${p.id}`} index={idx}>
-                      {(prov) => (
-                        <div
-                          className={`sq-card ${presenceClass(p.player_name)}`}
-                          ref={prov.innerRef}
-                          {...prov.draggableProps}
-                          {...prov.dragHandleProps}
-                        >
-                          <div className="sq-card-left">
-                            <span className="sq-ico">{iconFor(p)}</span>
-                            <div>
-                              <div className="sq-name">{p.player_name}</div>
-                              <div className="sq-sub">
-                                {p.batting_style || "—"} • {p.bowling_type || "—"}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="sq-actions">
-                            <button
-                              className="sq-icon-btn"
-                              title="Edit"
-                              onClick={() => openEdit({ ...p, lineup_type: F })}
-                              type="button"
-                            >
-                              ✏️
-                            </button>
-                            {isAdmin && (
-                              <button
-                                className="sq-icon-btn danger"
-                                title="Delete from this format squad"
-                                onClick={() => doDeletePlayer(p.id)}
-                                type="button"
-                              >
-                                🗑️
-                              </button>
-                            )}
-                          </div>
+          {/* Lineup */}
+          <Droppable droppableId="lineup">
+            {(provided) => (
+              <div className="sq-panel lineup" ref={provided.innerRef} {...provided.droppableProps}>
+                <div className="sq-panel-title">🎯 Line-up ({lineupFiltered.length}/{MAX_LINEUP})</div>
+
+                {lineupFiltered.map((x, idx) => (
+                  <Draggable key={`l-${x.player_id}`} draggableId={`l-${x.player_id}`} index={idx}>
+                    {(prov) => (
+                      <div className="sq-card"
+                        ref={prov.innerRef}
+                        {...prov.draggableProps}
+                        {...prov.dragHandleProps}
+                      >
+                        <div className="sq-card-left">
+                          <span className="sq-order">{idx + 1}</span>
+                          <span className="sq-ico">{skillIcon(x.obj.skill_type)}</span>
+                          <div className="sq-name">{x.obj.player_name}</div>
+                          {idx === 11 && <span className="sq-tag">12th</span>}
+                          {x.player_id === captainId && <span className="sq-tag gold">C</span>}
+                          {x.player_id === viceId && <span className="sq-tag teal">VC</span>}
                         </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                  {!listForBoard(F).length && (
-                    <div className="sq-empty">
-                      {F === format
-                        ? "Drag from this column to Lineup above; players in lineup are hidden here."
-                        : "Drag here from Bench or from another format."}
-                    </div>
-                  )}
-                </div>
-              )}
-            </Droppable>
-          ))}
-        </div>
+                        <div className="sq-actions">
+                          <button
+                            className={`sq-chip ${x.player_id === captainId ? "on" : ""}`}
+                            title="Set Captain"
+                            onClick={() => {
+                              if (x.player_id === viceId) setViceId(null);
+                              setCaptainId((prev) => (prev === x.player_id ? null : x.player_id));
+                            }}
+                            type="button"
+                          >
+                            C
+                          </button>
+                          <button
+                            className={`sq-chip ${x.player_id === viceId ? "on" : ""}`}
+                            title="Set Vice-captain"
+                            onClick={() => {
+                              if (x.player_id === captainId) setCaptainId(null);
+                              setViceId((prev) => (prev === x.player_id ? null : x.player_id));
+                            }}
+                            type="button"
+                          >
+                            VC
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
 
-        {/* Lineup area for the currently selected format */}
-        <Droppable droppableId="lineup">
-          {(provided, snapshot) => (
-            <div className="sq-panel lineup" ref={provided.innerRef} {...provided.droppableProps}>
-              {snapshot.isDraggingOver && riv.glow && (
-                <div className="sq-drop-glow">
-                  <RiveSlot src={riv.glow} className="sq-rive on" />
-                </div>
-              )}
-              <div className="sq-panel-title">
-                🎯 {format} Lineup ({lineup.length}/{MAX_LINEUP})
+                {!lineupFiltered.length && (
+                  <div className="sq-empty">Drag from Squad to build XI (max 12; one 12th).</div>
+                )}
               </div>
-
-              {lineup.map((x, idx) => (
-                <Draggable key={`l-${x.player_id}`} draggableId={`l-${x.player_id}`} index={idx}>
-                  {(prov) => (
-                    <div
-                      className="sq-card"
-                      ref={prov.innerRef}
-                      {...prov.draggableProps}
-                      {...prov.dragHandleProps}
-                    >
-                      <div className="sq-card-left">
-                        <span className="sq-order">{idx + 1}</span>
-                        <span className="sq-ico">{iconFor(x.obj)}</span>
-                        <div className="sq-name">{x.obj.player_name}</div>
-                        {idx === 11 && <span className="sq-tag">12th</span>}
-                        {x.player_id === captainId && <span className="sq-tag gold">C</span>}
-                        {x.player_id === viceId && <span className="sq-tag teal">VC</span>}
-                      </div>
-                      <div className="sq-actions">
-                        <button
-                          className={`sq-chip ${x.player_id === captainId ? "on" : ""}`}
-                          onClick={() => {
-                            if (x.player_id === viceId) setViceId(null);
-                            setCaptainId((prev) => (prev === x.player_id ? null : x.player_id));
-                          }}
-                          title="Set Captain"
-                          type="button"
-                        >
-                          C
-                        </button>
-                        <button
-                          className={`sq-chip ${x.player_id === viceId ? "on" : ""}`}
-                          onClick={() => {
-                            if (x.player_id === captainId) setCaptainId(null);
-                            setViceId((prev) => (prev === x.player_id ? null : x.player_id));
-                          }}
-                          title="Set Vice-captain"
-                          type="button"
-                        >
-                          VC
-                        </button>
-                        <button
-                          className="sq-icon-btn"
-                          title="Remove from lineup"
-                          onClick={() => {
-                            const items = lineup.filter((it) => it.player_id !== x.player_id);
-                            if (x.player_id === captainId) setCaptainId(null);
-                            if (x.player_id === viceId) setViceId(null);
-                            const reseq = items.map((p, i) => ({
-                              ...p,
-                              order_no: i + 1,
-                              is_twelfth: i === 11,
-                            }));
-                            setLineup(reseq);
-                            // 🔧 touch format list to keep rbd happy if you then drag
-                            setLists((prev) => ({ ...prev, [format]: [...prev[format]] }));
-                          }}
-                          type="button"
-                        >
-                          ➖
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </Draggable>
-              ))}
-
-              {provided.placeholder}
-
-              {!lineup.length && (
-                <div className="sq-empty-anim">
-                  <RiveSlot src={riv.empty} className="sq-rive" />
-                  <div className="sq-empty">
-                    Drag from the <b>{format} Squad</b> above to build XI (max 12; one 12th).
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </Droppable>
+            )}
+          </Droppable>
+        </div>
       </DragDropContext>
 
       {/* Save bar */}
       <div className="sq-savebar">
         <div>
-          <strong>{lineup.length}</strong> selected • C:{" "}
-          {captainId
-            ? lists[format]?.find((p) => p.id === captainId)?.player_name || "—"
-            : "—"}{" "}
-          • VC:{" "}
-          {viceId
-            ? lists[format]?.find((p) => p.id === viceId)?.player_name || "—"
-            : "—"}
+          <strong>{lineupFiltered.length}</strong> selected • C:
+          {" "}
+          {captainId ? (squad.find((p) => p.id === captainId)?.player_name || "—") : "—"}
+          {"  "}• VC:
+          {" "}
+          {viceId ? (squad.find((p) => p.id === viceId)?.player_name || "—") : "—"}
         </div>
-        <button className="sq-btn primary" onClick={doSave} type="button">
-          Save Lineup
-        </button>
+        <button className="sq-btn primary" onClick={onSave} type="button">Save Line-up</button>
       </div>
-
-      {/* Update Modal */}
-      {editing && (
-        <div className="sq-modal" role="dialog" aria-modal="true">
-          <div className="sq-modal-card">
-            <div className="sq-modal-title">Edit Player</div>
-
-            <label className="sq-lab">Name</label>
-            <input
-              className="sq-input"
-              value={editing.player_name || ""}
-              onChange={(e) => setEditing({ ...editing, player_name: e.target.value })}
-            />
-
-            <label className="sq-lab">Role</label>
-            <select
-              className="sq-input"
-              value={
-                editing.skill_type?.startsWith("All Rounder")
-                  ? "All Rounder"
-                  : editing.skill_type || "Batsman"
-              }
-              onChange={(e) => setEditing({ ...editing, skill_type: e.target.value })}
-            >
-              <option>Batsman</option>
-              <option>Bowler</option>
-              <option>All Rounder</option>
-              <option>Wicketkeeper/Batsman</option>
-            </select>
-
-            <RoleFields
-              role={
-                editing.skill_type?.startsWith("All Rounder")
-                  ? "All Rounder"
-                  : editing.skill_type || "Batsman"
-              }
-              values={editVals}
-              setValues={setEditVals}
-            />
-
-            <div className="sq-modal-actions">
-              <button className="sq-btn" onClick={() => setEditing(null)} type="button">
-                Cancel
-              </button>
-              <button className="sq-btn primary" onClick={doUpdatePlayer} type="button">
-                Update
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 🔧 Info Modal */}
-      {showInfo && (
-        <div className="sq-modal" role="dialog" aria-modal="true">
-          <div className="sq-modal-card">
-            <div className="sq-modal-title">How it works</div>
-            <ul className="sq-help-list">
-              <li><b>Duplicates allowed across formats</b> (ODI/T20/TEST), but <b>not within the same format</b> for a team.</li>
-              <li>Drag from <b>Bench</b> or another <b>Format</b> to copy into a format. If a name already exists there, we block it.</li>
-              <li>Drag from <b>{format} Lineup</b> back to the <b>{format} Squad</b> column to remove from lineup. The squad column hides players who are already in lineup.</li>
-              <li>Type a name — suggestions show where that name already exists (ODI/T20/TEST).</li>
-            </ul>
-            <div className="sq-modal-actions">
-              <button className="sq-btn" onClick={() => setShowInfo(false)} type="button">
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Save animation */}
-      {showSaveCongrats && (
-        <div className="sq-rive-overlay">
-          <RiveSlot src={riv.success} className="sq-rive-center" />
-        </div>
-      )}
     </div>
   );
 }
