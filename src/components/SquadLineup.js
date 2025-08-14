@@ -503,7 +503,51 @@ export default function SquadLineup({ isAdmin = true }) {
     });
   };
 
-  /* Import selected — LINK existing players by id into the target format */
+  /** Try to LINK by id first; if backend rejects with 400/404, CREATE with details.
+   * Treat 409 as "already there".
+   */
+  const createOrLinkFromSource = async (sourcePlayer, targetFormat) => {
+    // 1) Attempt LINK by id (works if backend supports it)
+    try {
+      await createPlayer({
+        player_id: sourcePlayer.id, // if supported: link same person into another format
+        team_name: team,
+        lineup_type: targetFormat,
+      });
+      return { ok: true, mode: "linked" };
+    } catch (e) {
+      const s = e?.response?.status;
+      if (s !== 400 && s !== 404) {
+        // if it's 409 here, also treat as already-there
+        if (s === 409) return { ok: false, skip: true, reason: "exists" };
+        // unexpected error — bubble up for counting as failed
+        throw e;
+      }
+      // continue to CREATE
+    }
+
+    // 2) Fallback: CREATE a new squad entry with full details (no profile_url)
+    try {
+      await createPlayer({
+        player_name: sourcePlayer.player_name,
+        team_name: team,
+        lineup_type: targetFormat,
+        skill_type: sourcePlayer.skill_type,
+        batting_style: sourcePlayer.batting_style,
+        bowling_type: sourcePlayer.bowling_type,
+      });
+      return { ok: true, mode: "created" };
+    } catch (e) {
+      const s = e?.response?.status;
+      const msg = e?.response?.data?.error || "";
+      if (s === 409 || /exist|conflict|duplicate/i.test(msg)) {
+        return { ok: false, skip: true, reason: "exists" };
+      }
+      throw e; // real failure
+    }
+  };
+
+  /* Import selected from another format (robust link-or-create) */
   const doImportSelected = async () => {
     const picks = importList.filter((p) => importPick.has(p.id));
     if (!picks.length) return pushToast("Select at least one player to import", "error");
@@ -513,18 +557,11 @@ export default function SquadLineup({ isAdmin = true }) {
 
     for (const p of picks) {
       try {
-        await createPlayer({
-          // IMPORTANT: use player_id to link rather than re-create by name
-          player_id: p.id,
-          team_name: team,
-          lineup_type: format, // target format
-        });
-        added++;
+        const res = await createOrLinkFromSource(p, format);
+        if (res.ok) added++; else if (res.skip) skipped++; else failed++;
       } catch (e) {
-        const status = e?.response?.status;
-        const msg = e?.response?.data?.error || "";
-        if (status === 409 || /exist|conflict|duplicate/i.test(msg)) skipped++;
-        else { failed++; console.error("Import error:", p.player_name, e); }
+        console.error("Import error:", p.player_name, e);
+        failed++;
       }
     }
 
@@ -568,28 +605,31 @@ export default function SquadLineup({ isAdmin = true }) {
     });
   };
 
-  /* Copy — LINK by player_id into each selected format */
+  /* Copy — robust link-or-create to each selected format */
   const doCopyPlayer = async () => {
     if (!copyFromPlayer) return;
     const targets = Array.from(copyTargets);
     if (!targets.length) return pushToast("Choose at least one target format", "error");
+
     try {
       setCopyLoading(true);
+      let added = 0, skipped = 0, failed = 0;
+
       for (const tf of targets) {
-        if (copyExists[tf]) continue; // already there
-        await createPlayer({
-          player_id: copyFromPlayer.id, // link existing player
-          team_name: team,
-          lineup_type: tf,
-        });
+        if (copyExists[tf]) { skipped++; continue; }
+        try {
+          const res = await createOrLinkFromSource(copyFromPlayer, tf);
+          if (res.ok) added++; else if (res.skip) skipped++; else failed++;
+        } catch (e) {
+          console.error(e);
+          failed++;
+        }
       }
-      pushToast("Player copied to selected format(s)", "success");
+
+      pushToast(`Copied ${added}${skipped ? ` • Skipped ${skipped}` : ""}${failed ? ` • Failed ${failed}` : ""}`, failed ? "error" : "success");
       setCopyFromPlayer(null);
       setCopyTargets(new Set());
       setCopyExists({});
-    } catch (e) {
-      console.error(e);
-      pushToast(e?.response?.data?.error || "Copy failed", "error");
     } finally {
       setCopyLoading(false);
     }
@@ -633,7 +673,7 @@ export default function SquadLineup({ isAdmin = true }) {
             )}
           </div>
 
-        <select className="sq-role" value={addRole} onChange={(e) => setAddRole(e.target.value)}>
+          <select className="sq-role" value={addRole} onChange={(e) => setAddRole(e.target.value)}>
             <option>Batsman</option>
             <option>Bowler</option>
             <option>All Rounder</option>
