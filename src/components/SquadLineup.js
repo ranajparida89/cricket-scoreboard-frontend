@@ -1,4 +1,4 @@
-// ✅ src/components/SquadLineup.js
+// src/components/SquadLineup.js
 // Team-wise + Format-wise Squad & Lineup with DnD + Rive + Toasts + Help dialog
 // + Role-aware forms + Import/copy players across formats + Full-width layout
 
@@ -338,7 +338,6 @@ export default function SquadLineup({ isAdmin = true }) {
         skill_type: skillTypeOut,
         batting_style: addVals.batting_style || "",
         bowling_type,
-        // do NOT send profile_url on create
       });
       setSquad((prev) => [...prev, created].sort((a, b) => a.player_name.localeCompare(b.player_name)));
       setAddName(""); setSuggests([]);
@@ -392,7 +391,7 @@ export default function SquadLineup({ isAdmin = true }) {
         skill_type: skillTypeOut,
         batting_style: editVals.batting_style || "",
         bowling_type,
-        profile_url: editing.profile_url, // ok on update
+        profile_url: editing.profile_url,
       });
       setSquad((prev) => prev.map((p) => (p.id === upd.id ? upd : p)).sort((a, b) => a.player_name.localeCompare(b.player_name)));
       setLineup((prev) => prev.map((x) => (x.player_id === upd.id ? { ...x, obj: { ...x.obj, ...upd } } : x)));
@@ -503,27 +502,20 @@ export default function SquadLineup({ isAdmin = true }) {
     });
   };
 
-  /** Try to LINK by id first; if backend rejects with 400/404, CREATE with details.
-   * Treat 409 as "already there".
-   */
+  /** ✅ Correct link: use existing_player_id (NOT player_id) */
   const createOrLinkFromSource = async (sourcePlayer, targetFormat) => {
-    // 1) Attempt LINK by id (works if backend supports it)
+    // 1) LINK existing player to target format
     try {
       await createPlayer({
-        player_id: sourcePlayer.id, // if supported: link same person into another format
+        existing_player_id: sourcePlayer.id,  // <-- fix
         team_name: team,
         lineup_type: targetFormat,
       });
       return { ok: true, mode: "linked" };
     } catch (e) {
       const s = e?.response?.status;
-      if (s !== 400 && s !== 404) {
-        // if it's 409 here, also treat as already-there
-        if (s === 409) return { ok: false, skip: true, reason: "exists" };
-        // unexpected error — bubble up for counting as failed
-        throw e;
-      }
-      // continue to CREATE
+      if (s === 409) return { ok: false, skip: true, reason: "exists" }; // already linked
+      // fall through to create if backend doesn't support linking
     }
 
     // 2) Fallback: CREATE a new squad entry with full details (no profile_url)
@@ -547,7 +539,7 @@ export default function SquadLineup({ isAdmin = true }) {
     }
   };
 
-  /* Import selected from another format (robust link-or-create) */
+  /* Import selected from another format */
   const doImportSelected = async () => {
     const picks = importList.filter((p) => importPick.has(p.id));
     if (!picks.length) return pushToast("Select at least one player to import", "error");
