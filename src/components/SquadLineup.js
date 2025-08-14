@@ -338,6 +338,7 @@ export default function SquadLineup({ isAdmin = true }) {
         skill_type: skillTypeOut,
         batting_style: addVals.batting_style || "",
         bowling_type,
+        // NOTE: no profile_url on create (avoids unique URL conflicts)
       });
       setSquad((prev) => [...prev, created].sort((a, b) => a.player_name.localeCompare(b.player_name)));
       setAddName(""); setSuggests([]);
@@ -345,7 +346,10 @@ export default function SquadLineup({ isAdmin = true }) {
       setJustAddedId(created.id);
       setTimeout(() => setJustAddedId(null), 900);
       pushToast(`Added ${created.player_name} to ${team} (${format})`, "success");
-    } catch (e) { pushToast(e?.response?.data?.error || "Failed to add player", "error"); }
+    } catch (e) {
+      console.error(e);
+      pushToast(e?.response?.data?.error || "Failed to add player", "error");
+    }
   };
 
   /* Edit */
@@ -388,13 +392,16 @@ export default function SquadLineup({ isAdmin = true }) {
         skill_type: skillTypeOut,
         batting_style: editVals.batting_style || "",
         bowling_type,
-        profile_url: editing.profile_url,
+        profile_url: editing.profile_url, // ok on update
       });
       setSquad((prev) => prev.map((p) => (p.id === upd.id ? upd : p)).sort((a, b) => a.player_name.localeCompare(b.player_name)));
       setLineup((prev) => prev.map((x) => (x.player_id === upd.id ? { ...x, obj: { ...x.obj, ...upd } } : x)));
       setEditing(null);
       pushToast("Player updated", "success");
-    } catch (e) { pushToast(e?.response?.data?.error || "Update failed", "error"); }
+    } catch (e) {
+      console.error(e);
+      pushToast(e?.response?.data?.error || "Update failed", "error");
+    }
   };
 
   /* Delete */
@@ -410,7 +417,9 @@ export default function SquadLineup({ isAdmin = true }) {
       if (captainId === pid) setCaptainId(null);
       if (viceId === pid) setViceId(null);
       pushToast("Player deleted", "success");
-    } catch { pushToast("Failed to delete player", "error"); }
+    } catch {
+      pushToast("Failed to delete player", "error");
+    }
   };
 
   /* C / VC */
@@ -439,7 +448,10 @@ export default function SquadLineup({ isAdmin = true }) {
       setTimeout(() => setShowSaveCongrats(false), 1400);
       setLastSavedSig(currentSig);
       pushToast("Lineup saved", "success");
-    } catch (e) { pushToast(e?.response?.data?.error || "Failed to save lineup", "error"); }
+    } catch (e) {
+      console.error(e);
+      pushToast(e?.response?.data?.error || "Failed to save lineup", "error");
+    }
   };
 
   /* Team add */
@@ -491,7 +503,7 @@ export default function SquadLineup({ isAdmin = true }) {
     });
   };
 
-  /* FIX: robust, per-player import with summary */
+  /* Import selected from another format (no profile_url in payload to avoid 409) */
   const doImportSelected = async () => {
     const picks = importList.filter((p) => importPick.has(p.id));
     if (!picks.length) return pushToast("Select at least one player to import", "error");
@@ -504,20 +516,18 @@ export default function SquadLineup({ isAdmin = true }) {
         await createPlayer({
           player_name: p.player_name,
           team_name: team,
-          lineup_type: format,      // target format (e.g., TEST)
+          lineup_type: format,      // target format
           skill_type: p.skill_type,
           batting_style: p.batting_style,
           bowling_type: p.bowling_type,
-          profile_url: p.profile_url,
+          // IMPORTANT: don't send profile_url here (unique per person)
         });
         added++;
       } catch (e) {
         const msg = e?.response?.data?.error || "";
-        if (/exist/i.test(msg) || /duplicate/i.test(msg)) {
-          skipped++;
-        } else {
-          failed++;
-        }
+        if (/exist/i.test(msg) || /conflict|duplicate/i.test(msg)) skipped++;
+        else failed++;
+        console.error("Import error:", p.player_name, e);
       }
     }
 
@@ -540,7 +550,6 @@ export default function SquadLineup({ isAdmin = true }) {
     setCopyExists({});
     try {
       setCopyLoading(true);
-      // FIX: clean target formats: everything except the current format
       const others = FORMATS.filter((f) => f !== format);
       const lists = await Promise.all(others.map((f) => fetchPlayers(team, f)));
       const existMap = {};
@@ -562,6 +571,7 @@ export default function SquadLineup({ isAdmin = true }) {
     });
   };
 
+  /* Copy a single player to selected formats (no profile_url to avoid URL-unique conflicts) */
   const doCopyPlayer = async () => {
     if (!copyFromPlayer) return;
     const targets = Array.from(copyTargets);
@@ -577,7 +587,7 @@ export default function SquadLineup({ isAdmin = true }) {
           skill_type: copyFromPlayer.skill_type,
           batting_style: copyFromPlayer.batting_style,
           bowling_type: copyFromPlayer.bowling_type,
-          profile_url: copyFromPlayer.profile_url,
+          // no profile_url here
         });
       }
       pushToast("Player copied to selected format(s)", "success");
@@ -585,6 +595,7 @@ export default function SquadLineup({ isAdmin = true }) {
       setCopyTargets(new Set());
       setCopyExists({});
     } catch (e) {
+      console.error(e);
       pushToast(e?.response?.data?.error || "Copy failed", "error");
     } finally {
       setCopyLoading(false);
