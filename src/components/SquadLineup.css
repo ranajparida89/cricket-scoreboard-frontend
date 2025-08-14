@@ -1,5 +1,5 @@
 /* ✅ src/components/SquadLineup.css */
-/* Dark premium theme + toasts + add highlight + help list */
+/* Dark premium theme + toasts + add highlight + help list + import/copy + full-width */
 
 :root{
   --panel:#0f1b28;
@@ -13,7 +13,8 @@
   --ok:#32d296;
 }
 
-.sq-wrap { padding:18px; color:var(--ink); }
+.sq-wrap { padding:18px; color:var(--ink); width:100%; max-width:none; }
+.sq-wrap.sq-full { width:100vw; margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw); }
 .sq-header { display:flex; gap:16px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:10px; }
 
 .sq-team-tabs { display:flex; align-items:center; gap:10px; }
@@ -94,12 +95,25 @@
 
 /* Modals */
 .sq-modal { position:fixed; inset:0; background:rgba(0,0,0,.55); display:grid; place-items:center; z-index:50; }
-.sq-modal-card { width:min(560px,92vw); background:var(--panel); border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:16px; }
+.sq-modal-card { width:min(680px,95vw); background:var(--panel); border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:16px; }
 .sq-modal-title { font-weight:700; margin-bottom:10px; }
 .sq-lab { display:block; margin:10px 0 6px; opacity:.85; }
 .sq-modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
 .sq-help-list { margin:0; padding-left:18px; display:grid; gap:8px; }
 .sq-help-list li { line-height:1.4; }
+
+/* Import list */
+.sq-listbox { max-height:300px; overflow:auto; border:1px solid rgba(255,255,255,.12); border-radius:12px; padding:6px; }
+.sq-row { display:grid; grid-template-columns:auto 1fr auto; gap:8px; align-items:center; padding:6px 8px; border-radius:8px; }
+.sq-row:hover { background:#13263a; }
+.sq-row-name { font-weight:600; }
+.sq-row-sub { opacity:.8; font-size:.86em; }
+
+/* Copy-to */
+.sq-checks { display:flex; gap:12px; flex-wrap:wrap; }
+.sq-check { display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid rgba(255,255,255,.12); border-radius:10px; }
+.sq-check.dim { opacity:.6; }
+.sq-badge { margin-left:6px; font-size:.78em; opacity:.9; background:#203652; padding:2px 6px; border-radius:999px; }
 
 /* Toasts */
 .sq-toasts { position:fixed; top:12px; right:12px; display:flex; flex-direction:column; gap:8px; z-index:120; }

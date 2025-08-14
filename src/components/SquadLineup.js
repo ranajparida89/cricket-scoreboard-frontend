@@ -1,5 +1,6 @@
 // ✅ src/components/SquadLineup.js
-// Team-wise + Format-wise Squad & Lineup with DnD + Rive + Toasts + Help dialog + Role-aware forms
+// Team-wise + Format-wise Squad & Lineup with DnD + Rive + Toasts + Help dialog
+// + Role-aware forms + Import/copy players across formats + Full-width layout
 
 import React, { useEffect, useMemo, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
@@ -40,7 +41,7 @@ const ciEq = (a, b) => ci(a) === ci(b);
 const sigOf = (team, format, lineup, c, v) =>
   JSON.stringify({ team, format, c, v, arr: lineup.map((x) => [x.player_id, x.order_no, !!x.is_twelfth]) });
 
-/* Icons — clearer set */
+/* Icons */
 const iconFor = (p) => {
   const role = (p?.skill_type || "").toLowerCase();
   if (role.includes("wicket")) return "🧤🏏";
@@ -62,12 +63,12 @@ function Toasts({ toasts, onClose }) {
   );
 }
 
-/* Role-aware field group (used by Add + Edit) */
+/* Role-aware field group (Add + Edit) */
 function RoleFields({ role, values, setValues }) {
   const set = (k, v) => setValues((prev) => ({ ...prev, [k]: v }));
 
-  const showBatting = ["batsman", "wicketkeeper/batsman", "all rounder"].includes(role.toLowerCase());
-  const showBowling = ["bowler", "all rounder"].includes(role.toLowerCase());
+  const showBatting = ["batsman", "wicketkeeper/batsman", "all rounder"].includes((role || "").toLowerCase());
+  const showBowling = ["bowler", "all rounder"].includes((role || "").toLowerCase());
 
   return (
     <div className="sq-role-fields">
@@ -80,7 +81,7 @@ function RoleFields({ role, values, setValues }) {
               <option>Right-hand Bat</option>
               <option>Left-hand Bat</option>
             </select>
-            {role.toLowerCase() === "all rounder" && (
+            {String(role).toLowerCase() === "all rounder" && (
               <select
                 className="sq-input"
                 value={values.allrounder_type || ""}
@@ -137,7 +138,7 @@ function RoleFields({ role, values, setValues }) {
   );
 }
 
-/* Build bowling_type string from role-fields values */
+/* Build bowling_type string */
 function buildBowlingType(vals) {
   if (!vals?.bowl_kind) return "";
   const arm = vals.bowl_arm ? `${vals.bowl_arm} ` : "";
@@ -186,6 +187,18 @@ export default function SquadLineup({ isAdmin = true }) {
 
   /* Help dialog */
   const [showHelp, setShowHelp] = useState(false);
+
+  /* Import/copy modals */
+  const [showImport, setShowImport] = useState(false);
+  const [importFromFormat, setImportFromFormat] = useState("ODI");
+  const [importList, setImportList] = useState([]);
+  const [importPick, setImportPick] = useState(new Set());
+  const [importLoading, setImportLoading] = useState(false);
+
+  const [copyFromPlayer, setCopyFromPlayer] = useState(null);
+  const [copyTargets, setCopyTargets] = useState(new Set());
+  const [copyExists, setCopyExists] = useState({});
+  const [copyLoading, setCopyLoading] = useState(false);
 
   /* Rive */
   const [riv, setRiv] = useState({ empty: null, success: null, glow: null });
@@ -309,7 +322,7 @@ export default function SquadLineup({ isAdmin = true }) {
   const onAddPlayer = async () => {
     const name = addName.trim();
     if (!name) return;
-    if (squad.some((p) => ciEq(p.player_name, name))) { pushToast("Player already exists in this team's squad", "error"); return; }
+    if (squad.some((p) => ciEq(p.player_name, name))) { pushToast("Player already exists in this format's squad", "error"); return; }
 
     const bowling_type = buildBowlingType(addVals);
     const skillTypeOut =
@@ -338,7 +351,6 @@ export default function SquadLineup({ isAdmin = true }) {
   /* Edit */
   const openEdit = (p) => {
     setEditing(p);
-    // Pre-fill role field helpers from strings
     const vals = { batting_style: p.batting_style || "", bowl_kind: "", bowl_arm: "", pace_type: "", spin_type: "", allrounder_type: "" };
     if ((p.skill_type || "").toLowerCase().startsWith("all rounder (batting")) vals.allrounder_type = "Batting Allrounder";
     else if ((p.skill_type || "").toLowerCase().startsWith("all rounder (bowling")) vals.allrounder_type = "Bowling Allrounder";
@@ -443,8 +455,130 @@ export default function SquadLineup({ isAdmin = true }) {
     pushToast(`Team "${name}" added`, "success");
   };
 
+  /* Import modal helpers */
+  const openImport = () => {
+    const others = FORMATS.filter((f) => f !== format);
+    setImportFromFormat(others[0] || format);
+    setImportPick(new Set());
+    setShowImport(true);
+  };
+
+  useEffect(() => {
+    if (!showImport) return;
+    let alive = true;
+    (async () => {
+      try {
+        setImportLoading(true);
+        const list = await fetchPlayers(team, importFromFormat);
+        if (!alive) return;
+        // candidates = not already in current format (by name)
+        const candidates = (list || []).filter(
+          (src) => !squad.some((p) => ciEq(p.player_name, src.player_name))
+        );
+        setImportList(candidates);
+      } finally {
+        setImportLoading(false);
+      }
+    })();
+    return () => { alive = false; };
+  }, [showImport, importFromFormat, team, squad]);
+
+  const toggleImportPick = (id) => {
+    setImportPick((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const doImportSelected = async () => {
+    const picks = importList.filter((p) => importPick.has(p.id));
+    if (!picks.length) return pushToast("Select at least one player to import", "error");
+    try {
+      await Promise.all(
+        picks.map((p) =>
+          createPlayer({
+            player_name: p.player_name,
+            team_name: team,
+            lineup_type: format,
+            skill_type: p.skill_type,
+            batting_style: p.batting_style,
+            bowling_type: p.bowling_type,
+            profile_url: p.profile_url,
+          })
+        )
+      );
+      const list = await fetchPlayers(team, format);
+      setSquad(list);
+      setShowImport(false);
+      setImportPick(new Set());
+      pushToast(`Imported ${picks.length} player(s) from ${importFromFormat}`, "success");
+    } catch (e) {
+      pushToast(e?.response?.data?.error || "Import failed", "error");
+    }
+  };
+
+  /* Copy-to modal helpers (per-player) */
+  const openCopyTo = async (p) => {
+    setCopyFromPlayer(p);
+    setCopyTargets(new Set());
+    setCopyExists({});
+    try {
+      setCopyLoading(true);
+      const others = FORMATS.filter((f) => f !== p.lineup_type && f !== format ? true : f !== format);
+      // check existence in each target format
+      const lists = await Promise.all(others.map((f) => fetchPlayers(team, f)));
+      const existMap = {};
+      others.forEach((f, i) => {
+        const list = lists[i] || [];
+        existMap[f] = list.some((q) => ciEq(q.player_name, p.player_name));
+      });
+      setCopyExists(existMap);
+    } finally {
+      setCopyLoading(false);
+    }
+  };
+
+  const toggleCopyTarget = (fmt) => {
+    setCopyTargets((prev) => {
+      const next = new Set(prev);
+      next.has(fmt) ? next.delete(fmt) : next.add(fmt);
+      return next;
+    });
+  };
+
+  const doCopyPlayer = async () => {
+    if (!copyFromPlayer) return;
+    const targets = Array.from(copyTargets);
+    if (!targets.length) return pushToast("Choose at least one target format", "error");
+    try {
+      setCopyLoading(true);
+      for (const tf of targets) {
+        // skip if already exists
+        if (copyExists[tf]) continue;
+        await createPlayer({
+          player_name: copyFromPlayer.player_name,
+          team_name: team,
+          lineup_type: tf,
+          skill_type: copyFromPlayer.skill_type,
+          batting_style: copyFromPlayer.batting_style,
+          bowling_type: copyFromPlayer.bowling_type,
+          profile_url: copyFromPlayer.profile_url,
+        });
+      }
+      pushToast("Player copied to selected format(s)", "success");
+      setCopyFromPlayer(null);
+      setCopyTargets(new Set());
+      setCopyExists({});
+    } catch (e) {
+      pushToast(e?.response?.data?.error || "Copy failed", "error");
+    } finally {
+      setCopyLoading(false);
+    }
+  };
+
   return (
-    <div className="sq-wrap">
+    <div className="sq-wrap sq-full">
       <Toasts toasts={toasts} onClose={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />
 
       {/* Header */}
@@ -463,6 +597,7 @@ export default function SquadLineup({ isAdmin = true }) {
             ))}
           </div>
 
+          <button className="sq-icon-btn" title="Import players from another format" onClick={openImport} type="button">📥</button>
           <button className="sq-icon-btn info" title="How this page works" onClick={() => setShowHelp(true)} type="button">i</button>
         </div>
 
@@ -526,6 +661,7 @@ export default function SquadLineup({ isAdmin = true }) {
                           </div>
                         </div>
                         <div className="sq-actions">
+                          <button className="sq-icon-btn" title="Copy to other formats" onClick={() => openCopyTo({ ...p, lineup_type: format })} type="button">⇄</button>
                           <button className="sq-icon-btn" title="Edit" onClick={() => openEdit(p)} type="button">✏️</button>
                           {isAdmin && <button className="sq-icon-btn danger" title="Delete" onClick={() => doDeletePlayer(p.id)} type="button">🗑️</button>}
                         </div>
@@ -564,6 +700,7 @@ export default function SquadLineup({ isAdmin = true }) {
                         <div className="sq-actions">
                           <button className={`sq-chip ${x.player_id === captainId ? "on" : ""}`} onClick={() => toggleCaptain(x.player_id)} title="Set Captain" type="button">C</button>
                           <button className={`sq-chip ${x.player_id === viceId ? "on" : ""}`} onClick={() => toggleVice(x.player_id)} title="Set Vice-captain" type="button">VC</button>
+                          <button className="sq-icon-btn" title="Copy to other formats" onClick={() => openCopyTo({ ...x.obj, lineup_type: format })} type="button">⇄</button>
                           <button className="sq-icon-btn" title="Remove from lineup" onClick={() => {
                             const items = lineup.filter((it) => it.player_id !== x.player_id);
                             if (x.player_id === captainId) setCaptainId(null);
@@ -616,7 +753,6 @@ export default function SquadLineup({ isAdmin = true }) {
               <option>Batsman</option><option>Bowler</option><option>All Rounder</option><option>Wicketkeeper/Batsman</option>
             </select>
 
-            {/* Role-aware fields bound to editVals */}
             <RoleFields role={editing.skill_type?.startsWith("All Rounder") ? "All Rounder" : editing.skill_type || "Batsman"} values={editVals} setValues={setEditVals} />
 
             <div className="sq-modal-actions">
@@ -642,6 +778,63 @@ export default function SquadLineup({ isAdmin = true }) {
         </div>
       )}
 
+      {/* Import Modal */}
+      {showImport && (
+        <div className="sq-modal" role="dialog" aria-modal="true" onClick={() => setShowImport(false)}>
+          <div className="sq-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="sq-modal-title">Import players from another format</div>
+            <div className="sq-grid-2" style={{ marginBottom: 8 }}>
+              <div />
+              <select className="sq-input" value={importFromFormat} onChange={(e) => setImportFromFormat(e.target.value)}>
+                {FORMATS.filter((f) => f !== format).map((f) => <option key={f} value={f}>{f}</option>)}
+              </select>
+            </div>
+            <div className="sq-listbox">
+              {importLoading ? <div className="sq-empty">Loading…</div> :
+                !importList.length ? <div className="sq-empty">Nothing to import — all players already exist in {format}.</div> :
+                importList.map((p) => (
+                  <label key={p.id} className="sq-row">
+                    <input type="checkbox" checked={importPick.has(p.id)} onChange={() => toggleImportPick(p.id)} />
+                    <span className="sq-row-name">{p.player_name}</span>
+                    <span className="sq-row-sub">{p.batting_style || "—"} • {p.bowling_type || "—"}</span>
+                  </label>
+                ))}
+            </div>
+            <div className="sq-modal-actions">
+              <button className="sq-btn" onClick={() => setShowImport(false)} type="button">Close</button>
+              <button className="sq-btn primary" onClick={doImportSelected} type="button">Add Selected</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Copy-to Modal */}
+      {copyFromPlayer && (
+        <div className="sq-modal" role="dialog" aria-modal="true" onClick={() => setCopyFromPlayer(null)}>
+          <div className="sq-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="sq-modal-title">Copy “{copyFromPlayer.player_name}” to…</div>
+            <div className="sq-checks">
+              {FORMATS.filter((f) => f !== format).map((f) => (
+                <label key={f} className={`sq-check ${copyExists[f] ? "dim" : ""}`}>
+                  <input
+                    type="checkbox"
+                    disabled={copyExists[f]}
+                    checked={copyTargets.has(f)}
+                    onChange={() => toggleCopyTarget(f)}
+                  />
+                  <span>{f}</span>
+                  {copyExists[f] && <span className="sq-badge">already in</span>}
+                </label>
+              ))}
+            </div>
+            <div className="sq-modal-actions">
+              <button className="sq-btn" onClick={() => setCopyFromPlayer(null)} type="button">Cancel</button>
+              <button className="sq-btn primary" onClick={doCopyPlayer} disabled={copyLoading} type="button">Copy</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Help Modal */}
       {showHelp && (
         <div className="sq-modal" role="dialog" aria-modal="true" onClick={() => setShowHelp(false)}>
@@ -649,13 +842,12 @@ export default function SquadLineup({ isAdmin = true }) {
             <div className="sq-modal-title">How Squad & Lineup Builder Works</div>
             <ul className="sq-help-list">
               <li><b>Team & Format</b> — pick a team and ODI/T20/TEST. You can <i>Add Team</i> if it doesn’t exist.</li>
-              <li><b>Add Player</b> — type the name; suggestions show existing players. Choose role; the form asks for batting/bowling specifics (pace/spin, arm, type).</li>
-              <li><b>Search Squad</b> — filters players in the selected team’s squad (left panel). Use the role filter to narrow further.</li>
-              <li><b>Build Lineup</b> — drag from Squad → Lineup. Reorder by dragging within Lineup. Max <b>12</b> (includes one 12th).</li>
-              <li><b>C / VC</b> — set exactly one Captain and one Vice-captain. They must be different.</li>
-              <li><b>Save</b> — Rive animation + toast confirms save. If you haven’t changed anything since last save, you’ll see “Already saved”.</li>
-              <li><b>Edit/Delete</b> — use icons on each card. Edits update both Squad and Lineup.</li>
-              <li><b>Shortcuts</b> — while dragging: <kbd>Esc</kbd> cancels; you can drop anywhere inside the Lineup panel.</li>
+              <li><b>Add Player</b> — type the name; suggestions show existing players. Choose role; the form asks for batting/bowling specifics.</li>
+              <li><b>Reuse across formats</b> — click <b>📥 Import</b> (bulk) or use <b>⇄ Copy to…</b> on a player card.</li>
+              <li><b>Search Squad</b> — filters players in this team’s current-format squad.</li>
+              <li><b>Build Lineup</b> — drag Squad → Lineup, reorder inside Lineup. Max <b>12</b> (one 12th).</li>
+              <li><b>C / VC</b> — set exactly one of each; must be different.</li>
+              <li><b>Save</b> — Rive animation + toast confirms save; “Already saved” appears if nothing changed.</li>
             </ul>
             <div className="sq-modal-actions">
               <button className="sq-btn primary" onClick={() => setShowHelp(false)} type="button">Got it</button>
