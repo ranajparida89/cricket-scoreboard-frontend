@@ -1,4 +1,4 @@
-/* Dark premium theme + simpler 2-lane board + collapsible roster + soft-glow “i” button */
+/* Dark premium theme + simpler 2-lane board + collapsible roster + soft-glow “i” button (patched) */
 
 :root{
   --panel:#0f1b28;
@@ -48,25 +48,46 @@
 /* Icons / chips */
 .sq-icon-btn { background:transparent; border:1px solid rgba(255,255,255,.15); color:var(--ink); border-radius:10px; padding:6px 8px; }
 .sq-icon-btn.danger { border-color:#7a2f2f; }
-.sq-icon-btn.info { border-color:rgba(255,255,255,.15); }
 
-/* Heartbeat for the Info “i” button (very soft) */
-@media (prefers-reduced-motion: no-preference) {
-  .sq-icon-btn.info {
-    position: relative;
-    box-shadow: 0 0 0 0 rgba(56,199,187,0.00);
-    animation: infoHeartbeat 2.4s ease-in-out infinite;
-    will-change: transform, box-shadow;
-  }
-  .sq-icon-btn.info:hover { animation-duration: 1.8s; }
-  @keyframes infoHeartbeat {
-    0%   { transform: scale(1);    box-shadow: 0 0 0 0 rgba(56,199,187,0.00); }
-    20%  { transform: scale(1.02); box-shadow: 0 0 10px 1px rgba(56,199,187,0.10); }
-    35%  { transform: scale(1.03); box-shadow: 0 0 14px 3px rgba(56,199,187,0.14); }
-    55%  { transform: scale(1.02); box-shadow: 0 0 10px 1px rgba(56,199,187,0.10); }
-    100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(56,199,187,0.00); }
-  }
+/* === PATCH: Info "i" button with visible size + soft halo heartbeat === */
+.sq-icon-btn.info{
+  display:inline-grid; place-items:center;
+  width:28px; height:28px; line-height:1;
+  border-radius:8px; cursor:pointer;
+  color:var(--ink); border:1px solid rgba(56,199,187,.35);
+  background:rgba(56,199,187,.06);
+  position:relative; overflow:visible;
+  transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
 }
+.sq-icon-btn.info::before{
+  content:""; position:absolute; inset:0; border-radius:inherit;
+  box-shadow:
+    0 0 0 2px rgba(56,199,187,.18) inset,
+    0 0 8px rgba(56,199,187,.16);
+  pointer-events:none;
+}
+.sq-icon-btn.info::after{
+  content:""; position:absolute; inset:-8px; border-radius:inherit;
+  background:radial-gradient(closest-side,
+    rgba(56,199,187,.18),
+    rgba(56,199,187,0) 70%);
+  filter:blur(2px);
+  opacity:0; transform:scale(.92);
+  animation: infoPulse 2.4s ease-in-out infinite;
+  pointer-events:none;
+}
+.sq-icon-btn.info:hover{ background:rgba(56,199,187,.09); transform:translateY(-1px); }
+@keyframes infoPulse{
+  0%   { opacity:0;   transform:scale(.92); }
+  18%  { opacity:.25; transform:scale(1);   }
+  34%  { opacity:.16; transform:scale(1.02);}
+  56%  { opacity:.10; transform:scale(1.03);}
+  100% { opacity:0;   transform:scale(.96); }
+}
+@media (prefers-reduced-motion: reduce){
+  .sq-icon-btn.info::after{ display:none; }
+}
+/* === END PATCH === */
 
 /* Role fields */
 .sq-role-fields { margin-top:8px; }
