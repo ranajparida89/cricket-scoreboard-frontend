@@ -1,4 +1,4 @@
-/* Dark premium theme + simpler 2-lane board + collapsible roster + soft-glow “i” button (patched) */
+/* Dark premium theme + simpler 2-lane board + collapsible roster + soft-glow “i” button (FINAL) */
 
 :root{
   --panel:#0f1b28;
@@ -49,45 +49,67 @@
 .sq-icon-btn { background:transparent; border:1px solid rgba(255,255,255,.15); color:var(--ink); border-radius:10px; padding:6px 8px; }
 .sq-icon-btn.danger { border-color:#7a2f2f; }
 
-/* === PATCH: Info "i" button with visible size + soft halo heartbeat === */
-.sq-icon-btn.info{
-  display:inline-grid; place-items:center;
-  width:28px; height:28px; line-height:1;
-  border-radius:8px; cursor:pointer;
-  color:var(--ink); border:1px solid rgba(56,199,187,.35);
-  background:rgba(56,199,187,.06);
-  position:relative; overflow:visible;
-  transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
+/* === INFO “i” BUTTON — visible heartbeat + halo (works everywhere) === */
+@media (prefers-reduced-motion: no-preference){
+  .sq-icon-btn.info{
+    display:inline-grid; place-items:center;
+    width:28px; height:28px; line-height:1;
+    border-radius:8px; cursor:pointer;
+    color:var(--ink);
+    border:1px solid rgba(56,199,187,.35);
+    background:rgba(56,199,187,.06);
+    position:relative; overflow:visible;
+    font-weight:700;
+    will-change: transform, box-shadow;
+    /* HEARTBEAT on the button itself */
+    animation: infoBeat 2.2s ease-in-out infinite;
+    transform: translateZ(0); /* Safari/GPU nudge */
+  }
+  .sq-icon-btn.info:hover{ background:rgba(56,199,187,.10); }
+
+  /* soft inner ring */
+  .sq-icon-btn.info::before{
+    content:""; position:absolute; inset:0; border-radius:inherit;
+    box-shadow: 0 0 0 2px rgba(56,199,187,.18) inset;
+    pointer-events:none;
+  }
+  /* outer halo that breathes */
+  .sq-icon-btn.info::after{
+    content:""; position:absolute; inset:-10px; border-radius:inherit;
+    background:radial-gradient(closest-side, rgba(56,199,187,.22), rgba(56,199,187,0) 70%);
+    filter:blur(3px);
+    opacity:.18;
+    animation: infoHalo 2.2s ease-in-out infinite;
+    pointer-events:none;
+  }
+
+  @keyframes infoBeat{
+    0%   { transform:translateZ(0) scale(1);   box-shadow:0 0 0 rgba(56,199,187,0); }
+    20%  { transform:translateZ(0) scale(1.04); box-shadow:0 0 12px 2px rgba(56,199,187,.22); }
+    35%  { transform:translateZ(0) scale(1.055); box-shadow:0 0 16px 4px rgba(56,199,187,.28); }
+    55%  { transform:translateZ(0) scale(1.035); box-shadow:0 0 10px 2px rgba(56,199,187,.20); }
+    100% { transform:translateZ(0) scale(1);   box-shadow:0 0 0 rgba(56,199,187,0); }
+  }
+  @keyframes infoHalo{
+    0%   { opacity:.05; transform:scale(.94); }
+    30%  { opacity:.28; transform:scale(1.04); }
+    55%  { opacity:.18; transform:scale(1.07); }
+    100% { opacity:.05; transform:scale(.95); }
+  }
 }
-.sq-icon-btn.info::before{
-  content:""; position:absolute; inset:0; border-radius:inherit;
-  box-shadow:
-    0 0 0 2px rgba(56,199,187,.18) inset,
-    0 0 8px rgba(56,199,187,.16);
-  pointer-events:none;
-}
-.sq-icon-btn.info::after{
-  content:""; position:absolute; inset:-8px; border-radius:inherit;
-  background:radial-gradient(closest-side,
-    rgba(56,199,187,.18),
-    rgba(56,199,187,0) 70%);
-  filter:blur(2px);
-  opacity:0; transform:scale(.92);
-  animation: infoPulse 2.4s ease-in-out infinite;
-  pointer-events:none;
-}
-.sq-icon-btn.info:hover{ background:rgba(56,199,187,.09); transform:translateY(-1px); }
-@keyframes infoPulse{
-  0%   { opacity:0;   transform:scale(.92); }
-  18%  { opacity:.25; transform:scale(1);   }
-  34%  { opacity:.16; transform:scale(1.02);}
-  56%  { opacity:.10; transform:scale(1.03);}
-  100% { opacity:0;   transform:scale(.96); }
-}
+
+/* Reduced motion – keep static with subtle ring */
 @media (prefers-reduced-motion: reduce){
-  .sq-icon-btn.info::after{ display:none; }
+  .sq-icon-btn.info{
+    width:28px; height:28px; border-radius:8px;
+    border:1px solid rgba(56,199,187,.35);
+    background:rgba(56,199,187,.06);
+  }
+  .sq-icon-btn.info::before{
+    content:""; position:absolute; inset:0; border-radius:inherit;
+    box-shadow: 0 0 0 2px rgba(56,199,187,.18) inset, 0 0 10px rgba(56,199,187,.12);
+  }
 }
-/* === END PATCH === */
 
 /* Role fields */
 .sq-role-fields { margin-top:8px; }
