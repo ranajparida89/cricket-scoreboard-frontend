@@ -114,3 +114,24 @@
   .sq-rive-center { width:64vw; height:64vw; }
   .sq-grid-3 { grid-template-columns:1fr; }
 }
+/* --- Soft heartbeat glow for the Info "i" button --- */
+@media (prefers-reduced-motion: no-preference) {
+  .sq-icon-btn.info {
+    position: relative;
+    /* very soft starting state */
+    box-shadow: 0 0 0 0 rgba(56,199,187,0.00);
+    animation: infoHeartbeat 2.4s ease-in-out infinite;
+    will-change: transform, box-shadow;
+  }
+  .sq-icon-btn.info:hover {
+    /* slightly quicker when hovered */
+    animation-duration: 1.8s;
+  }
+  @keyframes infoHeartbeat {
+    0%   { transform: scale(1);    box-shadow: 0 0 0 0 rgba(56,199,187,0.00); }
+    20%  { transform: scale(1.02); box-shadow: 0 0 10px 1px rgba(56,199,187,0.10); }
+    35%  { transform: scale(1.03); box-shadow: 0 0 14px 3px rgba(56,199,187,0.14); }
+    55%  { transform: scale(1.02); box-shadow: 0 0 10px 1px rgba(56,199,187,0.10); }
+    100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(56,199,187,0.00); }
+  }
+}
