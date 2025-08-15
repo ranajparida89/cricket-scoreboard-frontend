@@ -1,4 +1,4 @@
-/* Dark premium theme + simpler 2-lane board + collapsible roster + soft-glow “i” button (FINAL) */
+/* Dark premium theme + simpler 2-lane board + collapsible roster + GOLD soft-glow “i” button */
 
 :root{
   --panel:#0f1b28;
@@ -49,65 +49,67 @@
 .sq-icon-btn { background:transparent; border:1px solid rgba(255,255,255,.15); color:var(--ink); border-radius:10px; padding:6px 8px; }
 .sq-icon-btn.danger { border-color:#7a2f2f; }
 
-/* === INFO “i” BUTTON — visible heartbeat + halo (works everywhere) === */
+/* === INFO “i” BUTTON — GOLD heartbeat + halo (more visible on dark) === */
 @media (prefers-reduced-motion: no-preference){
   .sq-icon-btn.info{
     display:inline-grid; place-items:center;
     width:28px; height:28px; line-height:1;
     border-radius:8px; cursor:pointer;
-    color:var(--ink);
-    border:1px solid rgba(56,199,187,.35);
-    background:rgba(56,199,187,.06);
+    color:var(--gold);
+    border:1px solid rgba(232,202,164,.65);              /* gold edge */
+    background:rgba(232,202,164,.07);                    /* faint fill */
     position:relative; overflow:visible;
     font-weight:700;
     will-change: transform, box-shadow;
-    /* HEARTBEAT on the button itself */
-    animation: infoBeat 2.2s ease-in-out infinite;
-    transform: translateZ(0); /* Safari/GPU nudge */
+    animation: infoBeatGold 2.1s ease-in-out infinite;   /* heartbeat */
+    transform: translateZ(0);
   }
-  .sq-icon-btn.info:hover{ background:rgba(56,199,187,.10); }
+  .sq-icon-btn.info:hover{ background:rgba(232,202,164,.10); }
 
-  /* soft inner ring */
+  /* inner gold ring */
   .sq-icon-btn.info::before{
     content:""; position:absolute; inset:0; border-radius:inherit;
-    box-shadow: 0 0 0 2px rgba(56,199,187,.18) inset;
+    box-shadow:
+      0 0 0 2px rgba(232,202,164,.28) inset,
+      0 0 10px rgba(232,202,164,.20);
     pointer-events:none;
   }
-  /* outer halo that breathes */
+  /* outer soft halo */
   .sq-icon-btn.info::after{
     content:""; position:absolute; inset:-10px; border-radius:inherit;
-    background:radial-gradient(closest-side, rgba(56,199,187,.22), rgba(56,199,187,0) 70%);
+    background:radial-gradient(closest-side, rgba(232,202,164,.30), rgba(232,202,164,0) 70%);
     filter:blur(3px);
-    opacity:.18;
-    animation: infoHalo 2.2s ease-in-out infinite;
+    opacity:.22;
+    animation: infoHaloGold 2.1s ease-in-out infinite;
     pointer-events:none;
   }
 
-  @keyframes infoBeat{
-    0%   { transform:translateZ(0) scale(1);   box-shadow:0 0 0 rgba(56,199,187,0); }
-    20%  { transform:translateZ(0) scale(1.04); box-shadow:0 0 12px 2px rgba(56,199,187,.22); }
-    35%  { transform:translateZ(0) scale(1.055); box-shadow:0 0 16px 4px rgba(56,199,187,.28); }
-    55%  { transform:translateZ(0) scale(1.035); box-shadow:0 0 10px 2px rgba(56,199,187,.20); }
-    100% { transform:translateZ(0) scale(1);   box-shadow:0 0 0 rgba(56,199,187,0); }
+  @keyframes infoBeatGold{
+    0%   { transform:translateZ(0) scale(1);     box-shadow:0 0 0 rgba(232,202,164,0); }
+    22%  { transform:translateZ(0) scale(1.06);  box-shadow:0 0 14px 3px rgba(232,202,164,.30); }
+    40%  { transform:translateZ(0) scale(1.07);  box-shadow:0 0 18px 4px rgba(232,202,164,.36); }
+    60%  { transform:translateZ(0) scale(1.04);  box-shadow:0 0 12px 2px rgba(232,202,164,.24); }
+    100% { transform:translateZ(0) scale(1);     box-shadow:0 0 0 rgba(232,202,164,0); }
   }
-  @keyframes infoHalo{
-    0%   { opacity:.05; transform:scale(.94); }
-    30%  { opacity:.28; transform:scale(1.04); }
-    55%  { opacity:.18; transform:scale(1.07); }
-    100% { opacity:.05; transform:scale(.95); }
+  @keyframes infoHaloGold{
+    0%   { opacity:.08; transform:scale(.94); }
+    32%  { opacity:.34; transform:scale(1.06); }
+    58%  { opacity:.22; transform:scale(1.08); }
+    100% { opacity:.08; transform:scale(.95); }
   }
 }
 
-/* Reduced motion – keep static with subtle ring */
+/* Reduced motion – keep static with gold ring */
 @media (prefers-reduced-motion: reduce){
   .sq-icon-btn.info{
     width:28px; height:28px; border-radius:8px;
-    border:1px solid rgba(56,199,187,.35);
-    background:rgba(56,199,187,.06);
+    color:var(--gold);
+    border:1px solid rgba(232,202,164,.65);
+    background:rgba(232,202,164,.07);
   }
   .sq-icon-btn.info::before{
     content:""; position:absolute; inset:0; border-radius:inherit;
-    box-shadow: 0 0 0 2px rgba(56,199,187,.18) inset, 0 0 10px rgba(56,199,187,.12);
+    box-shadow: 0 0 0 2px rgba(232,202,164,.28) inset, 0 0 12px rgba(232,202,164,.18);
   }
 }
 
