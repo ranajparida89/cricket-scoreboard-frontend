@@ -1,7 +1,6 @@
-// Team Roster + Format Membership Chips + Drag/Drop Lineup (pro)
-// - Roster = union of ODI/T20/TEST for the team (deduped by name)
-// - Toggle chips to add/remove player to a format (uses createPlayer/deletePlayer)
-// - Current format: Squad -> Lineup (drag), reorder, remove, C/VC, save
+// Team-wise + Format-wise Squad & Lineup (clean UI)
+// - Logic unchanged: same endpoints, DnD flows, validations.
+// - UX: simpler 2-lane board, collapsible Memberships panel, soft-glow Help button, Import-from-format.
 
 import React, { useEffect, useMemo, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
@@ -16,11 +15,12 @@ import {
 } from "../services/api";
 import "./SquadLineup.css";
 
-/* ---- small helpers ---- */
+/* ---- constants & helpers ---- */
 const FORMATS = ["ODI", "T20", "TEST"];
 const DEFAULT_TEAMS = ["India","Australia","England","New Zealand","Pakistan","South Africa","Sri Lanka","Bangladesh","Afghanistan"];
 const MAX_LINEUP = 12;
 const MIN_LINEUP = 11;
+
 const ci = (s) => (s || "").trim().toLowerCase();
 const ciEq = (a, b) => ci(a) === ci(b);
 const iconFor = (p) => {
@@ -29,6 +29,13 @@ const iconFor = (p) => {
   if (role.includes("all")) return "🏏🔴";
   if (role.includes("bowl")) return "🔴";
   return "🏏";
+};
+const buildBowlingType = (v) => {
+  if (!v?.bowl_kind) return "";
+  const arm = v.bowl_arm ? `${v.bowl_arm} ` : "";
+  if (v.bowl_kind === "Pace" && v.pace_type) return `${arm}${v.pace_type}`.trim();
+  if (v.bowl_kind === "Spin" && v.spin_type) return `${arm}${v.spin_type}`.trim();
+  return "";
 };
 
 /* ---- toasts ---- */
@@ -117,13 +124,6 @@ function RoleFields({ role, values, setValues }) {
     </div>
   );
 }
-const buildBowlingType = (v) => {
-  if (!v?.bowl_kind) return "";
-  const arm = v.bowl_arm ? `${v.bowl_arm} ` : "";
-  if (v.bowl_kind === "Pace" && v.pace_type) return `${arm}${v.pace_type}`.trim();
-  if (v.bowl_kind === "Spin" && v.spin_type) return `${arm}${v.spin_type}`.trim();
-  return "";
-};
 
 /* ================== MAIN ================== */
 export default function SquadLineup({ isAdmin = true }) {
@@ -135,7 +135,7 @@ export default function SquadLineup({ isAdmin = true }) {
   const [team, setTeam] = useState(teams[0] || "India");
   const [format, setFormat] = useState("ODI");
 
-  /* data: squads in all 3 formats for this team */
+  /* data: squads per format for this team */
   const [squads, setSquads] = useState({ ODI: [], T20: [], TEST: [] });
   const [lineup, setLineup] = useState([]); // current format lineup items
   const [captainId, setCaptainId] = useState(null);
@@ -149,10 +149,12 @@ export default function SquadLineup({ isAdmin = true }) {
   const [editVals, setEditVals] = useState({});
   const [suggests, setSuggests] = useState([]);
 
-  /* ui */
-  const [searchRoster, setSearchRoster] = useState("");
+  /* UI */
   const [searchSquad, setSearchSquad] = useState("");
   const [filterRole, setFilterRole] = useState("ALL");
+  const [showRoster, setShowRoster] = useState(false); // collapsed by default
+  const [searchRoster, setSearchRoster] = useState("");
+  const [showHelp, setShowHelp] = useState(false);
   const { toasts, push, close } = useToasts();
 
   /* load all squads + lineup for this team/format */
@@ -167,14 +169,9 @@ export default function SquadLineup({ isAdmin = true }) {
 
   useEffect(() => {
     (async () => {
-      try {
-        await loadAll(team);
-      } catch (e) {
-        console.error(e);
-        push("Failed to load squads", "error");
-      }
+      try { await loadAll(team); } catch (e) { console.error(e); push("Failed to load squads", "error"); }
     })();
-  }, [team]);
+  }, [team]); // eslint-disable-line
 
   useEffect(() => {
     (async () => {
@@ -200,12 +197,9 @@ export default function SquadLineup({ isAdmin = true }) {
         } else {
           setLineup([]); setCaptainId(null); setViceId(null);
         }
-      } catch (e) {
-        console.error(e);
-        setLineup([]); setCaptainId(null); setViceId(null);
-      }
+      } catch (e) { console.error(e); setLineup([]); setCaptainId(null); setViceId(null); }
     })();
-  }, [team, format]);
+  }, [team, format]); // eslint-disable-line
 
   /* suggestions while typing */
   useEffect(() => {
@@ -213,10 +207,8 @@ export default function SquadLineup({ isAdmin = true }) {
     if (q.length < 2) { setSuggests([]); return; }
     let ok = true;
     (async () => {
-      try {
-        const s = await suggestPlayers(team, q);
-        if (ok) setSuggests(s || []);
-      } catch { if (ok) setSuggests([]); }
+      try { const s = await suggestPlayers(team, q); if (ok) setSuggests(s || []); }
+      catch { if (ok) setSuggests([]); }
     })();
     return () => { ok = false; };
   }, [addName, team]);
@@ -229,8 +221,7 @@ export default function SquadLineup({ isAdmin = true }) {
         const k = ci(p.player_name);
         if (!map.has(k)) map.set(k, { name: p.player_name, sample: p, fmtIds: { ODI:null, T20:null, TEST:null } });
         const row = map.get(k);
-        row.fmtIds[F] = p.id;                            // membership id in that format
-        // choose a richer sample (with more fields filled)
+        row.fmtIds[F] = p.id;
         const s = row.sample || {};
         const richness = (x) => (!!x.batting_style) + (!!x.bowling_type) + (!!x.skill_type);
         if (richness(p) > richness(s)) row.sample = p;
@@ -239,10 +230,9 @@ export default function SquadLineup({ isAdmin = true }) {
     return Array.from(map.values()).sort((a,b)=>a.name.localeCompare(b.name));
   }, [squads]);
 
-  /* presence helpers */
   const idsInLineup = new Set(lineup.map((x) => x.player_id));
 
-  /* current format squad: filter by search + role, hide ones in lineup */
+  /* current format squad (minus lineup, filters) */
   const currentSquad = useMemo(() => {
     const list = squads[format] || [];
     const q = ci(searchSquad);
@@ -253,19 +243,14 @@ export default function SquadLineup({ isAdmin = true }) {
       .sort((a,b)=>a.player_name.localeCompare(b.player_name));
   }, [squads, format, lineup, searchSquad, filterRole]);
 
-  /* toggle membership chip (roster) */
+  /* toggle membership chip */
   const toggleMembership = async (person, destFormat) => {
     const id = person.fmtIds[destFormat];
     if (id) {
-      // remove from that format
       try {
         await deletePlayer(id);
-        setSquads((prev) => ({
-          ...prev,
-          [destFormat]: (prev[destFormat] || []).filter((x) => x.id !== id),
-        }));
+        setSquads((prev) => ({ ...prev, [destFormat]: (prev[destFormat] || []).filter((x) => x.id !== id) }));
         if (destFormat === format) {
-          // also remove from lineup if present
           setLineup((prev) => {
             const items = prev.filter((x) => x.player_id !== id);
             return items.map((x, i) => ({ ...x, order_no: i + 1, is_twelfth: i === 11 }));
@@ -274,18 +259,14 @@ export default function SquadLineup({ isAdmin = true }) {
           if (viceId === id) setViceId(null);
         }
         push(`Removed from ${destFormat}`, "success");
-      } catch {
-        push("Failed to remove membership", "error");
-      }
+      } catch { push("Failed to remove membership", "error"); }
       return;
     }
-    // add to that format
     try {
       const payload = {
         player_name: person.name,
         team_name: team,
         lineup_type: destFormat,
-        // seed from best sample so the card looks complete
         skill_type: person.sample?.skill_type || "Batsman",
         batting_style: person.sample?.batting_style || "",
         bowling_type: person.sample?.bowling_type || "",
@@ -300,20 +281,13 @@ export default function SquadLineup({ isAdmin = true }) {
     }
   };
 
-  /* add brand-new player (adds to current format; then you can toggle to others) */
+  /* add brand-new player (current format) */
   const addNew = async () => {
     const name = addName.trim();
     if (!name) return;
-    // protect against same-format duplicate by CI name
-    if ((squads[format] || []).some((p) => ciEq(p.player_name, name))) {
-      push("Player already exists in this format's squad", "error");
-      return;
-    }
+    if ((squads[format] || []).some((p) => ciEq(p.player_name, name))) { push("Player already exists in this format's squad", "error"); return; }
     const bowling_type = buildBowlingType(addVals);
-    const skill =
-      addRole === "All Rounder" && addVals.allrounder_type
-        ? `All Rounder (${addVals.allrounder_type})`
-        : addRole;
+    const skill = addRole === "All Rounder" && addVals.allrounder_type ? `All Rounder (${addVals.allrounder_type})` : addRole;
     try {
       const created = await createPlayer({
         player_name: name,
@@ -324,16 +298,13 @@ export default function SquadLineup({ isAdmin = true }) {
         bowling_type,
       });
       setSquads((prev) => ({ ...prev, [format]: [...prev[format], created] }));
-      setAddName("");
-      setSuggests([]);
+      setAddName(""); setSuggests([]);
       setAddVals({ batting_style:"", bowl_kind:"", bowl_arm:"", pace_type:"", spin_type:"", allrounder_type:"" });
       push(`Added ${created.player_name} to ${team} ${format}`, "success");
-    } catch (e) {
-      push(e?.response?.data?.error || "Failed to add", "error");
-    }
+    } catch (e) { push(e?.response?.data?.error || "Failed to add", "error"); }
   };
 
-  /* edit/delete an existing membership row (current format list) */
+  /* edit/delete existing membership row */
   const openEdit = (p) => {
     setEditing(p);
     const vals = { batting_style: p.batting_style || "", bowl_kind:"", bowl_arm:"", pace_type:"", spin_type:"", allrounder_type:"" };
@@ -358,10 +329,9 @@ export default function SquadLineup({ isAdmin = true }) {
   const doUpdate = async () => {
     if (!editing) return;
     const bowling_type = buildBowlingType(editVals);
-    const skill =
-      editing.skill_type?.startsWith("All Rounder")
-        ? (editVals.allrounder_type ? `All Rounder (${editVals.allrounder_type})` : "All Rounder")
-        : editing.skill_type;
+    const skill = editing.skill_type?.startsWith("All Rounder")
+      ? (editVals.allrounder_type ? `All Rounder (${editVals.allrounder_type})` : "All Rounder")
+      : editing.skill_type;
     try {
       const upd = await updatePlayer(editing.id, {
         player_name: editing.player_name,
@@ -379,9 +349,7 @@ export default function SquadLineup({ isAdmin = true }) {
       setLineup((prev) => prev.map((x) => x.player_id === upd.id ? { ...x, obj: { ...x.obj, ...upd } } : x));
       setEditing(null);
       push("Updated", "success");
-    } catch {
-      push("Update failed", "error");
-    }
+    } catch { push("Update failed", "error"); }
   };
   const doDelete = async (id) => {
     if (!window.confirm("Delete this player from the format squad?")) return;
@@ -395,9 +363,33 @@ export default function SquadLineup({ isAdmin = true }) {
       if (captainId === id) setCaptainId(null);
       if (viceId === id) setViceId(null);
       push("Deleted", "success");
-    } catch {
-      push("Delete failed", "error");
+    } catch { push("Delete failed", "error"); }
+  };
+
+  /* Import from another format into current format (skips duplicates) */
+  const importFrom = async (sourceFormat) => {
+    if (sourceFormat === format) return;
+    const source = squads[sourceFormat] || [];
+    if (!source.length) { push(`No players in ${sourceFormat} to import`, "info"); return; }
+    const current = new Set((squads[format] || []).map(p => ci(p.player_name)));
+    let added = 0, failed = 0;
+    for (const p of source) {
+      if (current.has(ci(p.player_name))) continue;
+      try {
+        const created = await createPlayer({
+          player_name: p.player_name,
+          team_name: team,
+          lineup_type: format,
+          skill_type: p.skill_type || "Batsman",
+          batting_style: p.batting_style || "",
+          bowling_type: p.bowling_type || "",
+          profile_url: p.profile_url || null,
+        });
+        added++;
+        setSquads((prev) => ({ ...prev, [format]: [...(prev[format]||[]), created] }));
+      } catch { failed++; }
     }
+    if (added || failed) push(`Imported ${added}${failed ? `, failed ${failed}` : ""}`, added ? "success" : "error");
   };
 
   /* DnD (Squad <-> Lineup) */
@@ -405,7 +397,6 @@ export default function SquadLineup({ isAdmin = true }) {
     const { source, destination } = result;
     if (!destination) return;
 
-    // reorder lineup
     if (source.droppableId === "lineup" && destination.droppableId === "lineup") {
       const items = Array.from(lineup);
       const [moved] = items.splice(source.index, 1);
@@ -414,7 +405,6 @@ export default function SquadLineup({ isAdmin = true }) {
       return;
     }
 
-    // squad -> lineup
     if (source.droppableId === "squad" && destination.droppableId === "lineup") {
       if (lineup.length >= MAX_LINEUP) { push(`Max ${MAX_LINEUP} players allowed in lineup`, "error"); return; }
       const p = currentSquad[source.index];
@@ -430,7 +420,6 @@ export default function SquadLineup({ isAdmin = true }) {
       return;
     }
 
-    // lineup -> squad
     if (source.droppableId === "lineup" && destination.droppableId === "squad") {
       const items = Array.from(lineup);
       const [removed] = items.splice(source.index, 1);
@@ -454,12 +443,9 @@ export default function SquadLineup({ isAdmin = true }) {
         players: lineup.map((x) => ({ player_id: x.player_id, order_no: x.order_no, is_twelfth: !!x.is_twelfth })),
       });
       push("Lineup saved", "success");
-    } catch (e) {
-      push(e?.response?.data?.error || "Failed to save lineup", "error");
-    }
+    } catch (e) { push(e?.response?.data?.error || "Failed to save lineup", "error"); }
   };
 
-  /* UI bits */
   const presenceIn = (nameKey) => {
     const fmt = { ODI:false, T20:false, TEST:false };
     for (const F of FORMATS) {
@@ -468,24 +454,49 @@ export default function SquadLineup({ isAdmin = true }) {
     return fmt;
   };
 
+  /* ===== UI ===== */
   return (
     <div className="sq-wrap">
       <Toasts list={toasts} onClose={close} />
 
       {/* Header */}
       <header className="sq-header">
-        <div className="sq-team-tabs">
+        <div className="sq-title">
+          <div className="sq-title-line">
+            <span className="sq-big">Build Lineup</span>
+            <button className="sq-icon-btn info" title="How this page works" onClick={() => setShowHelp(true)} type="button">i</button>
+          </div>
+          <div className="sq-steps">
+            <span className="sq-step on">1. Add to squad</span>
+            <span className="sq-step on">2. Drag to lineup</span>
+            <span className="sq-step on">3. Set C & VC</span>
+            <span className="sq-step">4. Save</span>
+          </div>
+        </div>
+
+        <div className="sq-ctlbar">
           <div className="sq-team-select">
+            <label className="sq-mini">Team</label>
             <select className="sq-select" value={team} onChange={(e) => setTeam(e.target.value)}>
               {teams.map((t) => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
+
           <div className="sq-format-tabs">
             {FORMATS.map((f) => (
               <button key={f} className={`sq-tab ${format===f?"active":""}`} onClick={() => setFormat(f)} type="button">
                 {f}
               </button>
             ))}
+          </div>
+
+          <div className="sq-import">
+            <label className="sq-mini">Quick import</label>
+            <div className="sq-import-row">
+              {FORMATS.filter(f => f!==format).map((f) => (
+                <button key={f} className="sq-btn ghost" onClick={() => importFrom(f)} type="button">From {f}</button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -522,58 +533,69 @@ export default function SquadLineup({ isAdmin = true }) {
         <RoleFields role={addRole} values={addVals} setValues={setAddVals} />
       </header>
 
-      {/* Filters */}
-      <div className="sq-filters">
-        <input className="sq-input" placeholder="Search roster…" value={searchRoster} onChange={(e)=>setSearchRoster(e.target.value)} />
-        <div style={{ width: 8 }} />
-        <input className="sq-input" placeholder={`Search ${format} squad…`} value={searchSquad} onChange={(e)=>setSearchSquad(e.target.value)} />
-        <select className="sq-select" value={filterRole} onChange={(e)=>setFilterRole(e.target.value)}>
-          <option value="ALL">All Roles</option>
-          <option value="Batsman">Batsman</option>
-          <option value="Bowler">Bowler</option>
-          <option value="All Rounder">All Rounder</option>
-          <option value="Wicketkeeper/Batsman">Wicketkeeper/Batsman</option>
-        </select>
+      {/* Filters + Roster toggle */}
+      <div className="sq-toprow">
+        <div className="sq-filters">
+          <input className="sq-input" placeholder={`Search ${format} squad…`} value={searchSquad} onChange={(e)=>setSearchSquad(e.target.value)} />
+          <select className="sq-select" value={filterRole} onChange={(e)=>setFilterRole(e.target.value)}>
+            <option value="ALL">All Roles</option>
+            <option value="Batsman">Batsman</option>
+            <option value="Bowler">Bowler</option>
+            <option value="All Rounder">All Rounder</option>
+            <option value="Wicketkeeper/Batsman">Wicketkeeper/Batsman</option>
+          </select>
+        </div>
+
+        <button className="sq-btn ghost" onClick={() => setShowRoster(v => !v)} type="button">
+          {showRoster ? "Hide" : "Manage memberships"}
+        </button>
       </div>
 
-      {/* Board: Roster + (Current) Squad + Lineup */}
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="grid-3">
-          {/* Team Roster */}
-          <div className="sq-panel">
+      {/* Collapsible Roster (union of formats) */}
+      {showRoster && (
+        <div className="sq-roster">
+          <div className="sq-roster-head">
             <div className="sq-panel-title">👥 Team Roster (union of ODI/T20/TEST)</div>
+            <input className="sq-input" placeholder="Search roster…" value={searchRoster} onChange={(e)=>setSearchRoster(e.target.value)} />
+          </div>
+          <div className="sq-roster-list">
             {roster
               .filter((r) => !searchRoster || ci(r.name).includes(ci(searchRoster)))
               .map((r, idx) => (
-              <div key={`ro-${idx}`} className="sq-card">
-                <div className="sq-card-left">
-                  <span className="sq-ico">{iconFor(r.sample)}</span>
-                  <div>
-                    <div className="sq-name">{r.name}</div>
-                    <div className="sq-sub">{r.sample?.batting_style || "—"} • {r.sample?.bowling_type || "—"}</div>
+                <div key={`ro-${idx}`} className="sq-card">
+                  <div className="sq-card-left">
+                    <span className="sq-ico">{iconFor(r.sample)}</span>
+                    <div>
+                      <div className="sq-name">{r.name}</div>
+                      <div className="sq-sub">{r.sample?.batting_style || "—"} • {r.sample?.bowling_type || "—"}</div>
+                    </div>
+                  </div>
+                  <div className="sq-actions">
+                    {FORMATS.map((F) => {
+                      const on = !!r.fmtIds[F];
+                      return (
+                        <button
+                          key={F}
+                          className={`sq-chip ${on?"on":""}`}
+                          title={`${on?"Remove from":"Add to"} ${F}`}
+                          onClick={() => toggleMembership(r, F)}
+                          type="button"
+                        >
+                          {F}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-                <div className="sq-actions">
-                  {FORMATS.map((F) => {
-                    const on = !!r.fmtIds[F];
-                    return (
-                      <button
-                        key={F}
-                        className={`sq-chip ${on?"on":""}`}
-                        title={`${on?"Remove from":"Add to"} ${F}`}
-                        onClick={() => toggleMembership(r, F)}
-                        type="button"
-                      >
-                        {F}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+              ))}
             {!roster.length && <div className="sq-empty">No players yet. Add to squad above.</div>}
           </div>
+        </div>
+      )}
 
+      {/* Board: Squad + Lineup */}
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div className="grid-2">
           {/* Squad (current format) */}
           <Droppable droppableId="squad">
             {(provided) => (
@@ -599,7 +621,7 @@ export default function SquadLineup({ isAdmin = true }) {
                   </Draggable>
                 ))}
                 {provided.placeholder}
-                {!currentSquad.length && <div className="sq-empty">No available players (others may be in Lineup). Add new or toggle from Roster.</div>}
+                {!currentSquad.length && <div className="sq-empty">No available players (others may be in Lineup). Add new or import.</div>}
               </div>
             )}
           </Droppable>
@@ -667,6 +689,26 @@ export default function SquadLineup({ isAdmin = true }) {
             <div className="sq-modal-actions">
               <button className="sq-btn" onClick={()=>setEditing(null)} type="button">Cancel</button>
               <button className="sq-btn primary" onClick={doUpdate} type="button">Update</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Help Modal */}
+      {showHelp && (
+        <div className="sq-modal" role="dialog" aria-modal="true" onClick={() => setShowHelp(false)}>
+          <div className="sq-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="sq-modal-title">How this page works</div>
+            <ul className="sq-help-list">
+              <li><b>Pick Team & Format</b> at the top. Use <i>Quick import</i> to copy players from a different format into the current format (duplicates are skipped).</li>
+              <li><b>Add to Squad</b> with role & batting/bowling details. Suggestions show where this name already exists.</li>
+              <li><b>Build Lineup</b> by dragging from Squad → Lineup. Reorder by dragging inside Lineup. Max 12 (includes one 12th).</li>
+              <li><b>C & VC</b> — exactly one Captain and one Vice-captain; must be different.</li>
+              <li><b>Manage memberships</b> expands the full team roster (union of formats) with chips to add/remove a player to ODI/T20/TEST.</li>
+              <li><b>Save</b> stores the current lineup for the selected team & format.</li>
+            </ul>
+            <div className="sq-modal-actions">
+              <button className="sq-btn primary" onClick={() => setShowHelp(false)} type="button">Got it</button>
             </div>
           </div>
         </div>
