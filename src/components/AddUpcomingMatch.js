@@ -1,255 +1,305 @@
 // ✅ src/components/AddUpcomingMatch.js
+// Dark form + golden “i” help, toast, loading spinner, success check + confetti
+// (the aum-* version)
 
-// ✅ [CrickEdge Floating Form - Upcoming Match Scheduler | Ranaj Parida | 30-Apr-2025]
+import React, { useEffect, useMemo, useState } from "react";
+import { createUpcomingMatch } from "../services/api";
+import { useAuth } from "../services/auth";
+import { FaInfo } from "react-icons/fa";
+import "./AddUpcomingMatch.css";
 
-import React, { useState, useEffect } from "react";
-import { FaSave } from "react-icons/fa";
-import { addUpcomingMatch } from "../services/api"; // we'll create this next!
-import './AddUpcomingMatch.css'; // for dark screen page Ranaj Parida
+const TEAMS = [
+  "India","Australia","England","Pakistan","New Zealand","South Africa",
+  "Sri Lanka","Bangladesh","Afghanistan","West Indies","Ireland",
+  "Netherlands","Zimbabwe","Scotland","Namibia","UAE","USA"
+];
 
-const AddUpcomingMatch = () => {
-  // GPT ENHANCEMENT: Function to get tomorrow's date in yyyy-mm-dd format
-  const getTomorrowDateString = () => {
-    const today = new Date();
-    today.setDate(today.getDate() + 1); // Move to tomorrow
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, "0");
-    const dd = String(today.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  };
+export default function AddUpcomingMatch({ isAdmin = true }) {
+  const { currentUser } = useAuth();
 
+  // sanity log: confirm correct file renders
+  useEffect(() => { console.log("AddUpcomingMatch (aum) mounted"); }, []);
 
+  const [form, setForm] = useState({
+    match_name: "",
+    match_type: "ODI",
+    team_1: "",
+    team_2: "",
+    team_playing: "",
+    match_date: "",
+    match_time: "",
+    location: "",
+    series_name: "",
+    match_status: "Scheduled",
+    day_night: "Day",
+  });
 
-  // Store tomorrow's date for use as default and min date
-  const tomorrowDate = getTomorrowDateString();
+  const [submitting, setSubmitting] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
+  const [celebrate, setCelebrate] = useState(false);
+  const [toast, setToast] = useState("");
 
-const [formData, setFormData] = useState({
-  match_name: "",
-  match_type: "ODI",
-  team_1: "",
-  team_2: "",
-  match_date: tomorrowDate,
-  match_time: "",
-  location: "",
-  series_name: "",
-  match_status: "Scheduled",
-  day_night: "Day",
-  user_id: "", // changed
-});
+  const livePlaying = useMemo(() => {
+    const t1 = (form.team_1 || "").trim();
+    const t2 = (form.team_2 || "").trim();
+    if (!t1 && !t2) return "";
+    return `${t1 || "Team 1"} vs ${t2 || "Team 2"}`;
+  }, [form.team_1, form.team_2]);
 
-const [teamPlaying, setTeamPlaying] = useState(""); // added file
-// In effect
-useEffect(() => {
-  const storedUser = JSON.parse(localStorage.getItem("user"));
-  setFormData((prev) => ({
-    ...prev,
-    user_id: storedUser?.id || "",
-  }));
-}, []);
+  const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
-
-  useEffect(() => {
-    if (formData.team_1 && formData.team_2) {
-      const team1Formatted = normalizeTeamName(formData.team_1);
-      const team2Formatted = normalizeTeamName(formData.team_2);
-      setTeamPlaying(`${team1Formatted} vs ${team2Formatted}`);
-    } else {
-      setTeamPlaying("");
-    }
-  }, [formData.team_1, formData.team_2]);
-
-  const normalizeTeamName = (name) => {
-    const n = name.trim().toLowerCase();
-    if (n === "ind" || n === "india") return "India";
-    if (n === "aus" || n === "australia") return "Australia";
-    if (n === "pak" || n === "pakistan") return "Pakistan";
-    if (n === "eng" || n === "england") return "England";
-    // More team normalization can be added
-    return name.trim();
-  };
-
-  const normalizeAndCapitalize = (str) => {
-    const cleaned = str.trim().toLowerCase();
-    return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name.startsWith("team_")
-        ? normalizeAndCapitalize(value)
-        : value
-    }));
-  };
-
-  const validateForm = () => {
-    const requiredFields = [
-      "match_name", "match_type", "team_1", "team_2",
-      "match_date", "match_time", "location", "match_status", "day_night"
-    ];
-
-    for (let field of requiredFields) {
-      if (!formData[field] || formData[field].trim() === "") {
-        return `Field "${field}" is required`;
-      }
-    }
-
-    const team1 = formData.team_1.trim().toLowerCase();
-    const team2 = formData.team_2.trim().toLowerCase();
-
-    // ✅ Team names must not be identical
-    if (team1 === team2) {
-      return "Team 1 and Team 2 cannot be the same.";
-    }
-
-    // ✅ Minimum length check
-    if (team1.length < 3 || team2.length < 3) {
-      return "Team names must be at least 3 characters long.";
-    }
-
-    // ✅ Letters and spaces only
-    const nameRegex = /^[A-Za-z\s]+$/;
-    if (!nameRegex.test(formData.team_1) || !nameRegex.test(formData.team_2)) {
-      return "Team names must contain only letters and spaces.";
-    }
-
-    // GPT ENHANCEMENT: Prevent scheduling for past or today (must be tomorrow or later)
-    if (formData.match_date < tomorrowDate) {
-      return "Cannot select past dates or today. Please pick tomorrow or a future date.";
-    }
-
-    return null;
-  };
+  const cleanTeam = (s) =>
+    (s || "").toString().trim().replace(/\s+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
 
-    const error = validateForm();
-    if (error) {
-      alert(error);
+    if (!form.match_name || !form.team_1 || !form.team_2 || !form.match_date || !form.match_time) {
+      setToast("Please fill Match Name, Team 1, Team 2, Date and Time.");
+      setTimeout(() => setToast(""), 2500);
       return;
     }
 
+    const payload = {
+      match_name: form.match_name.trim(),
+      match_type: form.match_type,
+      team_1: cleanTeam(form.team_1),
+      team_2: cleanTeam(form.team_2),
+      team_playing: (form.team_playing || livePlaying).trim(),
+      match_date: form.match_date,
+      match_time: form.match_time,
+      location: form.location.trim(),
+      series_name: form.series_name.trim(),
+      match_status: form.match_status,
+      day_night: form.day_night,
+      created_by: currentUser?.email || "system@crickedge",
+    };
+
     try {
-      const payload = {
-        ...formData,
-        team_playing: teamPlaying,
-      };
-      console.log("🛰️ Sending match payload to backend:", payload); // handle error log
-      const response = await addUpcomingMatch(payload);
-      alert("Match Scheduled Successfully!");
-      // Reset form
-      // GPT UPDATE: Always set created_by again from localStorage
-     // After success:
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      setFormData({
-        match_name: "",
-        match_type: "ODI",
-        team_1: "",
-        team_2: "",
-        match_date: tomorrowDate, // reset to tomorrow's date
-        match_time: "",
-        location: "",
-        series_name: "",
-        match_status: "Scheduled",
-        day_night: "Day",
-        user_id: storedUser?.id || "",  // <-- FIXED
-      });
-      setTeamPlaying("");
+      setSubmitting(true);
+      await createUpcomingMatch(payload);
+
+      setCelebrate(true);
+      setToast("Match scheduled successfully 🎉");
+      setTimeout(() => setToast(""), 2800);
+
+      setTimeout(() => {
+        setForm({
+          match_name: "",
+          match_type: "ODI",
+          team_1: "",
+          team_2: "",
+          team_playing: "",
+          match_date: "",
+          match_time: "",
+          location: "",
+          series_name: "",
+          match_status: "Scheduled",
+          day_night: "Day",
+        });
+        setCelebrate(false);
+      }, 1600);
     } catch (err) {
-      console.error("Error scheduling match", err);
-      alert("Failed to schedule match. Please try again.");
+      const msg =
+        err?.response?.data?.error || err?.message || "Failed to schedule match. Please try again.";
+      setToast(msg);
+      setTimeout(() => setToast(""), 3200);
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="add-upcoming-match" style={styles.container}>
-      <h2 style={styles.heading}>➕ Schedule Upcoming Match</h2>
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <input type="text" name="match_name" placeholder="Match Name" value={formData.match_name} onChange={handleChange} style={styles.input} />
-
-        <select name="match_type" value={formData.match_type} onChange={handleChange} style={styles.input}>
-          <option value="ODI">ODI</option>
-          <option value="T20">T20</option>
-          <option value="Test">Test</option>
-        </select>
-
-        <input
-          type="text"
-          name="team_1"
-          placeholder="Team 1"
-          value={formData.team_1}
-          onChange={handleChange}
-          style={{
-            ...styles.input,
-            borderColor:
-              formData.team_1.trim().toLowerCase() === formData.team_2.trim().toLowerCase()
-                ? "red"
-                : "#ccc",
-          }}
-        />
-
-        <input
-          type="text"
-          name="team_2"
-          placeholder="Team 2"
-          value={formData.team_2}
-          onChange={handleChange}
-          style={{
-            ...styles.input,
-            borderColor:
-              formData.team_1.trim().toLowerCase() === formData.team_2.trim().toLowerCase()
-                ? "red"
-                : "#ccc",
-          }}
-        />
-
-        {/* Auto Generated Team Playing Field */}
-        <input type="text" name="team_playing" placeholder="Team Playing" value={teamPlaying} disabled style={styles.input} />
-
-        {/* GPT CHANGE: Add min attribute to restrict past dates, and set default to tomorrow */}
-        <input
-          type="date"
-          name="match_date"
-          placeholder="Match Date"
-          value={formData.match_date}
-          onChange={handleChange}
-          min={tomorrowDate} // GPT ENHANCEMENT: restrict to tomorrow and future
-          style={styles.input}
-        />
-
-        <input type="time" name="match_time" placeholder="Match Time" value={formData.match_time} onChange={handleChange} style={styles.input} />
-
-        <input type="text" name="location" placeholder="Venue/Location" value={formData.location} onChange={handleChange} style={styles.input} />
-
-        <input type="text" name="series_name" placeholder="Series Name" value={formData.series_name} onChange={handleChange} style={styles.input} />
-
-        <select name="match_status" value={formData.match_status} onChange={handleChange} style={styles.input}>
-          <option value="Scheduled">Scheduled</option>
-          <option value="Postponed">Postponed</option>
-          <option value="Cancelled">Cancelled</option>
-        </select>
-
-        <select name="day_night" value={formData.day_night} onChange={handleChange} style={styles.input}>
-          <option value="Day">Day</option>
-          <option value="Night">Night</option>
-        </select>
-
-        <button type="submit" style={styles.button}>
-          <FaSave /> Submit
+    <div className="aum-wrap" id="add-upcoming-match-v3" data-component="AddUpcomingMatch.aum">
+      {/* title + golden info button */}
+      <div className="aum-titlebar">
+        <h2 className="aum-title">➕ Schedule Upcoming Match</h2>
+        <button
+          type="button"
+          className="aum-info-btn"
+          aria-label="How this page works"
+          onClick={() => setShowInfo(true)}
+          title="About this page"
+        >
+          <FaInfo />
         </button>
+      </div>
+
+      {/* toast */}
+      {toast && <div className="aum-toast" role="status" aria-live="polite">{toast}</div>}
+
+      {/* card */}
+      <form className="aum-card" onSubmit={handleSubmit}>
+        <div className="aum-grid">
+          <div className="aum-field aum-col-2">
+            <label>Match Name</label>
+            <input
+              className="aum-input"
+              value={form.match_name}
+              onChange={(e) => set("match_name", e.target.value)}
+              placeholder="Triangular Series 2025"
+            />
+          </div>
+
+          <div className="aum-field">
+            <label>Format</label>
+            <select
+              className="aum-input"
+              value={form.match_type}
+              onChange={(e) => set("match_type", e.target.value)}
+            >
+              <option>ODI</option>
+              <option>T20</option>
+              <option>Test</option>
+            </select>
+          </div>
+
+          <div className="aum-field">
+            <label>Team 1</label>
+            <input
+              className="aum-input"
+              list="aum-teams"
+              value={form.team_1}
+              onChange={(e) => set("team_1", e.target.value)}
+              placeholder="India"
+            />
+          </div>
+
+          <div className="aum-field">
+            <label>Team 2</label>
+            <input
+              className="aum-input"
+              list="aum-teams"
+              value={form.team_2}
+              onChange={(e) => set("team_2", e.target.value)}
+              placeholder="Australia"
+            />
+          </div>
+
+          <datalist id="aum-teams">
+            {TEAMS.map((t) => <option key={t} value={t} />)}
+          </datalist>
+
+          <div className="aum-field aum-col-2">
+            <label>Team Playing (auto)</label>
+            <input
+              className="aum-input"
+              value={form.team_playing || livePlaying}
+              onChange={(e) => set("team_playing", e.target.value)}
+              placeholder="India vs Australia"
+            />
+          </div>
+
+          <div className="aum-field">
+            <label>Date</label>
+            <input
+              type="date"
+              className="aum-input"
+              value={form.match_date}
+              onChange={(e) => set("match_date", e.target.value)}
+            />
+          </div>
+
+          <div className="aum-field">
+            <label>Time</label>
+            <input
+              type="time"
+              className="aum-input"
+              value={form.match_time}
+              onChange={(e) => set("match_time", e.target.value)}
+            />
+          </div>
+
+          <div className="aum-field aum-col-2">
+            <label>Venue / Location</label>
+            <input
+              className="aum-input"
+              value={form.location}
+              onChange={(e) => set("location", e.target.value)}
+              placeholder="Adelaide"
+            />
+          </div>
+
+          <div className="aum-field aum-col-2">
+            <label>Series Name</label>
+            <input
+              className="aum-input"
+              value={form.series_name}
+              onChange={(e) => set("series_name", e.target.value)}
+              placeholder="Triangular Series 2025"
+            />
+          </div>
+
+          <div className="aum-field">
+            <label>Status</label>
+            <select
+              className="aum-input"
+              value={form.match_status}
+              onChange={(e) => set("match_status", e.target.value)}
+            >
+              <option>Scheduled</option>
+              <option>Postponed</option>
+              <option>Cancelled</option>
+            </select>
+          </div>
+
+          <div className="aum-field">
+            <label>Day/Night</label>
+            <select
+              className="aum-input"
+              value={form.day_night}
+              onChange={(e) => set("day_night", e.target.value)}
+            >
+              <option>Day</option>
+              <option>Night</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="aum-actions">
+          <button className={`aum-btn ${submitting ? "loading" : ""}`} disabled={submitting}>
+            {submitting ? "Submitting…" : "Submit"}
+          </button>
+        </div>
+
+        {celebrate && (
+          <div className="aum-celebrate" aria-live="polite">
+            <div className="aum-check">
+              <svg viewBox="0 0 52 52" aria-hidden="true">
+                <circle className="aum-check-circle" cx="26" cy="26" r="24" />
+                <path className="aum-check-mark" fill="none" d="M14 27 l8 8 l16 -16" />
+              </svg>
+              <div className="aum-check-text">Saved!</div>
+            </div>
+            <div className="aum-confetti">
+              {Array.from({ length: 60 }).map((_, i) => (
+                <span key={i} style={{ "--i": i, "--slot": i % 8 }} />
+              ))}
+            </div>
+          </div>
+        )}
       </form>
+
+      {showInfo && (
+        <div className="aum-modal" role="dialog" aria-modal="true" aria-label="How this page works">
+          <div className="aum-modal-card">
+            <div className="aum-modal-head">
+              <h3>About “Schedule Upcoming Match”</h3>
+              <button className="aum-x" onClick={() => setShowInfo(false)} aria-label="Close">×</button>
+            </div>
+            <ul className="aum-help">
+              <li>Select format (ODI / T20 / Test).</li>
+              <li>Enter Team 1 & Team 2 — “Team Playing” fills automatically.</li>
+              <li>Pick Date, Time, Venue and Series.</li>
+              <li>Set Status & Day/Night, then Submit.</li>
+            </ul>
+            <div className="aum-modal-foot">
+              <button className="aum-btn ghost" onClick={() => setShowInfo(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
-
-const styles = {
-  container: { padding: "20px", maxWidth: "600px", margin: "auto" },
-  heading: { fontSize: "24px", marginBottom: "20px", textAlign: "center" },
-  form: { display: "flex", flexDirection: "column", gap: "10px" },
-  input: { padding: "10px", borderRadius: "5px", border: "1px solid #ccc" },
-  button: { padding: "10px", backgroundColor: "#1e90ff", color: "white", borderRadius: "5px", cursor: "pointer", border: "none" },
-};
-
-export default AddUpcomingMatch;
+}
