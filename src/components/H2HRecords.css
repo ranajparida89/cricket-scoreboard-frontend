@@ -1,4 +1,4 @@
-/* H2HRecords.css — premium dark with gold accents, charts without animation */
+/* Premium dark + gold; toned-down info FAB; no chart animations */
 
 :root{
   --bg:#09121a;
@@ -7,17 +7,16 @@
   --line:#20324b;
   --ink:#eaf2ff;
   --ink-d:#cbd7ea;
-
-  --t1:#22d3ee;  /* Team 1 (cyan/teal) */
-  --t2:#f87171;  /* Team 2 (rose) */
-  --draw:#94a3b8;/* Draw (slate) */
   --grid:#334155;
+
+  --t1:#22d3ee;  /* cyan */
+  --t2:#f87171;  /* rose */
+  --draw:#94a3b8;
 
   --gold:#e8caa4;
   --gold-strong:#ffd889;
 }
 
-/* Layout base */
 *{ box-sizing:border-box; }
 .h2h-wrap{
   min-height:100vh;
@@ -29,7 +28,6 @@
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue";
 }
 
-/* Top bar */
 .h2h-topbar{
   display:flex; justify-content:space-between; align-items:center;
   max-width:1200px; margin:0 auto 12px;
@@ -43,29 +41,24 @@
   text-shadow:0 0 14px rgba(232,202,164,.25);
 }
 
-/* Floating info button (heartbeat rhythm) */
-.info-fab{
-  position:relative;
-  width:54px; height:54px; border-radius:999px; border:none; cursor:pointer;
-  display:grid; place-items:center; font-size:22px; color:#1e1502;
-  background: radial-gradient(120px 70px at 50% 10%, rgba(255,255,255,.5), transparent 60%),
-              linear-gradient(145deg, #ffe8a8, #ffcc5b);
-  box-shadow:0 0 26px rgba(232,202,164,.9), 0 10px 40px rgba(232,202,164,.45);
-  outline:2px solid rgba(232,202,164,.65);
-  right:0;
-  /* Heartbeat (very gentle, transform only) */
-  animation: heartbeat 2.2s ease-in-out infinite;
+/* Subtle square info button like your screenshot */
+.info-fab.subtle{
+  width:40px; height:40px; border-radius:12px; border:1px solid rgba(232,202,164,.65);
+  display:grid; place-items:center; cursor:pointer;
+  background:linear-gradient(145deg, #1a1610, #0f0d09);
+  color:#e5c98f; font-size:18px;
+  /* soft glow + heartbeat with very small amplitude */
+  box-shadow:0 0 12px rgba(232,202,164,.45), 0 0 4px rgba(232,202,164,.25) inset;
+  animation: heartbeat 2.6s ease-in-out infinite;
 }
 @keyframes heartbeat{
-  0%,100%{ transform: scale(1); }
-  14%{ transform: scale(1.06); }
-  28%{ transform: scale(1); }
-  42%{ transform: scale(1.06); }
-  70%{ transform: scale(1); }
+  0%,100%{ transform: scale(1); box-shadow:0 0 12px rgba(232,202,164,.45), 0 0 4px rgba(232,202,164,.25) inset; }
+  22%{ transform: scale(1.02); box-shadow:0 0 16px rgba(232,202,164,.55), 0 0 6px rgba(232,202,164,.3) inset; }
+  44%{ transform: scale(1); }
+  66%{ transform: scale(1.02); }
 }
-/* Respect users who prefer no motion */
 @media (prefers-reduced-motion: reduce){
-  .info-fab{ animation: none; }
+  .info-fab.subtle{ animation:none; }
 }
 
 /* Selects */
@@ -89,7 +82,7 @@
 }
 .alert.warn{ border-color:#5a2230; background:rgba(127,24,40,.18); color:#ffd1d8; }
 
-/* Summary card */
+/* Summary */
 .summary-card{
   max-width:1200px; margin:14px auto;
   background: linear-gradient(160deg, var(--panel), var(--panel2));
@@ -97,21 +90,14 @@
   box-shadow:0 10px 30px rgba(0,0,0,.25);
 }
 .sum-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-.sum-title{
-  color:#93c5fd; font-weight:800; letter-spacing:.2px;
-}
+.sum-title{ color:#93c5fd; font-weight:800; letter-spacing:.2px; }
 .sum-type{ color:#99b1d8; font-size:13px; }
 .kpi-grid{
   display:grid; gap:10px;
   grid-template-columns: repeat(2, minmax(0,1fr));
 }
-@media(min-width:860px){
-  .kpi-grid{ grid-template-columns: repeat(4, minmax(0,1fr)); }
-}
-.kpi{
-  background:#0c1624; border:1px solid var(--line);
-  border-radius:12px; padding:12px;
-}
+@media(min-width:860px){ .kpi-grid{ grid-template-columns: repeat(4, minmax(0,1fr)); } }
+.kpi{ background:#0c1624; border:1px solid var(--line); border-radius:12px; padding:12px; }
 .kpi .kpi-label{ color:#9fb3d6; font-weight:700; }
 .kpi .kpi-value{ font-size:22px; font-weight:900; color:#f2f7ff; }
 .kpi .kpi-pair{ display:flex; justify-content:space-between; color:#cfe1ff; margin-top:6px; }
@@ -127,16 +113,12 @@
   max-width:1200px; margin:12px auto;
   display:grid; gap:12px; grid-template-columns:1fr;
 }
-@media(min-width:980px){
-  .charts-grid{ grid-template-columns: 1fr 1fr; }
-}
+@media(min-width:980px){ .charts-grid{ grid-template-columns: 1fr 1fr; } }
 .chart-card{
   background: linear-gradient(160deg, var(--panel), var(--panel2));
   border:1px solid var(--line); border-radius:14px; padding:12px;
 }
-.chart-title{
-  color:#86efac; font-weight:800; margin-bottom:6px;
-}
+.chart-title{ color:#86efac; font-weight:800; margin-bottom:6px; }
 
 /* Player section */
 .player-sec{ max-width:1200px; margin:22px auto 0; }
