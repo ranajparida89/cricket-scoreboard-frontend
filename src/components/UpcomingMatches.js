@@ -1,6 +1,5 @@
-// ✅ src/components/AddUpcomingMatch.jsx
-// Dark-themed form + golden “i” help, toast, loading spinner,
-// success check + confetti (CSS-safe: no modulo inside calc()).
+// ✅ src/components/AddUpcomingMatch.js
+// Dark form + golden “i” help, toast, loading spinner, success check + confetti
 
 import React, { useMemo, useState } from "react";
 import { createUpcomingMatch } from "../services/api";
@@ -14,31 +13,28 @@ const TEAMS = [
   "Netherlands","Zimbabwe","Scotland","Namibia","UAE","USA"
 ];
 
-const AddUpcomingMatch = ({ isAdmin = true }) => {
+export default function AddUpcomingMatch({ isAdmin = true }) {
   const { currentUser } = useAuth();
 
-  // ---- form state ----
   const [form, setForm] = useState({
     match_name: "",
-    match_type: "ODI",         // "ODI" | "T20" | "Test"
+    match_type: "ODI",
     team_1: "",
     team_2: "",
-    team_playing: "",          // derived, editable
-    match_date: "",            // YYYY-MM-DD
-    match_time: "",            // HH:mm
+    team_playing: "",
+    match_date: "",
+    match_time: "",
     location: "",
     series_name: "",
-    match_status: "Scheduled", // "Scheduled" | "Postponed" | "Cancelled"
-    day_night: "Day",          // "Day" | "Night"
+    match_status: "Scheduled",
+    day_night: "Day",
   });
 
-  // ---- ui state ----
   const [submitting, setSubmitting] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const [toast, setToast] = useState("");
 
-  // keep team_playing synced by default
   const livePlaying = useMemo(() => {
     const t1 = (form.team_1 || "").trim();
     const t2 = (form.team_2 || "").trim();
@@ -47,20 +43,13 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
   }, [form.team_1, form.team_2]);
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
-
-  // title-case helper
   const cleanTeam = (s) =>
-    (s || "")
-      .toString()
-      .trim()
-      .replace(/\s+/g, " ")
-      .replace(/\b\w/g, (c) => c.toUpperCase());
+    (s || "").toString().trim().replace(/\s+/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (submitting) return;
 
-    // minimal client validation
     if (!form.match_name || !form.team_1 || !form.team_2 || !form.match_date || !form.match_time) {
       setToast("Please fill Match Name, Team 1, Team 2, Date and Time.");
       setTimeout(() => setToast(""), 2500);
@@ -69,7 +58,7 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
 
     const payload = {
       match_name: form.match_name.trim(),
-      match_type: form.match_type, // backend accepts "ODI" | "T20" | "Test"
+      match_type: form.match_type,
       team_1: cleanTeam(form.team_1),
       team_2: cleanTeam(form.team_2),
       team_playing: (form.team_playing || livePlaying).trim(),
@@ -85,17 +74,13 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
     try {
       setSubmitting(true);
       await createUpcomingMatch(payload);
-
-      // success!
       setCelebrate(true);
       setToast("Match scheduled successfully 🎉");
       setTimeout(() => setToast(""), 2800);
-
-      // reset shortly after so users see what they submitted
       setTimeout(() => {
-        setForm((p) => ({
-          ...p,
+        setForm({
           match_name: "",
+          match_type: "ODI",
           team_1: "",
           team_2: "",
           team_playing: "",
@@ -105,14 +90,12 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
           series_name: "",
           match_status: "Scheduled",
           day_night: "Day",
-        }));
+        });
         setCelebrate(false);
       }, 1600);
     } catch (err) {
       const msg =
-        err?.response?.data?.error ||
-        err?.message ||
-        "Failed to schedule match. Please try again.";
+        err?.response?.data?.error || err?.message || "Failed to schedule match. Please try again.";
       setToast(msg);
       setTimeout(() => setToast(""), 3200);
     } finally {
@@ -122,7 +105,6 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
 
   return (
     <div className="aum-wrap">
-      {/* title + golden info button */}
       <div className="aum-titlebar">
         <h2 className="aum-title">➕ Schedule Upcoming Match</h2>
         <button
@@ -136,10 +118,8 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
         </button>
       </div>
 
-      {/* toast */}
       {toast && <div className="aum-toast">{toast}</div>}
 
-      {/* main card */}
       <form className="aum-card" onSubmit={handleSubmit}>
         <div className="aum-grid">
           <div className="aum-field aum-col-2">
@@ -275,7 +255,6 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
           </button>
         </div>
 
-        {/* success celebration overlay */}
         {celebrate && (
           <div className="aum-celebrate" aria-live="polite">
             <div className="aum-check">
@@ -285,8 +264,6 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
               </svg>
               <div className="aum-check-text">Saved!</div>
             </div>
-
-            {/* ⬇️ pass remainder via --slot (no modulo in CSS) */}
             <div className="aum-confetti">
               {Array.from({ length: 60 }).map((_, i) => (
                 <span key={i} style={{ "--i": i, "--slot": i % 8 }} />
@@ -296,7 +273,6 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
         )}
       </form>
 
-      {/* info modal */}
       {showInfo && (
         <div className="aum-modal" role="dialog" aria-modal="true" aria-label="How this page works">
           <div className="aum-modal-card">
@@ -305,11 +281,10 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
               <button className="aum-x" onClick={() => setShowInfo(false)} aria-label="Close">×</button>
             </div>
             <ul className="aum-help">
-              <li>Pick the <strong>format</strong> (ODI, T20, or Test).</li>
-              <li>Enter <strong>Team 1</strong> and <strong>Team 2</strong>. “Team Playing” fills automatically.</li>
-              <li>Choose the <strong>Date</strong>, <strong>Time</strong>, and <strong>Venue</strong>.</li>
-              <li>Set the <strong>Status</strong> and whether it’s a <strong>Day</strong> or <strong>Night</strong> match.</li>
-              <li>Click <strong>Submit</strong>. You’ll see a golden check + confetti on success.</li>
+              <li>Select format (ODI / T20 / Test).</li>
+              <li>Enter Team 1 & Team 2 — “Team Playing” fills automatically.</li>
+              <li>Pick Date, Time, Venue and Series.</li>
+              <li>Set Status & Day/Night, then Submit.</li>
             </ul>
             <div className="aum-modal-foot">
               <button className="aum-btn ghost" onClick={() => setShowInfo(false)}>Close</button>
@@ -319,6 +294,4 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
       )}
     </div>
   );
-};
-
-export default AddUpcomingMatch;
+}
