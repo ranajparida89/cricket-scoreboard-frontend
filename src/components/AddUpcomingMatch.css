@@ -1,5 +1,6 @@
 /* ===============================================================
    AddUpcomingMatch.css  (Dark theme + golden info button)
+   Strong specificity so Bootstrap can't override.
    =============================================================== */
 
 /* ---------- shell ---------- */
@@ -25,8 +26,11 @@
   font-weight: 800;
   letter-spacing:.2px;
 }
+
+/* ensure the icon is visible and sized */
 .aum-info-btn{
-  display:inline-grid; place-items:center;
+  display:inline-grid;
+  place-items:center;
   width:34px; height:34px; border-radius:10px;
   background: rgba(255,215,160,.08);
   color: #e8caa4;
@@ -36,6 +40,7 @@
   transition: transform .14s ease, background .14s ease;
   font-weight:800;
 }
+.aum-info-btn svg{ width:16px; height:16px; display:block; }
 .aum-info-btn:hover{ transform: translateY(-1px); background: rgba(255,215,160,.12); }
 .aum-info-btn::after{
   content:""; position:absolute; inset:-8px; border-radius:inherit;
@@ -149,7 +154,7 @@ input[type="time"].aum-input::-webkit-calendar-picker-indicator{
 @keyframes aum-tick{ to{ stroke-dashoffset:0 } }
 .aum-check-text{ color:#e8caa4; font-weight:800; letter-spacing:.5px; }
 
-/* ---------- confetti (CSS-safe: no modulo in calc) ---------- */
+/* ---------- confetti (no modulo in calc) ---------- */
 .aum-confetti{ position:absolute; inset:0; overflow:hidden; pointer-events:none; }
 .aum-confetti span{
   --i: 0; --slot: 0;
@@ -189,3 +194,12 @@ input[type="time"].aum-input::-webkit-calendar-picker-indicator{
 
 /* ---------- helpers ---------- */
 @keyframes aum-cardIn{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)} }
+
+/* ---------- last-resort nuclear override (keeps inputs dark) ---------- */
+.aum-card input,
+.aum-card select,
+.aum-card textarea{
+  background:#23272f !important;
+  color:#fff !important;
+  border-color:#2e2e34 !important;
+}

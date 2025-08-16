@@ -1,7 +1,8 @@
 // ✅ src/components/AddUpcomingMatch.js
 // Dark form + golden “i” help, toast, loading spinner, success check + confetti
+// Adds mount log + data attributes so you can confirm the right file is rendering.
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createUpcomingMatch } from "../services/api";
 import { useAuth } from "../services/auth";
 import { FaInfo } from "react-icons/fa";
@@ -15,6 +16,11 @@ const TEAMS = [
 
 export default function AddUpcomingMatch({ isAdmin = true }) {
   const { currentUser } = useAuth();
+
+  // Confirm this file is the one rendering
+  useEffect(() => {
+    console.log("AddUpcomingMatch v3 mounted");
+  }, []);
 
   const [form, setForm] = useState({
     match_name: "",
@@ -44,7 +50,7 @@ export default function AddUpcomingMatch({ isAdmin = true }) {
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
   const cleanTeam = (s) =>
-    (s || "").toString().trim().replace(/\s+/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    (s || "").toString().trim().replace(/\s+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -104,7 +110,12 @@ export default function AddUpcomingMatch({ isAdmin = true }) {
   };
 
   return (
-    <div className="aum-wrap">
+    <div
+      className="aum-wrap"
+      id="add-upcoming-match-v3"
+      data-component="AddUpcomingMatch.v3"
+      data-theme="dark"
+    >
       <div className="aum-titlebar">
         <h2 className="aum-title">➕ Schedule Upcoming Match</h2>
         <button
@@ -118,7 +129,7 @@ export default function AddUpcomingMatch({ isAdmin = true }) {
         </button>
       </div>
 
-      {toast && <div className="aum-toast">{toast}</div>}
+      {toast && <div className="aum-toast" role="status" aria-live="polite">{toast}</div>}
 
       <form className="aum-card" onSubmit={handleSubmit}>
         <div className="aum-grid">
