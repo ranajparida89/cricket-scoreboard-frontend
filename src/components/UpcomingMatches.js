@@ -1,6 +1,6 @@
 // ✅ src/components/AddUpcomingMatch.jsx
-// UI refresh + golden "i" help, success confetti, and accessible animations.
-// Logic: posts to createUpcomingMatch (unchanged).
+// Dark-themed form + golden “i” help, toast, loading spinner,
+// success check + confetti (CSS-safe: no modulo inside calc()).
 
 import React, { useMemo, useState } from "react";
 import { createUpcomingMatch } from "../services/api";
@@ -23,7 +23,7 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
     match_type: "ODI",         // "ODI" | "T20" | "Test"
     team_1: "",
     team_2: "",
-    team_playing: "",          // derived, but editable if you want
+    team_playing: "",          // derived, editable
     match_date: "",            // YYYY-MM-DD
     match_time: "",            // HH:mm
     location: "",
@@ -38,8 +38,6 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
   const [celebrate, setCelebrate] = useState(false);
   const [toast, setToast] = useState("");
 
-  const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
-
   // keep team_playing synced by default
   const livePlaying = useMemo(() => {
     const t1 = (form.team_1 || "").trim();
@@ -48,7 +46,9 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
     return `${t1 || "Team 1"} vs ${t2 || "Team 2"}`;
   }, [form.team_1, form.team_2]);
 
-  // small helper: trim + Title Case
+  const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+
+  // title-case helper
   const cleanTeam = (s) =>
     (s || "")
       .toString()
@@ -73,8 +73,8 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
       team_1: cleanTeam(form.team_1),
       team_2: cleanTeam(form.team_2),
       team_playing: (form.team_playing || livePlaying).trim(),
-      match_date: form.match_date,          // YYYY-MM-DD
-      match_time: form.match_time,          // HH:mm
+      match_date: form.match_date,
+      match_time: form.match_time,
       location: form.location.trim(),
       series_name: form.series_name.trim(),
       match_status: form.match_status,
@@ -91,7 +91,7 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
       setToast("Match scheduled successfully 🎉");
       setTimeout(() => setToast(""), 2800);
 
-      // reset after a short delay
+      // reset shortly after so users see what they submitted
       setTimeout(() => {
         setForm((p) => ({
           ...p,
@@ -120,17 +120,9 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
     }
   };
 
-  if (!isAdmin) {
-    return (
-      <div className="aum-wrap" style={{ textAlign: "center" }}>
-        You are not authorized to access this page.
-      </div>
-    );
-  }
-
   return (
     <div className="aum-wrap">
-      {/* Title + golden info button */}
+      {/* title + golden info button */}
       <div className="aum-titlebar">
         <h2 className="aum-title">➕ Schedule Upcoming Match</h2>
         <button
@@ -144,13 +136,13 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
         </button>
       </div>
 
-      {/* Toast */}
-      {toast && <div className="aum-toast" role="status" aria-live="polite">{toast}</div>}
+      {/* toast */}
+      {toast && <div className="aum-toast">{toast}</div>}
 
-      {/* Form card */}
-      <form className="aum-card" onSubmit={handleSubmit} noValidate>
+      {/* main card */}
+      <form className="aum-card" onSubmit={handleSubmit}>
         <div className="aum-grid">
-          <div className="aum-field">
+          <div className="aum-field aum-col-2">
             <label>Match Name</label>
             <input
               className="aum-input"
@@ -293,9 +285,11 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
               </svg>
               <div className="aum-check-text">Saved!</div>
             </div>
-            <div className="aum-confetti" aria-hidden="true">
+
+            {/* ⬇️ pass remainder via --slot (no modulo in CSS) */}
+            <div className="aum-confetti">
               {Array.from({ length: 60 }).map((_, i) => (
-                <span key={i} style={{ "--i": i }} />
+                <span key={i} style={{ "--i": i, "--slot": i % 8 }} />
               ))}
             </div>
           </div>
@@ -304,19 +298,11 @@ const AddUpcomingMatch = ({ isAdmin = true }) => {
 
       {/* info modal */}
       {showInfo && (
-        <div
-          className="aum-modal"
-          role="dialog"
-          aria-modal="true"
-          aria-label="How this page works"
-          onClick={() => setShowInfo(false)}
-        >
-          <div className="aum-modal-card" onClick={(e) => e.stopPropagation()}>
+        <div className="aum-modal" role="dialog" aria-modal="true" aria-label="How this page works">
+          <div className="aum-modal-card">
             <div className="aum-modal-head">
               <h3>About “Schedule Upcoming Match”</h3>
-              <button className="aum-x" onClick={() => setShowInfo(false)} aria-label="Close">
-                ×
-              </button>
+              <button className="aum-x" onClick={() => setShowInfo(false)} aria-label="Close">×</button>
             </div>
             <ul className="aum-help">
               <li>Pick the <strong>format</strong> (ODI, T20, or Test).</li>

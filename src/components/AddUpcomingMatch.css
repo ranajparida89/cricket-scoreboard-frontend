@@ -114,7 +114,7 @@
   outline:none;
   transition: border .2s, transform .08s ease;
 }
-.aum-input:hover{ border-color:#2d946e; } /* <= keep an eye on stray characters */
+.aum-input:hover{ border-color:#2d946e; }
 .aum-input:focus{
   border-color:#24e07e;
   box-shadow:0 0 2px #24e07e;
@@ -180,25 +180,30 @@
   color:#e8caa4; font-weight:800; letter-spacing:.5px;
 }
 
-/* confetti burst */
+/* ---------- confetti (CSS-safe: no modulo in calc) ---------- */
 .aum-confetti{ position:absolute; inset:0; overflow:hidden; pointer-events:none; }
 .aum-confetti span{
+  /* these are set inline from React: --i (index), --slot (i % 8) */
   --i: 0;
-  --h: calc((var(--i) * 19) % 360);
+  --slot: 0;
   position:absolute; left:50%; top:40%;
-  width:8px; height:14px; background:hsl(var(--h), 85%, 60%);
+  width:8px; height:14px;
+  /* hue wraps automatically, no modulo needed */
+  background: hsl(calc(var(--i) * 19), 85%, 60%);
   border-radius:2px; transform:translate(-50%,-50%);
   animation: aum-confetti 950ms ease-out forwards;
 }
 @keyframes aum-confetti{
-  0%{ opacity:1; transform:translate(-50%,-50%) rotate(0deg) }
+  0%{
+    opacity:1;
+    transform: translate(-50%,-50%) rotate(0deg);
+  }
   100%{
     opacity:0;
     transform:
       translate(
         calc(-50% + (var(--i) - 30) * 6px),
-        /* wrap modulo in parentheses to keep linters happy */
-        calc(-50% + ((var(--i)  8) * 24px) + 120px)
+        calc(-50% + (var(--slot) * 24px) + 120px)
       )
       rotate(360deg);
   }
