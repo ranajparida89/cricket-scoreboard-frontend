@@ -1,89 +1,234 @@
-/* AddUpcomingMatch.css | DARK THEME UPDATE | Ranaj Parida 26/05/2025*/
+/* ===============================================================
+   AddUpcomingMatch.css  (Dark theme + golden info button)
+   - Golden “i” pulse
+   - Modal dialog
+   - Loading spinner
+   - Success (check + confetti)
+   - Toasts + micro animations
+   =============================================================== */
 
-/* Dark background for form container */
-.add-upcoming-match {
-  background: #16191e;
-  padding: 30px 24px;
-  max-width: 600px;
+/* ---------- shell ---------- */
+.aum-wrap{
+  max-width: 720px;
   margin: 32px auto;
+  padding: 0 12px;
+  color: #eaf6ff;
+  animation: aum-cardIn .22s ease;
+}
+
+/* ---------- title bar + golden i ---------- */
+.aum-titlebar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom: 12px;
+}
+.aum-title{
+  margin:0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing:.2px;
+}
+
+.aum-info-btn{
+  display:inline-grid; place-items:center;
+  width:34px; height:34px; border-radius:10px;
+  background: rgba(255,215,160,.08);
+  color: #e8caa4; /* gold */
+  border:1px solid rgba(232,202,164,.65);
+  cursor:pointer; outline:none;
+  position:relative; overflow:visible;
+  transition: transform .14s ease, background .14s ease;
+  font-weight:800;
+}
+.aum-info-btn:hover{ transform: translateY(-1px); background: rgba(255,215,160,.12); }
+.aum-info-btn::after{
+  content:""; position:absolute; inset:-8px; border-radius:inherit;
+  box-shadow: 0 0 24px 6px rgba(232,202,164,.25);
+  opacity:.85; animation: aum-infoBeat 2.4s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes aum-infoBeat{
+  0%{ transform:scale(.92); opacity:.45 }
+  26%{ transform:scale(1.05); opacity:.95 }
+  48%{ transform:scale(1.08); opacity:.70 }
+  100%{ transform:scale(.94); opacity:.45 }
+}
+@media (prefers-reduced-motion: reduce){
+  .aum-info-btn::after{ animation:none; }
+}
+
+/* ---------- toast ---------- */
+.aum-toast{
+  position: sticky;
+  top: 8px;
+  z-index: 5;
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #0f2538;
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 8px 20px rgba(0,0,0,.22);
+  animation: aum-toastIn .25s ease;
+}
+@keyframes aum-toastIn{ from{opacity:0; transform: translateY(-6px)} to{opacity:1; transform:none} }
+
+/* ---------- card ---------- */
+.aum-card{
+  background: #16191e;
+  border: 1px solid rgba(255,255,255,.06);
   border-radius: 18px;
-  box-shadow: 0 2px 18px rgba(0,0,0,0.44), 0 1.5px 0 #24e07e inset;
+  box-shadow: 0 2px 18px rgba(0,0,0,.44), 0 1.5px 0 #24e07e inset;
+  padding: 18px;
+  position:relative;
+  overflow:hidden;
 }
 
-/* Heading styling */
-.add-upcoming-match h2 {
-  color: #ffffff;
-  font-size: 26px;
-  margin-bottom: 22px;
-  letter-spacing: 1.2px;
-  text-align: center;
-  font-weight: 600;
+/* ---------- grid ---------- */
+.aum-grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+}
+.aum-col-2{ grid-column: span 2; }
+@media (max-width: 640px){
+  .aum-grid{ grid-template-columns: 1fr; }
+  .aum-col-2{ grid-column: span 1; }
 }
 
-/* Input, select, and disabled field styling */
-.add-upcoming-match input,
-.add-upcoming-match select {
+/* ---------- fields ---------- */
+.aum-field label{
+  display:block;
+  margin: 4px 0 6px;
+  font-size:.9rem;
+  opacity:.9;
+}
+.aum-input{
+  width:100%;
   padding: 11px 13px;
-  border-radius: 9px;
-  border: 1px solid #2e2e34;
-  background: #23272f;
-  color: #fff;
-  font-size: 16px;
-  outline: none;
-  transition: border 0.22s;
-  margin-bottom: 7px;
+  border-radius: 10px;
+  background:#23272f;
+  border:1px solid #2e2e34;
+  color:#fff;
+  outline:none;
+  transition: border .2s, transform .08s ease;
+}
+.aum-input:hover{ border-color:#2d946e; } /* <= keep an eye on stray characters */
+.aum-input:focus{
+  border-color:#24e07e;
+  box-shadow:0 0 2px #24e07e;
+  transform: translateY(-1px);
 }
 
-.add-upcoming-match input:disabled {
-  background: #242730;
-  color: #a1a1a1;
-  opacity: 0.9;
+/* ---------- actions ---------- */
+.aum-actions{
+  display:flex; justify-content:flex-end; margin-top: 12px;
 }
-
-/* Input focus effect */
-.add-upcoming-match input:focus,
-.add-upcoming-match select:focus {
-  border: 1.5px solid #24e07e;
-  box-shadow: 0 0 2px #24e07e;
-}
-
-/* Red border for invalid (for existing inline logic) */
-.add-upcoming-match input[style*="red"] {
-  border-color: #ff3b3b !important;
-}
-
-/* Button styling */
-.add-upcoming-match button {
-  padding: 11px 0;
-  border-radius: 9px;
+.aum-btn{
+  padding: 11px 16px;
+  border-radius: 10px;
+  border:none;
   background: linear-gradient(90deg, #22c1c3 0%, #24e07e 100%);
-  color: #181818;
-  font-weight: 700;
-  font-size: 17px;
-  border: none;
-  cursor: pointer;
-  margin-top: 14px;
+  color:#181818; font-weight:800;
+  cursor:pointer;
   box-shadow: 0 2px 8px #181c2440;
-  letter-spacing: 0.8px;
-  transition: background 0.22s;
+  letter-spacing:.5px;
+  transition: filter .18s, transform .06s, background .22s;
+}
+.aum-btn:hover{ background: linear-gradient(90deg, #24e07e 0%, #22c1c3 100%) }
+.aum-btn.ghost{
+  background: transparent;
+  color:#eaf6ff;
+  border:1px solid rgba(255,255,255,.2);
+}
+.aum-btn.loading{
+  opacity:.85; pointer-events:none; position:relative;
+}
+.aum-btn.loading::after{
+  content:""; position:absolute; right:12px; top:50%;
+  width:16px; height:16px; margin-top:-8px;
+  border-radius:50%;
+  border:2px solid #0d3b2a; border-top-color:#0fe48c;
+  animation: aum-spin 1s linear infinite;
+}
+@keyframes aum-spin{ to{ transform: rotate(360deg) } }
+
+/* ---------- success celebration ---------- */
+.aum-celebrate{
+  position:absolute; inset:0;
+  display:grid; place-items:center;
+  background: rgba(0,0,0,.20);
+  z-index: 20;
+  animation: aum-popIn .15s ease;
+}
+@keyframes aum-popIn{ from{opacity:0} to{opacity:1} }
+
+.aum-check{ display:grid; place-items:center; gap:8px; }
+.aum-check svg{ width:88px; height:88px; }
+.aum-check-circle{
+  fill:none; stroke:rgba(232,202,164,.4); stroke-width:2;
+  filter: drop-shadow(0 0 10px rgba(232,202,164,.4));
+}
+.aum-check-mark{
+  stroke:#e8caa4; stroke-width:4; stroke-linecap:round; stroke-linejoin:round;
+  stroke-dasharray:48; stroke-dashoffset:48; animation: aum-tick .6s ease forwards .1s;
+  filter: drop-shadow(0 0 18px rgba(232,202,164,.7));
+}
+@keyframes aum-tick{ to{ stroke-dashoffset:0 } }
+.aum-check-text{
+  color:#e8caa4; font-weight:800; letter-spacing:.5px;
 }
 
-.add-upcoming-match button:hover {
-  background: linear-gradient(90deg, #24e07e 0%, #22c1c3 100%);
-  color: #000;
+/* confetti burst */
+.aum-confetti{ position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+.aum-confetti span{
+  --i: 0;
+  --h: calc((var(--i) * 19) % 360);
+  position:absolute; left:50%; top:40%;
+  width:8px; height:14px; background:hsl(var(--h), 85%, 60%);
+  border-radius:2px; transform:translate(-50%,-50%);
+  animation: aum-confetti 950ms ease-out forwards;
 }
-
-/* For dropdown options */
-.add-upcoming-match select option {
-  background: #23272f;
-  color: #fff;
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-  .add-upcoming-match {
-    padding: 16px 3vw;
-    margin: 12px 3vw;
-    max-width: 97vw;
+@keyframes aum-confetti{
+  0%{ opacity:1; transform:translate(-50%,-50%) rotate(0deg) }
+  100%{
+    opacity:0;
+    transform:
+      translate(
+        calc(-50% + (var(--i) - 30) * 6px),
+        /* wrap modulo in parentheses to keep linters happy */
+        calc(-50% + ((var(--i)  8) * 24px) + 120px)
+      )
+      rotate(360deg);
   }
 }
+
+/* ---------- modal ---------- */
+.aum-modal{
+  position:fixed; inset:0; background:rgba(0,0,0,.55);
+  display:grid; place-items:center; z-index: 40;
+  animation: aum-cardIn .18s ease;
+}
+.aum-modal-card{
+  width: min(640px, 92vw);
+  background:#161b22;
+  border:1px solid rgba(232,202,164,.35);
+  border-radius:16px;
+  box-shadow: 0 14px 40px rgba(0,0,0,.42);
+  color:#eaf6ff;
+  padding:16px;
+}
+.aum-modal-head{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.aum-modal-head h3{ margin:0; color:#e8caa4; letter-spacing:.3px; }
+.aum-help{ margin:12px 0 0; padding-left:18px; display:grid; gap:8px; }
+.aum-x{
+  background:transparent; color:#eaf6ff; border:1px solid rgba(255,255,255,.2);
+  border-radius:10px; width:32px; height:32px; cursor:pointer;
+}
+.aum-modal-foot{ display:flex; justify-content:flex-end; margin-top:12px; }
+
+/* ---------- little helpers ---------- */
+@keyframes aum-cardIn{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)} }

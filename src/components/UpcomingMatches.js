@@ -1,245 +1,338 @@
-// ✅ src/components/UpcomingMatches.js
-// Cleaner, responsive cards + subtle animation (no external CSS file)
-// - Robust date parsing (supports "YYYY-MM-DD" and "DD-MM-YYYY")
-// - Sorts by date+time ascending
-// - Skeleton shimmer while loading
-// - Computed status: shows "Completed" for past dates
-// - Self-contained styles injected via <style> tag
+// ✅ src/components/AddUpcomingMatch.jsx
+// UI refresh + golden "i" help, success confetti, and accessible animations.
+// Logic: posts to createUpcomingMatch (unchanged).
 
-import React, { useEffect, useMemo, useState } from "react";
-import { getUpcomingMatchList } from "../services/api";
-import {
-  FaClock,
-  FaCalendarAlt,
-  FaGlobeAsia,
-  FaSyncAlt,
-  FaMapMarkerAlt,
-} from "react-icons/fa";
+import React, { useMemo, useState } from "react";
+import { createUpcomingMatch } from "../services/api";
+import { useAuth } from "../services/auth";
+import { FaInfo } from "react-icons/fa";
+import "./AddUpcomingMatch.css";
 
-/* ----------------------- small date helpers ----------------------- */
+const TEAMS = [
+  "India","Australia","England","Pakistan","New Zealand","South Africa",
+  "Sri Lanka","Bangladesh","Afghanistan","West Indies","Ireland",
+  "Netherlands","Zimbabwe","Scotland","Namibia","UAE","USA"
+];
 
-/** Parse "YYYY-MM-DD" or "DD-MM-YYYY" safely into a JS Date at local midnight. */
-function parseFlexibleDate(d) {
-  if (!d || typeof d !== "string") return null;
+const AddUpcomingMatch = ({ isAdmin = true }) => {
+  const { currentUser } = useAuth();
 
-  // Normalize separators
-  const s = d.trim().replace(/\//g, "-");
+  // ---- form state ----
+  const [form, setForm] = useState({
+    match_name: "",
+    match_type: "ODI",         // "ODI" | "T20" | "Test"
+    team_1: "",
+    team_2: "",
+    team_playing: "",          // derived, but editable if you want
+    match_date: "",            // YYYY-MM-DD
+    match_time: "",            // HH:mm
+    location: "",
+    series_name: "",
+    match_status: "Scheduled", // "Scheduled" | "Postponed" | "Cancelled"
+    day_night: "Day",          // "Day" | "Night"
+  });
 
-  // Expect 3 parts; if not, let Date try (may return Invalid Date)
-  const parts = s.split("-");
-  if (parts.length !== 3) {
-    const dt = new Date(s);
-    return isNaN(dt) ? null : new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
-  }
+  // ---- ui state ----
+  const [submitting, setSubmitting] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
+  const [celebrate, setCelebrate] = useState(false);
+  const [toast, setToast] = useState("");
 
-  // Detect format: YYYY-MM-DD  or  DD-MM-YYYY
-  // Heuristic: first token length 4 => YYYY first
-  let year, month, day;
-  if (parts[0].length === 4) {
-    // YYYY-MM-DD
-    year = Number(parts[0]);
-    month = Number(parts[1]) - 1;
-    day = Number(parts[2]);
-  } else {
-    // DD-MM-YYYY
-    day = Number(parts[0]);
-    month = Number(parts[1]) - 1;
-    year = Number(parts[2]);
-  }
+  const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
-  const dt = new Date(year, month, day);
-  return isNaN(dt) ? null : dt;
-}
+  // keep team_playing synced by default
+  const livePlaying = useMemo(() => {
+    const t1 = (form.team_1 || "").trim();
+    const t2 = (form.team_2 || "").trim();
+    if (!t1 && !t2) return "";
+    return `${t1 || "Team 1"} vs ${t2 || "Team 2"}`;
+  }, [form.team_1, form.team_2]);
 
-/** Parse "HH:mm" (24h) to minutes for easy comparison. Returns null on failure. */
-function parseTimeToMinutes(t) {
-  if (!t || typeof t !== "string") return null;
-  const m = t.trim().match(/^(\d{1,2}):(\d{2})$/);
-  if (!m) return null;
-  const hh = Number(m[1]);
-  const mm = Number(m[2]);
-  if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return null;
-  return hh * 60 + mm;
-}
+  // small helper: trim + Title Case
+  const cleanTeam = (s) =>
+    (s || "")
+      .toString()
+      .trim()
+      .replace(/\s+/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
 
-/** Combine date + "HH:mm" into a comparable number (ms since epoch). */
-function toComparableDateTime(dateStr, timeStr) {
-  const d = parseFlexibleDate(dateStr);
-  if (!d) return Number.MAX_SAFE_INTEGER; // push invalid dates to end
-  const mins = parseTimeToMinutes(timeStr) ?? 0;
-  const ms = d.getTime() + mins * 60 * 1000;
-  return ms;
-}
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (submitting) return;
 
-/* ------------------------------------------------------------------ */
+    // minimal client validation
+    if (!form.match_name || !form.team_1 || !form.team_2 || !form.match_date || !form.match_time) {
+      setToast("Please fill Match Name, Team 1, Team 2, Date and Time.");
+      setTimeout(() => setToast(""), 2500);
+      return;
+    }
 
-const UpcomingMatches = () => {
-  const [matches, setMatches] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+    const payload = {
+      match_name: form.match_name.trim(),
+      match_type: form.match_type, // backend accepts "ODI" | "T20" | "Test"
+      team_1: cleanTeam(form.team_1),
+      team_2: cleanTeam(form.team_2),
+      team_playing: (form.team_playing || livePlaying).trim(),
+      match_date: form.match_date,          // YYYY-MM-DD
+      match_time: form.match_time,          // HH:mm
+      location: form.location.trim(),
+      series_name: form.series_name.trim(),
+      match_status: form.match_status,
+      day_night: form.day_night,
+      created_by: currentUser?.email || "system@crickedge",
+    };
 
-  /** Load from API and store */
-  const fetchMatches = async () => {
     try {
-      setLoading(true);
-      setError(false);
-      const data = await getUpcomingMatchList();
-      setMatches(Array.isArray(data) ? data : []);
+      setSubmitting(true);
+      await createUpcomingMatch(payload);
+
+      // success!
+      setCelebrate(true);
+      setToast("Match scheduled successfully 🎉");
+      setTimeout(() => setToast(""), 2800);
+
+      // reset after a short delay
+      setTimeout(() => {
+        setForm((p) => ({
+          ...p,
+          match_name: "",
+          team_1: "",
+          team_2: "",
+          team_playing: "",
+          match_date: "",
+          match_time: "",
+          location: "",
+          series_name: "",
+          match_status: "Scheduled",
+          day_night: "Day",
+        }));
+        setCelebrate(false);
+      }, 1600);
     } catch (err) {
-      console.error("Error fetching upcoming matches:", err);
-      setError(true);
+      const msg =
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to schedule match. Please try again.";
+      setToast(msg);
+      setTimeout(() => setToast(""), 3200);
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  useEffect(() => {
-    fetchMatches();
-  }, []);
-
-  /** Format a date string to "DD Mon YYYY" (en-IN) or "—" if invalid */
-  const formatDate = (dateStr) => {
-    const d = parseFlexibleDate(dateStr);
-    if (!d) return "—";
-    return d.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
-
-  /** True if the match date is strictly before today */
-  const isMatchCompleted = (dateStr) => {
-    const d = parseFlexibleDate(dateStr);
-    if (!d) return false;
-    const today = new Date();
-    // compare at local midnight
-    today.setHours(0, 0, 0, 0);
-    d.setHours(0, 0, 0, 0);
-    return d.getTime() < today.getTime();
-  };
-
-  /** Sort by date+time ascending for consistent display */
-  const sortedMatches = useMemo(() => {
-    return [...matches].sort((a, b) => {
-      const aKey = toComparableDateTime(a.match_date, a.match_time);
-      const bKey = toComparableDateTime(b.match_date, b.match_time);
-      return aKey - bKey;
-    });
-  }, [matches]);
-
-  /* ----------------------- inlined CSS (scoped) ----------------------- */
-  const css = `
-    .um-wrap{padding:20px;color:#eaf6ff}
-    .um-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;flex-wrap:wrap}
-    .um-title{font-size:1.4rem;font-weight:800;letter-spacing:.2px;margin:0}
-    .um-refresh{padding:8px 14px;background:#0d6efd;border:none;border-radius:10px;color:#fff;display:flex;gap:8px;align-items:center;cursor:pointer}
-    .um-refresh:active{transform:translateY(1px)}
-    .um-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-    .um-card{background:#0f1b28;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;box-shadow:0 6px 20px rgba(0,0,0,.22);animation:cardIn .35s ease both}
-    .um-card:hover{transform:translateY(-2px)}
-    .um-name{font-size:1.05rem;font-weight:700;margin:0 0 6px}
-    .um-row{display:flex;gap:8px;align-items:center;margin:4px 0;color:#cfe0ee}
-    .um-chip{display:inline-flex;align-items:center;gap:8px;background:#13263a;border:1px solid rgba(255,255,255,.10);border-radius:999px;padding:4px 10px;font-size:.82rem;color:#cfe0ee}
-    .um-status{font-weight:700;border-radius:999px;padding:4px 10px}
-    .um-status.scheduled{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.45);color:#22c55e}
-    .um-status.postponed{background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.45);color:#facc15}
-    .um-status.completed{background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.45);color:#60a5fa}
-    .um-status.cancelled{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.45);color:#ef4444}
-    .um-info{color:#cfe0ee;opacity:.9}
-    .um-error{color:#ff6b6b}
-    @keyframes cardIn { from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)} }
-    /* skeleton */
-    .um-skel{height:120px;border-radius:14px;background:linear-gradient(90deg,#0e1a27 25%,#14273b 37%,#0e1a27 63%);background-size:400% 100%;animation:shimmer 1s ease-in-out infinite}
-    @keyframes shimmer{0%{background-position:100% 0}100%{background-position:0 0}}
-  `;
+  if (!isAdmin) {
+    return (
+      <div className="aum-wrap" style={{ textAlign: "center" }}>
+        You are not authorized to access this page.
+      </div>
+    );
+  }
 
   return (
-    <div className="um-wrap">
-      {/* Styles live with the component; no external CSS file required */}
-      <style>{css}</style>
-
-      <div className="um-head">
-        <h2 className="um-title">📅 Upcoming Matches</h2>
-        <button className="um-refresh" onClick={fetchMatches} aria-label="Refresh upcoming matches">
-          <FaSyncAlt /> Refresh
+    <div className="aum-wrap">
+      {/* Title + golden info button */}
+      <div className="aum-titlebar">
+        <h2 className="aum-title">➕ Schedule Upcoming Match</h2>
+        <button
+          type="button"
+          className="aum-info-btn"
+          aria-label="How this page works"
+          onClick={() => setShowInfo(true)}
+          title="About this page"
+        >
+          <FaInfo />
         </button>
       </div>
 
-      {loading ? (
-        // Skeleton cards
-        <div className="um-grid" role="status" aria-live="polite">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="um-skel" />
-          ))}
+      {/* Toast */}
+      {toast && <div className="aum-toast" role="status" aria-live="polite">{toast}</div>}
+
+      {/* Form card */}
+      <form className="aum-card" onSubmit={handleSubmit} noValidate>
+        <div className="aum-grid">
+          <div className="aum-field">
+            <label>Match Name</label>
+            <input
+              className="aum-input"
+              value={form.match_name}
+              onChange={(e) => set("match_name", e.target.value)}
+              placeholder="Triangular Series 2025"
+            />
+          </div>
+
+          <div className="aum-field">
+            <label>Format</label>
+            <select
+              className="aum-input"
+              value={form.match_type}
+              onChange={(e) => set("match_type", e.target.value)}
+            >
+              <option>ODI</option>
+              <option>T20</option>
+              <option>Test</option>
+            </select>
+          </div>
+
+          <div className="aum-field">
+            <label>Team 1</label>
+            <input
+              className="aum-input"
+              list="aum-teams"
+              value={form.team_1}
+              onChange={(e) => set("team_1", e.target.value)}
+              placeholder="India"
+            />
+          </div>
+
+          <div className="aum-field">
+            <label>Team 2</label>
+            <input
+              className="aum-input"
+              list="aum-teams"
+              value={form.team_2}
+              onChange={(e) => set("team_2", e.target.value)}
+              placeholder="Australia"
+            />
+          </div>
+
+          <datalist id="aum-teams">
+            {TEAMS.map((t) => (
+              <option key={t} value={t} />
+            ))}
+          </datalist>
+
+          <div className="aum-field aum-col-2">
+            <label>Team Playing (auto)</label>
+            <input
+              className="aum-input"
+              value={form.team_playing || livePlaying}
+              onChange={(e) => set("team_playing", e.target.value)}
+              placeholder="India vs Australia"
+            />
+          </div>
+
+          <div className="aum-field">
+            <label>Date</label>
+            <input
+              type="date"
+              className="aum-input"
+              value={form.match_date}
+              onChange={(e) => set("match_date", e.target.value)}
+            />
+          </div>
+
+          <div className="aum-field">
+            <label>Time</label>
+            <input
+              type="time"
+              className="aum-input"
+              value={form.match_time}
+              onChange={(e) => set("match_time", e.target.value)}
+            />
+          </div>
+
+          <div className="aum-field aum-col-2">
+            <label>Venue / Location</label>
+            <input
+              className="aum-input"
+              value={form.location}
+              onChange={(e) => set("location", e.target.value)}
+              placeholder="Adelaide"
+            />
+          </div>
+
+          <div className="aum-field aum-col-2">
+            <label>Series Name</label>
+            <input
+              className="aum-input"
+              value={form.series_name}
+              onChange={(e) => set("series_name", e.target.value)}
+              placeholder="Triangular Series 2025"
+            />
+          </div>
+
+          <div className="aum-field">
+            <label>Status</label>
+            <select
+              className="aum-input"
+              value={form.match_status}
+              onChange={(e) => set("match_status", e.target.value)}
+            >
+              <option>Scheduled</option>
+              <option>Postponed</option>
+              <option>Cancelled</option>
+            </select>
+          </div>
+
+          <div className="aum-field">
+            <label>Day/Night</label>
+            <select
+              className="aum-input"
+              value={form.day_night}
+              onChange={(e) => set("day_night", e.target.value)}
+            >
+              <option>Day</option>
+              <option>Night</option>
+            </select>
+          </div>
         </div>
-      ) : error ? (
-        <p className="um-error">Failed to load upcoming matches. Please try again.</p>
-      ) : sortedMatches.length === 0 ? (
-        <p className="um-info">No upcoming matches scheduled.</p>
-      ) : (
-        <div className="um-grid">
-          {sortedMatches.map((m, idx) => {
-            // Compute a status for display: past date => "Completed"
-            const computed =
-              isMatchCompleted(m.match_date) ? "Completed" : (m.match_status || "Scheduled");
 
-            const statusClass =
-              (computed === "Scheduled" && "scheduled") ||
-              (computed === "Postponed" && "postponed") ||
-              (computed === "Completed" && "completed") ||
-              "cancelled";
+        <div className="aum-actions">
+          <button className={`aum-btn ${submitting ? "loading" : ""}`} disabled={submitting}>
+            {submitting ? "Submitting…" : "Submit"}
+          </button>
+        </div>
 
-            return (
-              <div className="um-card" key={idx}>
-                <div className="um-row" style={{ justifyContent: "space-between" }}>
-                  <h3 className="um-name">
-                    {m.match_name}{" "}
-                    <span className="um-chip">{(m.match_type || "").toUpperCase()}</span>
-                  </h3>
-                  <span
-                    className={`um-status ${statusClass.toLowerCase()}`}
-                    aria-label={`Status: ${computed}`}
-                  >
-                    {computed}
-                  </span>
-                </div>
+        {/* success celebration overlay */}
+        {celebrate && (
+          <div className="aum-celebrate" aria-live="polite">
+            <div className="aum-check">
+              <svg viewBox="0 0 52 52" aria-hidden="true">
+                <circle className="aum-check-circle" cx="26" cy="26" r="24" />
+                <path className="aum-check-mark" fill="none" d="M14 27 l8 8 l16 -16" />
+              </svg>
+              <div className="aum-check-text">Saved!</div>
+            </div>
+            <div className="aum-confetti" aria-hidden="true">
+              {Array.from({ length: 60 }).map((_, i) => (
+                <span key={i} style={{ "--i": i }} />
+              ))}
+            </div>
+          </div>
+        )}
+      </form>
 
-                <div className="um-row">
-                  <strong>Teams:</strong>&nbsp;{m.team_playing || `${m.team_1} vs ${m.team_2}`}
-                </div>
-
-                <div className="um-row">
-                  <FaMapMarkerAlt />
-                  {m.location || "—"}
-                </div>
-
-                <div className="um-row">
-                  <FaCalendarAlt />
-                  {formatDate(m.match_date)}
-                </div>
-
-                <div className="um-row">
-                  <FaClock />
-                  {m.match_time || "—"} •{" "}
-                  <span className="um-chip">
-                    {(m.day_night || "Day").toString().trim()} match
-                  </span>
-                </div>
-
-                {m.series_name ? (
-                  <div className="um-row">
-                    <FaGlobeAsia />
-                    {m.series_name}
-                  </div>
-                ) : null}
-              </div>
-            );
-          })}
+      {/* info modal */}
+      {showInfo && (
+        <div
+          className="aum-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label="How this page works"
+          onClick={() => setShowInfo(false)}
+        >
+          <div className="aum-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="aum-modal-head">
+              <h3>About “Schedule Upcoming Match”</h3>
+              <button className="aum-x" onClick={() => setShowInfo(false)} aria-label="Close">
+                ×
+              </button>
+            </div>
+            <ul className="aum-help">
+              <li>Pick the <strong>format</strong> (ODI, T20, or Test).</li>
+              <li>Enter <strong>Team 1</strong> and <strong>Team 2</strong>. “Team Playing” fills automatically.</li>
+              <li>Choose the <strong>Date</strong>, <strong>Time</strong>, and <strong>Venue</strong>.</li>
+              <li>Set the <strong>Status</strong> and whether it’s a <strong>Day</strong> or <strong>Night</strong> match.</li>
+              <li>Click <strong>Submit</strong>. You’ll see a golden check + confetti on success.</li>
+            </ul>
+            <div className="aum-modal-foot">
+              <button className="aum-btn ghost" onClick={() => setShowInfo(false)}>Close</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
   );
 };
 
-export default UpcomingMatches;
+export default AddUpcomingMatch;
