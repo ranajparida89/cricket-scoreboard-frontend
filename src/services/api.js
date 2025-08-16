@@ -104,11 +104,9 @@ export const addUpcomingMatch = async (matchData) => {
   return response.data;
 };
 
-// ✅ [Upcoming Matches] Get list of all upcoming matches
-export const getUpcomingMatchList = async () => {
-  const response = await axios.get(`${API_URL}/upcoming-matches`);
-  return response.data;
-};
+// 👇 alias so both names work
+export const createUpcomingMatch = addUpcomingMatch;        // 👈 NEW
+
 
 // ✅ [NEW] Player Rankings by type & match format
 export const getPlayerRankings = async (type, matchType) => {

@@ -418,7 +418,21 @@ useEffect(() => {
   }
 />
 
-<Route path="/upcoming-matches" element={<UpcomingMatches />} />
+<Route
+  path="/add-upcoming-match"
+  element={
+    <ProtectedRoute>
+      {isAdmin ? (
+        <AddUpcomingMatch isAdmin={isAdmin} />
+      ) : (
+        <div style={{ padding: 24, color: "red", textAlign: "center" }}>
+          You are not authorized to access this page.
+        </div>
+      )}
+    </ProtectedRoute>
+  }
+/>
+
 <Route path="/player-rankings" element={<PlayerRankings />} />
 <Route path="/match-story" element={<MatchStory />} />  
 <Route path="/h2h-records" element={<H2HRecords />} />
