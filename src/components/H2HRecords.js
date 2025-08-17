@@ -1,5 +1,4 @@
 // src/pages/H2HRecords.jsx
-// H2H + Player Trends (professional charts, no hover shading)
 import React, { useEffect, useMemo, useState } from "react";
 import "./H2HRecords.css";
 import {
@@ -21,22 +20,15 @@ const COLORS = {
   ink: "#eaf2ff",
 };
 
-// Custom label for mirror chart (prints absolute values on both sides)
-const MirrorLabel = (props) => {
-  const { x, y, width, height, value } = props;
+// Absolute labels for the mirror chart
+const MirrorLabel = ({ x, y, width, height, value }) => {
   if (value == null) return null;
   const abs = Math.abs(value);
   const isLeft = value < 0;
   const tx = isLeft ? x - 8 : x + width + 8;
   const ty = y + height / 2 + 4;
   return (
-    <text
-      x={tx}
-      y={ty}
-      fontSize={12}
-      fill={COLORS.ink}
-      textAnchor={isLeft ? "end" : "start"}
-    >
+    <text x={tx} y={ty} fontSize={12} fill={COLORS.ink} textAnchor={isLeft ? "end" : "start"}>
       {abs}
     </text>
   );
@@ -87,29 +79,24 @@ export default function H2HRecords() {
   // ---------- H2H summary ----------
   useEffect(() => {
     if (team1 && team2 && team1.toLowerCase() === team2.toLowerCase()) {
-      setTeamError("⚠️ Please select two different teams."); return;
+      setTeamError("⚠️ Please select two different teams.");
+      return;
     }
     setTeamError("");
-
     if (!team1 || !team2) return;
 
-    // summary
     fetch(`${API}/api/h2h/summary?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}&type=${matchType}`)
       .then(r => r.json()).then(setSummary);
 
-    // wins by format
     fetch(`${API}/api/h2h/by-format?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}`)
       .then(r => r.json()).then(d => setByFormat(d || []));
 
-    // points
     fetch(`${API}/api/h2h/points?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}&type=${matchType}`)
       .then(r => r.json()).then(setPoints);
 
-    // total runs by format (union of tables)
     fetch(`${API}/api/h2h/runs-by-format?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}`)
       .then(r => r.json()).then(d => setRunsByFormat(d || []));
 
-    // test-only extras when selected or ALL
     if (matchType === "TEST" || matchType === "ALL") {
       fetch(`${API}/api/h2h/test-innings-lead?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}`)
         .then(r => r.json()).then(setTestLead);
@@ -119,41 +106,41 @@ export default function H2HRecords() {
       setTestLead(null); setTestAvg([]);
     }
 
-    // leaderboards
     fetch(`${API}/api/h2h/top-batters?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}&type=${matchType}`)
       .then(r => r.json()).then(d => setTopBatters(d || []));
+
     fetch(`${API}/api/h2h/top-bowlers?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}&type=${matchType}`)
       .then(r => r.json()).then(d => setTopBowlers(d || []));
-    // recent
+
     fetch(`${API}/api/h2h/recent?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}&type=${matchType}&limit=10`)
       .then(r => r.json()).then(d => setRecent(d || []));
-
-  }, [team1, team2, matchType, API]);
+  }, [team1, team2, matchType]);
 
   // ---------- Player compare ----------
   useEffect(() => {
     if (player1 && player2 && player1.toLowerCase() === player2.toLowerCase()) {
-      setPlayerError("⚠️ Please select two different players."); return;
+      setPlayerError("⚠️ Please select two different players.");
+      return;
     }
     setPlayerError("");
     if (player1 && player2 && player1 !== player2) {
       fetch(`${API}/api/players/compare?player1=${encodeURIComponent(player1)}&player2=${encodeURIComponent(player2)}`)
         .then(r => r.json()).then(d => setPlayerStats(d?.players || null));
     }
-  }, [player1, player2, API]);
+  }, [player1, player2]);
 
   // ---------- Player Trends ----------
   useEffect(() => {
     if (!trendPlayer) return;
     const qs = `player=${encodeURIComponent(trendPlayer)}&type=${trendType}&opponent=${encodeURIComponent(trendOpponent)}&metric=${trendMetric}`;
     fetch(`${API}/api/players/trend?${qs}`).then(r => r.json()).then(d => setTrendSeries(d?.series || []));
-  }, [trendPlayer, trendType, trendOpponent, trendMetric, API]);
+  }, [trendPlayer, trendType, trendOpponent, trendMetric]);
 
   useEffect(() => {
     if (!trendPlayer) return;
     const qs = `player=${encodeURIComponent(trendPlayer)}&type=${trendType}`;
     fetch(`${API}/api/players/opponent-summary?${qs}`).then(r => r.json()).then(d => setOppSummary(d || { opponents: [], overall: {} }));
-  }, [trendPlayer, trendType, API]);
+  }, [trendPlayer, trendType]);
 
   // ---------- Derived ----------
   const teamBarData = useMemo(() => {
@@ -187,7 +174,6 @@ export default function H2HRecords() {
     return { total, t1w, t2w, draws: d, t1p, t2p, t1l: t2w, t2l: t1w };
   }, [summary, team1, team2]);
 
-  // Player mirror data
   const playerMirrorData = useMemo(() => {
     if (!playerStats || !player1 || !player2) return [];
     const a = playerStats[player1] || {}, b = playerStats[player2] || {};
@@ -213,7 +199,6 @@ export default function H2HRecords() {
 
   const absTick = (v) => Math.abs(v);
 
-  // by-format charts
   const formatChart = (byFormat || []).map(row => ({
     format: row.match_type,
     [team1]: Number(row.t1_wins || 0),
@@ -227,10 +212,8 @@ export default function H2HRecords() {
     [team2]: Number(r[team2] || 0),
   }));
 
-  // Test avg map
   const testAvgByTeam = (testAvg || []).reduce((acc, r) => (acc[r.team] = r, acc), {});
 
-  // Trend opponent bars
   const oppBars = useMemo(() => {
     const rows = oppSummary?.opponents || [];
     const key = ["wickets", "bowling_avg"].includes(trendMetric)
@@ -272,7 +255,6 @@ export default function H2HRecords() {
 
       {summary && !teamError && (
         <>
-          {/* KPIs */}
           <div className="summary-card wide">
             <div className="sum-head">
               <span className="sum-title">Summary</span>
@@ -379,7 +361,6 @@ export default function H2HRecords() {
             )}
           </div>
 
-          {/* Test extras + points */}
           {(matchType === "TEST" || matchType === "ALL") && (
             <>
               {(testLead || points) && (
@@ -388,15 +369,9 @@ export default function H2HRecords() {
                     <div className="insight-card">
                       <div className="insight-title">First-Innings Lead</div>
                       <div className="chip-row">
-                        <div className="kpi-chip" style={{ borderColor: COLORS.t1 }}>
-                          <span className="dot" style={{ background: COLORS.t1 }} /> {team1} Leads <b>{testLead.t1_leads || 0}</b>
-                        </div>
-                        <div className="kpi-chip" style={{ borderColor: COLORS.t2 }}>
-                          <span className="dot" style={{ background: COLORS.t2 }} /> {team2} Leads <b>{testLead.t2_leads || 0}</b>
-                        </div>
-                        <div className="kpi-chip" style={{ borderColor: COLORS.draw }}>
-                          <span className="dot" style={{ background: COLORS.draw }} /> Level <b>{testLead.level || 0}</b>
-                        </div>
+                        <div className="kpi-chip"><span className="dot" style={{ background: COLORS.t1 }} /> {team1} Leads <b>{testLead.t1_leads || 0}</b></div>
+                        <div className="kpi-chip"><span className="dot" style={{ background: COLORS.t2 }} /> {team2} Leads <b>{testLead.t2_leads || 0}</b></div>
+                        <div className="kpi-chip"><span className="dot" style={{ background: COLORS.draw }} /> Level <b>{testLead.level || 0}</b></div>
                       </div>
                     </div>
                   )}
