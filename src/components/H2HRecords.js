@@ -39,7 +39,8 @@ const H2HRecords = () => {
   const [byFormat, setByFormat] = useState([]);
   const [testLead, setTestLead] = useState(null);
   const [testAvg, setTestAvg] = useState([]);
-  const [testPoints, setTestPoints] = useState(null);
+  const [points, setPoints] = useState(null);
+  const [runsByFormat, setRunsByFormat] = useState([]);
   const [topBatters, setTopBatters] = useState([]);
   const [topBowlers, setTopBowlers] = useState([]);
   const [recent, setRecent] = useState([]);
@@ -67,9 +68,17 @@ const H2HRecords = () => {
   useEffect(() => {
     if (!team1 || !team2 || team1 === team2) return;
 
-    // 1) Wins by Format (only meaningful when viewing ALL, but fetch always)
+    // 1) Wins by Format
     fetch(`${API}/api/h2h/by-format?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}`)
       .then(r => r.json()).then(d => setByFormat(d||[]));
+
+    // 2) Points (correct logic for each format)
+    fetch(`${API}/api/h2h/points?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}&type=${matchType}`)
+      .then(r => r.json()).then(setPoints);
+
+    // 3) Total runs by format for the two teams
+    fetch(`${API}/api/h2h/runs-by-format?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}`)
+      .then(r => r.json()).then(d => setRunsByFormat(d||[]));
 
     // Test-only insights
     if (matchType === "TEST" || matchType === "ALL") {
@@ -78,11 +87,8 @@ const H2HRecords = () => {
 
       fetch(`${API}/api/h2h/test-innings-averages?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}`)
         .then(r => r.json()).then(d => setTestAvg(d||[]));
-
-      fetch(`${API}/api/h2h/test-points?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}`)
-        .then(r => r.json()).then(setTestPoints);
     } else {
-      setTestLead(null); setTestAvg([]); setTestPoints(null);
+      setTestLead(null); setTestAvg([]);
     }
 
     // leaderboards for current type (or ALL)
@@ -95,7 +101,6 @@ const H2HRecords = () => {
     // recent strip
     fetch(`${API}/api/h2h/recent?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}&type=${matchType}&limit=10`)
       .then(r => r.json()).then(d => setRecent(d||[]));
-
   }, [team1, team2, matchType]);
 
   // players (diverging chart)
@@ -143,7 +148,7 @@ const H2HRecords = () => {
     return { total, t1w, t2w, draws: d, t1p, t2p, t1l: t2w, t2l: t1w };
   }, [summary, team1, team2]);
 
-  // player diverging
+  // player diverging data
   const playerMirrorData = useMemo(() => {
     if (!playerStats || !player1 || !player2) return [];
     const a = playerStats[player1] || {}, b = playerStats[player2] || {};
@@ -169,12 +174,19 @@ const H2HRecords = () => {
 
   const absTick = (v) => Math.abs(v);
 
-  // format chart data
+  // formats chart
   const formatChart = (byFormat || []).map(row => ({
     format: row.match_type,
     [team1]: Number(row.t1_wins || 0),
     [team2]: Number(row.t2_wins || 0),
     Draws: Number(row.draws || 0),
+  }));
+
+  // runs by format chart
+  const runsFormatChart = (runsByFormat || []).map(r => ({
+    format: r.match_type,
+    [team1]: Number(r[team1] || 0),
+    [team2]: Number(r[team2] || 0),
   }));
 
   const testAvgByTeam = (testAvg || []).reduce((acc, r) => {
@@ -272,7 +284,7 @@ const H2HRecords = () => {
             </div>
           </div>
 
-          {/* Wins by format (best when matchType = ALL) */}
+          {/* Wins by format */}
           {!!formatChart.length && (
             <div className="chart-card maxw">
               <div className="chart-title">Wins by Format</div>
@@ -291,10 +303,28 @@ const H2HRecords = () => {
             </div>
           )}
 
+          {/* Total runs by format */}
+          {!!runsFormatChart.length && (
+            <div className="chart-card maxw">
+              <div className="chart-title">Total Runs by Format</div>
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart data={runsFormatChart} margin={{ top: 6, right: 12, left: 0, bottom: 6 }}>
+                  <CartesianGrid vertical={false} stroke={COLORS.grid} strokeDasharray="3 3" />
+                  <XAxis dataKey="format" tick={{ fill: "#93a4c3", fontSize: 12 }} />
+                  <YAxis allowDecimals={false} tick={{ fill: "#93a4c3", fontSize: 12 }} />
+                  <Tooltip contentStyle={{ background: "#0b1420", border: "1px solid #2a3f60", color: "#eaf2ff" }} />
+                  <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
+                  <Bar dataKey={team1} fill={COLORS.gold} barSize={20} isAnimationActive={false} />
+                  <Bar dataKey={team2} fill={COLORS.draw} barSize={20} isAnimationActive={false} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
           {/* TEST insights */}
           {(matchType === "TEST" || matchType === "ALL") && (
             <>
-              {(testLead || testPoints) && (
+              {(testLead || points) && (
                 <div className="insight-grid">
                   {testLead && (
                     <div className="insight-card">
@@ -312,17 +342,18 @@ const H2HRecords = () => {
                       </div>
                     </div>
                   )}
-                  {testPoints && (
+
+                  {points && (
                     <div className="insight-card">
-                      <div className="insight-title">H2H Test Points</div>
+                      <div className="insight-title">H2H {matchType === "ALL" ? "Overall" : matchType} Points</div>
                       <div className="points-row">
                         <div className="points-box">
                           <div className="label">{team1}</div>
-                          <div className="value">{testPoints.t1_points || 0}</div>
+                          <div className="value">{points.t1_points || 0}</div>
                         </div>
                         <div className="points-box">
                           <div className="label">{team2}</div>
-                          <div className="value">{testPoints.t2_points || 0}</div>
+                          <div className="value">{points.t2_points || 0}</div>
                         </div>
                       </div>
                     </div>
@@ -424,7 +455,7 @@ const H2HRecords = () => {
         </>
       )}
 
-      {/* Player comparison */}
+      {/* Player comparison (mirror) */}
       <div className="player-sec">
         <h3 className="h3">Player Comparison</h3>
         <div className="h2h-row h2h-selects">
@@ -473,10 +504,11 @@ const H2HRecords = () => {
           <div className="modal-box" onClick={(e)=>e.stopPropagation()}>
             <div className="modal-head">About Head-to-Head</div>
             <ul className="modal-list">
-              <li>Summary + Wins/Losses/Draws per format.</li>
-              <li>Test insights: first-innings leads, batting averages, points.</li>
-              <li>Leaderboards for the selected format.</li>
-              <li>Recent results strip (newest first).</li>
+              <li>Summary + wins/losses/draws per format.</li>
+              <li>Correct <b>points</b>: Test (12/6/4), ODI/T20 (2/0/1).</li>
+              <li>Total runs by format for each team.</li>
+              <li>Test insights: first-innings leads, batting averages.</li>
+              <li>Leaderboards and recent results strip.</li>
               <li>No animations for mobile stability.</li>
             </ul>
             <div className="modal-actions">

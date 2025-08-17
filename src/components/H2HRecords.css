@@ -10,7 +10,7 @@
 .h2h-topbar{ display:flex; justify-content:space-between; align-items:center; max-width:1200px; margin:0 auto 12px; }
 .h2h-title{ font-weight:900; letter-spacing:.2px; font-size: clamp(20px,2.5vw,28px); color:transparent; background:linear-gradient(90deg, var(--gold), #fff3c9, var(--gold)); -webkit-background-clip:text; background-clip:text; text-shadow:0 0 14px rgba(232,202,164,.25); }
 
-/* subtle square info fab */
+/* subtle square info fab (gold glow, heartbeat but very gentle) */
 .info-fab.subtle{ width:40px; height:40px; border-radius:12px; border:1px solid rgba(232,202,164,.65); display:grid; place-items:center; cursor:pointer; background:linear-gradient(145deg, #1a1610, #0f0d09); color:#e5c98f; font-size:18px; box-shadow:0 0 12px rgba(232,202,164,.35), 0 0 4px rgba(232,202,164,.2) inset; animation: heartbeat 2.6s ease-in-out infinite; }
 @keyframes heartbeat{ 0%,100%{ transform: scale(1);} 22%{ transform: scale(1.02);} 44%{ transform: scale(1);} 66%{ transform: scale(1.02);} }
 @media (prefers-reduced-motion: reduce){ .info-fab.subtle{ animation:none; } }
