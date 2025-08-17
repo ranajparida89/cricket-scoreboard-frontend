@@ -20,7 +20,7 @@ const COLORS = {
   ink: "#eaf2ff",
 };
 
-// small fetch wrapper: always return JSON or fallback; never throw
+// small fetch wrapper
 const fetchJSON = async (url, fallback) => {
   try {
     const r = await fetch(url);
@@ -33,7 +33,7 @@ const fetchJSON = async (url, fallback) => {
   }
 };
 
-// Absolute labels for the mirror chart
+// absolute labels for mirror chart
 const MirrorLabel = ({ x, y, width, height, value }) => {
   if (value == null) return null;
   const abs = Math.abs(value);
@@ -117,10 +117,8 @@ export default function H2HRecords() {
     fetchJSON(`${API}/api/h2h/runs-by-format?team1=${t1}&team2=${t2}`, [])
       .then(d => setRunsByFormat(arr(d)));
 
-    // test-only extras when selected or ALL
     if (matchType === "TEST" || matchType === "ALL") {
-      fetchJSON(`${API}/api/h2h/test-innings-lead?team1=${t1}&team2=${t2}`, null)
-        .then(setTestLead);
+      fetchJSON(`${API}/api/h2h/test-innings-lead?team1=${t1}&team2=${t2}`, null).then(setTestLead);
       fetchJSON(`${API}/api/h2h/test-innings-averages?team1=${t1}&team2=${t2}`, [])
         .then(d => setTestAvg(arr(d)));
     } else {
@@ -231,11 +229,18 @@ export default function H2HRecords() {
     Draws: Number(row.draws || 0),
   }));
 
-  const runsFormatChart = arr(runsByFormat).map(r => ({
+  const runsFormatChartRaw = arr(runsByFormat).map(r => ({
     format: r.match_type,
     [team1]: Number(r[team1] || 0),
     [team2]: Number(r[team2] || 0),
   }));
+
+  // ✅ show selected matchType only (bug #4)
+  const runsFormatChart = useMemo(() => {
+    if (matchType === "ALL") return runsFormatChartRaw;
+    const sel = (matchType === "TEST" ? "TEST" : matchType);
+    return runsFormatChartRaw.filter(x => String(x.format).toUpperCase() === sel);
+  }, [runsFormatChartRaw, matchType]);
 
   const testAvgByTeam = arr(testAvg).reduce((acc, r) => (acc[r.team] = r, acc), {});
 
@@ -248,6 +253,13 @@ export default function H2HRecords() {
         : "runs";
     return [...rows].sort((a, b) => Number(b[key] || 0) - Number(a[key] || 0)).slice(0, 8);
   }, [oppSummary, trendMetric]);
+
+  const tooltipProps = {
+    cursor: false,
+    contentStyle: { background: "#0b1420", border: "1px solid #2a3f60" },
+    itemStyle: { color: COLORS.ink },
+    labelStyle: { color: COLORS.ink },
+  };
 
   return (
     <div className="h2h-wrap">
@@ -318,11 +330,11 @@ export default function H2HRecords() {
             <div className="chart-card">
               <div className="chart-title">Outcome Comparison</div>
               <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={teamBarData} margin={{ top: 4, right: 20, left: 8, bottom: 4 }}>
+                <BarChart data={teamBarData} margin={{ top: 18, right: 20, left: 8, bottom: 4 }}>
                   <CartesianGrid vertical={false} stroke={COLORS.grid} strokeDasharray="3 3" />
                   <XAxis dataKey="metric" tick={{ fill: "#93a4c3", fontSize: 12 }} />
                   <YAxis allowDecimals={false} tick={{ fill: "#93a4c3", fontSize: 12 }} />
-                  <Tooltip cursor={false} contentStyle={{ background: "#0b1420", border: "1px solid #2a3f60", color: COLORS.ink }} />
+                  <Tooltip {...tooltipProps} />
                   <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
                   <Bar dataKey={team1} fill={COLORS.t1} barSize={22} radius={[6,6,0,0]} isAnimationActive={false}>
                     <LabelList dataKey={team1} position="top" fill="#cdeefa" fontSize={12} />
@@ -342,7 +354,8 @@ export default function H2HRecords() {
                     {outcomePieData.map((e, i) => <Cell key={i} fill={e.color} />)}
                     <LabelList dataKey="value" position="outside" fill={COLORS.ink} fontSize={12} />
                   </Pie>
-                  <Tooltip cursor={false} contentStyle={{ background: "#0b1420", border: "1px solid #2a3f60", color: COLORS.ink }} />
+                  {/* ✅ readable tooltip text (#5) */}
+                  <Tooltip {...tooltipProps} />
                   <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
                 </PieChart>
               </ResponsiveContainer>
@@ -355,11 +368,12 @@ export default function H2HRecords() {
               <div className="chart-card">
                 <div className="chart-title">Wins by Format</div>
                 <ResponsiveContainer width="100%" height={320}>
-                  <BarChart data={formatChart} margin={{ top: 6, right: 20, left: 10, bottom: 6 }}>
+                  {/* ✅ extra top margin so labels never clip (#3) */}
+                  <BarChart data={formatChart} margin={{ top: 28, right: 20, left: 10, bottom: 6 }}>
                     <CartesianGrid vertical={false} stroke={COLORS.grid} strokeDasharray="3 3" />
                     <XAxis dataKey="format" tick={{ fill: "#93a4c3", fontSize: 12 }} />
                     <YAxis allowDecimals={false} tick={{ fill: "#93a4c3", fontSize: 12 }} />
-                    <Tooltip cursor={false} contentStyle={{ background: "#0b1420", border: "1px solid #2a3f60", color: COLORS.ink }} />
+                    <Tooltip {...tooltipProps} />
                     <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
                     <Bar dataKey={team1} fill={COLORS.t1} barSize={20} isAnimationActive={false}><LabelList position="top" fill={COLORS.ink} /></Bar>
                     <Bar dataKey={team2} fill={COLORS.t2} barSize={20} isAnimationActive={false}><LabelList position="top" fill={COLORS.ink} /></Bar>
@@ -371,13 +385,18 @@ export default function H2HRecords() {
 
             {!!runsFormatChart.length && (
               <div className="chart-card">
-                <div className="chart-title">Total Runs by Format</div>
+                <div className="chart-title">
+                  {matchType === "ALL" ? "Total Runs by Format" : `Total Runs — ${matchType === "TEST" ? "Test" : matchType}`}
+                </div>
                 <ResponsiveContainer width="100%" height={320}>
-                  <BarChart data={runsFormatChart} margin={{ top: 6, right: 20, left: 14, bottom: 6 }}>
+                  {/* ✅ extra top margin so labels never clip (#4) */}
+                  <BarChart data={runsFormatChart} margin={{ top: 28, right: 20, left: 14, bottom: 6 }}>
                     <CartesianGrid vertical={false} stroke={COLORS.grid} strokeDasharray="3 3" />
-                    <XAxis dataKey="format" tick={{ fill: "#93a4c3", fontSize: 12 }} label={{ value: "Format", position: "insideBottom", offset: -2, fill: "#9fb3d6", fontSize: 12 }} />
-                    <YAxis allowDecimals={false} tick={{ fill: "#93a4c3", fontSize: 12 }} label={{ value: "Runs", angle: -90, position: "insideLeft", fill: "#9fb3d6", fontSize: 12 }} />
-                    <Tooltip cursor={false} contentStyle={{ background: "#0b1420", border: "1px solid #2a3f60", color: COLORS.ink }} />
+                    <XAxis dataKey="format" tick={{ fill: "#93a4c3", fontSize: 12 }}
+                      label={{ value: "Format", position: "insideBottom", offset: -2, fill: "#9fb3d6", fontSize: 12 }} />
+                    <YAxis allowDecimals={false} tick={{ fill: "#93a4c3", fontSize: 12 }}
+                      label={{ value: "Runs", angle: -90, position: "insideLeft", fill: "#9fb3d6", fontSize: 12 }} />
+                    <Tooltip {...tooltipProps} />
                     <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
                     <Bar dataKey={team1} fill={COLORS.gold} barSize={20} isAnimationActive={false}><LabelList position="top" fill={COLORS.ink} /></Bar>
                     <Bar dataKey={team2} fill={COLORS.draw} barSize={20} isAnimationActive={false}><LabelList position="top" fill={COLORS.ink} /></Bar>
@@ -438,12 +457,12 @@ export default function H2HRecords() {
                         "Innings 1": testAvgByTeam?.[t]?.avg_inn1_runs || 0,
                         "Innings 2": testAvgByTeam?.[t]?.avg_inn2_runs || 0,
                       }))}
-                      margin={{ top: 6, right: 20, left: 8, bottom: 6 }}
+                      margin={{ top: 18, right: 20, left: 8, bottom: 6 }}
                     >
                       <CartesianGrid vertical={false} stroke={COLORS.grid} strokeDasharray="3 3" />
                       <XAxis dataKey="team" tick={{ fill: "#93a4c3", fontSize: 12 }} />
                       <YAxis allowDecimals={false} tick={{ fill: "#93a4c3", fontSize: 12 }} />
-                      <Tooltip cursor={false} contentStyle={{ background: "#0b1420", border: "1px solid #2a3f60", color: COLORS.ink }} />
+                      <Tooltip {...tooltipProps} />
                       <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
                       <Bar dataKey="Innings 1" fill={COLORS.gold} isAnimationActive={false}><LabelList position="top" fill={COLORS.ink} /></Bar>
                       <Bar dataKey="Innings 2" fill={COLORS.draw} isAnimationActive={false}><LabelList position="top" fill={COLORS.ink} /></Bar>
@@ -468,11 +487,11 @@ export default function H2HRecords() {
             <div className="chart-card">
               <div className="chart-title">Top Batters ({matchType})</div>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={arr(topBatters)} layout="vertical" margin={{ top: 6, right: 24, left: 28, bottom: 6 }}>
+                <BarChart data={arr(topBatters)} layout="vertical" margin={{ top: 12, right: 24, left: 28, bottom: 6 }}>
                   <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
                   <XAxis type="number" tick={{ fill: "#93a4c3", fontSize: 12 }} />
                   <YAxis type="category" dataKey="player_name" tick={{ fill: "#cfd9ee", fontSize: 12 }} width={160} />
-                  <Tooltip cursor={false} contentStyle={{ background: "#0b1420", border: "1px solid #2a3f60", color: COLORS.ink }} />
+                  <Tooltip {...tooltipProps} />
                   <Bar dataKey="runs" fill={COLORS.gold} barSize={18} isAnimationActive={false}>
                     <LabelList dataKey="runs" position="right" fill={COLORS.ink} fontSize={12} />
                   </Bar>
@@ -553,7 +572,7 @@ export default function H2HRecords() {
                   <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
                   <XAxis type="number" domain={mirrorDomain} tickFormatter={absTick} tick={{ fill: "#93a4c3", fontSize: 12 }} />
                   <YAxis type="category" dataKey="metric" tick={{ fill: "#cfd9ee", fontSize: 12 }} width={160} />
-                  <Tooltip cursor={false} formatter={(v, k) => [Math.abs(v), k]} contentStyle={{ background: "#0b1420", border: "1px solid #2a3f60", color: COLORS.ink }} />
+                  <Tooltip {...tooltipProps} formatter={(v, k) => [Math.abs(v), k]} />
                   <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
                   <ReferenceLine x={0} stroke="#6b7280" />
                   <Bar dataKey={player1} fill={COLORS.t1} barSize={18} radius={[0, 6, 6, 0]} isAnimationActive={false}>
@@ -600,7 +619,7 @@ export default function H2HRecords() {
                 <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
                 <XAxis type="number" tick={{ fill: "#93a4c3", fontSize: 12 }} />
                 <YAxis type="category" dataKey="opponent" tick={{ fill: "#cfd9ee", fontSize: 12 }} width={180} />
-                <Tooltip cursor={false} contentStyle={{ background: "#0b1420", border: "1px solid #2a3f60", color: COLORS.ink }} />
+                <Tooltip {...tooltipProps} />
                 <Bar
                   dataKey={
                     ["wickets", "bowling_avg"].includes(trendMetric)
@@ -632,7 +651,7 @@ export default function H2HRecords() {
                 <CartesianGrid stroke={COLORS.grid} strokeDasharray="3 3" />
                 <XAxis dataKey="match_name" tick={false} />
                 <YAxis tick={{ fill: "#93a4c3", fontSize: 12 }} />
-                <Tooltip cursor={false} contentStyle={{ background: "#0b1420", border: "1px solid #2a3f60", color: COLORS.ink }} />
+                <Tooltip {...tooltipProps} />
                 <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
                 <Line type="monotone" dataKey="metric_value" name="Per match" stroke="#60a5fa" strokeWidth={2.4} dot={false} isAnimationActive={false} />
                 <Line type="monotone" dataKey="ma5" name="MA(5)" stroke="#f59e0b" strokeWidth={2.8} dot={false} isAnimationActive={false} />
