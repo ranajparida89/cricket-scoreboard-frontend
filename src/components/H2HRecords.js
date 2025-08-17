@@ -20,6 +20,19 @@ const COLORS = {
   ink: "#eaf2ff",
 };
 
+// small fetch wrapper: always return JSON or fallback; never throw
+const fetchJSON = async (url, fallback) => {
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return fallback;
+    const ct = r.headers.get("content-type") || "";
+    if (!ct.includes("application/json")) return fallback;
+    return await r.json();
+  } catch {
+    return fallback;
+  }
+};
+
 // Absolute labels for the mirror chart
 const MirrorLabel = ({ x, y, width, height, value }) => {
   if (value == null) return null;
@@ -33,6 +46,9 @@ const MirrorLabel = ({ x, y, width, height, value }) => {
     </text>
   );
 };
+
+const arr = v => (Array.isArray(v) ? v : []);
+const obj = v => (v && typeof v === "object" ? v : null);
 
 export default function H2HRecords() {
   const [teams, setTeams] = useState([]);
@@ -69,10 +85,11 @@ export default function H2HRecords() {
   const [showInfo, setShowInfo] = useState(false);
 
   useEffect(() => {
-    fetch(`${API}/api/h2h/teams`).then(r => r.json()).then(d => setTeams(d || []));
-    fetch(`${API}/api/players/list`).then(r => r.json()).then(d => {
-      setPlayers(d || []);
-      if (d?.length) setTrendPlayer(d[0]);
+    fetchJSON(`${API}/api/h2h/teams`, []).then(d => setTeams(arr(d)));
+    fetchJSON(`${API}/api/players/list`, []).then(d => {
+      const list = arr(d);
+      setPlayers(list);
+      if (list.length) setTrendPlayer(list[0]);
     });
   }, []);
 
@@ -85,35 +102,39 @@ export default function H2HRecords() {
     setTeamError("");
     if (!team1 || !team2) return;
 
-    fetch(`${API}/api/h2h/summary?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}&type=${matchType}`)
-      .then(r => r.json()).then(setSummary);
+    const t1 = encodeURIComponent(team1);
+    const t2 = encodeURIComponent(team2);
 
-    fetch(`${API}/api/h2h/by-format?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}`)
-      .then(r => r.json()).then(d => setByFormat(d || []));
+    fetchJSON(`${API}/api/h2h/summary?team1=${t1}&team2=${t2}&type=${matchType}`, null)
+      .then(setSummary);
 
-    fetch(`${API}/api/h2h/points?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}&type=${matchType}`)
-      .then(r => r.json()).then(setPoints);
+    fetchJSON(`${API}/api/h2h/by-format?team1=${t1}&team2=${t2}`, [])
+      .then(d => setByFormat(arr(d)));
 
-    fetch(`${API}/api/h2h/runs-by-format?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}`)
-      .then(r => r.json()).then(d => setRunsByFormat(d || []));
+    fetchJSON(`${API}/api/h2h/points?team1=${t1}&team2=${t2}&type=${matchType}`, null)
+      .then(setPoints);
 
+    fetchJSON(`${API}/api/h2h/runs-by-format?team1=${t1}&team2=${t2}`, [])
+      .then(d => setRunsByFormat(arr(d)));
+
+    // test-only extras when selected or ALL
     if (matchType === "TEST" || matchType === "ALL") {
-      fetch(`${API}/api/h2h/test-innings-lead?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}`)
-        .then(r => r.json()).then(setTestLead);
-      fetch(`${API}/api/h2h/test-innings-averages?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}`)
-        .then(r => r.json()).then(d => setTestAvg(d || []));
+      fetchJSON(`${API}/api/h2h/test-innings-lead?team1=${t1}&team2=${t2}`, null)
+        .then(setTestLead);
+      fetchJSON(`${API}/api/h2h/test-innings-averages?team1=${t1}&team2=${t2}`, [])
+        .then(d => setTestAvg(arr(d)));
     } else {
       setTestLead(null); setTestAvg([]);
     }
 
-    fetch(`${API}/api/h2h/top-batters?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}&type=${matchType}`)
-      .then(r => r.json()).then(d => setTopBatters(d || []));
+    fetchJSON(`${API}/api/h2h/top-batters?team1=${t1}&team2=${t2}&type=${matchType}`, [])
+      .then(d => setTopBatters(arr(d)));
 
-    fetch(`${API}/api/h2h/top-bowlers?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}&type=${matchType}`)
-      .then(r => r.json()).then(d => setTopBowlers(d || []));
+    fetchJSON(`${API}/api/h2h/top-bowlers?team1=${t1}&team2=${t2}&type=${matchType}`, [])
+      .then(d => setTopBowlers(arr(d)));
 
-    fetch(`${API}/api/h2h/recent?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}&type=${matchType}&limit=10`)
-      .then(r => r.json()).then(d => setRecent(d || []));
+    fetchJSON(`${API}/api/h2h/recent?team1=${t1}&team2=${t2}&type=${matchType}&limit=10`, [])
+      .then(d => setRecent(arr(d)));
   }, [team1, team2, matchType]);
 
   // ---------- Player compare ----------
@@ -124,8 +145,10 @@ export default function H2HRecords() {
     }
     setPlayerError("");
     if (player1 && player2 && player1 !== player2) {
-      fetch(`${API}/api/players/compare?player1=${encodeURIComponent(player1)}&player2=${encodeURIComponent(player2)}`)
-        .then(r => r.json()).then(d => setPlayerStats(d?.players || null));
+      const p1 = encodeURIComponent(player1);
+      const p2 = encodeURIComponent(player2);
+      fetchJSON(`${API}/api/players/compare?player1=${p1}&player2=${p2}`, null)
+        .then(d => setPlayerStats(obj(d?.players) ? d.players : null));
     }
   }, [player1, player2]);
 
@@ -133,13 +156,15 @@ export default function H2HRecords() {
   useEffect(() => {
     if (!trendPlayer) return;
     const qs = `player=${encodeURIComponent(trendPlayer)}&type=${trendType}&opponent=${encodeURIComponent(trendOpponent)}&metric=${trendMetric}`;
-    fetch(`${API}/api/players/trend?${qs}`).then(r => r.json()).then(d => setTrendSeries(d?.series || []));
+    fetchJSON(`${API}/api/players/trend?${qs}`, { series: [] })
+      .then(d => setTrendSeries(arr(d?.series)));
   }, [trendPlayer, trendType, trendOpponent, trendMetric]);
 
   useEffect(() => {
     if (!trendPlayer) return;
     const qs = `player=${encodeURIComponent(trendPlayer)}&type=${trendType}`;
-    fetch(`${API}/api/players/opponent-summary?${qs}`).then(r => r.json()).then(d => setOppSummary(d || { opponents: [], overall: {} }));
+    fetchJSON(`${API}/api/players/opponent-summary?${qs}`, { opponents: [], overall: {} })
+      .then(d => setOppSummary({ opponents: arr(d?.opponents), overall: d?.overall || {} }));
   }, [trendPlayer, trendType]);
 
   // ---------- Derived ----------
@@ -199,23 +224,23 @@ export default function H2HRecords() {
 
   const absTick = (v) => Math.abs(v);
 
-  const formatChart = (byFormat || []).map(row => ({
+  const formatChart = arr(byFormat).map(row => ({
     format: row.match_type,
     [team1]: Number(row.t1_wins || 0),
     [team2]: Number(row.t2_wins || 0),
     Draws: Number(row.draws || 0),
   }));
 
-  const runsFormatChart = (runsByFormat || []).map(r => ({
+  const runsFormatChart = arr(runsByFormat).map(r => ({
     format: r.match_type,
     [team1]: Number(r[team1] || 0),
     [team2]: Number(r[team2] || 0),
   }));
 
-  const testAvgByTeam = (testAvg || []).reduce((acc, r) => (acc[r.team] = r, acc), {});
+  const testAvgByTeam = arr(testAvg).reduce((acc, r) => (acc[r.team] = r, acc), {});
 
   const oppBars = useMemo(() => {
-    const rows = oppSummary?.opponents || [];
+    const rows = arr(oppSummary?.opponents);
     const key = ["wickets", "bowling_avg"].includes(trendMetric)
       ? trendMetric
       : ["batting_avg", "strike_rate"].includes(trendMetric)
@@ -255,10 +280,11 @@ export default function H2HRecords() {
 
       {summary && !teamError && (
         <>
+          {/* KPIs */}
           <div className="summary-card wide">
             <div className="sum-head">
               <span className="sum-title">Summary</span>
-              <span className="sum-type">Format: {matchType === "ALL" ? "All Formats" : matchType}</span>
+              <span className="sum-type">Format: {matchType === "ALL" ? "All Formats" : (matchType === "TEST" ? "Test" : matchType)}</span>
             </div>
             <div className="kpi-grid">
               <div className="kpi">
@@ -361,6 +387,7 @@ export default function H2HRecords() {
             )}
           </div>
 
+          {/* Test extras + points */}
           {(matchType === "TEST" || matchType === "ALL") && (
             <>
               {(testLead || points) && (
@@ -369,16 +396,22 @@ export default function H2HRecords() {
                     <div className="insight-card">
                       <div className="insight-title">First-Innings Lead</div>
                       <div className="chip-row">
-                        <div className="kpi-chip"><span className="dot" style={{ background: COLORS.t1 }} /> {team1} Leads <b>{testLead.t1_leads || 0}</b></div>
-                        <div className="kpi-chip"><span className="dot" style={{ background: COLORS.t2 }} /> {team2} Leads <b>{testLead.t2_leads || 0}</b></div>
-                        <div className="kpi-chip"><span className="dot" style={{ background: COLORS.draw }} /> Level <b>{testLead.level || 0}</b></div>
+                        <div className="kpi-chip" style={{ borderColor: COLORS.t1 }}>
+                          <span className="dot" style={{ background: COLORS.t1 }} /> {team1} Leads <b>{testLead.t1_leads || 0}</b>
+                        </div>
+                        <div className="kpi-chip" style={{ borderColor: COLORS.t2 }}>
+                          <span className="dot" style={{ background: COLORS.t2 }} /> {team2} Leads <b>{testLead.t2_leads || 0}</b>
+                        </div>
+                        <div className="kpi-chip" style={{ borderColor: COLORS.draw }}>
+                          <span className="dot" style={{ background: COLORS.draw }} /> Level <b>{testLead.level || 0}</b>
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {points && (
                     <div className="insight-card">
-                      <div className="insight-title">H2H {matchType === "ALL" ? "Overall" : matchType} Points</div>
+                      <div className="insight-title">H2H {matchType === "ALL" ? "Overall" : (matchType === "TEST" ? "Test" : matchType)} Points</div>
                       <div className="points-row">
                         <div className="points-box gold">
                           <div className="label">{team1}</div>
@@ -435,7 +468,7 @@ export default function H2HRecords() {
             <div className="chart-card">
               <div className="chart-title">Top Batters ({matchType})</div>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={topBatters} layout="vertical" margin={{ top: 6, right: 24, left: 28, bottom: 6 }}>
+                <BarChart data={arr(topBatters)} layout="vertical" margin={{ top: 6, right: 24, left: 28, bottom: 6 }}>
                   <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
                   <XAxis type="number" tick={{ fill: "#93a4c3", fontSize: 12 }} />
                   <YAxis type="category" dataKey="player_name" tick={{ fill: "#cfd9ee", fontSize: 12 }} width={160} />
@@ -453,7 +486,7 @@ export default function H2HRecords() {
                 <div className="tr th">
                   <div>Bowler</div><div className="num">Wkts</div><div className="num">Runs</div><div className="num">Avg</div>
                 </div>
-                {(topBowlers || []).map((r, i) => (
+                {arr(topBowlers).map((r, i) => (
                   <div key={i} className="tr">
                     <div>{r.player_name}</div>
                     <div className="num">{r.wkts}</div>
@@ -461,13 +494,13 @@ export default function H2HRecords() {
                     <div className="num">{r.bowl_avg}</div>
                   </div>
                 ))}
-                {(!topBowlers || topBowlers.length === 0) && <div className="tr empty">No data</div>}
+                {arr(topBowlers).length === 0 && <div className="tr empty">No data</div>}
               </div>
             </div>
           </div>
 
           {/* Recent strip */}
-          {!!recent.length && (
+          {!!arr(recent).length && (
             <div className="recent-strip wide">
               <div className="strip-title">Recent Results (new → old)</div>
               <div className="dots">
@@ -548,7 +581,7 @@ export default function H2HRecords() {
           </select>
           <select value={trendOpponent} onChange={e => setTrendOpponent(e.target.value)} className="sel">
             <option value="ALL">All Opponents</option>
-            {[...new Set((oppSummary?.opponents || []).map(o => o.opponent))].map(o => <option key={o} value={o}>{o}</option>)}
+            {[...new Set(arr(oppSummary?.opponents).map(o => o.opponent))].map(o => <option key={o} value={o}>{o}</option>)}
           </select>
           <select value={trendMetric} onChange={e => setTrendMetric(e.target.value)} className="sel sel-type">
             <option value="runs">Runs</option>
@@ -595,7 +628,7 @@ export default function H2HRecords() {
           <div className="chart-card">
             <div className="chart-title">Per-match Trend ({trendMetric.replace("_", " ")})</div>
             <ResponsiveContainer width="100%" height={320}>
-              <LineChart data={trendSeries} margin={{ top: 6, right: 24, left: 12, bottom: 6 }}>
+              <LineChart data={arr(trendSeries)} margin={{ top: 6, right: 24, left: 12, bottom: 6 }}>
                 <CartesianGrid stroke={COLORS.grid} strokeDasharray="3 3" />
                 <XAxis dataKey="match_name" tick={false} />
                 <YAxis tick={{ fill: "#93a4c3", fontSize: 12 }} />
