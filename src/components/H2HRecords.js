@@ -114,11 +114,14 @@ export default function H2HRecords() {
     fetchJSON(`${API}/api/h2h/points?team1=${t1}&team2=${t2}&type=${matchType}`, null)
       .then(setPoints);
 
-    fetchJSON(`${API}/api/h2h/runs-by-format?team1=${t1}&team2=${t2}`, [])
+    // FIX: pass the selected matchType so backend can filter (and UI won't "stick" to T20)
+    fetchJSON(`${API}/api/h2h/runs-by-format?team1=${t1}&team2=${t2}&type=${matchType}`, [])
       .then(d => setRunsByFormat(arr(d)));
 
+    // test-only extras when selected or ALL
     if (matchType === "TEST" || matchType === "ALL") {
-      fetchJSON(`${API}/api/h2h/test-innings-lead?team1=${t1}&team2=${t2}`, null).then(setTestLead);
+      fetchJSON(`${API}/api/h2h/test-innings-lead?team1=${t1}&team2=${t2}`, null)
+        .then(setTestLead);
       fetchJSON(`${API}/api/h2h/test-innings-averages?team1=${t1}&team2=${t2}`, [])
         .then(d => setTestAvg(arr(d)));
     } else {
@@ -235,11 +238,10 @@ export default function H2HRecords() {
     [team2]: Number(r[team2] || 0),
   }));
 
-  // ✅ show selected matchType only (bug #4)
+  // Also filter client-side as a defensive fallback
   const runsFormatChart = useMemo(() => {
     if (matchType === "ALL") return runsFormatChartRaw;
-    const sel = (matchType === "TEST" ? "TEST" : matchType);
-    return runsFormatChartRaw.filter(x => String(x.format).toUpperCase() === sel);
+    return runsFormatChartRaw.filter(x => String(x.format).toUpperCase() === matchType);
   }, [runsFormatChartRaw, matchType]);
 
   const testAvgByTeam = arr(testAvg).reduce((acc, r) => (acc[r.team] = r, acc), {});
@@ -354,7 +356,7 @@ export default function H2HRecords() {
                     {outcomePieData.map((e, i) => <Cell key={i} fill={e.color} />)}
                     <LabelList dataKey="value" position="outside" fill={COLORS.ink} fontSize={12} />
                   </Pie>
-                  {/* ✅ readable tooltip text (#5) */}
+                  {/* readable tooltip text */}
                   <Tooltip {...tooltipProps} />
                   <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
                 </PieChart>
@@ -368,7 +370,7 @@ export default function H2HRecords() {
               <div className="chart-card">
                 <div className="chart-title">Wins by Format</div>
                 <ResponsiveContainer width="100%" height={320}>
-                  {/* ✅ extra top margin so labels never clip (#3) */}
+                  {/* extra top margin so labels never clip */}
                   <BarChart data={formatChart} margin={{ top: 28, right: 20, left: 10, bottom: 6 }}>
                     <CartesianGrid vertical={false} stroke={COLORS.grid} strokeDasharray="3 3" />
                     <XAxis dataKey="format" tick={{ fill: "#93a4c3", fontSize: 12 }} />
@@ -389,7 +391,7 @@ export default function H2HRecords() {
                   {matchType === "ALL" ? "Total Runs by Format" : `Total Runs — ${matchType === "TEST" ? "Test" : matchType}`}
                 </div>
                 <ResponsiveContainer width="100%" height={320}>
-                  {/* ✅ extra top margin so labels never clip (#4) */}
+                  {/* extra top margin so labels never clip */}
                   <BarChart data={runsFormatChart} margin={{ top: 28, right: 20, left: 14, bottom: 6 }}>
                     <CartesianGrid vertical={false} stroke={COLORS.grid} strokeDasharray="3 3" />
                     <XAxis dataKey="format" tick={{ fill: "#93a4c3", fontSize: 12 }}
@@ -570,7 +572,7 @@ export default function H2HRecords() {
               <ResponsiveContainer width="100%" height={420}>
                 <BarChart data={playerMirrorData} layout="vertical" margin={{ top: 8, right: 40, left: 40, bottom: 8 }}>
                   <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
-                  <XAxis type="number" domain={mirrorDomain} tickFormatter={absTick} tick={{ fill: "#93a4c3", fontSize: 12 }} />
+                  <XAxis type="number" domain={[-100, 100]} tickFormatter={absTick} tick={{ fill: "#93a4c3", fontSize: 12 }} />
                   <YAxis type="category" dataKey="metric" tick={{ fill: "#cfd9ee", fontSize: 12 }} width={160} />
                   <Tooltip {...tooltipProps} formatter={(v, k) => [Math.abs(v), k]} />
                   <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
