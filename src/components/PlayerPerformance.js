@@ -1,4 +1,4 @@
-// ✅ src/components/PlayerPerformance.js — FORM ONLY
+// ✅ src/components/PlayerPerformance.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
@@ -7,6 +7,35 @@ import "./PlayerPerformance.css";
 
 const API_PLAYERS = "https://cricket-scoreboard-backend.onrender.com/api/players";
 const API_PERF    = "https://cricket-scoreboard-backend.onrender.com/api/player-performance";
+
+// Try to discover the logged-in user's id from localStorage or JWT
+function getUserIdFromClient() {
+  // common localStorage keys your app might use
+  const candidates = ["user", "authUser", "profile"];
+  for (const key of candidates) {
+    const raw = localStorage.getItem(key);
+    if (!raw) continue;
+    try {
+      const obj = JSON.parse(raw);
+      if (obj?.id) return obj.id;
+      if (obj?.user?.id) return obj.user.id;
+      if (obj?.user_id) return obj.user_id;
+    } catch {}
+  }
+  // fall back to a JWT token if present
+  const token =
+    localStorage.getItem("token") ||
+    localStorage.getItem("authToken") ||
+    localStorage.getItem("access_token");
+  if (token && token.split(".").length === 3) {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      // common id claims
+      return payload.id || payload.user_id || payload.sub || null;
+    } catch {}
+  }
+  return null;
+}
 
 const PlayerPerformance = () => {
   const [players, setPlayers] = useState([]);
@@ -17,7 +46,7 @@ const PlayerPerformance = () => {
     match_name: "",
     player_id: "",
     team_name: "",
-    match_type: "ODI",
+    match_type: "ODI",      // must be "ODI" | "T20" | "Test"
     against_team: "",
     run_scored: 0,
     balls_faced: 0,
@@ -25,7 +54,7 @@ const PlayerPerformance = () => {
     runs_given: 0,
     fifties: 0,
     hundreds: 0,
-    dismissed: "Out"
+    dismissed: "Out"        // "Out" | "Not Out"
   });
 
   useEffect(() => {
@@ -44,20 +73,14 @@ const PlayerPerformance = () => {
     })();
   }, []);
 
-  // ---- number inputs validation (your original rules) ----
+  // number validation (same rules you had)
   const handleNumberChange = (e, key) => {
     let value = e.target.value;
-
-    if (value === "") {
-      setForm({ ...form, [key]: "" });
-      return;
-    }
+    if (value === "") { setForm({ ...form, [key]: "" }); return; }
     if (value.includes(".")) {
-      if (key === "balls_faced") {
-        toast.error("Please enter full number without any dot (.)");
-      } else if (["wickets_taken","runs_given","fifties","hundreds"].includes(key)) {
+      if (key === "balls_faced") toast.error("Please enter full number without any dot (.)");
+      else if (["wickets_taken","runs_given","fifties","hundreds"].includes(key))
         toast.error("Ooops! Only full number allowed no number with dot.");
-      }
       return;
     }
     const intValue = parseInt(value, 10);
@@ -80,7 +103,6 @@ const PlayerPerformance = () => {
   const handleAgainstTeamChange = (against_team) => {
     if (against_team === form.team_name) {
       toast.error("Same teams names are not allowed.");
-      setForm({ ...form, against_team: "" });
     } else setForm({ ...form, against_team });
   };
 
@@ -97,13 +119,18 @@ const PlayerPerformance = () => {
     }
     if (!window.confirm("Are you sure you want to submit this performance?")) return;
 
+    // Attach user_id if we can detect it
+    const userId = getUserIdFromClient();
+    const payload = { ...form, user_id: userId ?? undefined };
+    const headers = userId ? { "x-user-id": String(userId) } : {};
+
     try {
-      await axios.post(API_PERF, form);
+      await axios.post(API_PERF, payload, { headers });
       toast.success("✅ Player performance added successfully!");
       resetForm();
     } catch (err) {
-      console.error("❌ Error submitting performance:", err);
-      toast.error("❌ Failed to add player performance.");
+      console.error("❌ Error submitting performance:", err?.response?.data || err.message);
+      toast.error(err?.response?.data?.message || "❌ Failed to add player performance.");
     }
   };
 
@@ -136,7 +163,6 @@ const PlayerPerformance = () => {
         <h3>📊 Add Player Performance</h3>
 
         <form onSubmit={handleSubmit} className="mt-3">
-          {/* Match Name */}
           <div className="mb-3">
             <label htmlFor="matchName" className="form-label text-light">🏟️ Match Name</label>
             <input
@@ -150,7 +176,6 @@ const PlayerPerformance = () => {
             />
           </div>
 
-          {/* Player */}
           <div className="mb-2">
             <label>Player Name</label>
             <select
@@ -166,7 +191,6 @@ const PlayerPerformance = () => {
             </select>
           </div>
 
-          {/* Team */}
           <div className="mb-2">
             <label>Team Name</label>
             <select
@@ -180,7 +204,6 @@ const PlayerPerformance = () => {
             </select>
           </div>
 
-          {/* Match Type */}
           <div className="mb-2">
             <label>Match Type</label>
             <select
@@ -189,13 +212,13 @@ const PlayerPerformance = () => {
               onChange={(e) => setForm({ ...form, match_type: e.target.value })}
               required
             >
+              {/* IMPORTANT: "Test" (not "TEST") to satisfy DB check constraint */}
               <option value="ODI">ODI</option>
               <option value="T20">T20</option>
               <option value="Test">Test</option>
             </select>
           </div>
 
-          {/* Against Team */}
           <div className="mb-2">
             <label>Against Team</label>
             <select
@@ -209,7 +232,6 @@ const PlayerPerformance = () => {
             </select>
           </div>
 
-          {/* Performance inputs */}
           <div className="row">
             {[
               { label: "Runs Scored", key: "run_scored" },
