@@ -1,11 +1,24 @@
 // ✅ src/services/api.js
 // ✅ [Ranaj Parida - 2025-04-17 | 04:05 AM]
 // FINAL: cleans up upcoming-matches functions, adds alias, keeps squads API
+// ✅ [2025-06-27] Ensure createPlayer sends user_id from localStorage if not provided
 
 import axios from "axios";
 
 // ✅ LIVE BACKEND BASE URL (Render)
 export const API_URL = "https://cricket-scoreboard-backend.onrender.com/api";
+
+/* --- tiny helper to read the logged-in user id from localStorage --- */
+function getStoredUserId() {
+  try {
+    const raw = localStorage.getItem("user");
+    if (!raw) return null;
+    const u = JSON.parse(raw);
+    return u?.id ?? null;
+  } catch {
+    return null;
+  }
+}
 
 /* ================== MATCH CREATION / RESULTS ================== */
 
@@ -47,9 +60,9 @@ export const getMatchHistory = async (filters = {}) => {
   return response.data;
 };
 
+/*
 // ⚠️ Optional legacy helper (NOT “upcoming”)
 // Keep only if something else uses it; otherwise remove.
-/*
 export const getAllMatchesForScenario = async () => {
   const response = await axios.get(`${API_URL}/match-history`);
   return response.data;
@@ -133,8 +146,19 @@ export const suggestPlayers = (team, q) =>
     .get(`${API_URL}/squads/suggest`, { params: { team, q } })
     .then((r) => r.data);
 
-export const createPlayer = (payload) =>
-  axios.post(`${API_URL}/squads/players`, payload).then((r) => r.data);
+/**
+ * Ensure we always include user_id when creating a player via Squad/Lineup.
+ * - If caller already put user_id in payload, we keep it.
+ * - Otherwise we read it from localStorage ("user") — same source used by useAuth.
+ */
+export const createPlayer = (payload) => {
+  const ensured = { ...payload };
+  if (ensured.user_id == null) {
+    const uid = getStoredUserId();
+    if (uid) ensured.user_id = uid;
+  }
+  return axios.post(`${API_URL}/squads/players`, ensured).then((r) => r.data);
+};
 
 export const updatePlayer = (id, payload) =>
   axios.put(`${API_URL}/squads/players/${id}`, payload).then((r) => r.data);
@@ -153,16 +177,33 @@ export const saveLineup = (payload) =>
 /* ================== USER DASHBOARD MOCK ================== */
 
 export const getUserDashboardData = async (userId) => {
-  const [favorites, posts, achievements, widgets, activity, profile, notifications, settings] =
-    await Promise.all([
-      fetch(`/api/dashboard/favorites?userId=${userId}`).then((res) => res.json()),
-      fetch(`/api/dashboard/posts?userId=${userId}`).then((res) => res.json()),
-      fetch(`/api/dashboard/achievements?userId=${userId}`).then((res) => res.json()),
-      fetch(`/api/dashboard/widgets?userId=${userId}`).then((res) => res.json()),
-      fetch(`/api/dashboard/activity?userId=${userId}`).then((res) => res.json()),
-      fetch(`/api/dashboard/profile?userId=${userId}`).then((res) => res.json()),
-      fetch(`/api/dashboard/notifications?userId=${userId}`).then((res) => res.json()),
-      fetch(`/api/dashboard/settings?userId=${userId}`).then((res) => res.json()),
-    ]);
-  return { favorites, posts, achievements, widgets, activity, profile, notifications, settings };
+  const [
+    favorites,
+    posts,
+    achievements,
+    widgets,
+    activity,
+    profile,
+    notifications,
+    settings,
+  ] = await Promise.all([
+    fetch(`/api/dashboard/favorites?userId=${userId}`).then((res) => res.json()),
+    fetch(`/api/dashboard/posts?userId=${userId}`).then((res) => res.json()),
+    fetch(`/api/dashboard/achievements?userId=${userId}`).then((res) => res.json()),
+    fetch(`/api/dashboard/widgets?userId=${userId}`).then((res) => res.json()),
+    fetch(`/api/dashboard/activity?userId=${userId}`).then((res) => res.json()),
+    fetch(`/api/dashboard/profile?userId=${userId}`).then((res) => res.json()),
+    fetch(`/api/dashboard/notifications?userId=${userId}`).then((res) => res.json()),
+    fetch(`/api/dashboard/settings?userId=${userId}`).then((res) => res.json()),
+  ]);
+  return {
+    favorites,
+    posts,
+    achievements,
+    widgets,
+    activity,
+    profile,
+    notifications,
+    settings,
+  };
 };
