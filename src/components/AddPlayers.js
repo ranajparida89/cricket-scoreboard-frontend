@@ -2,17 +2,26 @@
 // ✅ [Ranaj Parida - 2025-04-23 | Full Player Add Form with all conditional logic]
 // ✅ [Updated: Now sends user_id - 2025-05-29]
 // ✅ [2025-06-26 | FIXED: React Hooks error by moving hooks before admin check]
+// ✅ [2025-08-19 | Normalize lineup type to TEST/ODI/T20, align batting/bowling labels, better errors]
 
 import React, { useState } from "react";
 import axios from "axios";
 import { API_URL } from "../services/api";
 import { useAuth } from "../services/auth"; // Auth hook import
-
 import "./AddPlayers.css"; // optional, if you want to style
 
-// isAdmin prop: for admin-only access
+const toFormat = (v) => {
+  const s = String(v || "").toUpperCase().trim();
+  if (s === "ODI" || s === "T20" || s === "TEST") return s;
+  // accept "Test" from legacy and coerce
+  if (String(v) === "Test") return "TEST";
+  return "ODI";
+};
+
+const norm = (s) => String(s || "").trim();
+
 const AddPlayers = ({ isAdmin }) => {
-  // 🔴 FIXED: ALL hooks go at the very top before any if/return
+  // 🔴 All hooks at the top
   const { currentUser } = useAuth();
 
   const [form, setForm] = useState({
@@ -27,8 +36,9 @@ const AddPlayers = ({ isAdmin }) => {
   });
 
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  // 🟡 Moved BELOW hooks: block non-admins early
+  // 🟡 Block non-admins
   if (!isAdmin) {
     return (
       <div className="container mt-5">
@@ -38,8 +48,6 @@ const AddPlayers = ({ isAdmin }) => {
       </div>
     );
   }
-
-  // ======== The rest of your code is unchanged ========
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -51,8 +59,14 @@ const AddPlayers = ({ isAdmin }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage("");
 
-    if (!form.playerName.trim() || !form.teamName.trim() || !form.skill) {
+    const playerName = norm(form.playerName);
+    const teamName = norm(form.teamName);
+    const lineupType = toFormat(form.lineupType);
+    const skill = norm(form.skill);
+
+    if (!playerName || !teamName || !skill) {
       setMessage("All required fields must be filled.");
       return;
     }
@@ -62,17 +76,29 @@ const AddPlayers = ({ isAdmin }) => {
       return;
     }
 
+    // Align labels with the rest of the app
+    const batting_style =
+      skill === "Batsman" || skill === "Wicketkeeper/Batsman"
+        ? form.battingStyle || ""
+        : "";
+
+    const bowling_style_allowed =
+      skill === "Bowler" || skill === "All Rounder" || skill === "Wicketkeeper/Batsman";
+
+    const bowling_type = bowling_style_allowed ? form.bowlingType || "" : "";
+
     try {
+      setSubmitting(true);
       const res = await axios.post(`${API_URL}/add-player`, {
-        lineup_type: form.lineupType,
-        player_name: form.playerName.trim(),
-        team_name: form.teamName.trim(),
-        skill_type: form.skill,
-        batting_style: form.skill === "Batsman" ? form.battingStyle : null,
-        bowling_type: form.skill === "Bowler" ? form.bowlingType : null,
-        is_captain: form.isCaptain,
-        is_vice_captain: form.isViceCaptain,
-        user_id: currentUser.id,
+        lineup_type: lineupType,                    // ✅ normalized to ODI/T20/TEST
+        player_name: playerName,
+        team_name: teamName,
+        skill_type: skill,
+        batting_style,
+        bowling_type,
+        is_captain: !!form.isCaptain,
+        is_vice_captain: !!form.isViceCaptain,
+        user_id: currentUser.id,                    // ✅ stamp user
       });
 
       setMessage(
@@ -90,9 +116,14 @@ const AddPlayers = ({ isAdmin }) => {
         isViceCaptain: false,
       });
     } catch (err) {
-      setMessage(
-        "❌ Failed to add player: " + (err.response?.data?.error || "Server error")
-      );
+      const status = err?.response?.status;
+      if (status === 409) {
+        setMessage("⚠️ Player already exists in this team & format.");
+      } else {
+        setMessage("❌ Failed to add player: " + (err.response?.data?.error || "Server error"));
+      }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -108,12 +139,12 @@ const AddPlayers = ({ isAdmin }) => {
           <select
             className="form-select mb-3"
             name="lineupType"
-            value={form.lineupType}
+            value={toFormat(form.lineupType)}
             onChange={handleChange}
           >
-            <option>ODI</option>
-            <option>T20</option>
-            <option>Test</option>
+            <option value="ODI">ODI</option>
+            <option value="T20">T20</option>
+            <option value="TEST">TEST</option>
           </select>
 
           {/* Player Name */}
@@ -154,8 +185,8 @@ const AddPlayers = ({ isAdmin }) => {
             <option value="Wicketkeeper/Batsman">Wicketkeeper/Batsman</option>
           </select>
 
-          {/* Batting Style (only if Batsman) */}
-          {form.skill === "Batsman" && (
+          {/* Batting Style (Batsman / WK-B) */}
+          {(form.skill === "Batsman" || form.skill === "Wicketkeeper/Batsman") && (
             <>
               <label>🏏 Batting Style</label>
               <select
@@ -165,14 +196,16 @@ const AddPlayers = ({ isAdmin }) => {
                 onChange={handleChange}
               >
                 <option value="">-- Select --</option>
-                <option>Right Hand</option>
-                <option>Left Hand</option>
+                <option>Right-hand Bat</option>
+                <option>Left-hand Bat</option>
               </select>
             </>
           )}
 
-          {/* Bowling Type (only if Bowler) */}
-          {form.skill === "Bowler" && (
+          {/* Bowling Type (Bowler / AR / WK-B optional) */}
+          {(form.skill === "Bowler" ||
+            form.skill === "All Rounder" ||
+            form.skill === "Wicketkeeper/Batsman") && (
             <>
               <label>🎯 Bowling Type</label>
               <select
@@ -184,9 +217,10 @@ const AddPlayers = ({ isAdmin }) => {
                 <option value="">-- Select --</option>
                 <option>Fast</option>
                 <option>Medium Fast</option>
-                <option>Medium</option>
                 <option>Off Spin</option>
                 <option>Leg Spin</option>
+                <option>Left-arm Orthodox</option>
+                <option>Left-arm Wrist Spin</option>
               </select>
             </>
           )}
@@ -215,8 +249,8 @@ const AddPlayers = ({ isAdmin }) => {
           </div>
 
           {/* Submit */}
-          <button type="submit" className="btn btn-success">
-            ➕ Submit Player
+          <button type="submit" className="btn btn-success" disabled={submitting}>
+            {submitting ? "Submitting…" : "➕ Submit Player"}
           </button>
         </form>
       </div>

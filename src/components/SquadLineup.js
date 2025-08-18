@@ -14,6 +14,7 @@ import {
   saveLineup,
 } from "../services/api";
 import "./SquadLineup.css";
+import { useAuth } from "../services/auth"; // 🆕 get logged-in user
 
 /* ---- constants & helpers ---- */
 const FORMATS = ["ODI", "T20", "TEST"];
@@ -127,6 +128,10 @@ function RoleFields({ role, values, setValues }) {
 
 /* ================== MAIN ================== */
 export default function SquadLineup({ isAdmin = true }) {
+  /* 🆕 current user (for user_id propagation) */
+  const { currentUser } = useAuth();
+  const userId = currentUser?.id || null;
+
   /* team + format */
   const [teams, setTeams] = useState(() => {
     try { return JSON.parse(localStorage.getItem("crickedge_teams")) || DEFAULT_TEAMS; }
@@ -263,6 +268,7 @@ export default function SquadLineup({ isAdmin = true }) {
       return;
     }
     try {
+      if (!userId) { push("Please sign in to add players.", "error"); return; } // 🆕 require user
       const payload = {
         player_name: person.name,
         team_name: team,
@@ -270,6 +276,7 @@ export default function SquadLineup({ isAdmin = true }) {
         skill_type: person.sample?.skill_type || "Batsman",
         batting_style: person.sample?.batting_style || "",
         bowling_type: person.sample?.bowling_type || "",
+        user_id: userId, // 🆕 stamp creator
       };
       const created = await createPlayer(payload);
       setSquads((prev) => ({ ...prev, [destFormat]: [...(prev[destFormat]||[]), created] }));
@@ -286,6 +293,7 @@ export default function SquadLineup({ isAdmin = true }) {
     const name = addName.trim();
     if (!name) return;
     if ((squads[format] || []).some((p) => ciEq(p.player_name, name))) { push("Player already exists in this format's squad", "error"); return; }
+    if (!userId) { push("Please sign in to add players.", "error"); return; } // 🆕 require user
     const bowling_type = buildBowlingType(addVals);
     const skill = addRole === "All Rounder" && addVals.allrounder_type ? `All Rounder (${addVals.allrounder_type})` : addRole;
     try {
@@ -296,6 +304,7 @@ export default function SquadLineup({ isAdmin = true }) {
         skill_type: skill,
         batting_style: addVals.batting_style || "",
         bowling_type,
+        user_id: userId, // 🆕 stamp creator
       });
       setSquads((prev) => ({ ...prev, [format]: [...prev[format], created] }));
       setAddName(""); setSuggests([]);
@@ -376,6 +385,7 @@ export default function SquadLineup({ isAdmin = true }) {
     for (const p of source) {
       if (current.has(ci(p.player_name))) continue;
       try {
+        if (!userId) { failed++; continue; } // 🆕 require user; skip if not logged in
         const created = await createPlayer({
           player_name: p.player_name,
           team_name: team,
@@ -384,6 +394,7 @@ export default function SquadLineup({ isAdmin = true }) {
           batting_style: p.batting_style || "",
           bowling_type: p.bowling_type || "",
           profile_url: p.profile_url || null,
+          user_id: userId, // 🆕 stamp creator
         });
         added++;
         setSquads((prev) => ({ ...prev, [format]: [...(prev[format]||[]), created] }));
