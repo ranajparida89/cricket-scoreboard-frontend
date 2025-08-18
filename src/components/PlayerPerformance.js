@@ -1,7 +1,5 @@
-// ✅ src/components/PlayerPerformance.js — FORM ONLY (fixed)
-// - Casts player_id and numeric fields correctly
-// - Works whether your /players API returns { id } or { player_id }
-// - Shows helpful API error messages in toasts
+// ✅ src/components/PlayerPerformance.js
+// Sends user_id with the payload (taken from selected player or localStorage fallback)
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
@@ -29,9 +27,11 @@ export default function PlayerPerformance() {
     runs_given: 0,
     fifties: 0,
     hundreds: 0,
-    dismissed: "Out", // kept for UI; backend doesn’t store it yet
+    dismissed: "Out",
+    user_id: "", // <-- NEW: will be set when player is chosen (or from localStorage)
   });
 
+  // Load players
   useEffect(() => {
     (async () => {
       try {
@@ -40,9 +40,14 @@ export default function PlayerPerformance() {
         const list = Array.isArray(res.data) ? res.data : [];
         setPlayers(list);
 
-        // derive teams from players
-        const uniq = [...new Set(list.map((p) => p.team_name).filter(Boolean))];
-        setTeams(uniq);
+        const uniqTeams = [...new Set(list.map((p) => p.team_name).filter(Boolean))];
+        setTeams(uniqTeams);
+
+        // localStorage fallback for user_id (if your backend needs it)
+        const stored = JSON.parse(localStorage.getItem("user") || "null");
+        if (stored?.id) {
+          setForm((f) => ({ ...f, user_id: Number(stored.id) }));
+        }
       } catch (err) {
         console.error("❌ Error fetching players:", err);
         toast.error("Failed to load players.");
@@ -52,9 +57,22 @@ export default function PlayerPerformance() {
     })();
   }, []);
 
-  // ---------- helpers ----------
-  const isFilled = (value) =>
-    value !== "" && value !== null && (typeof value === "string" ? value.trim() !== "" : true);
+  const isFilled = (v) => v !== "" && v !== null && (typeof v === "string" ? v.trim() !== "" : true);
+
+  // When player is chosen: set player_id, and derive user_id (& optionally team_name)
+  const onSelectPlayer = (val) => {
+    const idNum = Number(val);
+    const p = players.find((x) => (x.id ?? x.player_id) === idNum);
+
+    setForm((f) => ({
+      ...f,
+      player_id: idNum,
+      // If player row has a user_id, use it; otherwise keep whatever is already there (localStorage fallback)
+      user_id: p?.user_id ? Number(p.user_id) : f.user_id,
+      // If you want to auto-fill team from the player, uncomment the next line:
+      // team_name: p?.team_name ?? f.team_name,
+    }));
+  };
 
   const handleTeamNameChange = (team_name) => {
     if (team_name === form.against_team) {
@@ -75,32 +93,26 @@ export default function PlayerPerformance() {
   };
 
   const handleNumberChange = (e, key) => {
-    let value = e.target.value;
-
-    if (value === "") {
+    let v = e.target.value;
+    if (v === "") {
       setForm((f) => ({ ...f, [key]: "" }));
       return;
     }
-    if (value.includes(".")) {
-      if (key === "balls_faced") {
-        toast.error("Please enter a whole number for Balls Faced.");
-      } else if (["wickets_taken", "runs_given", "fifties", "hundreds", "run_scored"].includes(key)) {
-        toast.error("Only whole numbers are allowed.");
-      }
+    if (v.includes(".")) {
+      toast.error("Only whole numbers are allowed.");
       return;
     }
-
-    const intValue = Number(value);
-    if (Number.isNaN(intValue) || intValue < 0) return;
-
-    if (key === "wickets_taken" && (form.match_type === "ODI" || form.match_type === "T20") && intValue > 10) {
+    const n = Number(v);
+    if (!Number.isFinite(n) || n < 0) return;
+    if (key === "wickets_taken" && (form.match_type === "ODI" || form.match_type === "T20") && n > 10) {
       toast.error("Maximum 10 wickets are allowed in a limited-overs match.");
       return;
     }
-    setForm((f) => ({ ...f, [key]: intValue }));
+    setForm((f) => ({ ...f, [key]: n }));
   };
 
   const resetForm = () => {
+    const stored = JSON.parse(localStorage.getItem("user") || "null");
     setForm({
       match_name: "",
       player_id: "",
@@ -114,6 +126,7 @@ export default function PlayerPerformance() {
       fifties: 0,
       hundreds: 0,
       dismissed: "Out",
+      user_id: stored?.id ? Number(stored.id) : "", // keep fallback
     });
   };
 
@@ -128,9 +141,8 @@ export default function PlayerPerformance() {
       toast.error("⚠️ Please enter the Match Name.");
       return;
     }
-    if (!window.confirm("Are you sure you want to submit this performance?")) return;
 
-    // Build clean payload (cast numbers explicitly)
+    // Build payload
     const payload = {
       match_name: form.match_name.trim(),
       player_id: Number(form.player_id),
@@ -143,15 +155,12 @@ export default function PlayerPerformance() {
       runs_given: Number(form.runs_given) || 0,
       fifties: Number(form.fifties) || 0,
       hundreds: Number(form.hundreds) || 0,
+      user_id: form.user_id ? Number(form.user_id) : undefined, // send only if present
     };
 
     try {
-      // Debug while testing
       console.log("POST /player-performance payload:", payload);
-
-      await axios.post(API_PERF, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
+      await axios.post(API_PERF, payload, { headers: { "Content-Type": "application/json" } });
       toast.success("✅ Player performance added successfully!");
       resetForm();
     } catch (err) {
@@ -190,7 +199,7 @@ export default function PlayerPerformance() {
             <select
               className={`form-select ${isFilled(form.player_id) ? "field-filled" : ""}`}
               value={form.player_id}
-              onChange={(e) => setForm({ ...form, player_id: Number(e.target.value) })} // cast to number
+              onChange={(e) => onSelectPlayer(e.target.value)}
               required
             >
               <option value="">-- Select Player --</option>
@@ -251,7 +260,7 @@ export default function PlayerPerformance() {
             </select>
           </div>
 
-          {/* Performance inputs */}
+          {/* Performance Inputs */}
           <div className="row">
             {[
               { label: "Runs Scored", key: "run_scored" },
