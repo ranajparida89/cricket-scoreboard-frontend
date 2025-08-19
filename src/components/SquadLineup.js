@@ -172,11 +172,7 @@ export default function SquadLineup({ isAdmin = true }) {
   const { currentUser } = useAuth();
   const userId = currentUser?.id || null;
 
-  /* Teams state
-     - Start with sanitized cache
-     - On mount, fetch from server and merge
-     - Remember last-picked team
-  */
+  /* Teams state ... */
   const cached = loadTeamsLocal();
   const lastTeam = (() => { try { return localStorage.getItem("crickedge_last_team") || ""; } catch { return ""; } })();
   const initialTeam = cached.find(t => ci(t) === ci(lastTeam)) || cached[0] || "India";
@@ -216,9 +212,7 @@ export default function SquadLineup({ isAdmin = true }) {
   /* Remember last-picked team */
   useEffect(() => { try { localStorage.setItem("crickedge_last_team", team); } catch {} }, [team]);
 
-  /* Fetch server teams once, merge with cache
-     - If selected team not present after merge, choose first
-  */
+  /* Fetch server teams once, merge with cache */
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -237,12 +231,11 @@ export default function SquadLineup({ isAdmin = true }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // run once on mount
 
-  /* + Team → try server, fall back to local only if server fails */
+  /* + Team ... */
   const addTeamPrompt = async () => {
     const name = (window.prompt("Add Team/Country name:") || "").trim();
     if (!name) return;
 
-    // attempt server create first
     try {
       await createSquadTeam(name);
       const merged = cleanTeams([...teams, name]);
@@ -252,7 +245,6 @@ export default function SquadLineup({ isAdmin = true }) {
       setTimeout(() => loadAll(name).catch(()=>{}), 0);
       return;
     } catch {
-      // fallback: local only
       const merged = cleanTeams([...teams, name]);
       setTeams(merged);
       setTeam(name);
@@ -400,7 +392,11 @@ export default function SquadLineup({ isAdmin = true }) {
       return;
     }
     try {
-      if (!userId) { failed++; return; }
+      // 🔧 FIX: avoid undefined variable `failed`
+      if (!userId) {
+        push("Please sign in to add players.", "error");  // <-- Changes for OCR/bugfix
+        return;
+      }
       const created = await createPlayer({
         player_name: person.name,
         team_name: team,

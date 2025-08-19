@@ -1,7 +1,8 @@
 // src/services/ocrImportApi.js
+import axios from "axios"; // <-- must be first
+
 // Hardcoded backend URL as per your convention
 const BASE_URL = "https://cricket-scoreboard-backend.onrender.com";
-import axios from "axios";
 
 /**
  * Call /preview to extract rows from the uploaded roster image.
