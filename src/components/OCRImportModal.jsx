@@ -1,20 +1,84 @@
 // src/components/OCRImportModal.jsx
-// Drop-in modal to use INSIDE Squad/Lineup without changing its logic.
+// Changes for OCR: client-side OCR (browser) + server only for commit
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
+import Tesseract from "tesseract.js";
 import ImportPreviewGrid from "./ImportPreviewGrid";
-import { ocrPreview, ocrCommit } from "../services/ocrImportApi";
+import { ocrCommit } from "../services/ocrImportApi";
+import { fetchPlayers } from "../services/api";
 
 const FORMATS = ["T20", "ODI", "TEST"];
 
-/**
- * Props:
- *  - open: boolean (show/hide)
- *  - onClose: () => void
- *  - defaultTeam: string (pre-filled from Squad/Lineup selection)
- *  - defaultFormat: "T20" | "ODI" | "TEST"
- *  - onImported: (createdNames: string[]) => void (notify parent to refresh + highlight)
- */
+// --- parsing helpers (same rules as backend) ---
+const ALLOWED_BAT = new Set(["RHB", "LHB"]);
+const ALLOWED_BOWL = new Set(["RM","RFM","RF","LF","LM","LHM","SLO","OS","LS"]);
+
+const batMap = { RHB: "Right-hand Bat", LHB: "Left-hand Bat" };
+const bowlMap = {
+  RM: "Right-arm Medium",
+  RFM: "Right-arm Medium Fast",
+  RF: "Right-arm Fast",
+  LF: "Left-arm Fast",
+  LM: "Left-arm Medium",
+  LHM: "Left-arm Medium",
+  SLO: "Left-arm Orthodox",
+  OS: "Off Spin",
+  LS: "Leg Spin",
+};
+
+const ROLE_LIST = ["Batsman","Wicketkeeper/Batsman","All Rounder","Bowler"];
+const toTitle = (s="") => s.toLowerCase().replace(/\b([a-z])/g,(m,c)=>c.toUpperCase()).replace(/\s+/g," ").trim();
+const ci = (s="") => s.trim().toLowerCase();
+
+function validateRow(row) {
+  const nameOk = !!(row.player_name || "").trim();
+  const batOk  = ALLOWED_BAT.has((row.bat || "").toUpperCase());
+  const bowlOk = ALLOWED_BOWL.has((row.bowl || "").toUpperCase());
+  const roleOk = ROLE_LIST.includes(row.role);
+  const missing = [];
+  if (!nameOk) missing.push("name");
+  if (!batOk)  missing.push("bat");
+  if (!bowlOk) missing.push("bowl");
+  if (!roleOk) missing.push("role");
+  return { ok: missing.length === 0, missing };
+}
+
+function statusFrom(row, duplicateSet) {
+  const v = validateRow(row);
+  if (!v.ok) return "FIX";
+  return duplicateSet.has(ci(row.player_name)) ? "DUP" : "OK";
+}
+
+// Extract rows like:  "… NAME …  RHB/LHB   RM|RFM|RF|LF|LM|LHM|SLO|OS|LS"
+function parseRows(plain) {
+  const rows = [];
+  const seen = new Set();
+  const rx = /^\s*(\d{1,2})?\s*([A-Z' .-]+?)\s+(RHB|LHB)\s+(RM|RFM|RF|LF|LM|LHM|SLO|OS|LS)\b/gi;
+  let m;
+  while ((m = rx.exec(plain)) !== null) {
+    const name = toTitle(m[2]);
+    const bat  = m[3].toUpperCase();
+    const bowl = m[4].toUpperCase();
+    const k = `${name}|${bat}|${bowl}`;
+    if (seen.has(k)) continue;
+    seen.add(k);
+
+    rows.push({
+      player_name: name,
+      role: null, // user can fix in grid
+      bat,
+      bowl,
+      status: "FIX",
+      normalized: {
+        batting_style: batMap[bat] || null,
+        bowling_type: bowlMap[bowl] || null,
+        skill_type: null
+      }
+    });
+  }
+  return rows;
+}
+
 export default function OCRImportModal({
   open,
   onClose,
@@ -25,175 +89,139 @@ export default function OCRImportModal({
   const [team, setTeam] = useState(defaultTeam || "");
   const [format, setFormat] = useState(defaultFormat || "T20");
   const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [rows, setRows] = useState([]);
   const [dupNames, setDupNames] = useState(new Set());
-  const [previewId, setPreviewId] = useState(null);
-
-  useEffect(() => {
-    if (!open) return;
-    // reset every time user opens the modal
-    setTeam(defaultTeam || "");
-    setFormat(defaultFormat || "T20");
-    setFile(null);
-    setRows([]);
-    setDupNames(new Set());
-    setPreviewId(null);
-  }, [open, defaultTeam, defaultFormat]);
+  const [previewText, setPreviewText] = useState("");
 
   const canImport = useMemo(
-    () => rows.some(r => r.player_name && r.role && r.bat && r.bowl),
+    () => rows.some(r => r.status === "OK" || r.status === "DUP" || r.status === "FIX"),
     [rows]
   );
 
-  const onPreview = async () => {
-    if (!file) return alert("Choose an image");
-    if (!format) return alert("Select a format");
+  const doPreview = async () => {
+    if (!file) return alert("Choose a PNG/JPG roster image first.");
+    if (!format) return alert("Pick a format (T20/ODI/TEST).");
 
-    setLoading(true);
+    setBusy(true);
+    setRows([]);
+    setProgress(0);
     try {
-      const user_id = localStorage.getItem("user_id") || undefined;
-      const { data } = await ocrPreview({
-        file,
-        team_name: team || undefined,
-        lineup_type: format,
-        user_id
+      // 1) OCR in the browser
+      const { data } = await Tesseract.recognize(file, "eng", {
+        logger: (m) => {
+          if (m?.progress) setProgress(Math.round(m.progress * 100));
+        }
       });
+      const plain = data?.text || "";
+      setPreviewText(plain);
 
-      setTeam(data.team_name || team);
-      setPreviewId(data.preview_id);
-      setRows(data.rows || []);
-      setDupNames(new Set(data.duplicates || []));
+      // 2) Parse text -> rows
+      const parsed = parseRows(plain);
+
+      // 3) Build duplicate set from current squad
+      const current = await fetchPlayers(team || defaultTeam, format || defaultFormat);
+      const dset = new Set((current || []).map(p => ci(p.player_name)));
+      setDupNames(dset);
+
+      // 4) Status annotate
+      for (const r of parsed) {
+        r.status = statusFrom(r, dset);
+      }
+      setRows(parsed);
     } catch (e) {
       console.error(e);
       alert("Preview failed.");
     } finally {
-      setLoading(false);
+      setBusy(false);
     }
   };
 
-  const onCommit = async () => {
-    const okRows = rows.filter(r => r.player_name && r.role && r.bat && r.bowl);
+  const doCommit = async () => {
+    const okRows = rows
+      .map(r => ({
+        player_name: r.player_name,
+        role: r.role,
+        bat: r.bat,
+        bowl: r.bowl
+      }))
+      .filter(r => validateRow(r).ok);
+
     if (okRows.length === 0) return alert("Nothing to import. Fix rows first.");
 
-    setLoading(true);
+    setBusy(true);
     try {
       const user_id = localStorage.getItem("user_id") || undefined;
       const { data } = await ocrCommit({
         team_name: team,
         lineup_type: format,
         rows: okRows,
-        preview_id: previewId,
+        preview_id: null,
         user_id
       });
 
-      // Tell parent which names were created so it can refresh and highlight
+      alert(`Imported: ${data.created}, Skipped: ${data.skipped?.length || 0}`);
       if (onImported) onImported(data.created_names || []);
-      onClose();
+      onClose?.();
     } catch (e) {
       console.error(e);
       alert("Import failed.");
     } finally {
-      setLoading(false);
+      setBusy(false);
     }
   };
 
   if (!open) return null;
 
-  // Lightweight modal (no Bootstrap JS dependency)
   return (
-    <div style={styles.backdrop}>
-      <div style={styles.modal}>
-        <div style={styles.header}>
-          <h3 style={{ margin: 0 }}>Bulk Import (OCR)</h3>
-          <button onClick={onClose} style={styles.closeBtn} aria-label="Close">✕</button>
-        </div>
+    <div className="sq-modal" role="dialog" aria-modal="true" onClick={onClose}>
+      <div className="sq-modal-card" onClick={(e)=>e.stopPropagation()}>
+        <div className="sq-modal-title">Bulk Import (OCR)</div>
 
-        <div className="flex flex-wrap gap-3 items-end mb-3">
+        <div className="ocr-head">
           <div>
-            <label className="block text-sm font-medium">Team</label>
-            <input
-              className="border rounded p-2 w-64"
-              placeholder="e.g., Afghanistan (optional — OCR detects)"
-              value={team}
-              onChange={(e) => setTeam(e.target.value)}
-            />
+            <label className="sq-mini">Team</label>
+            <input className="sq-input" value={team}
+                   onChange={(e)=>setTeam(e.target.value)}
+                   placeholder="e.g., Afghanistan" />
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Format</label>
-            <select
-              className="border rounded p-2"
-              value={format}
-              onChange={(e) => setFormat(e.target.value)}
-            >
-              {FORMATS.map((f) => <option key={f} value={f}>{f}</option>)}
+            <label className="sq-mini">Format</label>
+            <select className="sq-input" value={format} onChange={(e)=>setFormat(e.target.value)}>
+              {FORMATS.map(f => <option key={f} value={f}>{f}</option>)}
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium">Roster Image (PNG/JPG)</label>
-            <input
-              type="file"
-              accept="image/png,image/jpeg"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-            />
+          <div className="fileinput">
+            <label className="sq-mini">Roster Image (PNG/JPG)</label>
+            <input type="file" accept="image/png,image/jpeg"
+                   onChange={(e)=>setFile(e.target.files?.[0] || null)} />
           </div>
 
-          <button
-            className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-50"
-            onClick={onPreview}
-            disabled={loading || !file}
-          >
-            {loading ? "Reading..." : "Preview"}
+          <button className="sq-btn primary" disabled={busy || !file} onClick={doPreview}>
+            {busy ? `Reading… ${progress}%` : "Preview"}
           </button>
         </div>
 
         <ImportPreviewGrid rows={rows} setRows={setRows} duplicateNames={dupNames} />
 
-        <div className="flex items-center gap-3 mt-4">
-          <button
-            className="px-5 py-2 rounded bg-emerald-600 text-white disabled:opacity-50"
-            disabled={loading || !canImport}
-            onClick={onCommit}
-          >
-            {loading ? "Importing..." : `Import ${rows.length} players`}
+        <div className="ocr-actions">
+          <button className="sq-btn" onClick={onClose}>Cancel</button>
+          <button className="sq-btn primary" disabled={busy || !canImport} onClick={doCommit}>
+            {busy ? "Importing…" : `Import ${rows.length} players`}
           </button>
-          <button className="px-4 py-2 rounded bg-gray-200" onClick={onClose}>Cancel</button>
         </div>
 
-        <div className="mt-4 text-slate-500 text-sm">
-          <b>Legend:</b> <span className="bg-green-200 px-1 rounded">OK</span> new ·{" "}
-          <span className="bg-gray-300 px-1 rounded">DUP</span> duplicate ·{" "}
-          <span className="bg-yellow-200 px-1 rounded">FIX</span> needs edit.
-        </div>
+        {/* Optional: collapsed OCR raw text for debugging */}
+        {process.env.NODE_ENV === "development" && previewText && (
+          <details style={{marginTop:10, opacity:.75}}>
+            <summary>OCR raw text</summary>
+            <pre style={{whiteSpace:"pre-wrap"}}>{previewText}</pre>
+          </details>
+        )}
       </div>
     </div>
   );
 }
-
-const styles = {
-  backdrop: {
-    position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    zIndex: 2000
-  },
-  modal: {
-    width: "min(1100px, 96vw)",
-    maxHeight: "86vh",
-    overflow: "auto",
-    background: "var(--bs-dark, #0b1220)",
-    color: "var(--bs-light, #e5e7eb)",
-    borderRadius: 12,
-    padding: 16,
-    boxShadow: "0 12px 40px rgba(0,0,0,0.35)"
-  },
-  header: {
-    display: "flex", alignItems: "center", justifyContent: "space-between",
-    marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid rgba(255,255,255,0.08)"
-  },
-  closeBtn: {
-    background: "transparent", border: "none", color: "inherit",
-    fontSize: 20, cursor: "pointer", lineHeight: 1
-  }
-};

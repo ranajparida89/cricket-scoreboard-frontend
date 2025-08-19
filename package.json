@@ -38,6 +38,7 @@
     "react-use": "^17.6.0",
     "recharts": "^2.15.4",
     "socket.io-client": "^4.8.1",
+    "tesseract.js": "^6.0.1",
     "tsparticles": "^3.9.1",
     "web-vitals": "^2.1.4"
   },

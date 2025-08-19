@@ -5,6 +5,7 @@
    - Team row styles (+ Team)
    - Danger zone styles for "Delete from ALL formats"
    - Toast backgrounds for success/error
+   - OCR Import modal fully dark themed
 */
 
 :root{
@@ -54,7 +55,7 @@
 
 /* Add bar */
 .sq-addbar { display:flex; gap:12px; align-items:center; margin-top:8px; } /* ↑ gap */
-.sq-add-left { position:relative; flex:1; }
+.sq-add-left { position:relative; flex:1; min-width:480px; } /* make the typing field roomy */
 .sq-input { width:100%; background:var(--panel); color:var(--ink); border:1px solid rgba(255,255,255,.14); padding:12px 14px; border-radius:12px; } /* ↑ padding */
 .sq-role { background:var(--panel); color:var(--ink); border:1px solid rgba(255,255,255,.14); padding:12px 14px; border-radius:12px; }
 .sq-btn { background:#203652; color:var(--ink); border:1px solid rgba(255,255,255,.12); padding:12px 16px; border-radius:12px; transition:transform .05s ease, filter .15s ease; }
@@ -231,12 +232,14 @@
   .sq-import-row { flex-wrap:wrap; }
   .sq-header { grid-template-columns: 1fr; }
 }
+
 /* small “danger zone” style used by the Delete-from-ALL button */
 .sq-danger-zone { border-top: 1px dashed rgba(255,255,255,.15); margin-top: 12px; padding-top: 12px; }
 /* red-outline button */
 .sq-btn.danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
 /* layout for Team select + “+ Team” button */
 .sq-team-row { display:flex; gap:8px; align-items:center; }
+
 /* ---------- OCR Modal (dark) ---------- */
 .sq-modal .sq-modal-card {
   background: #0f172a;        /* dark slate */
@@ -248,28 +251,43 @@
   color: #a5b4fc;             /* soft indigo */
 }
 
-/* OCR grid spacing */
+/* Make the OCR table itself dark */
+.sq-modal table { width:100%; border-collapse:separate; border-spacing:0; background:#0b1220; color:#e2e8f0; border:1px solid #23314f; border-radius:12px; overflow:hidden; }
+.sq-modal thead { background:#0e1a2d; border-bottom:1px solid #23314f; }
+.sq-modal th { font-weight:600; color:#a5b4fc; text-align:left; }
+.sq-modal tbody tr { border-bottom:1px solid rgba(255,255,255,.06); }
 .sq-modal table.min-w-full th,
-.sq-modal table.min-w-full td {
-  padding: 10px 12px;
+.sq-modal table.min-w-full td { padding: 10px 12px; }
+
+/* Map Tailwind status row colors to dark variants */
+.sq-modal .bg-green-50 { background: rgba(34,197,94,0.10) !important; }
+.sq-modal .bg-gray-50  { background: rgba(148,163,184,0.06) !important; }
+.sq-modal .bg-yellow-50{ background: rgba(234,179,8,0.10) !important; }
+.sq-modal .bg-red-50   { background: rgba(239,68,68,0.10) !important; }
+
+/* Status chips inside the OCR grid */
+.sq-modal .bg-green-200{ background: rgba(34,197,94,.25) !important; color:#86efac !important; }
+.sq-modal .bg-gray-300 { background: rgba(148,163,184,.25) !important; color:#cbd5e1 !important; }
+.sq-modal .bg-yellow-200{ background: rgba(234,179,8,.25) !important; color:#fde68a !important; }
+.sq-modal .bg-red-200  { background: rgba(239,68,68,.25) !important; color:#fecaca !important; }
+
+/* Inputs/selects in the OCR modal */
+.sq-modal input[type="text"],
+.sq-modal select {
+  background:#0b1220;
+  color:#e2e8f0;
+  border:1px solid #334155;
+  border-radius:10px;
+  padding:8px 10px;
 }
 
-/* Buttons bigger / less cramped */
-.sq-btn, .sq-btn.ghost, .sq-btn.primary {
-  min-height: 38px;
-  padding: 8px 14px;
-  border-radius: 10px;
-}
+/* File input + buttons a bit bigger / less cramped */
+.sq-btn, .sq-btn.ghost, .sq-btn.primary { min-height: 38px; padding: 8px 14px; border-radius: 10px; }
 
 /* The “OCR from image” trigger button near Quick import */
-.sq-import .sq-btn.ghost {
-  border: 1px solid #334155;
-  background: #0b1220;
-}
-.sq-import .sq-btn.ghost:hover {
-  background: #111a2f;
-}
+.sq-import .sq-btn.ghost { border: 1px solid #334155; background: #0b1220; }
+.sq-import .sq-btn.ghost:hover { background: #111a2f; }
 
-/* New badge + glow (already in app.css ok) */
+/* New badge + glow for newly added players */
 .new-chip { background: #22c55e; color: #0b1220; font-weight: 700; font-size: 10px; padding: 2px 6px; border-radius: 999px; margin-left: 8px; }
 .new-glow { box-shadow: 0 0 0 2px rgba(34,197,94,0.25), 0 0 20px rgba(34,197,94,0.45); transition: box-shadow 0.3s ease; }
