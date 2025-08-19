@@ -877,14 +877,19 @@ export default function SquadLineup({ isAdmin = true }) {
         <div className="sq-modal" role="dialog" aria-modal="true" onClick={() => setShowHelp(false)}>
           <div className="sq-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="sq-modal-title">How this page works</div>
-            <ul className="sq-help-list">
-              <li><b>Pick Team & Format</b> at the top. Use <i>Quick import</i> to copy players from a different format into the current format (duplicates are skipped).</li>
-              <li><b>Add to Squad</b> with role & batting/bowling details. Suggestions show where this name already exists.</li>
-              <li><b>Build Lineup</b> by dragging from Squad → Lineup. Reorder by dragging inside Lineup. Max 12 (includes one 12th).</li>
-              <li><b>C & VC</b> — exactly one Captain and one Vice-captain; must be different.</li>
-              <li><b>Manage memberships</b> expands the full team roster (union of formats) with chips to add/remove a player to ODI/T20/TEST.</li>
-              <li><b>Save</b> stores the current lineup for the selected team & format.</li>
-            </ul>
+         <ul className="sq-help-list">
+  <li><b>Pick Team & Format</b> at the top. The team list merges your saved local teams with server teams and remembers the last used team.</li>
+  <li><b>+ Team</b> lets you add a custom team safely (saved when possible; otherwise cached locally).</li>
+  <li><b>Add to Squad</b> with role & batting/bowling details. Suggestions show where this name already exists across formats.</li>
+  <li><b>Build Lineup</b> by dragging from Squad → Lineup. Reorder by dragging inside Lineup (max 12; one 12th).</li>
+  <li><b>C & VC</b> — pick exactly one Captain and one Vice-captain; they must be different.</li>
+  <li><b>Manage memberships</b> shows the full team roster (union of ODI/T20/TEST). Use the chips to add/remove a player per format.
+      Players appearing in multiple formats are shown with a <i>soft green highlight</i>.</li>
+  <li><b>Quick import</b> copies players from another format into the current one (duplicates are skipped automatically).</li>
+  <li><b>Delete</b> removes from the current format only. <b>Delete from ALL formats</b> (inside Edit) removes the same name
+      across ODI/T20/TEST for this team and cleans up lineups safely.</li>
+  <li><b>Save</b> stores the current lineup for the selected team & format.</li>
+</ul>
             <div className="sq-modal-actions">
               <button className="sq-btn primary" onClick={() => setShowHelp(false)} type="button">Got it</button>
             </div>
