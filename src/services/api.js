@@ -5,6 +5,7 @@
 // ✅ [2025-08-19] [HDR-UID] auto-send X-User-Id header on critical calls
 // ✅ [2025-08-19] [TEAMS]   add Squad Teams APIs (list/create custom teams)
 // ✅ [2025-08-19] [DEL-ALL] delete player everywhere helper
+// ✅ [2025-08-19] [DEL-FORCE] forward ?force=true for safe backend deletes
 
 import axios from "axios";
 
@@ -190,14 +191,19 @@ export const updatePlayer = (id, payload) =>
     .then((r) => r.data);
 
 /**
- * Delete a player membership from one format.
- * Pass { all: true } to remove the same-named player across ALL formats for the same team.
- * See [DEL-ALL] in backend.
+ * Delete a player membership.
+ * Options:
+ *  - { all: true }    → delete same-named player across ALL formats for the same team
+ *  - { force: true }  → allow backend to clean dependent rows (lineups/C-VC/performance) before delete
+ * Both can be combined.
  */
 export const deletePlayer = (id, opts = {}) => {
-  const params = opts.all ? { all: true } : undefined;
+  // ✅ [DEL-FORCE] now forwards "force" in addition to "all"
+  const params = {};
+  if (opts.all)   params.all = true;
+  if (opts.force) params.force = true;
   return axios
-    .delete(`${API_URL}/squads/players/${id}`, { params })
+    .delete(`${API_URL}/squads/players/${id}`, { params, headers: { ...uidHeader() } })
     .then((r) => r.data);
 };
 

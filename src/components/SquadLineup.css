@@ -231,3 +231,9 @@
   .sq-import-row { flex-wrap:wrap; }
   .sq-header { grid-template-columns: 1fr; }
 }
+/* small “danger zone” style used by the Delete-from-ALL button */
+.sq-danger-zone { border-top: 1px dashed rgba(255,255,255,.15); margin-top: 12px; padding-top: 12px; }
+/* red-outline button */
+.sq-btn.danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+/* layout for Team select + “+ Team” button */
+.sq-team-row { display:flex; gap:8px; align-items:center; }
