@@ -237,3 +237,39 @@
 .sq-btn.danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
 /* layout for Team select + “+ Team” button */
 .sq-team-row { display:flex; gap:8px; align-items:center; }
+/* ---------- OCR Modal (dark) ---------- */
+.sq-modal .sq-modal-card {
+  background: #0f172a;        /* dark slate */
+  color: #e2e8f0;
+  border: 1px solid #23314f;
+}
+
+.sq-modal .sq-modal-title {
+  color: #a5b4fc;             /* soft indigo */
+}
+
+/* OCR grid spacing */
+.sq-modal table.min-w-full th,
+.sq-modal table.min-w-full td {
+  padding: 10px 12px;
+}
+
+/* Buttons bigger / less cramped */
+.sq-btn, .sq-btn.ghost, .sq-btn.primary {
+  min-height: 38px;
+  padding: 8px 14px;
+  border-radius: 10px;
+}
+
+/* The “OCR from image” trigger button near Quick import */
+.sq-import .sq-btn.ghost {
+  border: 1px solid #334155;
+  background: #0b1220;
+}
+.sq-import .sq-btn.ghost:hover {
+  background: #111a2f;
+}
+
+/* New badge + glow (already in app.css ok) */
+.new-chip { background: #22c55e; color: #0b1220; font-weight: 700; font-size: 10px; padding: 2px 6px; border-radius: 999px; margin-left: 8px; }
+.new-glow { box-shadow: 0 0 0 2px rgba(34,197,94,0.25), 0 0 20px rgba(34,197,94,0.45); transition: box-shadow 0.3s ease; }
