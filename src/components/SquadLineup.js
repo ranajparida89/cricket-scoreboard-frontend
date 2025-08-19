@@ -1,6 +1,15 @@
 // Team-wise + Format-wise Squad & Lineup (clean UI)
-// - Logic unchanged: same endpoints, DnD flows, validations.
-// - UX: simpler 2-lane board, collapsible Memberships panel, soft-glow Help button, Import-from-format.
+// - Adds Team creation, delete-everywhere, soft-green multi-format highlight, friendlier toasts.
+// - Keeps the same endpoints & DnD flows.
+//
+// NEW IN THIS VERSION:
+// [TEAMS-UI]  "+ Team" button -> create custom team via API, then load it
+// [DEL-ALL]   Edit modal includes "Delete from ALL formats" (ODI/T20/TEST) for this team
+// [HILITE]    Players present in >=2 formats highlighted with 'multi' class (soft green via CSS)
+// [TOASTS]    Success toasts for team add / delete-everywhere / toggles
+//
+// NOTE: Requires api helpers added earlier: getSquadTeams, createSquadTeam, deletePlayerEverywhere
+//       and X-User-Id header auto-sent in api.js for create/update/lineup save.
 
 import React, { useEffect, useMemo, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
@@ -10,15 +19,20 @@ import {
   createPlayer,
   updatePlayer,
   deletePlayer,
+  deletePlayerEverywhere,   // 🆕 for Delete ALL
   getLineup,
   saveLineup,
+  getSquadTeams,            // 🆕 teams list
+  createSquadTeam,          // 🆕 create team
 } from "../services/api";
 import "./SquadLineup.css";
 import { useAuth } from "../services/auth"; // 🆕 get logged-in user
 
 /* ---- constants & helpers ---- */
 const FORMATS = ["ODI", "T20", "TEST"];
-const DEFAULT_TEAMS = ["India","Australia","England","New Zealand","Pakistan","South Africa","Sri Lanka","Bangladesh","Afghanistan"];
+const DEFAULT_TEAMS = [
+  "India","Australia","England","New Zealand","Pakistan","South Africa","Sri Lanka","Bangladesh","Afghanistan"
+];
 const MAX_LINEUP = 12;
 const MIN_LINEUP = 11;
 
@@ -132,7 +146,7 @@ export default function SquadLineup({ isAdmin = true }) {
   const { currentUser } = useAuth();
   const userId = currentUser?.id || null;
 
-  /* team + format */
+  /* teams & format */
   const [teams, setTeams] = useState(() => {
     try { return JSON.parse(localStorage.getItem("crickedge_teams")) || DEFAULT_TEAMS; }
     catch { return DEFAULT_TEAMS; }
@@ -161,6 +175,42 @@ export default function SquadLineup({ isAdmin = true }) {
   const [searchRoster, setSearchRoster] = useState("");
   const [showHelp, setShowHelp] = useState(false);
   const { toasts, push, close } = useToasts();
+
+  /* === TEAMS: fetch from backend (fallback to defaults) === */
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const list = await getSquadTeams(); // returns array of names
+        if (Array.isArray(list) && list.length && alive) {
+          setTeams(list);
+          localStorage.setItem("crickedge_teams", JSON.stringify(list));
+          // keep current team if still present, else switch to first
+          setTeam((prev) => (list.includes(prev) ? prev : list[0]));
+        }
+      } catch {
+        // ignore; keep defaults/localStorage
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  const onAddTeam = async () => {
+    const name = (window.prompt("Enter new team/country name:") || "").trim();
+    if (!name) return;
+    if (teams.some((t) => ciEq(t, name))) { push("Team already exists", "info"); return; }
+    try {
+      const created = await createSquadTeam(name);
+      const next = [...teams, created.name || name];
+      setTeams(next);
+      localStorage.setItem("crickedge_teams", JSON.stringify(next));
+      setTeam(created.name || name);
+      await loadAll(created.name || name);
+      push("Team added", "success");
+    } catch (e) {
+      push(e?.response?.data?.error || "Failed to create team", "error");
+    }
+  };
 
   /* load all squads + lineup for this team/format */
   const loadAll = async (t) => {
@@ -234,6 +284,16 @@ export default function SquadLineup({ isAdmin = true }) {
     }
     return Array.from(map.values()).sort((a,b)=>a.name.localeCompare(b.name));
   }, [squads]);
+
+  // 🆕 names that exist in >= 2 formats -> soft-green highlight
+  const multiNameKeys = useMemo(() => {
+    const set = new Set();
+    for (const r of roster) {
+      const count = FORMATS.reduce((n, F) => n + (r.fmtIds[F] ? 1 : 0), 0);
+      if (count >= 2) set.add(ci(r.name));
+    }
+    return set;
+  }, [roster]);
 
   const idsInLineup = new Set(lineup.map((x) => x.player_id));
 
@@ -360,6 +420,56 @@ export default function SquadLineup({ isAdmin = true }) {
       push("Updated", "success");
     } catch { push("Update failed", "error"); }
   };
+
+  // 🆕 Delete from ALL formats for this team (ODI/T20/TEST)
+  const doDeleteEverywhere = async (name) => {
+    const nameKey = ci(name);
+    if (!window.confirm(`Delete "${name}" from ALL formats for ${team}?`)) return;
+    try {
+      // robust frontend approach: delete all ids by name across formats
+      const ids = FORMATS.map((F) => {
+        const found = (squads[F] || []).find((p) => ci(p.player_name) === nameKey);
+        return found?.id || null;
+      }).filter(Boolean);
+
+      if (!ids.length) { push("No entries found to delete", "info"); return; }
+
+      // Prefer the batch endpoint if present; fall back to loop
+      try {
+        await deletePlayerEverywhere(ids[0]); // backend variant (will match by name+team)
+      } catch {
+        // fallback: delete each id
+        for (const id of ids) {
+          // eslint-disable-next-line no-await-in-loop
+          await deletePlayer(id);
+        }
+      }
+
+      // update local state for all formats
+      setSquads((prev) => {
+        const next = { ...prev };
+        for (const F of FORMATS) {
+          next[F] = (next[F] || []).filter((x) => ci(x.player_name) !== nameKey);
+        }
+        return next;
+      });
+
+      // also purge from lineup & C/VC if present
+      setLineup((prev) => {
+        const keep = prev.filter((x) => ci(x.obj.player_name) !== nameKey);
+        const rel = new Set(prev.filter((x) => ci(x.obj.player_name) === nameKey).map((x) => x.player_id));
+        if (rel.has(captainId)) setCaptainId(null);
+        if (rel.has(viceId)) setViceId(null);
+        return keep.map((x, i) => ({ ...x, order_no: i + 1, is_twelfth: i === 11 }));
+      });
+
+      setEditing(null);
+      push("Deleted from all formats", "success");
+    } catch {
+      push("Delete everywhere failed", "error");
+    }
+  };
+
   const doDelete = async (id) => {
     if (!window.confirm("Delete this player from the format squad?")) return;
     try {
@@ -488,9 +598,12 @@ export default function SquadLineup({ isAdmin = true }) {
         <div className="sq-ctlbar">
           <div className="sq-team-select">
             <label className="sq-mini">Team</label>
-            <select className="sq-select" value={team} onChange={(e) => setTeam(e.target.value)}>
-              {teams.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
+            <div className="sq-team-row">
+              <select className="sq-select" value={team} onChange={(e) => setTeam(e.target.value)}>
+                {teams.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <button className="sq-btn ghost" onClick={onAddTeam} type="button">+ Team</button>
+            </div>
           </div>
 
           <div className="sq-format-tabs">
@@ -572,33 +685,36 @@ export default function SquadLineup({ isAdmin = true }) {
           <div className="sq-roster-list">
             {roster
               .filter((r) => !searchRoster || ci(r.name).includes(ci(searchRoster)))
-              .map((r, idx) => (
-                <div key={`ro-${idx}`} className="sq-card">
-                  <div className="sq-card-left">
-                    <span className="sq-ico">{iconFor(r.sample)}</span>
-                    <div>
-                      <div className="sq-name">{r.name}</div>
-                      <div className="sq-sub">{r.sample?.batting_style || "—"} • {r.sample?.bowling_type || "—"}</div>
+              .map((r, idx) => {
+                const isMulti = multiNameKeys.has(ci(r.name));
+                return (
+                  <div key={`ro-${idx}`} className={`sq-card ${isMulti ? "multi" : ""}`}>
+                    <div className="sq-card-left">
+                      <span className="sq-ico">{iconFor(r.sample)}</span>
+                      <div>
+                        <div className="sq-name">{r.name}</div>
+                        <div className="sq-sub">{r.sample?.batting_style || "—"} • {r.sample?.bowling_type || "—"}</div>
+                      </div>
+                    </div>
+                    <div className="sq-actions">
+                      {FORMATS.map((F) => {
+                        const on = !!r.fmtIds[F];
+                        return (
+                          <button
+                            key={F}
+                            className={`sq-chip ${on?"on":""}`}
+                            title={`${on?"Remove from":"Add to"} ${F}`}
+                            onClick={() => toggleMembership(r, F)}
+                            type="button"
+                          >
+                            {F}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
-                  <div className="sq-actions">
-                    {FORMATS.map((F) => {
-                      const on = !!r.fmtIds[F];
-                      return (
-                        <button
-                          key={F}
-                          className={`sq-chip ${on?"on":""}`}
-                          title={`${on?"Remove from":"Add to"} ${F}`}
-                          onClick={() => toggleMembership(r, F)}
-                          type="button"
-                        >
-                          {F}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             {!roster.length && <div className="sq-empty">No players yet. Add to squad above.</div>}
           </div>
         </div>
@@ -612,25 +728,28 @@ export default function SquadLineup({ isAdmin = true }) {
             {(provided) => (
               <div className="sq-panel" ref={provided.innerRef} {...provided.droppableProps}>
                 <div className="sq-panel-title">🧢 {format} Squad ({(squads[format]||[]).length})</div>
-                {currentSquad.map((p, idx) => (
-                  <Draggable key={`p-${p.id}`} draggableId={`p-${p.id}`} index={idx}>
-                    {(prov) => (
-                      <div className="sq-card" ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps}>
-                        <div className="sq-card-left">
-                          <span className="sq-ico">{iconFor(p)}</span>
-                          <div>
-                            <div className="sq-name">{p.player_name}</div>
-                            <div className="sq-sub">{p.batting_style || "—"} • {p.bowling_type || "—"}</div>
+                {currentSquad.map((p, idx) => {
+                  const isMulti = multiNameKeys.has(ci(p.player_name));
+                  return (
+                    <Draggable key={`p-${p.id}`} draggableId={`p-${p.id}`} index={idx}>
+                      {(prov) => (
+                        <div className={`sq-card ${isMulti ? "multi" : ""}`} ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps}>
+                          <div className="sq-card-left">
+                            <span className="sq-ico">{iconFor(p)}</span>
+                            <div>
+                              <div className="sq-name">{p.player_name}</div>
+                              <div className="sq-sub">{p.batting_style || "—"} • {p.bowling_type || "—"}</div>
+                            </div>
+                          </div>
+                          <div className="sq-actions">
+                            <button className="sq-icon-btn" title="Edit" onClick={() => openEdit(p)} type="button">✏️</button>
+                            {isAdmin && <button className="sq-icon-btn danger" title="Delete from this format" onClick={() => doDelete(p.id)} type="button">🗑️</button>}
                           </div>
                         </div>
-                        <div className="sq-actions">
-                          <button className="sq-icon-btn" title="Edit" onClick={() => openEdit(p)} type="button">✏️</button>
-                          {isAdmin && <button className="sq-icon-btn danger" title="Delete from this format" onClick={() => doDelete(p.id)} type="button">🗑️</button>}
-                        </div>
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
+                      )}
+                    </Draggable>
+                  );
+                })}
                 {provided.placeholder}
                 {!currentSquad.length && <div className="sq-empty">No available players (others may be in Lineup). Add new or import.</div>}
               </div>
@@ -642,32 +761,35 @@ export default function SquadLineup({ isAdmin = true }) {
             {(provided) => (
               <div className="sq-panel lineup" ref={provided.innerRef} {...provided.droppableProps}>
                 <div className="sq-panel-title">🎯 {format} Lineup ({lineup.length}/{MAX_LINEUP})</div>
-                {lineup.map((x, idx) => (
-                  <Draggable key={`l-${x.player_id}`} draggableId={`l-${x.player_id}`} index={idx}>
-                    {(prov) => (
-                      <div className="sq-card" ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps}>
-                        <div className="sq-card-left">
-                          <span className="sq-order">{idx + 1}</span>
-                          <span className="sq-ico">{iconFor(x.obj)}</span>
-                          <div className="sq-name">{x.obj.player_name}</div>
-                          {idx === 11 && <span className="sq-tag">12th</span>}
-                          {x.player_id === captainId && <span className="sq-tag gold">C</span>}
-                          {x.player_id === viceId && <span className="sq-tag teal">VC</span>}
+                {lineup.map((x, idx) => {
+                  const isMulti = multiNameKeys.has(ci(x.obj.player_name));
+                  return (
+                    <Draggable key={`l-${x.player_id}`} draggableId={`l-${x.player_id}`} index={idx}>
+                      {(prov) => (
+                        <div className={`sq-card ${isMulti ? "multi" : ""}`} ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps}>
+                          <div className="sq-card-left">
+                            <span className="sq-order">{idx + 1}</span>
+                            <span className="sq-ico">{iconFor(x.obj)}</span>
+                            <div className="sq-name">{x.obj.player_name}</div>
+                            {idx === 11 && <span className="sq-tag">12th</span>}
+                            {x.player_id === captainId && <span className="sq-tag gold">C</span>}
+                            {x.player_id === viceId && <span className="sq-tag teal">VC</span>}
+                          </div>
+                          <div className="sq-actions">
+                            <button className={`sq-chip ${x.player_id===captainId?"on":""}`} onClick={() => { if (x.player_id===viceId) setViceId(null); setCaptainId((p)=>p===x.player_id?null:x.player_id); }} type="button">C</button>
+                            <button className={`sq-chip ${x.player_id===viceId?"on":""}`} onClick={() => { if (x.player_id===captainId) setCaptainId(null); setViceId((p)=>p===x.player_id?null:x.player_id); }} type="button">VC</button>
+                            <button className="sq-icon-btn" title="Remove from lineup" onClick={() => {
+                              const items = lineup.filter((it) => it.player_id !== x.player_id);
+                              if (x.player_id === captainId) setCaptainId(null);
+                              if (x.player_id === viceId) setViceId(null);
+                              setLineup(items.map((p, i) => ({ ...p, order_no: i + 1, is_twelfth: i === 11 })));
+                            }} type="button">➖</button>
+                          </div>
                         </div>
-                        <div className="sq-actions">
-                          <button className={`sq-chip ${x.player_id===captainId?"on":""}`} onClick={() => { if (x.player_id===viceId) setViceId(null); setCaptainId((p)=>p===x.player_id?null:x.player_id); }} type="button">C</button>
-                          <button className={`sq-chip ${x.player_id===viceId?"on":""}`} onClick={() => { if (x.player_id===captainId) setCaptainId(null); setViceId((p)=>p===x.player_id?null:x.player_id); }} type="button">VC</button>
-                          <button className="sq-icon-btn" title="Remove from lineup" onClick={() => {
-                            const items = lineup.filter((it) => it.player_id !== x.player_id);
-                            if (x.player_id === captainId) setCaptainId(null);
-                            if (x.player_id === viceId) setViceId(null);
-                            setLineup(items.map((p, i) => ({ ...p, order_no: i + 1, is_twelfth: i === 11 })));
-                          }} type="button">➖</button>
-                        </div>
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
+                      )}
+                    </Draggable>
+                  );
+                })}
                 {provided.placeholder}
                 {!lineup.length && <div className="sq-empty">Drag from Squad to build XI (max 12; one 12th).</div>}
               </div>
@@ -701,6 +823,14 @@ export default function SquadLineup({ isAdmin = true }) {
               <button className="sq-btn" onClick={()=>setEditing(null)} type="button">Cancel</button>
               <button className="sq-btn primary" onClick={doUpdate} type="button">Update</button>
             </div>
+
+            {/* 🆕 Delete ALL formats for this team */}
+            <div className="sq-danger-zone">
+              <div className="sq-mini">Danger</div>
+              <button className="sq-btn danger" onClick={() => doDeleteEverywhere(editing.player_name)} type="button">
+                Delete from ALL formats (ODI/T20/TEST) for {team}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -717,6 +847,7 @@ export default function SquadLineup({ isAdmin = true }) {
               <li><b>C & VC</b> — exactly one Captain and one Vice-captain; must be different.</li>
               <li><b>Manage memberships</b> expands the full team roster (union of formats) with chips to add/remove a player to ODI/T20/TEST.</li>
               <li><b>Save</b> stores the current lineup for the selected team & format.</li>
+              <li><b>Tip:</b> Players highlighted in soft green appear in multiple formats.</li>
             </ul>
             <div className="sq-modal-actions">
               <button className="sq-btn primary" onClick={() => setShowHelp(false)} type="button">Got it</button>

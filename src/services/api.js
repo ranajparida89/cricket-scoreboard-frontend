@@ -2,6 +2,9 @@
 // ✅ [Ranaj Parida - 2025-04-17 | 04:05 AM]
 // FINAL: cleans up upcoming-matches functions, adds alias, keeps squads API
 // ✅ [2025-06-27] Ensure createPlayer sends user_id from localStorage if not provided
+// ✅ [2025-08-19] [HDR-UID] auto-send X-User-Id header on critical calls
+// ✅ [2025-08-19] [TEAMS]   add Squad Teams APIs (list/create custom teams)
+// ✅ [2025-08-19] [DEL-ALL] delete player everywhere helper
 
 import axios from "axios";
 
@@ -18,6 +21,12 @@ function getStoredUserId() {
   } catch {
     return null;
   }
+}
+
+/* --- build auth header only when we have a user id (used where relevant) --- */
+function uidHeader() {
+  const uid = getStoredUserId();
+  return uid ? { "X-User-Id": String(uid) } : {};
 }
 
 /* ================== MATCH CREATION / RESULTS ================== */
@@ -103,7 +112,6 @@ export const getTestRankings = async () => {
 
 /* ================== UPCOMING MATCHES (NEW) ================== */
 
-// POST /api/upcoming-match
 export const addUpcomingMatch = async (matchData) => {
   const response = await axios.post(`${API_URL}/upcoming-match`, matchData);
   return response.data;
@@ -112,7 +120,6 @@ export const addUpcomingMatch = async (matchData) => {
 // Back-compat alias so old imports keep working
 export const createUpcomingMatch = addUpcomingMatch;
 
-// GET /api/upcoming-matches
 export const getUpcomingMatchList = async () => {
   const response = await axios.get(`${API_URL}/upcoming-matches`);
   return response.data;
@@ -134,6 +141,20 @@ export const getTestMatchLeaderboard = async () => {
   return res.json();
 };
 
+/* ================== SQUAD TEAMS (NEW) ================== */
+// [TEAMS] backend in routes/squadRoutes.js
+export const getSquadTeams = () =>
+  axios.get(`${API_URL}/squads/teams`).then((r) => r.data);
+
+export const createSquadTeam = (name) =>
+  axios
+    .post(
+      `${API_URL}/squads/teams`,
+      { name },
+      { headers: { ...uidHeader() } }
+    )
+    .then((r) => r.data);
+
 /* ================== SQUAD & LINEUP ================== */
 
 export const fetchPlayers = (team, format) =>
@@ -150,6 +171,7 @@ export const suggestPlayers = (team, q) =>
  * Ensure we always include user_id when creating a player via Squad/Lineup.
  * - If caller already put user_id in payload, we keep it.
  * - Otherwise we read it from localStorage ("user") — same source used by useAuth.
+ * - Also send X-User-Id header for backend backfill logic.  [HDR-UID]
  */
 export const createPlayer = (payload) => {
   const ensured = { ...payload };
@@ -157,14 +179,30 @@ export const createPlayer = (payload) => {
     const uid = getStoredUserId();
     if (uid) ensured.user_id = uid;
   }
-  return axios.post(`${API_URL}/squads/players`, ensured).then((r) => r.data);
+  return axios
+    .post(`${API_URL}/squads/players`, ensured, { headers: { ...uidHeader() } })
+    .then((r) => r.data);
 };
 
 export const updatePlayer = (id, payload) =>
-  axios.put(`${API_URL}/squads/players/${id}`, payload).then((r) => r.data);
+  axios
+    .put(`${API_URL}/squads/players/${id}`, payload, { headers: { ...uidHeader() } })
+    .then((r) => r.data);
 
-export const deletePlayer = (id) =>
-  axios.delete(`${API_URL}/squads/players/${id}`).then((r) => r.data);
+/**
+ * Delete a player membership from one format.
+ * Pass { all: true } to remove the same-named player across ALL formats for the same team.
+ * See [DEL-ALL] in backend.
+ */
+export const deletePlayer = (id, opts = {}) => {
+  const params = opts.all ? { all: true } : undefined;
+  return axios
+    .delete(`${API_URL}/squads/players/${id}`, { params })
+    .then((r) => r.data);
+};
+
+// Convenience alias for readability
+export const deletePlayerEverywhere = (id) => deletePlayer(id, { all: true });
 
 export const getLineup = (team, format) =>
   axios
@@ -172,7 +210,9 @@ export const getLineup = (team, format) =>
     .then((r) => r.data);
 
 export const saveLineup = (payload) =>
-  axios.post(`${API_URL}/squads/lineup`, payload).then((r) => r.data);
+  axios
+    .post(`${API_URL}/squads/lineup`, payload, { headers: { ...uidHeader() } })
+    .then((r) => r.data);
 
 /* ================== USER DASHBOARD MOCK ================== */
 
