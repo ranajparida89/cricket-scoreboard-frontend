@@ -1,11 +1,13 @@
 // Team-wise + Format-wise Squad & Lineup (clean UI)
 // - Logic unchanged: same endpoints, DnD flows, validations.
 // - UX: simpler 2-lane board, collapsible Memberships panel, soft-glow Help button, Import-from-format.
-// - [FIX] Crash on 2nd visit: sanitize teams list from localStorage (strings only) + persist cleaned list
+// - [FIX] Crash on revisit: sanitize + persist teams cache (strings only), and merge with server list
 // - [FIX] Avoid state updates after unmount in async effects
-// - [NEW] “+ Team” quick add; persists safely
+// - [FIX] Keep user's last-picked team (localStorage)
+// - [NEW] “+ Team” uses backend create and merges into cache
 // - [NEW] Multi-format soft-green highlight
-// - [NEW] Delete-from-ALL-formats -> single backend call (?all=true&force=true)
+// - [DEL] Delete-from-ALL-formats → single backend call (?all=true)
+// - NOTE: Matches your current api.js (no `force` param)
 
 import React, { useEffect, useMemo, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
@@ -14,16 +16,21 @@ import {
   suggestPlayers,
   createPlayer,
   updatePlayer,
-  deletePlayer,   // ⬅ will pass opts {force:true} / {all:true,force:true}
+  deletePlayer,        // deletePlayer(id) or deletePlayer(id, { all:true })
   getLineup,
   saveLineup,
+  getSquadTeams,       // NEW: load server teams
+  createSquadTeam,     // NEW: add team on server
 } from "../services/api";
 import "./SquadLineup.css";
 import { useAuth } from "../services/auth";
 
 /* ---- constants & helpers ---- */
 const FORMATS = ["ODI", "T20", "TEST"];
-const DEFAULT_TEAMS = ["India","Australia","England","New Zealand","Pakistan","South Africa","Sri Lanka","Bangladesh","Afghanistan"];
+const DEFAULT_TEAMS = [
+  "India","Australia","England","New Zealand",
+  "Pakistan","South Africa","Sri Lanka","Bangladesh","Afghanistan"
+];
 const MAX_LINEUP = 12;
 const MIN_LINEUP = 11;
 
@@ -32,8 +39,8 @@ const ciEq = (a, b) => ci(a) === ci(b);
 const iconFor = (p) => {
   const role = (p?.skill_type || "").toLowerCase();
   if (role.includes("wicket")) return "🧤";
-  if (role.includes("all")) return "🏏🔴";
-  if (role.includes("bowl")) return "🔴";
+  if (role.includes("all"))    return "🏏🔴";
+  if (role.includes("bowl"))   return "🔴";
   return "🏏";
 };
 const buildBowlingType = (v) => {
@@ -44,32 +51,35 @@ const buildBowlingType = (v) => {
   return "";
 };
 
-/* [FIX] team storage sanitizers — prevents React error #31 */
+/* ------- teams cache sanitizers (prevents React error #31) ------- */
 function coerceTeamItem(x) {
   if (typeof x === "string") return x.trim();
-  if (x && typeof x === "object") {
-    const s = String(x.name ?? x.label ?? x.value ?? "").trim();
-    return s;
-  }
+  if (x && typeof x === "object") return String(x.name ?? x.label ?? x.value ?? "").trim();
   return "";
+}
+function dedupCI(list) {
+  const seen = new Set(); const out = [];
+  for (const t of list) {
+    const k = ci(t);
+    if (k && !seen.has(k)) { seen.add(k); out.push(t); }
+  }
+  return out;
 }
 function cleanTeams(list) {
   const arr = Array.isArray(list) ? list : [];
-  const cleaned = arr.map(coerceTeamItem).filter(Boolean);
-  const seen = new Set();
-  const uniq = [];
-  for (const t of cleaned) {
-    const k = ci(t);
-    if (!seen.has(k)) { seen.add(k); uniq.push(t); }
-  }
-  return uniq.length ? uniq : DEFAULT_TEAMS.slice();
+  const cleaned = dedupCI(arr.map(coerceTeamItem).filter(Boolean));
+  return cleaned.length ? cleaned : DEFAULT_TEAMS.slice();
+}
+function loadTeamsLocal() {
+  try { return cleanTeams(JSON.parse(localStorage.getItem("crickedge_teams"))); }
+  catch { return DEFAULT_TEAMS.slice(); }
 }
 function saveTeamsLocal(teams) {
-  try { localStorage.setItem("crickedge_teams", JSON.stringify(teams.map(coerceTeamItem).filter(Boolean))); }
+  try { localStorage.setItem("crickedge_teams", JSON.stringify(dedupCI(teams.map(coerceTeamItem).filter(Boolean)))); }
   catch {}
 }
 
-/* ---- toasts ---- */
+/* ---- simple toasts ---- */
 function useToasts() {
   const [toasts, setToasts] = useState([]);
   const push = (message, type = "info", ttl = 2600) => {
@@ -92,7 +102,7 @@ const Toasts = ({ list, onClose }) => (
 /* ---- role fields for Add/Edit ---- */
 function RoleFields({ role, values, setValues }) {
   const set = (k, v) => setValues((prev) => ({ ...prev, [k]: v }));
-  const showBat = ["batsman", "wicketkeeper/batsman", "all rounder"].includes((role||"").toLowerCase());
+  const showBat  = ["batsman", "wicketkeeper/batsman", "all rounder"].includes((role||"").toLowerCase());
   const showBowl = ["bowler", "all rounder"].includes((role||"").toLowerCase());
 
   return (
@@ -161,12 +171,17 @@ export default function SquadLineup({ isAdmin = true }) {
   const { currentUser } = useAuth();
   const userId = currentUser?.id || null;
 
-  /* [FIX] team + format — sanitize teams from localStorage */
-  const [teams, setTeams] = useState(() => {
-    try { return cleanTeams(JSON.parse(localStorage.getItem("crickedge_teams"))); }
-    catch { return DEFAULT_TEAMS.slice(); }
-  });
-  const [team, setTeam] = useState(() => (cleanTeams(JSON.parse(localStorage.getItem("crickedge_teams")))[0] || "India"));
+  /* Teams state
+     - Start with sanitized cache
+     - On mount, fetch from server and merge
+     - Remember last-picked team
+  */
+  const cached = loadTeamsLocal();
+  const lastTeam = (() => { try { return localStorage.getItem("crickedge_last_team") || ""; } catch { return ""; } })();
+  const initialTeam = cached.find(t => ci(t) === ci(lastTeam)) || cached[0] || "India";
+
+  const [teams, setTeams] = useState(cached);
+  const [team, setTeam]   = useState(initialTeam);
   const [format, setFormat] = useState("ODI");
 
   /* data: squads per format for this team */
@@ -191,22 +206,58 @@ export default function SquadLineup({ isAdmin = true }) {
   const [showHelp, setShowHelp] = useState(false);
   const { toasts, push, close } = useToasts();
 
-  /* [FIX] persist the sanitized teams back on first render and whenever teams change */
+  /* Persist sanitized teams whenever they change */
   useEffect(() => { saveTeamsLocal(teams); }, [teams]);
 
-  /* [NEW] quick add team */
-  const addTeamPrompt = () => {
+  /* Remember last-picked team */
+  useEffect(() => { try { localStorage.setItem("crickedge_last_team", team); } catch {} }, [team]);
+
+  /* Fetch server teams once, merge with cache
+     - If selected team not present after merge, choose first
+  */
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const server = await getSquadTeams(); // [{id,name}] or [{name}]
+        const serverNames = cleanTeams(server.map(t => (typeof t === "string" ? t : t.name)));
+        const merged = cleanTeams([...teams, ...serverNames]);
+        if (!alive) return;
+        setTeams(merged);
+        if (!merged.some(n => ci(n) === ci(team))) setTeam(merged[0] || "India");
+      } catch {
+        // keep cache; no toast needed
+      }
+    })();
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once on mount
+
+  /* + Team → try server, fall back to local only if server fails */
+  const addTeamPrompt = async () => {
     const name = (window.prompt("Add Team/Country name:") || "").trim();
     if (!name) return;
-    const next = cleanTeams([...teams, name]);
-    setTeams(next);
-    saveTeamsLocal(next);
-    setTeam(name);
-    setTimeout(() => loadAll(name).catch(()=>{}), 0);
-    push(`Team “${name}” added`, "success");
+
+    // attempt server create first
+    try {
+      await createSquadTeam(name);
+      const merged = cleanTeams([...teams, name]);
+      setTeams(merged);
+      setTeam(name);
+      push(`Team “${name}” added`, "success");
+      setTimeout(() => loadAll(name).catch(()=>{}), 0);
+      return;
+    } catch {
+      // fallback: local only
+      const merged = cleanTeams([...teams, name]);
+      setTeams(merged);
+      setTeam(name);
+      push(`Team “${name}” added (local cache)`, "info");
+      setTimeout(() => loadAll(name).catch(()=>{}), 0);
+    }
   };
 
-  /* load all squads for this team */
+  /* load all squads for team */
   const loadAll = async (t) => {
     const [odi, t20, test] = await Promise.all([
       fetchPlayers(t, "ODI"),
@@ -217,7 +268,7 @@ export default function SquadLineup({ isAdmin = true }) {
   };
 
   useEffect(() => {
-    let alive = true; // [FIX] avoid setState after unmount
+    let alive = true;
     (async () => {
       try {
         const [odi, t20, test] = await Promise.all([
@@ -227,7 +278,7 @@ export default function SquadLineup({ isAdmin = true }) {
         ]);
         if (!alive) return;
         setSquads({ ODI: odi || [], T20: t20 || [], TEST: test || [] });
-      } catch (e) {
+      } catch {
         if (alive) push("Failed to load squads", "error");
       }
     })();
@@ -236,7 +287,7 @@ export default function SquadLineup({ isAdmin = true }) {
   }, [team]);
 
   useEffect(() => {
-    let alive = true; // [FIX]
+    let alive = true;
     (async () => {
       try {
         const L = await getLineup(team, format);
@@ -261,7 +312,7 @@ export default function SquadLineup({ isAdmin = true }) {
         } else {
           setLineup([]); setCaptainId(null); setViceId(null);
         }
-      } catch (e) {
+      } catch {
         if (alive) { setLineup([]); setCaptainId(null); setViceId(null); }
       }
     })();
@@ -281,7 +332,7 @@ export default function SquadLineup({ isAdmin = true }) {
     return () => { ok = false; };
   }, [addName, team]);
 
-  /* roster union */
+  /* roster union across formats */
   const roster = useMemo(() => {
     const map = new Map();
     for (const F of FORMATS) {
@@ -290,22 +341,18 @@ export default function SquadLineup({ isAdmin = true }) {
         if (!map.has(k)) map.set(k, { name: p.player_name, sample: p, fmtIds: { ODI:null, T20:null, TEST:null } });
         const row = map.get(k);
         row.fmtIds[F] = p.id;
-        const s = row.sample || {};
-        const richness = (x) => (!!x.batting_style) + (!!x.bowling_type) + (!!x.skill_type);
-        if (richness(p) > richness(s)) row.sample = p;
+        const rich = (x) => (!!x.batting_style) + (!!x.bowling_type) + (!!x.skill_type);
+        if (rich(p) > rich(row.sample || {})) row.sample = p;
       }
     }
     return Array.from(map.values()).sort((a,b)=>a.name.localeCompare(b.name));
   }, [squads]);
 
   const idsInLineup = new Set(lineup.map((x) => x.player_id));
-
   const isMultiByName = (name) => {
     const key = ci(name);
     let count = 0;
-    for (const F of FORMATS) {
-      if ((squads[F] || []).some((p) => ci(p.player_name) === key)) count++;
-    }
+    for (const F of FORMATS) if ((squads[F] || []).some((p) => ci(p.player_name) === key)) count++;
     return count >= 2;
   };
 
@@ -319,12 +366,12 @@ export default function SquadLineup({ isAdmin = true }) {
       .sort((a,b)=>a.player_name.localeCompare(b.player_name));
   }, [squads, format, lineup, searchSquad, filterRole, idsInLineup]);
 
-  /* toggle membership chip */
+  /* toggle membership chip in roster */
   const toggleMembership = async (person, destFormat) => {
     const id = person.fmtIds[destFormat];
     if (id) {
       try {
-        await deletePlayer(id, { force: true }); // [FIX] force to satisfy FK if any
+        await deletePlayer(id); // backend safely cleans lineup refs
         setSquads((prev) => ({ ...prev, [destFormat]: (prev[destFormat] || []).filter((x) => x.id !== id) }));
         if (destFormat === format) {
           setLineup((prev) => {
@@ -340,7 +387,7 @@ export default function SquadLineup({ isAdmin = true }) {
     }
     try {
       if (!userId) { push("Please sign in to add players.", "error"); return; }
-      const payload = {
+      const created = await createPlayer({
         player_name: person.name,
         team_name: team,
         lineup_type: destFormat,
@@ -348,8 +395,7 @@ export default function SquadLineup({ isAdmin = true }) {
         batting_style: person.sample?.batting_style || "",
         bowling_type: person.sample?.bowling_type || "",
         user_id: userId,
-      };
-      const created = await createPlayer(payload);
+      });
       setSquads((prev) => ({ ...prev, [destFormat]: [...(prev[destFormat]||[]), created] }));
       push(`Added to ${destFormat}`, "success");
     } catch (e) {
@@ -384,11 +430,11 @@ export default function SquadLineup({ isAdmin = true }) {
     } catch (e) { push(e?.response?.data?.error || "Failed to add", "error"); }
   };
 
-  /* edit/delete existing membership row */
+  /* edit/update */
   const openEdit = (p) => {
     setEditing(p);
     const vals = { batting_style: p.batting_style || "", bowl_kind:"", bowl_arm:"", pace_type:"", spin_type:"", allrounder_type:"" };
-    if ((p.skill_type||"").toLowerCase().startsWith("all rounder (batting")) vals.allrounder_type="Batting Allrounder";
+    if ((p.skill_type||"").toLowerCase().startsWith("all rounder (batting"))  vals.allrounder_type="Batting Allrounder";
     else if ((p.skill_type||"").toLowerCase().startsWith("all rounder (bowling")) vals.allrounder_type="Bowling Allrounder";
     else if ((p.skill_type||"").toLowerCase().startsWith("all rounder (genuine")) vals.allrounder_type="Genuine Allrounder";
     const bt = p.bowling_type || "";
@@ -436,7 +482,7 @@ export default function SquadLineup({ isAdmin = true }) {
   const doDelete = async (id) => {
     if (!window.confirm("Delete this player from the format squad?")) return;
     try {
-      await deletePlayer(id, { force: true }); // [FIX] tell backend to also clear perf rows if needed
+      await deletePlayer(id);
       setSquads((p) => ({ ...p, [format]: (p[format] || []).filter((x) => x.id !== id) }));
       setLineup((prev) => {
         const items = prev.filter((x) => x.player_id !== id);
@@ -448,19 +494,17 @@ export default function SquadLineup({ isAdmin = true }) {
     } catch { push("Delete failed", "error"); }
   };
 
-  /* [NEW] Delete from ALL formats — single backend call */
+  /* Delete from ALL formats — single backend call */
   const deleteEverywhere = async (name) => {
     if (!window.confirm(`Delete “${name}” from ALL formats for ${team}?`)) return;
-    // find any id for that name in this team
     const any =
-      (squads.ODI || []).find(p => ci(p.player_name) === ci(name)) ||
-      (squads.T20 || []).find(p => ci(p.player_name) === ci(name)) ||
+      (squads.ODI  || []).find(p => ci(p.player_name) === ci(name)) ||
+      (squads.T20  || []).find(p => ci(p.player_name) === ci(name)) ||
       (squads.TEST || []).find(p => ci(p.player_name) === ci(name));
     if (!any) return;
 
     try {
-      await deletePlayer(any.id, { all: true, force: true }); // ⬅ backend cleans lineups & performances
-      // remove from all 3 local lists + lineup if present
+      await deletePlayer(any.id, { all: true }); // backend clears lineup refs & deletes all formats for same name
       setSquads(prev => ({
         ODI:  (prev.ODI  || []).filter(p => ci(p.player_name) !== ci(name)),
         T20:  (prev.T20  || []).filter(p => ci(p.player_name) !== ci(name)),
@@ -561,9 +605,7 @@ export default function SquadLineup({ isAdmin = true }) {
 
   const presenceIn = (nameKey) => {
     const fmt = { ODI:false, T20:false, TEST:false };
-    for (const F of FORMATS) {
-      if ((squads[F] || []).some((p) => ci(p.player_name) === nameKey)) fmt[F] = true;
-    }
+    for (const F of FORMATS) if ((squads[F] || []).some((p) => ci(p.player_name) === nameKey)) fmt[F] = true;
     return fmt;
   };
 
@@ -588,19 +630,13 @@ export default function SquadLineup({ isAdmin = true }) {
         </div>
 
         <div className="sq-ctlbar">
-          {/* [NEW] safer Team select + +Team */}
+          {/* Team select + +Team */}
           <div className="sq-team-select">
             <label className="sq-mini">Team</label>
             <div className="sq-team-row">
-              <select
-                className="sq-select"
-                value={team}
-                onChange={(e) => setTeam(e.target.value)}
-              >
+              <select className="sq-select" value={team} onChange={(e) => setTeam(e.target.value)}>
                 {cleanTeams(teams).map((t) => (
-                  <option key={String(t)} value={String(t)}>
-                    {String(t)}
-                  </option>
+                  <option key={String(t)} value={String(t)}>{String(t)}</option>
                 ))}
               </select>
               <button className="sq-btn ghost" onClick={addTeamPrompt} type="button">+ Team</button>
@@ -628,7 +664,12 @@ export default function SquadLineup({ isAdmin = true }) {
         {/* Add to current-format squad */}
         <div className="sq-addbar">
           <div className="sq-add-left">
-            <input className="sq-input" placeholder={`Add to ${team} ${format} squad… (type for suggestions)`} value={addName} onChange={(e) => setAddName(e.target.value)} />
+            <input
+              className="sq-input"
+              placeholder={`Add to ${team} ${format} squad… (type for suggestions)`}
+              value={addName}
+              onChange={(e) => setAddName(e.target.value)}
+            />
             {!!suggests.length && (
               <div className="sq-suggest">
                 {suggests.map((s) => {
@@ -818,11 +859,7 @@ export default function SquadLineup({ isAdmin = true }) {
             {/* Danger zone */}
             <div className="sq-danger-zone">
               <div style={{marginBottom:8, opacity:.9}}>Danger zone</div>
-              <button
-                className="sq-btn danger"
-                onClick={() => deleteEverywhere(editing.player_name)}
-                type="button"
-              >
+              <button className="sq-btn danger" onClick={() => deleteEverywhere(editing.player_name)} type="button">
                 Delete “{editing.player_name}” from ALL formats
               </button>
             </div>
