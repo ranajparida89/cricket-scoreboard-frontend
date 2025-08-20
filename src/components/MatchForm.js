@@ -1,8 +1,9 @@
 // ✅ src/components/MatchForm.js
 // ✅ [Ranaj Parida | 2025-04-19] Celebration Enhanced: 4-sec Confetti, Popup, and Sound
 // ✅ [ChatGPT | 2024-06-18] Pass user_id when creating a match
+// ✅ [2025-08-21 | Tournament fields] Add tournament_name, season_year, match_date to payload
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { createMatch, submitMatchResult } from "../services/api";
 import { playSound } from "../utils/playSound"; // ✅ Sound utility
 import Confetti from "react-confetti"; // ✅ Confetti effect
@@ -32,8 +33,22 @@ const isValidOver = (over) => {
   return !isNaN(balls) && balls >= 0 && balls <= 5;
 };
 
+function todayISO() {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
 const MatchForm = () => {
   const [matchName, setMatchName] = useState("");
+
+  // ✅ Tournament fields
+  const [tournamentName, setTournamentName] = useState("");
+  const [matchDate, setMatchDate] = useState(todayISO());
+  const seasonDefault = useMemo(() => new Date(matchDate).getFullYear(), [matchDate]);
+  const [seasonYear, setSeasonYear] = useState(seasonDefault);
+
   const [matchType, setMatchType] = useState("T20");
   const [team1, setTeam1] = useState("");
   const [team2, setTeam2] = useState("");
@@ -61,6 +76,23 @@ const MatchForm = () => {
     setError(valid ? "" : "❌ Wickets must be between 0 and 10");
   };
 
+  const validateTournament = () => {
+    const y = Number(seasonYear);
+    if (!tournamentName.trim()) {
+      alert("❌ Tournament Name is required.");
+      return false;
+    }
+    if (!Number.isInteger(y) || y < 1860 || y > 2100) {
+      alert("❌ Season Year must be between 1860 and 2100.");
+      return false;
+    }
+    if (!matchDate) {
+      alert("❌ Match Date is required.");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -77,21 +109,23 @@ const MatchForm = () => {
       return;
     }
 
+    if (!validateTournament()) return;
+
     try {
       setIsSubmitting(true);
 
-      // ✅  2024-06-18] Get user_id from localStorage ONCE and use everywhere needed
+      // ✅ Get user_id from localStorage ONCE and use everywhere needed
       const storedUser = JSON.parse(localStorage.getItem("user"));
       const userId = storedUser?.id;
 
-      // ✅ 2024-06-18] Pass user_id when creating a match
+      // ✅ Create match (unchanged table, no tournament columns there)
       const match = await createMatch({
         match_name: matchName,
         match_type: matchType,
-        user_id: userId   // <-- This is the new change
+        user_id: userId
       });
 
-      // ✅2024-06-18] Pass user_id when submitting match result
+      // ✅ Submit result with tournament fields
       const payload = {
         match_id: match.match_id,
         match_type: matchType,
@@ -103,7 +137,11 @@ const MatchForm = () => {
         runs2: parseInt(runs2),
         overs2: parseFloat(overs2),
         wickets2: parseInt(wickets2),
-        user_id: userId   // <-- This is the new change
+        user_id: userId,
+        // NEW:
+        tournament_name: tournamentName.trim(),
+        season_year: Number(seasonYear),
+        match_date: matchDate
       };
       const result = await submitMatchResult(payload);
       setResultMsg(result.message);
@@ -114,11 +152,11 @@ const MatchForm = () => {
       playSound("celebration");
       setShowPopup(true);
 
-      // ✅ Delay duration = 4 seconds (4000ms)
+      // ✅ 4 seconds
       setTimeout(() => setShowPopup(false), 4000);
 
     } catch (err) {
-      alert("❌ Error: " + err.message);
+      alert("❌ Error: " + (err?.response?.data?.error || err.message));
     } finally {
       setIsSubmitting(false);
     }
@@ -145,7 +183,44 @@ const MatchForm = () => {
             <input type="text" className="form-control" value={matchName} onChange={(e) => setMatchName(e.target.value)} required />
           </div>
 
-          <div className="mb-3">
+          {/* ✅ Tournament block */}
+          <div className="row g-3">
+            <div className="col-md-6">
+              <label>Tournament Name:</label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="e.g., Asia Cup"
+                value={tournamentName}
+                onChange={(e) => setTournamentName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="col-md-3">
+              <label>Season Year:</label>
+              <input
+                type="number"
+                className="form-control"
+                value={seasonYear}
+                min={1860}
+                max={2100}
+                onChange={(e) => setSeasonYear(e.target.value)}
+                required
+              />
+            </div>
+            <div className="col-md-3">
+              <label>Match Date:</label>
+              <input
+                type="date"
+                className="form-control"
+                value={matchDate}
+                onChange={(e) => setMatchDate(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="mb-3 mt-3">
             <label>Match Type:</label>
             <select className="form-select" value={matchType} onChange={(e) => setMatchType(e.target.value)}>
               <option value="T20">T20</option>

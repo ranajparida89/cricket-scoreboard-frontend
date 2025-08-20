@@ -62,6 +62,41 @@ export const getTeamChartData = async () => {
 // Back-compat alias
 export const getTeamRankings = getTeamChartData;
 
+/* ================== TOURNAMENTS (NEW) ================== */
+
+// Catalog list (optionally filter by format)
+export const getTournamentsCatalog = (matchType) =>
+  axios
+    .get(`${API_URL}/tournaments`, {
+      params: matchType ? { match_type: matchType } : undefined,
+    })
+    .then((r) => r.data);
+
+// Leaderboard for a tournament season (works with match_type = "All" | "ODI" | "T20" | "Test")
+export const getTournamentLeaderboard = ({
+  tournament_name,
+  season_year,
+  match_type = "All",
+}) =>
+  axios
+    .get(`${API_URL}/tournaments/leaderboard`, {
+      params: { tournament_name, season_year, match_type },
+    })
+    .then((r) => r.data);
+
+// Matches list for a tournament season
+export const getTournamentMatches = ({
+  tournament_name,
+  season_year,
+  match_type = "All",
+}) =>
+  axios
+    .get(`${API_URL}/tournaments/matches`, {
+      params: { tournament_name, season_year, match_type },
+    })
+    .then((r) => r.data);
+
+
 /* ================== HISTORIES / TABLES ================== */
 
 export const getMatchHistory = async (filters = {}) => {

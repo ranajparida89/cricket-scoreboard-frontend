@@ -1,14 +1,14 @@
 // ✅ src/components/TestMatchForm.js
 // ✅ [Ranaj Parida - 2025-04-19 | Final Enhanced Celebration: Sound + Confetti + Banner]
+// ✅ [2025-08-21 | Tournament fields] Add tournament_name, season_year, match_date to payload
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { createMatch, submitTestMatchResult } from "../services/api";
 import { playSound } from "../utils/playSound";
 import Confetti from "react-confetti";
 import useWindowSize from "react-use/lib/useWindowSize";
 import "./MatchForm.css"; // ✅ reuse celebration styles
 import { useAuth } from "../services/auth"; // add to fetch user_id 13th June 2025
-
 
 const normalizeTeamName = (name) => {
   const mapping = {
@@ -36,8 +36,22 @@ const isValidOver = (over) => {
   return balls <= 5;
 };
 
+function todayISO() {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
 const TestMatchForm = () => {
   const [matchName, setMatchName] = useState("");
+
+  // ✅ Tournament fields
+  const [tournamentName, setTournamentName] = useState("");
+  const [matchDate, setMatchDate] = useState(todayISO());
+  const seasonDefault = useMemo(() => new Date(matchDate).getFullYear(), [matchDate]);
+  const [seasonYear, setSeasonYear] = useState(seasonDefault);
+
   const [team1, setTeam1] = useState("");
   const [team2, setTeam2] = useState("");
   const [resultMsg, setResultMsg] = useState("");
@@ -108,6 +122,23 @@ const TestMatchForm = () => {
 
   const { currentUser } = useAuth(); // for user_id 13th June 2025
 
+  const validateTournament = () => {
+    const y = Number(seasonYear);
+    if (!tournamentName.trim()) {
+      alert("❌ Tournament Name is required.");
+      return false;
+    }
+    if (!Number.isInteger(y) || y < 1860 || y > 2100) {
+      alert("❌ Season Year must be between 1860 and 2100.");
+      return false;
+    }
+    if (!matchDate) {
+      alert("❌ Match Date is required.");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const t1 = normalizeTeamName(team1);
@@ -118,13 +149,13 @@ const TestMatchForm = () => {
 
     const hasError = Object.values(innings).some((inn) => inn.error !== "");
     if (hasError) return alert("❌ Please fix validation errors before submitting.");
+    if (!validateTournament()) return;
 
     try {
       setIsSubmitting(true);
       const match = await createMatch({ match_name: matchName, match_type: "Test" });
       const { winner, points } = calculateResult();
 
-      
       const payload = {
         match_id: match.match_id,
         match_type: "Test",
@@ -145,7 +176,11 @@ const TestMatchForm = () => {
         overs2_2: parseFloat(innings.t2i2.overs),
         wickets2_2: parseInt(innings.t2i2.wickets),
         total_overs_used: totalUsedOvers(),
-        user_id: currentUser.id // added to fetch user_id 13th June 2025
+        user_id: currentUser.id,
+        // NEW:
+        tournament_name: tournamentName.trim(),
+        season_year: Number(seasonYear),
+        match_date: matchDate
       };
 
       const result = await submitTestMatchResult(payload);
@@ -193,6 +228,44 @@ const TestMatchForm = () => {
         <h3 className="text-center mb-4 text-success">🏏 Test Match Form</h3>
         <form onSubmit={handleSubmit}>
           <div className="mb-2"><label>Match Name:</label><input type="text" className="form-control" value={matchName} onChange={(e) => setMatchName(e.target.value)} required /></div>
+
+          {/* ✅ Tournament block */}
+          <div className="row g-3 mb-2">
+            <div className="col-md-6">
+              <label>Tournament Name:</label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="e.g., World Test Championship"
+                value={tournamentName}
+                onChange={(e) => setTournamentName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="col-md-3">
+              <label>Season Year:</label>
+              <input
+                type="number"
+                className="form-control"
+                value={seasonYear}
+                min={1860}
+                max={2100}
+                onChange={(e) => setSeasonYear(e.target.value)}
+                required
+              />
+            </div>
+            <div className="col-md-3">
+              <label>Match Date:</label>
+              <input
+                type="date"
+                className="form-control"
+                value={matchDate}
+                onChange={(e) => setMatchDate(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
           <div className="row mb-3">
             <div className="col">
               <label>Team 1:</label>
@@ -206,12 +279,14 @@ const TestMatchForm = () => {
           {isDuplicateTeam && (
             <div className="alert alert-danger text-center py-2">❌ Team names must be different!</div>
           )}
+
           <div className="mb-3 row">
             <div className="col"><label>🗓️ Total Days</label><input className="form-control" value="5" disabled /></div>
             <div className="col"><label>🎯 Overs/Day</label><input className="form-control" value="90" disabled /></div>
             <div className="col"><label>🧮 Total Overs</label><input className="form-control" value={maxOvers} disabled /></div>
             <div className="col"><label>⏳ Overs Remaining</label><input className="form-control" value={remainingOvers()} disabled /></div>
           </div>
+
           {renderInning(`${team1 || "Team 1"} - 1st Innings`, "t1i1")}
           {renderInning(`${team2 || "Team 2"} - 1st Innings`, "t2i1")}
           {renderInning(`${team1 || "Team 1"} - 2nd Innings`, "t1i2")}
