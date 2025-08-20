@@ -24,7 +24,6 @@ import {
 } from "../services/api";
 import "./SquadLineup.css";
 import { useAuth } from "../services/auth";
-import OCRImportModal from "./OCRImportModal"; // Changes for OCR
 
 /* ---- constants & helpers ---- */
 const FORMATS = ["ODI", "T20", "TEST"];
@@ -203,9 +202,6 @@ export default function SquadLineup({ isAdmin = true }) {
   const [showHelp, setShowHelp] = useState(false);
   const { toasts, push, close } = useToasts();
 
-  const [ocrOpen, setOcrOpen] = useState(false); // Changes for OCR
-  const [recentlyAdded, setRecentlyAdded] = useState(new Set()); // Changes for OCR
-
   /* Persist sanitized teams whenever they change */
   useEffect(() => { saveTeamsLocal(teams); }, [teams]);
 
@@ -261,16 +257,6 @@ export default function SquadLineup({ isAdmin = true }) {
       fetchPlayers(t, "TEST"),
     ]);
     setSquads({ ODI: odi || [], T20: t20 || [], TEST: test || [] });
-  };
-
-  // Changes for OCR: helper to refresh ONLY the current format's squad after import
-  const reloadCurrentSquad = async () => {
-    try {
-      const list = await fetchPlayers(team, format);
-      setSquads((prev) => ({ ...prev, [format]: list || [] }));
-    } catch (e) {
-      // silent
-    }
   };
 
   useEffect(() => {
@@ -344,6 +330,7 @@ export default function SquadLineup({ isAdmin = true }) {
     for (const F of FORMATS) {
       for (const p of (squads[F] || [])) {
         const k = ci(p.player_name);
+        if (!map.has(k)) setTimeout(()=>{},0); // no-op to keep same structure
         if (!map.has(k)) map.set(k, { name: p.player_name, sample: p, fmtIds: { ODI:null, T20:null, TEST:null } });
         const row = map.get(k);
         row.fmtIds[F] = p.id;
@@ -392,9 +379,8 @@ export default function SquadLineup({ isAdmin = true }) {
       return;
     }
     try {
-      // 🔧 FIX: avoid undefined variable `failed`
       if (!userId) {
-        push("Please sign in to add players.", "error");  // <-- Changes for OCR/bugfix
+        push("Please sign in to add players.", "error");
         return;
       }
       const created = await createPlayer({
@@ -669,17 +655,6 @@ export default function SquadLineup({ isAdmin = true }) {
               ))}
             </div>
           </div>
-
-          {/* Changes for OCR: small section to open the OCR modal */}
-          <div className="sq-import" style={{marginLeft: 12}}>
-            <label className="sq-mini">Bulk import</label>
-            <div className="sq-import-row">
-              <button className="sq-btn ghost" onClick={() => setOcrOpen(true)} type="button">
-                OCR from image
-              </button>
-            </div>
-          </div>
-          {/* /Changes for OCR */}
         </div>
 
         {/* Add to current-format squad */}
@@ -791,36 +766,30 @@ export default function SquadLineup({ isAdmin = true }) {
             {(provided) => (
               <div className="sq-panel" ref={provided.innerRef} {...provided.droppableProps}>
                 <div className="sq-panel-title">🧢 {format} Squad ({(squads[format]||[]).length})</div>
-                {currentSquad.map((p, idx) => {
-                  const isNew = recentlyAdded.has((p.player_name || "").toLowerCase()); // Changes for OCR
-                  return (
-                    <Draggable key={`p-${p.id}`} draggableId={`p-${p.id}`} index={idx}>
-                      {(prov) => (
-                        <div
-                          className={`sq-card ${isMultiByName(p.player_name) ? "multi" : ""} ${isNew ? "new-glow" : ""}`} // Changes for OCR
-                          ref={prov.innerRef}
-                          {...prov.draggableProps}
-                          {...prov.dragHandleProps}
-                        >
-                          <div className="sq-card-left">
-                            <span className="sq-ico">{iconFor(p)}</span>
-                            <div>
-                              <div className="sq-name">
-                                {p.player_name}
-                                {isNew && <span className="new-chip">NEW</span>} {/* Changes for OCR */}
-                              </div>
-                              <div className="sq-sub">{p.batting_style || "—"} • {p.bowling_type || "—"}</div>
-                            </div>
-                          </div>
-                          <div className="sq-actions">
-                            <button className="sq-icon-btn" title="Edit" onClick={() => openEdit(p)} type="button">✏️</button>
-                            {isAdmin && <button className="sq-icon-btn danger" title="Delete from this format" onClick={() => doDelete(p.id)} type="button">🗑️</button>}
+                {currentSquad.map((p, idx) => (
+                  <Draggable key={`p-${p.id}`} draggableId={`p-${p.id}`} index={idx}>
+                    {(prov) => (
+                      <div
+                        className={`sq-card ${isMultiByName(p.player_name) ? "multi" : ""}`}
+                        ref={prov.innerRef}
+                        {...prov.draggableProps}
+                        {...prov.dragHandleProps}
+                      >
+                        <div className="sq-card-left">
+                          <span className="sq-ico">{iconFor(p)}</span>
+                          <div>
+                            <div className="sq-name">{p.player_name}</div>
+                            <div className="sq-sub">{p.batting_style || "—"} • {p.bowling_type || "—"}</div>
                           </div>
                         </div>
-                      )}
-                    </Draggable>
-                  );
-                })}
+                        <div className="sq-actions">
+                          <button className="sq-icon-btn" title="Edit" onClick={() => openEdit(p)} type="button">✏️</button>
+                          {isAdmin && <button className="sq-icon-btn danger" title="Delete from this format" onClick={() => doDelete(p.id)} type="button">🗑️</button>}
+                        </div>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
                 {provided.placeholder}
                 {!currentSquad.length && <div className="sq-empty">No available players (others may be in Lineup). Add new or import.</div>}
               </div>
@@ -928,24 +897,6 @@ export default function SquadLineup({ isAdmin = true }) {
           </div>
         </div>
       )}
-
-      {/* Changes for OCR: The OCR Import Modal lives inside this page */}
-      <OCRImportModal
-        open={ocrOpen}
-        onClose={() => setOcrOpen(false)}
-        defaultTeam={team}
-        defaultFormat={format}
-        onImported={(createdNames) => {
-          // 1) highlight newly imported names for ~8s
-          const setLower = new Set((createdNames || []).map(n => (n || "").toLowerCase()));
-          setRecentlyAdded(setLower);
-          setTimeout(() => setRecentlyAdded(new Set()), 8000);
-
-          // 2) refresh the current squad so new players appear immediately
-          reloadCurrentSquad();
-        }}
-      />
-      {/* /Changes for OCR */}
     </div>
   );
 }
