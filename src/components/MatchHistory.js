@@ -5,8 +5,6 @@ import { Animate } from "react-move";
 import { useSpring, animated as a } from "@react-spring/web";
 import Particles from "react-tsparticles";
 import { loadFull } from "tsparticles";
-import ScopeBar from "./ScopeBar";
-import { buildFilters } from "./tournaments";
 import "./MatchHistory.css";
 
 /* -------- AOI (in-view) -------- */
@@ -23,7 +21,7 @@ const useInView = (ref, threshold = 0.2) => {
 
 /* -------- Helpers -------- */
 const formatOvers = (overs) => Number(overs || 0).toFixed(1);
-const sumNum = (a, b) => Number(a || 0) + Number(b || 0);
+const sumNum = (a, b) => (Number(a || 0) + Number(b || 0));
 const sumOvers = (a, b) => (Number(a || 0) + Number(b || 0)).toFixed(1);
 
 /* -------- Row (hooks live here, not inside map) -------- */
@@ -106,8 +104,6 @@ const MHRow = forwardRef(({ i, m }, ref) => {
 const MatchHistory = () => {
   const [matches, setMatches] = useState([]);
   const [filters, setFilters] = useState({ match_type: "", team: "", winner: "" });
-  const [scope, setScope] = useState({ matchType: "All", tournamentName: "", seasonYear: "" });
-
   const wrapRef = useRef(null);
   const rowsRef = useRef([]);
   rowsRef.current = [];
@@ -115,14 +111,11 @@ const MatchHistory = () => {
 
   const particlesInit = async (engine) => { await loadFull(engine); };
 
-  const fetchData = async (filterValues = filters, scopeValues = scope) => {
+  const fetchData = async (filterValues = {}) => {
     try {
       let data = [];
-      const query = { ...filterValues, ...buildFilters(scopeValues) };
-
-      // Keep original logic: for Test explicitly hit Test history endpoint
       if (filterValues.match_type === "Test") {
-        const t = await getTestMatchHistory(); // stays unchanged (backend may later add filters)
+        const t = await getTestMatchHistory();
         data = (t || []).map((match) => ({
           ...match,
           match_type: "Test",
@@ -136,7 +129,7 @@ const MatchHistory = () => {
           runs2_2: match.runs2_2, overs2_2: match.overs2_2, wickets2_2: match.wickets2_2,
         }));
       } else {
-        data = await getMatchHistory(query);
+        data = await getMatchHistory(filterValues);
       }
       setMatches(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -145,17 +138,11 @@ const MatchHistory = () => {
     }
   };
 
-  useEffect(() => { fetchData(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const handleChange = (e) => setFilters({ ...filters, [e.target.name]: e.target.value });
-  const handleSearch = (e) => { e.preventDefault(); fetchData(filters, scope); };
-  const handleReset = () => {
-    const f = { match_type: "", team: "", winner: "" };
-    const s = { matchType: "All", tournamentName: "", seasonYear: "" };
-    setFilters(f);
-    setScope(s);
-    fetchData(f, s);
-  };
+  const handleSearch = (e) => { e.preventDefault(); fetchData(filters); };
+  const handleReset = () => { setFilters({ match_type: "", team: "", winner: "" }); fetchData({}); };
 
   const inView = useInView(wrapRef);
 
@@ -192,14 +179,6 @@ const MatchHistory = () => {
         <div className="mhfx-header">
           <span className="mhfx-title">📜 Match History</span>
           <span className="mhfx-sub">Past results • All formats</span>
-        </div>
-
-        {/* ScopeBar: Tournament / Season / Match Type */}
-        <div className="mhfx-scope">
-          <ScopeBar
-            defaultType="All"
-            onApply={(s) => { setScope(s); fetchData(filters, s); }}
-          />
         </div>
 
         {/* Filters */}

@@ -1,7 +1,6 @@
 // ✅ src/components/MatchForm.js
 // ✅ [Ranaj Parida | 2025-04-19] Celebration Enhanced: 4-sec Confetti, Popup, and Sound
 // ✅ [ChatGPT | 2024-06-18] Pass user_id when creating a match
-// ✅ [2025-08-21] Tournament + Edition + Date + Stage (UI-only for now)
 
 import React, { useState } from "react";
 import { createMatch, submitMatchResult } from "../services/api";
@@ -9,7 +8,6 @@ import { playSound } from "../utils/playSound"; // ✅ Sound utility
 import Confetti from "react-confetti"; // ✅ Confetti effect
 import useWindowSize from "react-use/lib/useWindowSize"; // ✅ Full screen sizing
 import "./MatchForm.css"; // ✅ Celebration banner CSS
-import TournamentPicker from "./TournamentPicker";
 
 const TEAM_MAP = {
   IND: "India", AUS: "Australia", ENG: "England", PAK: "Pakistan", SA: "South Africa",
@@ -47,14 +45,6 @@ const MatchForm = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [winnerTeam, setWinnerTeam] = useState("");
 
-  // new: tournament picker state
-  const [tp, setTp] = useState({
-    tournamentName: "",
-    seasonYear: new Date().getFullYear(),
-    matchDate: new Date().toISOString().slice(0, 10),
-    stage: ""
-  });
-
   const { width, height } = useWindowSize(); // ✅ Detect screen size for full-screen confetti
   const maxOvers = matchType === "T20" ? 20 : 50;
 
@@ -77,11 +67,6 @@ const MatchForm = () => {
     const t1 = normalizeTeamName(team1);
     const t2 = normalizeTeamName(team2);
 
-    if (!tp.tournamentName || !tp.seasonYear || !tp.matchDate) {
-      alert("❌ Please select Tournament, Match Date and Edition (Year).");
-      return;
-    }
-
     if (t1.toLowerCase() === t2.toLowerCase()) {
       alert("❌ Both teams cannot be the same.");
       return;
@@ -95,22 +80,18 @@ const MatchForm = () => {
     try {
       setIsSubmitting(true);
 
-      // ✅ get user_id from localStorage ONCE
+      // ✅  2024-06-18] Get user_id from localStorage ONCE and use everywhere needed
       const storedUser = JSON.parse(localStorage.getItem("user"));
       const userId = storedUser?.id;
 
-      // ✅ Pass tournament fields to createMatch (BE can ignore safely)
+      // ✅ 2024-06-18] Pass user_id when creating a match
       const match = await createMatch({
         match_name: matchName,
         match_type: matchType,
-        user_id: userId,
-        tournament_name: tp.tournamentName || "",
-        season_year: tp.seasonYear,
-        match_date: tp.matchDate,
-        stage: tp.stage || ""
+        user_id: userId   // <-- This is the new change
       });
 
-      // ✅ payload for LOI submission
+      // ✅2024-06-18] Pass user_id when submitting match result
       const payload = {
         match_id: match.match_id,
         match_type: matchType,
@@ -122,23 +103,20 @@ const MatchForm = () => {
         runs2: parseInt(runs2),
         overs2: parseFloat(overs2),
         wickets2: parseInt(wickets2),
-        user_id: userId,
-        tournament_name: tp.tournamentName || "",
-        season_year: tp.seasonYear,
-        match_date: tp.matchDate,
-        stage: tp.stage || ""
+        user_id: userId   // <-- This is the new change
       };
-
       const result = await submitMatchResult(payload);
       setResultMsg(result.message);
 
-      // ✅ Celebration
+      // ✅ Celebration trigger
       const winner = result.message.split(" ")[0];
       setWinnerTeam(winner);
       playSound("celebration");
       setShowPopup(true);
 
+      // ✅ Delay duration = 4 seconds (4000ms)
       setTimeout(() => setShowPopup(false), 4000);
+
     } catch (err) {
       alert("❌ Error: " + err.message);
     } finally {
@@ -152,7 +130,11 @@ const MatchForm = () => {
       {showPopup && <Confetti width={width} height={height} numberOfPieces={300} recycle={false} />}
 
       {/* ✅ Celebration floating banner */}
-      {showPopup && <div className="celebration-banner">🎉 Congratulations {winnerTeam}!</div>}
+      {showPopup && (
+        <div className="celebration-banner">
+          🎉 Congratulations {winnerTeam}!
+        </div>
+      )}
 
       <div className="card shadow p-4">
         <h3 className="text-center mb-4 text-primary">🏏 Enter Match Details</h3>
@@ -160,13 +142,7 @@ const MatchForm = () => {
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
             <label>Match Name:</label>
-            <input
-              type="text"
-              className="form-control"
-              value={matchName}
-              onChange={(e) => setMatchName(e.target.value)}
-              required
-            />
+            <input type="text" className="form-control" value={matchName} onChange={(e) => setMatchName(e.target.value)} required />
           </div>
 
           <div className="mb-3">
@@ -177,91 +153,36 @@ const MatchForm = () => {
             </select>
           </div>
 
-          {/* 🎯 Tournament + Edition + Date + Stage */}
-          <div className="mb-3">
-            <TournamentPicker matchType={matchType} value={tp} onChange={setTp} allowStage={true} />
-          </div>
-
           {/* 🏏 Team 1 Inputs */}
           <h5 className="mt-4">Team 1 (Bat First)</h5>
-          <input
-            type="text"
-            className="form-control mb-2"
-            placeholder="Team 1 Name"
-            value={team1}
-            onChange={(e) => setTeam1(e.target.value)}
-            required
-          />
+          <input type="text" className="form-control mb-2" placeholder="Team 1 Name" value={team1} onChange={(e) => setTeam1(e.target.value)} required />
           <div className="row">
             <div className="col">
-              <input
-                type="number"
-                className="form-control mb-2"
-                placeholder={`Runs by ${normalizeTeamName(team1) || "Team 1"}`}
-                value={runs1}
-                onChange={(e) => setRuns1(e.target.value)}
-              />
+              <input type="number" className="form-control mb-2" placeholder={`Runs by ${normalizeTeamName(team1) || "Team 1"}`} value={runs1} onChange={(e) => setRuns1(e.target.value)} />
             </div>
             <div className="col">
-              <input
-                type="text"
-                className="form-control mb-2"
-                placeholder="Overs"
-                value={overs1}
-                onChange={(e) => handleOversChange(e.target.value, setOvers1, setOvers1Error, team1)}
-              />
+              <input type="text" className="form-control mb-2" placeholder="Overs" value={overs1} onChange={(e) => handleOversChange(e.target.value, setOvers1, setOvers1Error, team1)} />
               {overs1Error && <small className="text-danger">{overs1Error}</small>}
             </div>
             <div className="col">
-              <input
-                type="number"
-                className="form-control mb-2"
-                placeholder="Wickets"
-                value={wickets1}
-                onChange={(e) => handleWicketsChange(e.target.value, setWickets1, setWickets1Error)}
-              />
+              <input type="number" className="form-control mb-2" placeholder="Wickets" value={wickets1} onChange={(e) => handleWicketsChange(e.target.value, setWickets1, setWickets1Error)} />
               {wickets1Error && <small className="text-danger">{wickets1Error}</small>}
             </div>
           </div>
 
           {/* 🏏 Team 2 Inputs */}
           <h5 className="mt-4">Team 2</h5>
-          <input
-            type="text"
-            className="form-control mb-2"
-            placeholder="Team 2 Name"
-            value={team2}
-            onChange={(e) => setTeam2(e.target.value)}
-            required
-          />
+          <input type="text" className="form-control mb-2" placeholder="Team 2 Name" value={team2} onChange={(e) => setTeam2(e.target.value)} required />
           <div className="row">
             <div className="col">
-              <input
-                type="number"
-                className="form-control mb-2"
-                placeholder={`Runs by ${normalizeTeamName(team2) || "Team 2"}`}
-                value={runs2}
-                onChange={(e) => setRuns2(e.target.value)}
-              />
+              <input type="number" className="form-control mb-2" placeholder={`Runs by ${normalizeTeamName(team2) || "Team 2"}`} value={runs2} onChange={(e) => setRuns2(e.target.value)} />
             </div>
             <div className="col">
-              <input
-                type="text"
-                className="form-control mb-2"
-                placeholder="Overs"
-                value={overs2}
-                onChange={(e) => handleOversChange(e.target.value, setOvers2, setOvers2Error, team2)}
-              />
+              <input type="text" className="form-control mb-2" placeholder="Overs" value={overs2} onChange={(e) => handleOversChange(e.target.value, setOvers2, setOvers2Error, team2)} />
               {overs2Error && <small className="text-danger">{overs2Error}</small>}
             </div>
             <div className="col">
-              <input
-                type="number"
-                className="form-control mb-2"
-                placeholder="Wickets"
-                value={wickets2}
-                onChange={(e) => handleWicketsChange(e.target.value, setWickets2, setWickets2Error)}
-              />
+              <input type="number" className="form-control mb-2" placeholder="Wickets" value={wickets2} onChange={(e) => handleWicketsChange(e.target.value, setWickets2, setWickets2Error)} />
               {wickets2Error && <small className="text-danger">{wickets2Error}</small>}
             </div>
           </div>
@@ -273,7 +194,9 @@ const MatchForm = () => {
           </div>
         </form>
 
-        {resultMsg && <div className="alert alert-success mt-3 text-center">{resultMsg}</div>}
+        {resultMsg && (
+          <div className="alert alert-success mt-3 text-center">{resultMsg}</div>
+        )}
       </div>
     </div>
   );

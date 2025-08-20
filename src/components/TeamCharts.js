@@ -158,104 +158,96 @@ const TeamCharts = () => {
 
   /* ---------- fetch & unify ---------- */
   useEffect(() => {
-    let alive = true;
     (async () => {
-      try {
-        const rankingRows = await getTeamChartData(); // /api/team-rankings
-        const rKey = (team, type) => `${team.toLowerCase()}|${(type || "").toLowerCase()}`;
-        const rankingMap = new Map();
-        for (const r of rankingRows || []) {
-          if (!r.team_name || !r.match_type) continue;
-          rankingMap.set(
-            rKey(r.team_name, r.match_type),
-            {
-              team: r.team_name,
-              type: (r.match_type || "").trim(),
-              points: Number(r.points) || 0,
-              nrr: r.nrr == null ? 0 : Number(r.nrr),
-              matches: Number(r.matches) || 0,
-              wins: Number(r.wins) || 0,
-              losses: Number(r.losses) || 0,
-              draws: Number(r.draws) || 0,
-            }
-          );
-        }
-
-        const [t20Hist, odiHist] = await Promise.all([
-          getMatchHistory({ match_type: "T20" }),
-          getMatchHistory({ match_type: "ODI" }),
-        ]);
-
-        const acc = new Map();
-        const bump = (team, type, field, n = 1) => {
-          const key = rKey(team, type);
-          if (!acc.has(key)) {
-            acc.set(key, { team, type, matches: 0, wins: 0, losses: 0, draws: 0, points: 0, nrr: 0 });
-          }
-          acc.get(key)[field] += n;
-        };
-
-        const processLOI = (list, type) => {
-          for (const m of list || []) {
-            if (!m.team1 || !m.team2) continue;
-            bump(m.team1, type, "matches");
-            bump(m.team2, type, "matches");
-            const { outcome, winner } = parseLOIOutcome(m.winner, m.team1, m.team2);
-            if (outcome === "draw") {
-              bump(m.team1, type, "draws"); bump(m.team2, type, "draws");
-              bump(m.team1, type, "points", 1); bump(m.team2, type, "points", 1);
-            } else if (outcome === "win" && winner) {
-              const loser = winner === m.team1 ? m.team2 : m.team1;
-              bump(winner, type, "wins"); bump(loser, type, "losses");
-              bump(winner, type, "points", 2);
-            }
-          }
-        };
-
-        processLOI(t20Hist, "T20");
-        processLOI(odiHist, "ODI");
-
-        // merge NRR / prefer ranking points where available
-        for (const [key, stat] of acc) {
-          const r = rankingMap.get(key);
-          if (r) {
-            stat.nrr = r.nrr ?? 0;
-            if (!Number.isNaN(Number(r.points))) stat.points = Number(r.points);
-          }
-        }
-        // add LOI rows present only in rankings
-        for (const [key, r] of rankingMap) {
-          const [, type] = key.split("|");
-          const up = (type || "").toUpperCase();
-          if ((up === "T20" || up === "ODI") && !acc.has(key)) {
-            acc.set(key, {
-              team: r.team, type: up, matches: r.matches || 0,
-              wins: 0, losses: 0, draws: 0, points: r.points || 0, nrr: r.nrr ?? 0,
-            });
-          }
-        }
-
-        // Test rows straight from rankings (points already 12/6/4 logic)
-        const tests = (rankingRows || [])
-          .filter((r) => (r.match_type || "").toUpperCase() === "TEST")
-          .map((r) => ({
-            team: r.team_name, type: "Test",
+      const rankingRows = await getTeamChartData(); // /api/team-rankings
+      const rKey = (team, type) => `${team.toLowerCase()}|${type.toLowerCase()}`;
+      const rankingMap = new Map();
+      for (const r of rankingRows || []) {
+        if (!r.team_name || !r.match_type) continue;
+        rankingMap.set(
+          rKey(r.team_name, r.match_type),
+          {
+            team: r.team_name,
+            type: (r.match_type || "").trim(),
+            points: Number(r.points) || 0,
+            nrr: r.nrr == null ? 0 : Number(r.nrr),
             matches: Number(r.matches) || 0,
             wins: Number(r.wins) || 0,
             losses: Number(r.losses) || 0,
             draws: Number(r.draws) || 0,
-            points: Number(r.points) || 0,
-            nrr: 0,
-          }));
-
-        if (!alive) return;
-        setRows([...Array.from(acc.values()), ...tests]);
-      } catch {
-        if (!alive) return;
-        setRows([]);
+          }
+        );
       }
+
+      const [t20Hist, odiHist] = await Promise.all([
+        getMatchHistory({ match_type: "T20" }),
+        getMatchHistory({ match_type: "ODI" }),
+      ]);
+
+      const acc = new Map();
+      const bump = (team, type, field, n = 1) => {
+        const key = rKey(team, type);
+        if (!acc.has(key)) {
+          acc.set(key, { team, type, matches: 0, wins: 0, losses: 0, draws: 0, points: 0, nrr: 0 });
+        }
+        acc.get(key)[field] += n;
+      };
+
+      const processLOI = (list, type) => {
+        for (const m of list || []) {
+          if (!m.team1 || !m.team2) continue;
+          bump(m.team1, type, "matches");
+          bump(m.team2, type, "matches");
+          const { outcome, winner } = parseLOIOutcome(m.winner, m.team1, m.team2);
+          if (outcome === "draw") {
+            bump(m.team1, type, "draws"); bump(m.team2, type, "draws");
+            bump(m.team1, type, "points", 1); bump(m.team2, type, "points", 1);
+          } else if (outcome === "win" && winner) {
+            const loser = winner === m.team1 ? m.team2 : m.team1;
+            bump(winner, type, "wins"); bump(loser, type, "losses");
+            bump(winner, type, "points", 2);
+          }
+        }
+      };
+
+      processLOI(t20Hist, "T20");
+      processLOI(odiHist, "ODI");
+
+      // merge NRR / prefer ranking points where available
+      for (const [key, stat] of acc) {
+        const r = rankingMap.get(key);
+        if (r) {
+          stat.nrr = r.nrr ?? 0;
+          if (!Number.isNaN(Number(r.points))) stat.points = Number(r.points);
+        }
+      }
+      // add LOI rows present only in rankings
+      for (const [key, r] of rankingMap) {
+        const [, type] = key.split("|");
+        const up = type.toUpperCase();
+        if ((up === "T20" || up === "ODI") && !acc.has(key)) {
+          acc.set(key, {
+            team: r.team, type: up, matches: r.matches || 0,
+            wins: 0, losses: 0, draws: 0, points: r.points || 0, nrr: r.nrr ?? 0,
+          });
+        }
+      }
+
+      // Test rows straight from rankings (points already 12/6/4 logic)
+      const tests = (rankingRows || [])
+        .filter((r) => (r.match_type || "").toUpperCase() === "TEST")
+        .map((r) => ({
+          team: r.team_name, type: "Test",
+          matches: Number(r.matches) || 0,
+          wins: Number(r.wins) || 0,
+          losses: Number(r.losses) || 0,
+          draws: Number(r.draws) || 0,
+          points: Number(r.points) || 0,
+          nrr: 0,
+        }));
+
+      setRows([...Array.from(acc.values()), ...tests]);
     })();
-    return () => { alive = false; };
   }, []);
 
   /* ---------- filter + sort ---------- */
@@ -379,8 +371,9 @@ const TeamCharts = () => {
     animation: !reduce && { duration: 900, easing: "easeOutQuart" },
     plugins: {
       ...basePlugins,
+      // show value labels on the line points, aligned & non-overlapping
       datalabels: {
-        display: (ctx) => Number(ctx.dataset.data[ctx.dataIndex]) > 0,
+        display: (ctx) => ctx.dataset.data[ctx.dataIndex] > 0,
         formatter: (v) => `${v}%`,
         anchor: "end",
         align: "top",
@@ -408,7 +401,7 @@ const TeamCharts = () => {
         title: { display: true, text: "Win %", color: textDim },
         ticks: {
           color: textDim,
-          callback: (value) => `${value}%`,
+          callback: (value) => `${value}%`,  // 0 → 0%, 20 → 20% ...
         },
       },
     },
@@ -417,9 +410,9 @@ const TeamCharts = () => {
   const performanceBarData = {
     labels,
     datasets: [
-      { label: "Wins",   data: wins,   backgroundColor: "rgba(34,197,94,.92)",  borderRadius: 8 },
-      { label: "Losses", data: losses, backgroundColor: "rgba(244,63,94,.92)",  borderRadius: 8 },
-      { label: "Draws",  data: draws,  backgroundColor: "rgba(250,204,21,.95)", borderRadius: 8 },
+      { label: "Wins", data: wins, backgroundColor: "rgba(34,197,94,.92)", borderRadius: 8 },
+      { label: "Losses", data: losses, backgroundColor: "rgba(244,63,94,.92)", borderRadius: 8 },
+      { label: "Draws", data: draws, backgroundColor: "rgba(250,204,21,.95)", borderRadius: 8 },
     ],
   };
   const performanceBarOptions = {
@@ -427,13 +420,6 @@ const TeamCharts = () => {
     animation: !reduce && { duration: 700, easing: "easeOutCubic", delay },
     plugins: {
       ...basePlugins,
-      datalabels: {
-        display: (ctx) => Number(ctx.dataset.data[ctx.dataIndex]) > 0,
-        formatter: (v) => v,
-        anchor: "end",
-        align: "top",
-        offset: 4,
-      },
       title: { display: true, text: "Performance Bar", color: textStrong, font: { weight: 800 } },
     },
     scales: axes,
@@ -468,18 +454,6 @@ const TeamCharts = () => {
     animation: !reduce && { duration: 800, easing: "easeOutCubic", delay },
     plugins: {
       ...basePlugins,
-      datalabels: {
-        display: (ctx) => {
-          const ds = ctx.dataset;
-          const val = Number(ds.data?.[ctx.dataIndex] ?? 0);
-          // Only label bars (points), not the NRR line, and only when > 0
-          return ds.type === "bar" && val > 0;
-        },
-        formatter: (v) => v,
-        anchor: "end",
-        align: "top",
-        offset: 4,
-      },
       title: { display: true, text: "Combined Bar + Line", color: textStrong, font: { weight: 800 } },
     },
     scales: {
@@ -517,7 +491,7 @@ const TeamCharts = () => {
 
   return (
     <div ref={shellRef} className="tcpro-shell">
-      {!isTouch && !reduce && (
+      {!isTouch && (
         <Particles
           id="tcpro-particles"
           init={particlesInit}
@@ -543,13 +517,11 @@ const TeamCharts = () => {
 
           <div className="tcpro-actions">
             {/* permanent yellow banner with arrow */}
-            <div className="tcpro-banner" role="note" aria-live="polite">
+            <div className="tcpro-banner" role="note">
               <span className="tcpro-banner-text">Please select <b>Match Type</b></span>
             </div>
 
-            <label className="sr-only" htmlFor="tcpro-select">Match Type</label>
             <select
-              id="tcpro-select"
               className="tcpro-select"
               value={format}
               onChange={(e) => setFormat(e.target.value)}
@@ -579,11 +551,7 @@ const TeamCharts = () => {
         <Tilt>
           <div className="tcpro-card-inner">
             <div className="chart-tall">
-              <Line
-                data={winRateLine}
-                options={winRateOptions}
-                plugins={[ChartDataLabels, panelBg]}
-              />
+              <Line data={winRateLine} options={winRateOptions} plugins={[ChartDataLabels, panelBg]} />
             </div>
           </div>
         </Tilt>
@@ -596,7 +564,7 @@ const TeamCharts = () => {
                 key={`bar-perf-${format}-${labels.join("|")}`}
                 data={performanceBarData}
                 options={performanceBarOptions}
-                plugins={[ChartDataLabels, panelBg]}
+                plugins={[ChartDataLabels]}
               />
             </div>
           </Tilt>
@@ -607,7 +575,7 @@ const TeamCharts = () => {
                 key={`combo-${format}-${labels.join("|")}`}
                 data={combinedData}
                 options={combinedOptions}
-                plugins={[ChartDataLabels, panelBg]}
+                plugins={[ChartDataLabels]}
               />
             </div>
           </Tilt>
