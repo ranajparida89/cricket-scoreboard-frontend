@@ -12,9 +12,10 @@ const useInView = (ref, threshold = 0.2) => {
   const [seen, setSeen] = useState(false);
   useEffect(() => {
     if (!ref.current) return;
-    const o = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) setSeen(true);
-    }, { threshold });
+    const o = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) setSeen(true); },
+      { threshold }
+    );
     o.observe(ref.current);
     return () => o.disconnect();
   }, [ref, threshold]);
@@ -31,15 +32,17 @@ const bucketGradient = (ratio) => {
   return "linear-gradient(90deg,#ff6b6b,#ff2b2b)";                       // red
 };
 
-/* ---------- Row (so hooks aren’t inside a loop) ---------- */
+/* ---------- Row (hooks outside loops) ---------- */
 const TLRow = forwardRef(({ index, row, maxPoints }, ref) => {
-  const ratio = (row.points || 0) / (maxPoints || 1);
+  const safeMax = Math.max(1, Number(maxPoints) || 1);
+  const ratio = Math.max(0, Math.min(1, (Number(row.points) || 0) / safeMax));
   const pct = Math.round(ratio * 100);
 
   const [spr, api] = useSpring(() => ({
     rotateX: 0, rotateY: 0, scale: 1,
     config: { mass: 1, tension: 280, friction: 24 },
   }));
+
   const onMove = (e) => {
     const r = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - r.left;
@@ -76,12 +79,16 @@ const TLRow = forwardRef(({ index, row, maxPoints }, ref) => {
 
       {/* Points with special animation: fill + soft pulse for Top 3 */}
       <td className="tlfx-points">
-        <div className="points-track" />
-        <Animate start={{ w: 0 }} update={{ w: [pct], timing: { duration: 700 } }}>
+        <div className="points-track" aria-hidden="true" />
+        <Animate
+          start={{ w: 0 }}
+          update={{ w: [pct], timing: { duration: 700 } }}
+        >
           {({ w }) => (
             <div
               className={`points-bar ${index < 3 ? "pulse" : ""}`}
               style={{ width: `${w}%`, backgroundImage: bucketGradient(ratio) }}
+              aria-hidden="true"
             />
           )}
         </Animate>
@@ -99,35 +106,48 @@ const TestLeaderboard = () => {
   const wrapRef = useRef(null);
   const rowRefs = useRef([]);
   rowRefs.current = [];
-  const addRowRef = (el) => el && !rowRefs.current.includes(el) && rowRefs.current.push(el);
+  const addRowRef = (el) => {
+    if (el && !rowRefs.current.includes(el)) rowRefs.current.push(el);
+  };
 
   // particles
   const particlesInit = async (engine) => { await loadFull(engine); };
 
   useEffect(() => {
+    let isMounted = true;
     getTestMatchLeaderboard()
       .then((data) => {
+        if (!isMounted) return;
         const arr = Array.isArray(data) ? data : [];
         // ensure numbers and compute draws if needed
-        const normalized = arr.map((t) => ({
-          team_name: t.team_name,
-          matches: Number(t.matches) || 0,
-          wins: Number(t.wins) || 0,
-          losses: Number(t.losses) || 0,
-          draws: t.draws != null
+        const normalized = arr.map((t) => {
+          const matches = Number(t.matches) || 0;
+          const wins    = Number(t.wins) || 0;
+          const losses  = Number(t.losses) || 0;
+          const draws   = t.draws != null
             ? Number(t.draws)
-            : Math.max(0, (Number(t.matches)||0) - (Number(t.wins)||0) - (Number(t.losses)||0)),
-          points: Number(t.points) || 0,
-        }));
-        const sorted = normalized.sort((a,b) => b.points - a.points || b.wins - a.wins);
+            : Math.max(0, matches - wins - losses);
+          const points  = Number(t.points) || 0;
+          return {
+            team_name: t.team_name,
+            matches, wins, losses, draws, points,
+          };
+        });
+        const sorted = normalized.sort((a,b) =>
+          (b.points - a.points) || (b.wins - a.wins)
+        );
         setTeams(sorted);
       })
       .catch(() => setTeams([]))
-      .finally(() => setLoading(false));
+      .finally(() => { if (isMounted) setLoading(false); });
+    return () => { isMounted = false; };
   }, []);
 
   const inView = useInView(wrapRef);
-  const maxPoints = useMemo(() => Math.max(10, ...teams.map(t => t.points || 0)), [teams]);
+  const maxPoints = useMemo(
+    () => Math.max(1, ...teams.map(t => Number(t.points) || 0)),
+    [teams]
+  );
 
   // GSAP: row reveal + crown glow on first row
   useEffect(() => {
@@ -154,6 +174,7 @@ const TestLeaderboard = () => {
         options={{
           fullScreen: { enable: false },
           background: { color: { value: "transparent" } },
+          fpsLimit: 60,
           particles: {
             number: { value: 18, density: { enable: true, area: 800 } },
             links: { enable: true, distance: 120, opacity: 0.15, width: 1 },
@@ -193,7 +214,11 @@ const TestLeaderboard = () => {
               )}
 
               {!loading && teams.length === 0 && (
-                <tr><td className="tlfx-empty" colSpan="7">No Test match leaderboard data available.</td></tr>
+                <tr>
+                  <td className="tlfx-empty" colSpan="7">
+                    No Test match leaderboard data available.
+                  </td>
+                </tr>
               )}
 
               {!loading && teams.map((t, i) => (

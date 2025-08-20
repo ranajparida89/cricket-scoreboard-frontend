@@ -1,11 +1,10 @@
 import './App.css';
-import React, { useState, useEffect } from "react"; // ✅ FIXED: Added useEffect
-// import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import AppNavbar from "./components/Navbar";
 import MatchForm from "./components/MatchForm";
 import Leaderboard from "./components/Leaderboard";
-import TestLeaderboard from "./components/TestLeaderboard"; 
+import TestLeaderboard from "./components/TestLeaderboard";
 import MatchHistory from "./components/MatchHistory";
 import TeamChart from "./components/TeamCharts";
 import MatchCards from "./components/MatchCards";
@@ -53,7 +52,6 @@ import DeleteAccount from './components/DeleteAccount';
 
 import SchedulerPage from "./components/SchedulerPage";
 
-
 import "bootstrap/dist/css/bootstrap.min.css";
 import TeamDistributor from "./components/TeamDistributor";
 import AllBoardsView from "./components/AllBoardsView"; // ✅ Board Registration View
@@ -61,10 +59,8 @@ import BoardRegistrationForm from "./components/BoardRegistrationForm";
 import BoardAnalyticsPro from "./components/BoardAnalyticsPro"; // 🔥 Pro Board Analytics UI
 
 
-// ✅ Homepage = Match Summary (ODI + T20) + Leaderboard (Restricted for guests)
+// ✅ Homepage = Match Summary (ODI + T20) + Leaderboard (Allowed for all users)
 function HomePage() {
-  // ✅ Homepage = Match Summary (ODI + T20) + Leaderboard (Allowed for all users)
-
   return (
     <div className="container mt-4">
       {/* 🏏 Match Summary Section */}
@@ -72,13 +68,14 @@ function HomePage() {
         <MatchCards />
       </div>
 
-      
       <div className="card bg-dark text-white p-4 shadow mb-5">
         <h4 className="text-center text-success mb-3">Limited-Overs Cricket Leaderboard</h4>
         <Leaderboard />
       </div>
+
       <div className="card bg-dark text-white p-4 shadow mb-5">
-        <h4 className="text-center text-info mb-3"></h4>
+        {/* ✅ Filled missing heading */}
+        <h4 className="text-center text-info mb-3">World Test Match Team Rankings</h4>
         <TestLeaderboard />
       </div>
     </div>
@@ -89,34 +86,34 @@ function App() {
   const [showAuthModal, setShowAuthModal] = useState(false); // ✅ [Added for Auth Modal Toggle]
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [theme, setTheme] = useState('dark');
-  const [checkedAdmin, setCheckedAdmin] = useState(false);  // <--- Added
-  const [isAdmin, setIsAdmin] = useState(false);            // <--- Added
+  const [checkedAdmin, setCheckedAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // ✅ Step 3: Add update detection state
-   const [updateAvailable, setUpdateAvailable] = useState(false);  // Added for serviceworkreg 22-07-2025 
-   const [waitingWorker, setWaitingWorker] = useState(null);  // Added for serviceworkreg 22-07-2025 
+  const [updateAvailable, setUpdateAvailable] = useState(false);  // Added for serviceworkreg 22-07-2025 
+  const [waitingWorker, setWaitingWorker] = useState(null);       // Added for serviceworkreg 22-07-2025 
 
   const { currentUser } = useAuth();
 
-      useEffect(() => {
-        document.body.className = theme === 'dark' ? 'bg-dark text-light' : 'bg-light text-dark';
-      }, [theme]);
+  useEffect(() => {
+    document.body.className = theme === 'dark' ? 'bg-dark text-light' : 'bg-light text-dark';
+  }, [theme]);
       
-      const toggleTheme = () => {
-        setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-      };
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
-      // ✅ Step 4: Add handler to activate the update
-const handleAppUpdate = () => {
-  if (waitingWorker) {
-    waitingWorker.postMessage({ type: 'SKIP_WAITING' });
-    waitingWorker.addEventListener('statechange', (e) => {
-      if (e.target.state === 'activated') {
-        window.location.reload();
-      }
-    });
-  }
-};
+  // ✅ Step 4: Add handler to activate the update
+  const handleAppUpdate = () => {
+    if (waitingWorker) {
+      waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+      waitingWorker.addEventListener('statechange', (e) => {
+        if (e.target.state === 'activated') {
+          window.location.reload();
+        }
+      });
+    }
+  };
 
   // ✅ Listen for custom "toggleSidebar" event from Navbar's hamburger button
   useEffect(() => {
@@ -127,19 +124,18 @@ const handleAppUpdate = () => {
     return () => window.removeEventListener("toggleSidebar", toggleHandler);
   }, []);
 
-  // ✅ Step 3: Add this useEffect after toggleSidebar one
-useEffect(() => {
-  serviceWorkerRegistration.register({
-    onUpdate: (registration) => {
-      setUpdateAvailable(true);
-      setWaitingWorker(registration.waiting);
-    },
-  });
-}, []);
+  // ✅ Step 3: Register SW and detect updates
+  useEffect(() => {
+    serviceWorkerRegistration.register({
+      onUpdate: (registration) => {
+        setUpdateAvailable(true);
+        setWaitingWorker(registration.waiting);
+      },
+    });
+  }, []);
 
-
-// added for admin 26-June-2026
-    if (!checkedAdmin) {
+  // Admin gate (kept exactly as you structured)
+  if (!checkedAdmin) {
     return (
       <AdminPromptModal
         onAdminResponse={(admin) => {
@@ -153,327 +149,328 @@ useEffect(() => {
   
   return (
     <div className={theme}>
-      <Router>  
-            <AppNavbar 
-            onAuthClick={() => setShowAuthModal(true)} 
-            toggleTheme={toggleTheme}
-            theme={theme} // added theme 
-          />
-          {/* ✅ Step 5: Show update banner if new version available */}
-{updateAvailable && (
-  <div style={{
-    position: 'fixed', bottom: 20, left: 20, zIndex: 1000,
-    background: '#ffc107', padding: '12px 18px', borderRadius: '8px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.15)', color: '#000'
-  }}>
-    <strong>Update available</strong><br />
-    <span>Please update your application to get latest features.</span>
-    <div className="mt-2 d-flex gap-2">
-      <button className="btn btn-success btn-sm" onClick={handleAppUpdate}>Update</button>
-      <button className="btn btn-secondary btn-sm" onClick={() => setUpdateAvailable(false)}>Cancel</button>
-    </div>
-  </div>
-)}
-          <DownloadAppButton /> {/* ✅ Step 3: Add PWA Install Button */}
-{/* ✅ Trigger modal */}
-      <MatchTicker />
-      <AuthModal show={showAuthModal} onClose={() => setShowAuthModal(false)} /> {/* ✅ Auth Modal Entry */}
-      <SidebarMenu isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} /> {/* ✅ Sidebar Menu Entry */}
-
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-
-        <Route
-          path="/add-match"
-          element={
-            <PageWrapper>
-              <MatchForm />
-            </PageWrapper>
-          }
+      <Router>
+        <AppNavbar 
+          onAuthClick={() => setShowAuthModal(true)} 
+          toggleTheme={toggleTheme}
+          theme={theme}
         />
 
-        <Route
-          path="/add-test-match"
-          element={
-            <PageWrapper>
-              <TestMatchForm />
-            </PageWrapper>
-          }
-        />
-
-<Route
-  path="/test-history"
-  element={
-    <ProtectedRoute> {/* ✅ [Protected | Requires Login] */}
-      <PageWrapper>
-        <TestMatchHistory />
-      </PageWrapper>
-    </ProtectedRoute>
-  }
-/>
-
-        <Route
-          path="/leaderboard"
-          element={
-            <PageWrapper>
-              <Leaderboard />
-            </PageWrapper>
-          }
-        />
-
-<Route
-  path="/match-history"
-  element={
-    <ProtectedRoute> {/* ✅ [Protected | Requires Login] */}
-      <PageWrapper>
-        <MatchHistory />
-      </PageWrapper>
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/graphs"
-  element={
-    <ProtectedRoute> {/* ✅ [Protected | Requires Login] */}
-      <PageWrapper>
-        <TeamChart />
-      </PageWrapper>
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-  path="/all-boards"
-  element={
-    <ProtectedRoute>
-      <PageWrapper>
-        <AllBoardsView />
-      </PageWrapper>
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-  path="/boards/analytics"
-  element={
-    <ProtectedRoute>
-      <PageWrapper>
-        <BoardAnalyticsPro />
-      </PageWrapper>
-    </ProtectedRoute>
-  }
-/>
-
-
-{/* Alias so old /create-board links still work */}
-<Route path="/create-board" element={<Navigate to="/register-board" replace />} />
-
-<Route
-  path="/register-board"
-  element={
-    <ProtectedRoute>
-      <PageWrapper>
-        <BoardRegistrationForm />
-      </PageWrapper>
-    </ProtectedRoute>
-  }
-/>
-
-
-
-
-        <Route
-          path="/teams"
-          element={
-            <PageWrapper>
-              <TeamsPage />
-            </PageWrapper>
-          }
-        />
-
-        <Route
-          path="/teams/:teamName"
-          element={
-            <PageWrapper>
-              <TeamDetails />
-            </PageWrapper>
-          }
-        />
-
-        <Route
-          path="/about"
-          element={
-            <PageWrapper>
-              <AboutCrickEdge />
-            </PageWrapper>
-          }
-        />
-
-        <Route
-          path="/contact"
-          element={
-            <PageWrapper>
-              <ContactFeedback />
-            </PageWrapper>
-          }
-        />
-
-<Route
-  path="/points"
-  element={
-    <ProtectedRoute> {/* ✅ [Protected | Requires Login] */}
-      <PageWrapper>
-        <PointTable />
-      </PageWrapper>
-    </ProtectedRoute>
-  }
-/>
-
-        <Route path="/matches" element={<HomePage />} />
-
-        <Route
-  path="/ranking"
-  element={
-    <ProtectedRoute> {/* ✅ [Protected | Requires Login] */}
-      <PageWrapper>
-        <TeamRanking />
-      </PageWrapper>
-    </ProtectedRoute>
-  }
-/>
-
-        {/* ✅ Separate Test Ranking Route */}
-        <Route
-  path="/test-ranking"
-  element={
-    <ProtectedRoute> {/* ✅ [Protected | Requires Login] */}
-      <PageWrapper>
-        <TestRanking />
-      </PageWrapper>
-    </ProtectedRoute>
-  }
-/>
-
-<Route // added for admin only use 26 june 2026 Ranaj Parida
-  path="/add-player"
-  element={
-    <ProtectedRoute>
-      <PlayerRouteWrapper>
-        {isAdmin ? (
-          <AddPlayers isAdmin={isAdmin} />    // <-- Pass isAdmin here!
-        ) : (
-          <div style={{ padding: 24, color: "red", textAlign: "center" }}>
-            You are not authorized to access this page.
+        {/* ✅ Update banner (a11y live region added) */}
+        {updateAvailable && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              position: 'fixed', bottom: 20, left: 20, zIndex: 1000,
+              background: '#ffc107', padding: '12px 18px', borderRadius: '8px',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.15)', color: '#000'
+            }}
+          >
+            <strong>Update available</strong><br />
+            <span>Please update your application to get latest features.</span>
+            <div className="mt-2 d-flex gap-2">
+              <button className="btn btn-success btn-sm" onClick={handleAppUpdate}>Update</button>
+              <button className="btn btn-secondary btn-sm" onClick={() => setUpdateAvailable(false)}>Cancel</button>
+            </div>
           </div>
         )}
-      </PlayerRouteWrapper>
-    </ProtectedRoute>
-  }
-/>
-<Route path="/player-stats" element={
-  <ProtectedRoute>
-    <PlayerStats />
-  </ProtectedRoute>
-} />
 
-<Route  // added to restrict for Non-Admin users 27 June 2025 Ranaj Parida
-  path="/player-performance"
-  element={
-    <ProtectedRoute>
-      {isAdmin ? (
-        <PlayerPerformance />
-      ) : (
-        <div style={{ padding: 24, color: "red", textAlign: "center" }}>
-          You are not authorized to access this page.
-        </div>
-      )}
-    </ProtectedRoute>
-  }
-/>
+        <DownloadAppButton /> {/* ✅ PWA Install Button */}
 
-<Route  // Restricted for non-admin user
-  path="/squad-lineup"
-  element={
-    <ProtectedRoute>
-      <PageWrapper>
-        <SquadLineup isAdmin={isAdmin} />
-      </PageWrapper>
-    </ProtectedRoute>
-  }
-/>
+        {/* Global UI hooks */}
+        <MatchTicker />
+        <AuthModal show={showAuthModal} onClose={() => setShowAuthModal(false)} />
+        <SidebarMenu isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-<Route path="/qualification-scenario" element={<QualificationScenario />} /> 
-<Route
-  path="/add-upcoming-match"
-  element={
-    <ProtectedRoute>
-      {isAdmin ? (
-        <AddUpcomingMatch isAdmin={isAdmin} />
-      ) : (
-        <div style={{ padding: 24, color: "red", textAlign: "center" }}>
-          You are not authorized to access this page.
-        </div>
-      )}
-    </ProtectedRoute>
-  }
-/>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
 
-<Route
-  path="/upcoming-matches"
-  element={
-    <PageWrapper>
-      <UpcomingMatches />
-    </PageWrapper>
-  }
-/>
+          <Route
+            path="/add-match"
+            element={
+              <PageWrapper>
+                <MatchForm />
+              </PageWrapper>
+            }
+          />
 
+          <Route
+            path="/add-test-match"
+            element={
+              <PageWrapper>
+                <TestMatchForm />
+              </PageWrapper>
+            }
+          />
 
-<Route path="/player-rankings" element={<PlayerRankings />} />
-<Route path="/match-story" element={<MatchStory />} />  
-<Route path="/h2h-records" element={<H2HRecords />} />
-<Route path="/smart-analyzer" element={<SmartAnalyzer />} />
-<Route
-  path="/my-dashboard"
-  element={
-    currentUser ? (
-      <UserCricketStatsDashboardV2 />  // <-- NEW Dashboard
-    ) : (
-      <div>Please log in to view your dashboard.</div>
-    )
-  }
-/>
+          <Route
+            path="/test-history"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <TestMatchHistory />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
 
-<Route
-  path="/manage-favorites"
-  element={
-    currentUser ? (
-      <FavoritesManager userId={currentUser.id} />
-    ) : (
-      <div>Please log in to view favorites.</div>
-    )
-    
-  }
-  
-/>
+          <Route
+            path="/leaderboard"
+            element={
+              <PageWrapper>
+                <Leaderboard />
+              </PageWrapper>
+            }
+          />
 
-<Route path="/dashboard-v2" element={<UserDashboardV2Page />} />
+          <Route
+            path="/match-history"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <MatchHistory />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
 
-<Route path="/admin/manage" element={<ManageAdmins />} /> 
+          <Route
+            path="/graphs"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <TeamChart />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
 
-<Route path="/admin/pending" element={<PendingMatches />} />
+          <Route
+            path="/all-boards"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <AllBoardsView />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
 
-<Route path="/gallery" element={<Gallery />} /> 
-<Route path="/privacy/delete-account" element={<DeleteAccount />} />
+          <Route
+            path="/boards/analytics"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <BoardAnalyticsPro />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
 
-<Route path="/scheduler" element={<SchedulerPage />} />
+          {/* Alias so old /create-board links still work */}
+          <Route path="/create-board" element={<Navigate to="/register-board" replace />} />
 
-<Route path="/team-distributor" element={<TeamDistributor />} />
+          <Route
+            path="/register-board"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <BoardRegistrationForm />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
 
+          <Route
+            path="/teams"
+            element={
+              <PageWrapper>
+                <TeamsPage />
+              </PageWrapper>
+            }
+          />
 
+          <Route
+            path="/teams/:teamName"
+            element={
+              <PageWrapper>
+                <TeamDetails />
+              </PageWrapper>
+            }
+          />
 
-      </Routes>
-      <Footer />
-    </Router>
+          <Route
+            path="/about"
+            element={
+              <PageWrapper>
+                <AboutCrickEdge />
+              </PageWrapper>
+            }
+          />
+
+          <Route
+            path="/contact"
+            element={
+              <PageWrapper>
+                <ContactFeedback />
+              </PageWrapper>
+            }
+          />
+
+          <Route
+            path="/points"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <PointTable />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="/matches" element={<HomePage />} />
+
+          <Route
+            path="/ranking"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <TeamRanking />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ✅ Separate Test Ranking Route */}
+          <Route
+            path="/test-ranking"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <TestRanking />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route // added for admin only use 26 june 2026 Ranaj Parida
+            path="/add-player"
+            element={
+              <ProtectedRoute>
+                <PlayerRouteWrapper>
+                  {isAdmin ? (
+                    <AddPlayers isAdmin={isAdmin} />
+                  ) : (
+                    <div style={{ padding: 24, color: "red", textAlign: "center" }}>
+                      You are not authorized to access this page.
+                    </div>
+                  )}
+                </PlayerRouteWrapper>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/player-stats"
+            element={
+              <ProtectedRoute>
+                <PlayerStats />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route  // added to restrict for Non-Admin users 27 June 2025 Ranaj Parida
+            path="/player-performance"
+            element={
+              <ProtectedRoute>
+                {isAdmin ? (
+                  <PlayerPerformance />
+                ) : (
+                  <div style={{ padding: 24, color: "red", textAlign: "center" }}>
+                    You are not authorized to access this page.
+                  </div>
+                )}
+              </ProtectedRoute>
+            }
+          />
+
+          <Route  // Restricted for non-admin user
+            path="/squad-lineup"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <SquadLineup isAdmin={isAdmin} />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="/qualification-scenario" element={<QualificationScenario />} />
+
+          <Route
+            path="/add-upcoming-match"
+            element={
+              <ProtectedRoute>
+                {isAdmin ? (
+                  <AddUpcomingMatch isAdmin={isAdmin} />
+                ) : (
+                  <div style={{ padding: 24, color: "red", textAlign: "center" }}>
+                    You are not authorized to access this page.
+                  </div>
+                )}
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/upcoming-matches"
+            element={
+              <PageWrapper>
+                <UpcomingMatches />
+              </PageWrapper>
+            }
+          />
+
+          <Route path="/player-rankings" element={<PlayerRankings />} />
+          <Route path="/match-story" element={<MatchStory />} />
+          <Route path="/h2h-records" element={<H2HRecords />} />
+          <Route path="/smart-analyzer" element={<SmartAnalyzer />} />
+
+          <Route
+            path="/my-dashboard"
+            element={
+              currentUser ? (
+                <UserCricketStatsDashboardV2 />  // <-- NEW Dashboard
+              ) : (
+                <div>Please log in to view your dashboard.</div>
+              )
+            }
+          />
+
+          <Route
+            path="/manage-favorites"
+            element={
+              currentUser ? (
+                <FavoritesManager userId={currentUser.id} />
+              ) : (
+                <div>Please log in to view favorites.</div>
+              )
+            }
+          />
+
+          <Route path="/dashboard-v2" element={<UserDashboardV2Page />} />
+          <Route path="/admin/manage" element={<ManageAdmins />} />
+          <Route path="/admin/pending" element={<PendingMatches />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/privacy/delete-account" element={<DeleteAccount />} />
+
+          <Route path="/scheduler" element={<SchedulerPage />} />
+          <Route path="/team-distributor" element={<TeamDistributor />} />
+        </Routes>
+
+        <Footer />
+      </Router>
     </div>
   );
 }

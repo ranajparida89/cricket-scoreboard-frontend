@@ -63,6 +63,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.tlfx-table tbody td.team{ text-align:left; font-weight:800; letter-spacing:.2px; }
 .tlfx-row{
   background: linear-gradient(180deg, rgba(17,32,48,.65), rgba(10,23,35,.55));
   border: 1px solid rgba(255,255,255,.07);
@@ -72,15 +73,15 @@
 }
 .tlfx-row:hover{ transform: translateY(-2px); box-shadow: 0 18px 38px rgba(0,0,0,.42); }
 
+.pos{ color:#c9ffef; }
+.neg{ color:#ffc2c2; }
+
 /* medal (CSS spin) */
 .medal-3d{ display:inline-block; font-size:1.05rem; margin-right:6px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.35)); }
 .medal-3d.gold   { animation: spinY 2.2s linear infinite; }
 .medal-3d.silver { animation: spinY 2.4s linear infinite; }
 .medal-3d.bronze { animation: spinY 2.6s linear infinite; }
 @keyframes spinY { 0%{ transform: rotateY(0deg) } 100%{ transform: rotateY(360deg) } }
-
-.pos{ color:#c9ffef; }
-.neg{ color:#ffc2c2; }
 
 /* ===== special points animation ===== */
 .tlfx-points{ position: relative; height: 34px; }
@@ -157,4 +158,11 @@
   .tlfx-table tbody td:nth-child(4),
   .tlfx-table tbody td:nth-child(5),
   .tlfx-table tbody td:nth-child(6){ display:none; }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce){
+  .medal-3d.gold, .medal-3d.silver, .medal-3d.bronze{ animation: none !important; }
+  .points-bar.pulse{ animation: none !important; }
+  .skeleton td{ animation: none !important; }
 }

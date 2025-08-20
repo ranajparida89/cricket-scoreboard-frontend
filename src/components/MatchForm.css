@@ -1,4 +1,60 @@
-/* ✅ Celebration Text Animation */
+/* =============== DARK + GOLD GLOBALS =============== */
+:root{
+  --bg-900:#0b0f18; --bg-850:#0d1320; --bg-800:#0e1522; --bg-750:#121a2a;
+  --text:#e8f0ff; --muted:#9fb2d3;
+  --gold:#f7c948; --gold-ambient:rgba(247,201,72,.22);
+  --ring:0 0 0 1px rgba(247,201,72,.28), 0 16px 38px -18px rgba(247,201,72,.28);
+}
+
+/* =============== CARD + LAYOUT =============== */
+.container .card.shadow.p-4{
+  background:
+    radial-gradient(1200px 600px at 20% -10%, rgba(247,201,72,.06), transparent 40%),
+    linear-gradient(180deg, rgba(14,21,34,.85), rgba(10,16,28,.8));
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 18px;
+  box-shadow: 0 10px 38px -20px rgba(0,0,0,.8), 0 0 0 1px rgba(247,201,72,.12) inset;
+}
+
+h3.text-center{
+  color: var(--gold) !important;
+  text-shadow: 0 1px 0 rgba(0,0,0,.4);
+}
+
+/* =============== FORM CONTROLS =============== */
+.form-control, .form-select{
+  background: var(--bg-800) !important;
+  color: var(--text) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  border-radius: 12px !important;
+}
+.form-control::placeholder{ color: #9fb2d3; opacity: .75; }
+.form-control:focus, .form-select:focus{
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 2px rgba(247,201,72,.28) !important;
+}
+
+/* =============== BUTTONS =============== */
+.btn.btn-primary, .btn.btn-success{
+  background: rgba(247,201,72,.18) !important;
+  color: var(--gold) !important;
+  border: 1px solid rgba(247,201,72,.42) !important;
+  border-radius: 12px !important;
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+.btn.btn-primary:hover, .btn.btn-success:hover{
+  background: rgba(247,201,72,.24) !important;
+}
+
+/* =============== ALERTS =============== */
+.alert-success{
+  background: rgba(20,226,154,.1);
+  border-color: rgba(20,226,154,.4);
+  color: #b7ffea;
+}
+
+/* =============== CELEBRATION BANNER (your snippet) =============== */
 .celebration-banner {
     position: fixed;
     top: 20%;
@@ -13,22 +69,11 @@
     z-index: 9999;
     animation: fadeCelebration 1s ease-in-out, hideCelebration 1s ease-in-out 4s forwards;
     text-align: center;
-  }
-
-@keyframes fadeCelebration {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) scale(1.05);
-  }
 }
-
+@keyframes fadeCelebration {
+  from { opacity: 0; transform: translateX(-50%) scale(0.9); }
+  to   { opacity: 1; transform: translateX(-50%) scale(1.05); }
+}
 @keyframes hideCelebration {
-  to {
-    opacity: 0;
-    transform: translateX(-50%) scale(0.8);
-  }
+  to   { opacity: 0; transform: translateX(-50%) scale(0.8); }
 }

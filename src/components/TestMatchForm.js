@@ -1,14 +1,17 @@
 // ✅ src/components/TestMatchForm.js
-// ✅ [Ranaj Parida - 2025-04-19 | Final Enhanced Celebration: Sound + Confetti + Banner]
+// ✅ [Ranaj Parida - 2025-04-19] Celebration: Sound + Confetti + Banner
+// ✅ [2025-06-13] useAuth for user_id
+// ✅ [2025-08-21] Tournament + Edition + Date + Stage (UI-only for now)
 
 import React, { useState } from "react";
 import { createMatch, submitTestMatchResult } from "../services/api";
 import { playSound } from "../utils/playSound";
 import Confetti from "react-confetti";
 import useWindowSize from "react-use/lib/useWindowSize";
-import "./MatchForm.css"; // ✅ reuse celebration styles
-import { useAuth } from "../services/auth"; // add to fetch user_id 13th June 2025
-
+import "./MatchForm.css"; // reuse celebration styles
+import "./TestMatchForm.css"; // dark+gold theme
+import { useAuth } from "../services/auth";
+import TournamentPicker from "./TournamentPicker";
 
 const normalizeTeamName = (name) => {
   const mapping = {
@@ -46,6 +49,14 @@ const TestMatchForm = () => {
   const [celebrationText, setCelebrationText] = useState("");
   const { width, height } = useWindowSize();
 
+  // new: tournament state
+  const [tp, setTp] = useState({
+    tournamentName: "",
+    seasonYear: new Date().getFullYear(),
+    matchDate: new Date().toISOString().slice(0, 10),
+    stage: ""
+  });
+
   const [innings, setInnings] = useState({
     t1i1: { runs: "", overs: "", wickets: "", error: "" },
     t2i1: { runs: "", overs: "", wickets: "", error: "" },
@@ -60,7 +71,6 @@ const TestMatchForm = () => {
       const updated = { ...prev[key], [field]: value };
       let error = "";
 
-      const parsedOvers = parseFloat(field === "overs" ? value : updated.overs || 0);
       const total = Object.entries(prev).reduce((acc, [k, inn]) => {
         if (k === key) return acc;
         return acc + parseFloat(inn.overs || 0);
@@ -102,11 +112,10 @@ const TestMatchForm = () => {
     if (t2Runs > t1Runs) return { winner: normalizeTeamName(team2), points: 12 };
     if (t1Runs > t2Runs && t2Wickets2 === 10) return { winner: normalizeTeamName(team1), points: 12 };
     if (usedOvers >= maxOvers) return { winner: "Draw", points: 4 };
-
     return { winner: "Draw", points: 4 };
   };
 
-  const { currentUser } = useAuth(); // for user_id 13th June 2025
+  const { currentUser } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -114,6 +123,9 @@ const TestMatchForm = () => {
     const t2 = normalizeTeamName(team2);
 
     if (!matchName || !t1 || !t2) return alert("❌ Fill all required fields.");
+    if (!tp.tournamentName || !tp.seasonYear || !tp.matchDate) {
+      return alert("❌ Please select Tournament, Match Date and Edition (Year).");
+    }
     if (t1.toLowerCase() === t2.toLowerCase()) return alert("❌ Team names must be different.");
 
     const hasError = Object.values(innings).some((inn) => inn.error !== "");
@@ -121,10 +133,16 @@ const TestMatchForm = () => {
 
     try {
       setIsSubmitting(true);
-      const match = await createMatch({ match_name: matchName, match_type: "Test" });
+      const match = await createMatch({
+        match_name: matchName,
+        match_type: "Test",
+        tournament_name: tp.tournamentName || "",
+        season_year: tp.seasonYear,
+        match_date: tp.matchDate,
+        stage: tp.stage || ""
+      });
       const { winner, points } = calculateResult();
 
-      
       const payload = {
         match_id: match.match_id,
         match_type: "Test",
@@ -145,12 +163,16 @@ const TestMatchForm = () => {
         overs2_2: parseFloat(innings.t2i2.overs),
         wickets2_2: parseInt(innings.t2i2.wickets),
         total_overs_used: totalUsedOvers(),
-        user_id: currentUser.id // added to fetch user_id 13th June 2025
+        user_id: currentUser?.id,
+        tournament_name: tp.tournamentName || "",
+        season_year: tp.seasonYear,
+        match_date: tp.matchDate,
+        stage: tp.stage || ""
       };
 
       const result = await submitTestMatchResult(payload);
 
-      // ✅ Trigger celebration
+      // ✅ Celebration
       if (result.message && result.message.includes("won")) {
         const winnerTeam = result.message.split(" won")[0];
         playSound("celebration");
@@ -159,7 +181,7 @@ const TestMatchForm = () => {
         setTimeout(() => {
           setShowFireworks(false);
           setCelebrationText("");
-        }, 4000); // ✅ show for 4 sec
+        }, 4000);
       }
 
       setResultMsg(result.message);
@@ -193,6 +215,12 @@ const TestMatchForm = () => {
         <h3 className="text-center mb-4 text-success">🏏 Test Match Form</h3>
         <form onSubmit={handleSubmit}>
           <div className="mb-2"><label>Match Name:</label><input type="text" className="form-control" value={matchName} onChange={(e) => setMatchName(e.target.value)} required /></div>
+
+          {/* 🎯 Tournament + Edition */}
+          <div className="mb-3">
+            <TournamentPicker matchType="Test" value={tp} onChange={setTp} allowStage={true} />
+          </div>
+
           <div className="row mb-3">
             <div className="col">
               <label>Team 1:</label>
@@ -206,12 +234,14 @@ const TestMatchForm = () => {
           {isDuplicateTeam && (
             <div className="alert alert-danger text-center py-2">❌ Team names must be different!</div>
           )}
+
           <div className="mb-3 row">
             <div className="col"><label>🗓️ Total Days</label><input className="form-control" value="5" disabled /></div>
             <div className="col"><label>🎯 Overs/Day</label><input className="form-control" value="90" disabled /></div>
             <div className="col"><label>🧮 Total Overs</label><input className="form-control" value={maxOvers} disabled /></div>
             <div className="col"><label>⏳ Overs Remaining</label><input className="form-control" value={remainingOvers()} disabled /></div>
           </div>
+
           {renderInning(`${team1 || "Team 1"} - 1st Innings`, "t1i1")}
           {renderInning(`${team2 || "Team 2"} - 1st Innings`, "t2i1")}
           {renderInning(`${team1 || "Team 1"} - 2nd Innings`, "t1i2")}

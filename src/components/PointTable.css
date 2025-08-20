@@ -1,0 +1,141 @@
+/*****************************************************
+ * PointTable.css — dark, sleek, gold-accented
+ *****************************************************/
+
+.pt-glass{
+  background: radial-gradient(900px 380px at 8% -10%, rgba(255,206,92,.08), transparent 60%),
+              linear-gradient(180deg, rgba(14,20,33,.86), rgba(10,16,27,.76));
+  border: 1px solid rgba(255, 223, 128, .10);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 16px 44px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* ScopeBar spacing */
+.pt-controls{ margin-bottom: 10px; }
+
+/* Header */
+.pt-header{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 4px 8px 10px 8px;
+}
+.pt-title{
+  margin: 0;
+  font-weight: 800;
+  color: #ffd166;
+  text-shadow: 0 0 16px rgba(255,209,102,.16);
+}
+.pt-sub{
+  color: #b8c6e3;
+  font-size: .95rem;
+  opacity: .9;
+}
+
+/* Table */
+.pt-table-wrap{ padding: 0 6px; }
+.pt-table{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+  background: transparent;
+  margin: 0;
+}
+.pt-table thead tr{
+  background: linear-gradient(180deg, #122338, #0f1c2d);
+  box-shadow: 0 10px 24px rgba(0,0,0,.30);
+}
+.pt-table thead th{
+  font-weight: 700;
+  color: #e9f3ff;
+  border: 0 !important;
+  font-size: 14px;
+  padding: 12px 10px;
+  letter-spacing: .2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pt-table thead th:first-child{ border-top-left-radius: 12px; }
+.pt-table thead th:last-child { border-top-right-radius: 12px; }
+
+.pt-table tbody td{
+  padding: 12px 10px;
+  font-size: 15px;
+  color: #ecf6ff;
+  text-align: center;
+  border: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pt-table tbody tr{
+  background: linear-gradient(180deg, rgba(19,30,46,.72), rgba(12,22,35,.62));
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(0,0,0,.35);
+  transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+.pt-table tbody tr:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 18px 38px rgba(0,0,0,.42);
+}
+
+.pt-team{ text-align: left; font-weight: 800; letter-spacing: .2px; }
+.medal-emoji{ font-size: 1.15rem; margin-right: 4px; }
+.pos{ color: #c9ffef; }
+.neg{ color: #ffc2c2; }
+
+/* Skeleton loading rows */
+.pt-skeleton td{
+  position: relative;
+  height: 44px;
+  padding: 0 !important;
+  border: 0 !important;
+}
+.pt-skeleton td::before{
+  content: "";
+  display: block;
+  height: 100%;
+  border-radius: 12px;
+  background:
+    linear-gradient(90deg,
+      rgba(255,255,255,.06) 25%,
+      rgba(255,255,255,.12) 37%,
+      rgba(255,255,255,.06) 63%);
+  background-size: 400% 100%;
+  animation: ptShimmer 1.3s infinite linear;
+}
+@keyframes ptShimmer{
+  0%{ background-position: 100% 0; }
+  100%{ background-position: 0 0; }
+}
+
+/* Mobile/touch stability */
+@media (max-width: 900px), (pointer: coarse){
+  .pt-glass{
+    background:#0f1b28 !important;
+    border:1px solid rgba(255,255,255,.06) !important;
+    box-shadow:0 6px 16px rgba(0,0,0,.28) !important;
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+  }
+  .pt-table{
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+  }
+  .pt-table tbody tr{
+    background:#0f1e2d !important;
+    box-shadow:none !important;
+    border-bottom:1px solid rgba(255,255,255,.06) !important;
+    transform:none !important;
+  }
+  .pt-table thead th,
+  .pt-table tbody td{
+    padding:10px 8px !important;
+    font-size:14px !important;
+  }
+}

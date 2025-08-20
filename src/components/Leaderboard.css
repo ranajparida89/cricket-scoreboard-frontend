@@ -2,6 +2,9 @@
  * Leaderboards.css — desktop pretty, mobile stable
  *****************************************************/
 
+/* small spacing for the ScopeBar block above the table */
+.leaderboard-controls{ margin-bottom: 10px; }
+
 /* ===== Glassy wrapper (frosted card) ===== */
 .leaderboard-glass{
   background: radial-gradient(900px 380px at 8% -10%, rgba(0,255,170,.08), transparent 60%),

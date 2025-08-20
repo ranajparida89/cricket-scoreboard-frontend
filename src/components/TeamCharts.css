@@ -34,6 +34,13 @@
 }
 .tcpro-banner-text{ white-space:nowrap; }
 
+/* visually-hidden label */
+.sr-only{
+  position:absolute !important; width:1px !important; height:1px !important;
+  padding:0 !important; margin:-1px !important; overflow:hidden !important;
+  clip:rect(0,0,0,0) !important; white-space:nowrap !important; border:0 !important;
+}
+
 /* select */
 .tcpro-select{
   background:#0f1a2b; color:#e5f0ff; border:1px solid rgba(186,208,255,.22);

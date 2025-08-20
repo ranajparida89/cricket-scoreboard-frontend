@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { getTeams } from "../services/api";
 import { io } from "socket.io-client";
+import ScopeBar from "./ScopeBar";
+import { buildFilters } from "./tournaments";
 import "./Leaderboard.css";
 
 // Connect to backend socket
@@ -38,12 +40,16 @@ const bucketGradient = (bucket) => {
 
 const Leaderboard = () => {
   const [teams, setTeams] = useState([]);
+  const [filters, setFilters] = useState({ matchType: "All", tournamentName: "", seasonYear: "" });
+  const debounceRef = useRef(null);
 
-  const fetchTeams = async () => {
+  const fetchTeams = async (f = filters) => {
     try {
-      const data = await getTeams();
+      // Pass tournament/type/year if your backend supports it (safe no-op otherwise)
+      const query = buildFilters(f); // { match_type, tournament_name, season_year }
+      const data = await getTeams(query);
 
-      const parsed = data.map((team) => ({
+      const parsed = (data || []).map((team) => ({
         ...team,
         team_name: team.team_name,
         matches_played: parseInt(team.matches_played, 10) || 0,
@@ -60,22 +66,24 @@ const Leaderboard = () => {
       setTeams(sorted);
     } catch (error) {
       console.error("Error fetching leaderboard:", error);
+      setTeams([]);
     }
   };
 
   useEffect(() => {
     fetchTeams();
-    const deb = { current: null };
 
     socket.on("matchUpdate", () => {
-      if (deb.current) clearTimeout(deb.current);
-      deb.current = setTimeout(fetchTeams, 1200);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      // slight delay to let backend finish updates, use current filters
+      debounceRef.current = setTimeout(() => fetchTeams(), 1200);
     });
 
     return () => {
       socket.off("matchUpdate");
-      clearTimeout(deb.current);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getMedal = (index) => {
@@ -91,6 +99,17 @@ const Leaderboard = () => {
 
   return (
     <div className="leaderboard-glass">
+      {/* Tournament / Season / Type controls (safe: no backend change needed to render) */}
+      <div className="leaderboard-controls">
+        <ScopeBar
+          defaultType="All"
+          onApply={(f) => {
+            setFilters(f);
+            fetchTeams(f);
+          }}
+        />
+      </div>
+
       <div className="table-responsive leaderboard-table-wrapper">
         <table className="table table-dark text-center mb-0 leaderboard-table">
           <thead>
@@ -113,7 +132,7 @@ const Leaderboard = () => {
 
               return (
                 <tr
-                  key={team.team_name}
+                  key={`${team.team_name}-${index}`}
                   className="lb-row"
                   data-bucket={bucket}
                 >

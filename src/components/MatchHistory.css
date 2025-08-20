@@ -22,21 +22,40 @@
 .mhfx-title{ font-weight:800; letter-spacing:.3px; color:#bffcff; font-size:clamp(18px,2.2vw,24px); text-shadow:0 2px 12px rgba(0,255,170,.25); }
 .mhfx-sub{ color:#9bb2c8; font-size:13px; }
 
+/* scopebar spacing (works with ScopeBar.js) */
+.mhfx-scope{ margin: 6px 6px 6px; }
+
 /* filters */
-.mhfx-filters{ display:grid; grid-template-columns: 1fr 1fr 1fr auto; gap:10px; margin:8px 6px 18px; }
+.mhfx-filters{
+  display:grid; grid-template-columns: 1fr 1fr 1fr auto;
+  gap:10px; margin:8px 6px 18px;
+}
 .mhfx-filters select,
 .mhfx-filters input{
-  background: rgba(255,255,255,.06); color:#eaf6ff; border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color:#eaf6ff;
+  border:1px solid rgba(255,255,255,.12);
   border-radius:10px; padding:10px 12px; outline:none;
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+.mhfx-filters input::placeholder{ color:#a8c1d8; }
+.mhfx-filters select:focus,
+.mhfx-filters input:focus{
+  border-color:#14e29a;
+  box-shadow:0 0 0 3px rgba(20,226,154,.22);
+  background: rgba(255,255,255,.08);
 }
 .mhfx-filters .btns{ display:flex; gap:10px; justify-content:flex-end; }
 .mhfx-filters .btn{
   background: rgba(255,255,255,.06); color:#eaf6ff; border:1px solid rgba(255,255,255,.12);
   border-radius:10px; padding:10px 14px; cursor:pointer;
-  transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease;
+  transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease;
 }
 .mhfx-filters .btn:hover{ transform: translateY(-1px); box-shadow:0 8px 16px rgba(0,0,0,.25); }
-.mhfx-filters .btn.primary{ background: linear-gradient(180deg,#14e29a,#00c986); color:#041a16; border-color:transparent; }
+.mhfx-filters .btn:focus{ outline:none; border-color:#14e29a; box-shadow:0 0 0 3px rgba(20,226,154,.22); }
+.mhfx-filters .btn.primary{
+  background: linear-gradient(180deg,#14e29a,#00c986); color:#041a16; border-color:transparent;
+}
 
 /* table */
 .mhfx-table-wrap{ overflow-x:auto; padding:0 6px; }
@@ -48,12 +67,13 @@
   background: linear-gradient(180deg,#102437,#0d1f2f) !important;
   color:#dff2ff !important; font-weight:700; font-size:14px; letter-spacing:.2px;
   padding:12px 10px; border:1px solid rgba(255,255,255,.08) !important; border-bottom:0 !important;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .mhfx-table thead th:first-child{ border-top-left-radius:12px; border-bottom-left-radius:12px; }
 .mhfx-table thead th:last-child { border-top-right-radius:12px; border-bottom-right-radius:12px; }
 .mhfx-table thead th + th{ border-left-color: rgba(255,255,255,.06) !important; }
 
-.mhfx-table tbody td{ padding:12px 10px; font-size:15px; color:#eaf6ff; text-align:center; border:0; }
+.mhfx-table tbody td{ padding:12px 10px; font-size:15px; color:#eaf6ff; text-align:center; border:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .mhfx-table tbody td.left{text-align:left}
 .mhfx-table tbody td.right{text-align:right}
 
@@ -63,10 +83,11 @@
   border:1px solid rgba(255,255,255,.07); border-radius:12px;
   box-shadow:0 12px 28px rgba(0,0,0,.35);
   transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
+  will-change: transform, box-shadow;
 }
 .mhfx-row:hover{ transform: translateY(-2px); box-shadow:0 18px 38px rgba(0,0,0,.42); }
 
-.idx{ color:#c9ffef; }
+.idx{ color:#c9ffef; font-weight:700; }
 
 /* =========================
    Winner: centered + layered
@@ -167,6 +188,7 @@
   .mhfx-table tbody td:nth-child(5),
   .mhfx-table tbody td:nth-child(7){ display:none; }
 }
+
 /* --- Dark theme for native <select> popup + options (overrides) --- */
 .mhfx-filters select{
   background-color: rgba(14,32,48,.9) !important;
@@ -177,24 +199,17 @@
   appearance: none;
   color-scheme: dark; /* hint browsers to use dark popup */
 }
-
 .mhfx-filters select:focus{
   outline: none !important;
   border-color: #14e29a !important;
   box-shadow: 0 0 0 3px rgba(20,226,154,.25) !important;
 }
-
-/* Force dark popup items */
 .mhfx-filters select option,
 .mhfx-filters select optgroup{
   background-color: #0d1f2f !important;
   color: #eaf6ff !important;
 }
-
-.mhfx-filters select option:disabled{
-  color: #7f95aa !important;
-}
-
+.mhfx-filters select option:disabled{ color: #7f95aa !important; }
 /* If using Bootstrap's .form-select */
 .mhfx-filters .form-select{
   background-color: rgba(14,32,48,.9) !important;
@@ -204,4 +219,11 @@
 .mhfx-filters .form-select option{
   background-color: #0d1f2f !important;
   color: #eaf6ff !important;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce){
+  .trophy{ animation: none !important; }
+  .spark.s1, .spark.s2, .spark.s3{ animation: none !important; opacity: .5; }
+  .skeleton td{ animation: none !important; }
 }
