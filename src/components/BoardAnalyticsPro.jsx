@@ -3,10 +3,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LabelList,
-  AreaChart, Area, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+  AreaChart, Area, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Cell
 } from "recharts";
-import { FaCrown, FaFilter, FaPlay, FaSyncAlt, FaMedal } from "react-icons/fa";
-import "./BoardAnalyticsPro.css"; // keep the CSS you asked for
+import { FaCrown, FaFilter, FaPlay, FaSyncAlt, FaMedal, FaInfoCircle } from "react-icons/fa";
+import "./BoardAnalyticsPro.css";
 
 const API = "https://cricket-scoreboard-backend.onrender.com";
 const PALETTE = ["#22c55e","#3b82f6","#ef4444","#a855f7","#f59e0b","#14b8a6","#f43f5e","#8b5cf6","#10b981","#eab308"];
@@ -14,6 +14,29 @@ const fmts = ["ALL","ODI","T20","TEST"];
 const nf = (n)=> new Intl.NumberFormat().format(n ?? 0);
 const fmtOrZero = (b, f, k) => Number(b?.formats?.[f]?.[k] ?? 0);
 const pc = (n)=> (isFinite(n) ? Number(n.toFixed(2)) : 0);
+
+/* Tiny “i” popover */
+function Info({ title, children }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button className="info-btn" type="button" title="What is this?" onClick={()=>setOpen(true)}>
+        <FaInfoCircle />
+      </button>
+      {open && (
+        <div className="info-modal">
+          <div className="info-modal-body">
+            <div className="info-modal-title">{title}</div>
+            <div className="info-modal-content">{children}</div>
+            <div className="text-end mt-3">
+              <button className="btn btn-sm btn-primary" onClick={()=>setOpen(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
 export default function BoardAnalyticsPro() {
   const [boards, setBoards] = useState([]);
@@ -99,6 +122,24 @@ export default function BoardAnalyticsPro() {
       return { name:b.board_name, AvgRunMargin: Number(b?.formats?.[activeFmt]?.avg_run_margin||0) };
     });
   }, [summary, activeFmt]);
+
+  // Helpful strings for the info popups
+  const scoringInfo = (
+    <ul className="mb-0">
+      <li><b>ODI/T20</b> — Win: <b>10</b>, Draw: <b>5</b>, Loss: <b>2</b></li>
+      <li><b>Test</b> — Win: <b>18</b>, Draw: <b>9</b>, Loss: <b>4</b></li>
+      <li>“Board Points” = sum of points by matches for selected format(s).</li>
+    </ul>
+  );
+
+  const timelineInfo = (
+    <ul className="mb-0">
+      <li>We add each day’s points to a running total.</li>
+      <li>The chart shows the <b>current leader’s cumulative points</b> across time.</li>
+      <li><b>Switches</b> = how many times a new leader took the crown.</li>
+      <li><b>Days Held</b> = number of days a board stayed on top.</li>
+    </ul>
+  );
 
   return (
     <div className="board-analytics-container">
@@ -198,7 +239,10 @@ export default function BoardAnalyticsPro() {
             <div className="col-12 col-md-3">
               <div className="card chart-card h-100">
                 <div className="card-body">
-                  <div className="text-muted small">Boards Compared</div>
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div className="text-muted small">Boards Compared</div>
+                    <Info title="Boards Compared">How many boards are included in this analysis window.</Info>
+                  </div>
                   <div className="h4 m-0">{summary.data.length}</div>
                 </div>
               </div>
@@ -206,7 +250,10 @@ export default function BoardAnalyticsPro() {
             <div className="col-12 col-md-3">
               <div className="card chart-card h-100">
                 <div className="card-body">
-                  <div className="text-muted small">Total Matches</div>
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div className="text-muted small">Total Matches</div>
+                    <Info title="Total Matches">Sum of matches across the selected boards and date range.</Info>
+                  </div>
                   <div className="h4 m-0">{nf(summary.data.reduce((a,b)=>a+(b.totals?.matches||0),0))}</div>
                 </div>
               </div>
@@ -214,7 +261,10 @@ export default function BoardAnalyticsPro() {
             <div className="col-12 col-md-3">
               <div className="card chart-card h-100">
                 <div className="card-body">
-                  <div className="text-muted small">Total Points</div>
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div className="text-muted small">Total Points</div>
+                    <Info title="Board Points (BP)">{scoringInfo}</Info>
+                  </div>
                   <div className="h4 m-0">{nf(summary.data.reduce((a,b)=>a+(b.totals?.points||0),0))}</div>
                 </div>
               </div>
@@ -231,10 +281,14 @@ export default function BoardAnalyticsPro() {
 
           {/* Charts grid */}
           <div className="row g-3">
+            {/* Total Points */}
             <div className="col-12 col-lg-6">
               <div className="card chart-card">
                 <div className="card-body">
-                  <div className="analytics-section-title">Total Points</div>
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div className="analytics-section-title">Total Points</div>
+                    <Info title="Total Points (BP)">{scoringInfo}</Info>
+                  </div>
                   <div style={{ height: 320 }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={pointsData}>
@@ -243,8 +297,9 @@ export default function BoardAnalyticsPro() {
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar dataKey="points" name="Points">
+                        <Bar dataKey="points" name="Points" radius={[10,10,0,0]}>
                           <LabelList dataKey="points" position="top" />
+                          {pointsData.map((d,i)=> <Cell key={i} fill={d.color} />)}
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
@@ -253,10 +308,16 @@ export default function BoardAnalyticsPro() {
               </div>
             </div>
 
+            {/* W/D/L */}
             <div className="col-12 col-lg-6">
               <div className="card chart-card">
                 <div className="card-body">
-                  <div className="analytics-section-title">Wins / Draws / Losses</div>
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div className="analytics-section-title">Wins / Draws / Losses</div>
+                    <Info title="W/D/L">
+                      Counts of outcomes for the currently selected format (or ALL). Draw includes tie/no result/abandoned.
+                    </Info>
+                  </div>
                   <div style={{ height: 320 }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={outcomesData}>
@@ -265,9 +326,15 @@ export default function BoardAnalyticsPro() {
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar dataKey="Wins" fill="#22c55e" stackId="a" />
-                        <Bar dataKey="Draws" fill="#eab308" stackId="a" />
-                        <Bar dataKey="Losses" fill="#ef4444" stackId="a" />
+                        <Bar dataKey="Wins" fill="#22c55e" stackId="a" radius={[10,10,0,0]}>
+                          <LabelList dataKey="Wins" position="top" />
+                        </Bar>
+                        <Bar dataKey="Draws" fill="#eab308" stackId="a" radius={[10,10,0,0]}>
+                          <LabelList dataKey="Draws" position="top" />
+                        </Bar>
+                        <Bar dataKey="Losses" fill="#ef4444" stackId="a" radius={[10,10,0,0]}>
+                          <LabelList dataKey="Losses" position="top" />
+                        </Bar>
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -275,10 +342,16 @@ export default function BoardAnalyticsPro() {
               </div>
             </div>
 
+            {/* Win % Radar */}
             <div className="col-12 col-lg-6">
               <div className="card chart-card">
                 <div className="card-body">
-                  <div className="analytics-section-title">Win % Radar</div>
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div className="analytics-section-title">Win % Radar</div>
+                    <Info title="Win %">
+                      Percentage of wins out of matches for the active format. Higher is better.
+                    </Info>
+                  </div>
                   <div style={{ height: 320 }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="80%">
@@ -293,10 +366,16 @@ export default function BoardAnalyticsPro() {
               </div>
             </div>
 
+            {/* Avg Run Margin */}
             <div className="col-12 col-lg-6">
               <div className="card chart-card">
                 <div className="card-body">
-                  <div className="analytics-section-title">Avg Run Margin</div>
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div className="analytics-section-title">Avg Run Margin</div>
+                    <Info title="Avg Run Margin">
+                      Average of run margins (ODI/T20: |R1-R2|; Test: |(R1+R1_2)-(R2+R2_2)|). In ALL, we average the per-format averages.
+                    </Info>
+                  </div>
                   <div style={{ height: 320 }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={marginData}>
@@ -305,7 +384,9 @@ export default function BoardAnalyticsPro() {
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar dataKey="AvgRunMargin" fill="#38bdf8" />
+                        <Bar dataKey="AvgRunMargin" fill="#38bdf8" radius={[10,10,0,0]}>
+                          <LabelList dataKey="AvgRunMargin" position="top" />
+                        </Bar>
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -313,10 +394,14 @@ export default function BoardAnalyticsPro() {
               </div>
             </div>
 
+            {/* Stacked by format */}
             <div className="col-12">
               <div className="card chart-card">
                 <div className="card-body">
-                  <div className="analytics-section-title">Points by Format (stacked)</div>
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div className="analytics-section-title">Points by Format (stacked)</div>
+                    <Info title="Points by Format">{scoringInfo}</Info>
+                  </div>
                   <div style={{ height: 340 }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={perFormatStack}>
@@ -325,9 +410,15 @@ export default function BoardAnalyticsPro() {
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar dataKey="ODI" stackId="fmt" fill="#22c55e" />
-                        <Bar dataKey="T20" stackId="fmt" fill="#3b82f6" />
-                        <Bar dataKey="TEST" stackId="fmt" fill="#a855f7" />
+                        <Bar dataKey="ODI" stackId="fmt" fill="#22c55e" radius={[10,10,0,0]}>
+                          <LabelList dataKey="ODI" position="top" />
+                        </Bar>
+                        <Bar dataKey="T20" stackId="fmt" fill="#3b82f6" radius={[10,10,0,0]}>
+                          <LabelList dataKey="T20" position="top" />
+                        </Bar>
+                        <Bar dataKey="TEST" stackId="fmt" fill="#a855f7" radius={[10,10,0,0]}>
+                          <LabelList dataKey="TEST" position="top" />
+                        </Bar>
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -342,7 +433,10 @@ export default function BoardAnalyticsPro() {
               <div className="col-12 col-lg-8">
                 <div className="card chart-card">
                   <div className="card-body">
-                    <div className="analytics-section-title">Crown Timeline (daily leader)</div>
+                    <div className="d-flex align-items-center justify-content-between">
+                      <div className="analytics-section-title">Crown Timeline (daily leader)</div>
+                      <Info title="Crown Timeline">{timelineInfo}</Info>
+                    </div>
                     <div style={{ height: 340 }}>
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={timeline.timeline}>
@@ -366,10 +460,13 @@ export default function BoardAnalyticsPro() {
               <div className="col-12 col-lg-4">
                 <div className="card chart-card">
                   <div className="card-body">
-                    <div className="analytics-section-title">Timeline Stats</div>
+                    <div className="d-flex align-items-center justify-content-between">
+                      <div className="analytics-section-title">Timeline Stats</div>
+                      <Info title="Timeline Stats">{timelineInfo}</Info>
+                    </div>
                     <div className="small">
                       <div className="d-flex justify-content-between">
-                        <span>Switches</span>
+                        <span>Total Switches</span>
                         <strong>{Object.values(timeline.switches||{}).reduce((a,b)=>a+Number(b||0),0)}</strong>
                       </div>
                       <hr/>
@@ -398,7 +495,12 @@ export default function BoardAnalyticsPro() {
           {/* Table */}
           <div className="card chart-card mt-3">
             <div className="card-body">
-              <div className="analytics-section-title">Summary ({activeFmt})</div>
+              <div className="d-flex align-items-center justify-content-between">
+                <div className="analytics-section-title">Summary ({activeFmt})</div>
+                <Info title="Summary Table">
+                  Per-board totals for Matches, Wins, Draws, Losses, Win% and Points under the selected format.
+                </Info>
+              </div>
               <div className="table-responsive">
                 <table className="table table-dark table-striped table-hover align-middle">
                   <thead>
