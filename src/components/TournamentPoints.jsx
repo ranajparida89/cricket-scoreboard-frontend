@@ -1,17 +1,17 @@
-// src/components/TournamentPoints.jsx
-// Ant Design UI that computes points/NRR client-side from /api/match-history
-// Redesigned: single DualAxes line chart + gold-ring cards
+// Lightweight Tournament Points (no Ant Design)
+// - Fetches /api/match-history
+// - Client-calculates Points + NRR for ODI/T20
+// - SVG dual-line chart (Points left axis, NRR right axis)
+// - Dark filters, gold accents, glow rings for Top 3
+// - Info button opens modal
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Select, Button, Row, Col, Card, Tooltip, Empty, message } from "antd";
-import { InfoCircleTwoTone, ReloadOutlined } from "@ant-design/icons";
-import { DualAxes } from "@ant-design/plots";
 import axios from "axios";
 import { API_URL } from "../services/api";
 import "./TournamentPoints.css";
 
-// --- helpers ----------------------------------------------------
-const MTYPES = ["All", "T20", "ODI"]; // we ignore Test for NRR/points on this page
+/* ---------------- helpers ---------------- */
+const MTYPES = ["All", "T20", "ODI"]; // ignoring Test here
 
 const canon = (s) => (s || "").toString().trim().toLowerCase();
 const num = (v) => (v == null || v === "" || Number.isNaN(Number(v)) ? 0 : Number(v));
@@ -89,22 +89,41 @@ function extractFilters(rows) {
   };
 }
 
-// --- component --------------------------------------------------
+/* ---------------- SVG line helpers ---------------- */
+function polyPoints(series, w, h, pad, yMin, yMax) {
+  const n = series.length || 1;
+  const step = (w - pad * 2) / Math.max(1, n - 1);
+  const yScale = (v) => {
+    const t = (v - yMin) / Math.max(1e-6, (yMax - yMin));
+    return h - pad - t * (h - pad * 2);
+  };
+  return series.map((d, i) => {
+    const x = pad + i * step;
+    const y = yScale(d.value);
+    return `${x},${y}`;
+  }).join(" ");
+}
+
+function Axis({ x, y, x2, y2, opacity=0.5 }) {
+  return <line x1={x} y1={y} x2={x2} y2={y2} stroke="rgba(255,255,255,.12)" strokeWidth="1" opacity={opacity} />;
+}
+
+/* ---------------- component ---------------- */
 export default function TournamentPoints() {
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState([]);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const [matchType, setMatchType] = useState("T20");
-  const [tournamentName, setTournamentName] = useState();
-  const [seasonYear, setSeasonYear] = useState();
+  const [tournamentName, setTournamentName] = useState("");
+  const [seasonYear, setSeasonYear] = useState("");
 
   const { tournaments, years } = useMemo(() => extractFilters(rows), [rows]);
   const table = useMemo(
-    () => buildTable(rows, { matchType, tournamentName, seasonYear }),
+    () => buildTable(rows, { matchType, tournamentName: tournamentName || undefined, seasonYear: seasonYear || undefined }),
     [rows, matchType, tournamentName, seasonYear]
   );
 
-  // Top 10 by points for the combined chart
   const topTeams = useMemo(() => table.slice(0, 10).map((t) => t.team), [table]);
   const pointsSeries = useMemo(
     () => table.filter(t => topTeams.includes(t.team)).map(({ team, points }) => ({ team, value: points })),
@@ -122,191 +141,191 @@ export default function TournamentPoints() {
       if (matchType !== "All") params.match_type = matchType;
       const { data } = await axios.get(`${API_URL}/match-history`, { params });
       setRows(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error(e);
-      message.error("Failed to load match history.");
+    } catch {
       setRows([]);
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(() => { reload(); /* initial */ }, []); // eslint-disable-line
+  useEffect(() => { reload(); }, []); // initial
 
-  const infoTip = (
-    <Tooltip
-      color="#151b28"
-      title={
-        <div style={{ maxWidth: 360 }}>
-          Points & NRR are computed on the client from <code>/api/match-history</code>.<br />
-          Use the filters to narrow by match type, tournament and year.
-        </div>
-      }
-    >
-      <InfoCircleTwoTone twoToneColor="#f5d26b" className="tp-info" />
-    </Tooltip>
-  );
+  // SVG chart sizing + scales
+  const W = 980, H = 320, PAD = 40;
+  const ptsMax = Math.max(2, ...pointsSeries.map(d => d.value));
+  const yLMin = 0, yLMax = Math.ceil(ptsMax * 1.15);
+  const nrrMin = Math.min(0, ...nrrSeries.map(d => d.value));
+  const nrrMax = Math.max(1, ...nrrSeries.map(d => d.value));
+  const nrrRange = Math.max(1, nrrMax - nrrMin);
 
-  const dualConfig = {
-    data: [pointsSeries, nrrSeries],
-    xField: "team",
-    yField: ["value", "value"],
-    geometryOptions: [
-      {
-        geometry: "line",
-        smooth: true,
-        color: "#f5d26b", // gold for Points
-        lineStyle: { lineWidth: 3 },
-        point: { size: 4, shape: "circle", style: { stroke: "#1b2230", lineWidth: 2, fill: "#f5d26b" } },
-      },
-      {
-        geometry: "line",
-        smooth: true,
-        color: "#58e6d9", // teal for NRR
-        lineStyle: { lineWidth: 3, opacity: 0.9 },
-        point: { size: 4, shape: "circle", style: { stroke: "#1b2230", lineWidth: 2, fill: "#58e6d9" } },
-      },
-    ],
-    theme: "classicDark",
-    tooltip: { shared: true, showMarkers: true },
-    legend: {
-      position: "top",
-      marker: { symbol: "circle" },
-      itemName: { style: { fill: "#e6eefc", fontWeight: 600 } },
-    },
-    yAxis: {
-      value: {
-        label: { style: { fill: "#bcd0ff" } },
-        grid: { line: { style: { stroke: "rgba(255,255,255,.06)" } } },
-      },
-    },
-    xAxis: {
-      label: { autoHide: true, style: { fill: "#bcd0ff" } },
-      line: { style: { stroke: "rgba(255,255,255,.12)" } },
-      tickLine: null,
-    },
-    padding: [24, 16, 24, 16],
-    height: 340,
+  const yRight = (v) => {
+    const t = (v - nrrMin) / nrrRange;
+    return H - PAD - t * (H - PAD * 2);
   };
 
   return (
-    <div className="tp-ant">
-      {/* Header */}
+    <div className="tp-simple">
       <div className="tp-head">
         <h2 className="tp-title">
           <span className="medal" role="img" aria-label="trophy">🏆</span>
           Tournament Points
-          {infoTip}
+          <button className="info-btn" onClick={() => setInfoOpen(true)}>i</button>
         </h2>
 
-        {/* Filters */}
-        <Row gutter={8} className="tp-filters">
-          <Col>
-            <div className="tp-filter">
-              <small>Match Type</small>
-              <Select
-                value={matchType}
-                onChange={setMatchType}
-                options={MTYPES.map((m) => ({ value: m, label: m }))}
-                dropdownClassName="tp-dropdown"
-                style={{ minWidth: 140 }}
-              />
-            </div>
-          </Col>
-
-          <Col>
-            <div className="tp-filter">
-              <small>Tournament</small>
-              <Select
-                allowClear
-                placeholder="All tournaments"
-                value={tournamentName}
-                onChange={setTournamentName}
-                options={tournaments.map((t) => ({ value: t, label: t }))}
-                showSearch
-                optionFilterProp="label"
-                dropdownClassName="tp-dropdown"
-                style={{ minWidth: 220 }}
-              />
-            </div>
-          </Col>
-
-          <Col>
-            <div className="tp-filter">
-              <small>Season Year</small>
-              <Select
-                allowClear
-                placeholder="All years"
-                value={seasonYear}
-                onChange={setSeasonYear}
-                options={years.map((y) => ({ value: y, label: String(y) }))}
-                showSearch
-                optionFilterProp="label"
-                dropdownClassName="tp-dropdown"
-                style={{ minWidth: 140 }}
-              />
-            </div>
-          </Col>
-
-          <Col>
-            <div className="tp-filter">
-              <small>&nbsp;</small>
-              <Button className="btn-gold" icon={<ReloadOutlined />} loading={loading} onClick={reload}>
-                Reload
-              </Button>
-            </div>
-          </Col>
-        </Row>
+        <div className="filters">
+          <label>
+            <span>Match Type</span>
+            <select value={matchType} onChange={(e) => setMatchType(e.target.value)} className="sel dark">
+              {MTYPES.map((m) => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>Tournament</span>
+            <select value={tournamentName} onChange={(e) => setTournamentName(e.target.value)} className="sel dark">
+              <option value="">All tournaments</option>
+              {tournaments.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>Season Year</span>
+            <select value={seasonYear} onChange={(e) => setSeasonYear(e.target.value)} className="sel dark">
+              <option value="">All years</option>
+              {years.map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </label>
+          <button className="btn-gold" onClick={reload} disabled={loading}>
+            {loading ? "Loading…" : "Reload"}
+          </button>
+        </div>
       </div>
 
-      {/* Combined Line Chart */}
-      <Card className="tp-card tp-chart" title="Points & NRR (Top 10)" bordered>
-        {pointsSeries.length ? (
-          <DualAxes {...dualConfig} />
-        ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No data" />
-        )}
-      </Card>
+      {/* Chart */}
+      <div className="card tp-chart">
+        <div className="card-head">Points & NRR (Top 10)</div>
+        <div className="chart-wrap">
+          {pointsSeries.length ? (
+            <svg viewBox={`0 0 ${W} ${H}`} className="linechart">
+              {/* Axes */}
+              <Axis x={PAD} y={H-PAD} x2={W-PAD} y2={H-PAD} />
+              <Axis x={PAD} y={PAD}   x2={PAD}   y2={H-PAD} />
+              <Axis x={W-PAD} y={PAD} x2={W-PAD} y2={H-PAD} opacity={0.25} />
 
-      {/* Team card grid */}
-      <Row gutter={[16, 16]} className="tp-row">
+              {/* Left ticks (Points) */}
+              {[0, yLMax].map((v, i) => (
+                <g key={i}>
+                  <text x={PAD-10} y={H-PAD - (H-PAD* (v / yLMax))} className="tick left" dy="4">{v}</text>
+                </g>
+              ))}
+
+              {/* Right ticks (NRR) */}
+              {[nrrMin, nrrMax].map((v, i) => (
+                <g key={i}>
+                  <text x={W-PAD+10} y={yRight(v)} className="tick right" dy="4">{v}</text>
+                </g>
+              ))}
+
+              {/* Lines */}
+              <polyline
+                className="line gold"
+                points={polyPoints(pointsSeries, W, H, PAD, yLMin, yLMax)}
+              />
+              <polyline
+                className="line teal"
+                points={polyPoints(nrrSeries, W, H, PAD, nrrMin, nrrMax)}
+              />
+
+              {/* Points */}
+              {pointsSeries.map((d, i) => {
+                const n = pointsSeries.length || 1;
+                const step = (W - PAD * 2) / Math.max(1, n - 1);
+                const x = PAD + i * step;
+                const yL = H - PAD - (d.value - yLMin) / Math.max(1e-6, yLMax - yLMin) * (H - PAD * 2);
+                const yR = yRight(nrrSeries[i]?.value ?? 0);
+                return (
+                  <g key={d.team}>
+                    <circle cx={x} cy={yL} r="4" className="dot gold" />
+                    <circle cx={x} cy={yR} r="4" className="dot teal" />
+                    <text className="xlabel" x={x} y={H - PAD + 16} dy="10" transform={`rotate(0, ${x}, ${H - PAD + 16})`}>
+                      {d.team}
+                    </text>
+                  </g>
+                );
+              })}
+
+              {/* Legend */}
+              <g className="legend">
+                <rect x={W-220} y={20} width="200" height="28" rx="8" className="legend-bg"/>
+                <circle cx={W-200} cy={34} r="5" className="dot gold"/><text x={W-188} y={38} className="legend-txt">Points</text>
+                <circle cx={W-120} cy={34} r="5" className="dot teal"/><text x={W-108} y={38} className="legend-txt">NRR</text>
+              </g>
+            </svg>
+          ) : (
+            <div className="empty">No data</div>
+          )}
+        </div>
+      </div>
+
+      {/* Cards grid */}
+      <div className="cards-grid">
         {table.length === 0 ? (
-          <Col span={24}><Empty description="No matches for this selection" /></Col>
+          <div className="empty">No matches for this selection</div>
         ) : (
           table.map((t, idx) => {
-            const podium =
-              idx === 0 ? "gold-ring-1" : idx === 1 ? "gold-ring-2" : idx === 2 ? "gold-ring-3" : "";
+            const ring =
+              idx === 0 ? "ring-1" : idx === 1 ? "ring-2" : idx === 2 ? "ring-3" : "";
             return (
-              <Col key={t.team} xs={24} md={12} lg={8} xl={6}>
-                <Card
-                  className={`tp-card team-card ${podium}`}
-                  bordered
-                  title={
-                    <div>
-                      <span className="rank-badge">#{idx + 1}</span>
-                      <span className={`team-name ${idx < 3 ? "top3" : ""}`}>{t.team}</span>
-                    </div>
-                  }
-                >
-                  <div className="stats-grid">
-                    <div><small>Matches</small><div className="num">{t.matches}</div></div>
-                    <div><small>Wins</small><div className="num good">{t.wins}</div></div>
-                    <div><small>Losses</small><div className="num bad">{t.losses}</div></div>
-                    <div><small>Draws</small><div className="num">{t.draws}</div></div>
-                    <div><small>Points</small><div className={`num ${idx < 3 ? "gold" : ""}`}>{t.points}</div></div>
-                    <div><small>NRR</small><div className="num">{t.nrr.toFixed(2)}</div></div>
+              <div key={t.team} className={`card team ${ring}`}>
+                <div className="card-head">
+                  <span className="rank">#{idx + 1}</span>
+                  <span className={`name ${idx < 3 ? "goldtxt" : ""}`}>{t.team}</span>
+                </div>
+                <div className="stats">
+                  <div><span>Matches</span><b>{t.matches}</b></div>
+                  <div><span>Wins</span><b className="good">{t.wins}</b></div>
+                  <div><span>Losses</span><b className="bad">{t.losses}</b></div>
+                  <div><span>Draws</span><b>{t.draws}</b></div>
+                  <div className="points-pill-wrap">
+                    <span>Points</span>
+                    <div className="points-pill">{t.points}</div>
                   </div>
-                  <div className="meta-line">
-                    <span><small>Tournament:</small> <b>{t.tournament_name ?? "—"}</b></span>
-                    <span className="sep">|</span>
-                    <span><small>Year:</small> <b>{t.season_year ?? "—"}</b></span>
-                  </div>
-                </Card>
-              </Col>
+                  <div><span>NRR</span><b>{t.nrr.toFixed(2)}</b></div>
+                </div>
+                <div className="meta">
+                  <span>🏷️ {t.tournament_name ?? "—"}</span>
+                  <span className="sep">|</span>
+                  <span>📅 {t.season_year ?? "—"}</span>
+                </div>
+              </div>
             );
           })
         )}
-      </Row>
+      </div>
+
+      {/* Info modal */}
+      {infoOpen && (
+        <div className="modal" onClick={() => setInfoOpen(false)}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <h3>How this page works</h3>
+              <button className="modal-close" onClick={() => setInfoOpen(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p>
+                We compute <b>Points</b> and <b>NRR</b> on the client using data from
+                <code> /api/match-history</code>. Only ODI/T20 matches are included here.
+              </p>
+              <ul>
+                <li>Win = +2 points, Draw = +1 point.</li>
+                <li>NRR = (Runs&nbsp;For / Overs&nbsp;Faced) − (Runs&nbsp;Against / Overs&nbsp;Bowled).</li>
+                <li>Use the filters to narrow by match type, tournament, and year.</li>
+              </ul>
+            </div>
+            <div className="modal-foot">
+              <button className="btn-gold" onClick={() => setInfoOpen(false)}>Got it</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
