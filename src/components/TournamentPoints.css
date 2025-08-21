@@ -1,0 +1,92 @@
+/* ✅ Ant Design dark + gold accent tweaks */
+
+.tp-ant {
+  background: #0f1724;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 12px 36px rgba(0,0,0,.35);
+}
+
+.tp-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.tp-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+.tp-title .medal { filter: drop-shadow(0 3px 12px rgba(245,210,107,.4)); }
+.tp-info { margin-left: 6px; }
+
+.tp-filters { margin-left: auto; }
+.tp-filter { display: flex; flex-direction: column; gap: 6px; }
+
+.tp-row { margin-top: 10px; }
+
+.tp-card {
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+  border-radius: 14px !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+}
+
+/* team cards */
+.team-card .ant-card-head {
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.rank-badge {
+  background: linear-gradient(180deg,#2b3447,#1a2436);
+  border: 1px solid rgba(255,255,255,.14);
+  color: #dfe7ff;
+  border-radius: 10px;
+  font-weight: 800;
+  margin-right: 4px;
+}
+.team-name { font-weight: 800; letter-spacing: .2px; }
+.top3 { font-weight: 700; }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 14px;
+}
+.stats-grid .num {
+  font-weight: 800;
+  font-size: 20px;
+  line-height: 1.1;
+  color: #e8eefc;
+}
+.stats-grid .num.good { color: #7de39a; }
+.stats-grid .num.bad { color: #ff6b7a; }
+.stats-grid .num.gold {
+  color: #f5d26b;
+  text-shadow: 0 0 12px rgba(245,210,107,.35);
+}
+
+/* podium glow */
+.podium-1 {
+  box-shadow: 0 0 18px rgba(245,210,107,.45), 0 0 42px rgba(245,210,107,.25);
+  border-color: rgba(245,210,107,.55) !important;
+}
+.podium-2 { box-shadow: 0 0 16px rgba(210,210,210,.25); }
+.podium-3 { box-shadow: 0 0 16px rgba(255,170,120,.28); }
+
+/* dropdown panel tweak */
+.tp-dropdown .ant-select-item-option {
+  font-weight: 600;
+}
+
+/* responsive */
+@media (max-width: 992px) {
+  .stats-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 576px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}

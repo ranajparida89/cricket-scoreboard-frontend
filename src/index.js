@@ -7,6 +7,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { AuthProvider } from './services/auth'; // 🆕 Add this import
 import * as serviceWorkerRegistration from './serviceWorkerRegistration'; // ✅ Moved to top
+import 'antd/dist/reset.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
