@@ -1,93 +1,34 @@
 // src/components/TournamentPoints.jsx
-// ✅ Filtered, server-driven leaderboard
-// - Catalog:   GET /api/tournaments?match_type=All|T20|ODI
-// - Results:   GET /api/tournaments/leaderboard?match_type=...&tournament_name?&season_year?
-//   (Server does ALL calculations using your approved SQL)
-
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { API_URL } from "../services/api";
 import "./TournamentPoints.css";
 
-const MTYPES = ["All", "T20", "ODI"];
 const safeNum = (v, def = 0) => (Number.isFinite(Number(v)) ? Number(v) : def);
 
 export default function TournamentPoints() {
   const [loading, setLoading] = useState(false);
+  const [rows, setRows] = useState([]);
   const [infoOpen, setInfoOpen] = useState(false);
 
-  // Filters
-  const [matchType, setMatchType] = useState("All");
-  const [tournamentName, setTournamentName] = useState("");
-  const [seasonYear, setSeasonYear] = useState("");
-
-  // Data
-  const [catalog, setCatalog] = useState([]); // [{ name, editions:[{season_year, match_type, matches}] }]
-  const [rows, setRows] = useState([]);       // leaderboard rows from server
-
-  // ---------- Catalog helpers (for filter dropdowns) ----------
-  const tournaments = useMemo(
-    () => catalog.map((c) => c.name).sort((a, b) => a.localeCompare(b)),
-    [catalog]
-  );
-  const years = useMemo(() => {
-    const s = new Set();
-    catalog.forEach((c) =>
-      c.editions.forEach((e) => s.add(Number(e.season_year)))
-    );
-    return Array.from(s).sort((a, b) => a - b);
-  }, [catalog]);
-
-  // ---------- API calls ----------
-  async function loadCatalog() {
-    // Only metadata, no math in UI
-    try {
-      const { data } = await axios.get(`${API_URL}/tournaments`, {
-        params: { match_type: matchType },
-      });
-      setCatalog(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error("Failed to load /api/tournaments:", e);
-      setCatalog([]);
-    }
-  }
-
+  // Fetch exactly from /api/teams (server does ALL math)
   async function reload() {
-    // Results with server-side calculation
     try {
       setLoading(true);
-      const params = { match_type: matchType };
-      if (tournamentName) params.tournament_name = tournamentName;
-      if (seasonYear) params.season_year = seasonYear;
-
-      const { data } = await axios.get(
-        `${API_URL}/tournaments/leaderboard`,
-        { params }
-      );
+      const { data } = await axios.get(`${API_URL}/teams`);
       setRows(Array.isArray(data) ? data : []);
     } catch (e) {
-      console.error("Failed to load /api/tournaments/leaderboard:", e);
+      console.error("Failed to load /api/teams:", e);
       setRows([]);
     } finally {
       setLoading(false);
     }
   }
-
-  // Initial + on filter changes
-  useEffect(() => {
-    // When match type changes, refresh catalog and clear dependent filters
-    (async () => {
-      await loadCatalog();
-      setTournamentName("");
-      setSeasonYear("");
-    })();
-  }, [matchType]);
-
   useEffect(() => {
     reload();
-  }, [matchType, tournamentName, seasonYear]);
+  }, []);
 
-  // ---------- Chart series (Top 10) ----------
+  // Top-10 (already sorted by the backend)
   const table = useMemo(() => rows, [rows]);
   const pointsSeries = useMemo(
     () =>
@@ -106,14 +47,21 @@ export default function TournamentPoints() {
     [table]
   );
 
-  // ---------- Chart layout ----------
-  const W = 980, H = 360, PAD = 44;
+  // Chart layout
+  const W = 980,
+    H = 360,
+    PAD = 44;
   const yLMin = 0;
-  const yLMax = Math.ceil(Math.max(2, ...pointsSeries.map((d) => d.value)) * 1.15);
+  const yLMax = Math.ceil(
+    Math.max(2, ...pointsSeries.map((d) => d.value)) * 1.15
+  );
+
   const nrrMin = Math.min(0, ...nrrSeries.map((d) => d.value));
   const nrrMax = Math.max(1, ...nrrSeries.map((d) => d.value));
   const nrrRange = Math.max(1, nrrMax - nrrMin);
-  const yRight = (v) => H - PAD - ((v - nrrMin) / nrrRange) * (H - PAD * 2);
+
+  const yRight = (v) =>
+    H - PAD - ((v - nrrMin) / nrrRange) * (H - PAD * 2);
 
   const n = pointsSeries.length || 1;
   const step = (W - PAD * 2) / Math.max(1, n - 1);
@@ -126,7 +74,9 @@ export default function TournamentPoints() {
       const t = (v - yMin) / Math.max(1e-6, yMax - yMin);
       return h - pad - t * (h - pad * 2);
     };
-    return series.map((d, i) => `${pad + i * step},${yScale(d.value)}`).join(" ");
+    return series
+      .map((d, i) => `${pad + i * step},${yScale(d.value)}`)
+      .join(" ");
   };
 
   const Axis = ({ x, y, x2, y2, opacity = 0.5 }) => (
@@ -145,58 +95,17 @@ export default function TournamentPoints() {
     <div className="tp-simple">
       <div className="tp-head">
         <h2 className="tp-title">
-          <span className="medal" role="img" aria-label="trophy">🏆</span>
+          <span className="medal" role="img" aria-label="trophy">
+            🏆
+          </span>
           Tournament Points
-          <button className="info-btn" onClick={() => setInfoOpen(true)}>i</button>
-        </h2>
-
-        {/* 🔽 Filters (no UI math, only query params) */}
-        <div className="filters">
-          <label>
-            <span>Match Type</span>
-            <select
-              value={matchType}
-              onChange={(e) => setMatchType(e.target.value)}
-              className="sel dark"
-            >
-              {MTYPES.map((m) => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            <span>Tournament</span>
-            <select
-              value={tournamentName}
-              onChange={(e) => setTournamentName(e.target.value)}
-              className="sel dark"
-            >
-              <option value="">All tournaments</option>
-              {tournaments.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            <span>Season Year</span>
-            <select
-              value={seasonYear}
-              onChange={(e) => setSeasonYear(e.target.value)}
-              className="sel dark"
-            >
-              <option value="">All years</option>
-              {years.map((y) => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
-          </label>
-
-          <button className="btn-gold" onClick={reload} disabled={loading}>
-            {loading ? "Loading…" : "Reload"}
+          <button className="info-btn" onClick={() => setInfoOpen(true)}>
+            i
           </button>
-        </div>
+        </h2>
+        <button className="btn-gold" onClick={reload} disabled={loading}>
+          {loading ? "Loading…" : "Reload"}
+        </button>
       </div>
 
       {/* Chart */}
@@ -207,14 +116,31 @@ export default function TournamentPoints() {
             <svg viewBox={`0 0 ${W} ${H}`} className="linechart">
               <Axis x={PAD} y={H - PAD} x2={W - PAD} y2={H - PAD} />
               <Axis x={PAD} y={PAD} x2={PAD} y2={H - PAD} />
-              <Axis x={W - PAD} y={PAD} x2={W - PAD} y2={H - PAD} opacity={0.25} />
+              <Axis
+                x={W - PAD}
+                y={PAD}
+                x2={W - PAD}
+                y2={H - PAD}
+                opacity={0.25}
+              />
 
               {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
                 const v = Math.round(yLMax * t);
                 const y =
-                  H - PAD -
-                  ((v - yLMin) / Math.max(1e-6, yLMax - yLMin)) * (H - PAD * 2);
-                return <line key={`h${i}`} x1={PAD} y1={y} x2={W - PAD} y2={y} className="grid" />;
+                  H -
+                  PAD -
+                  ((v - yLMin) / Math.max(1e-6, yLMax - yLMin)) *
+                    (H - PAD * 2);
+                return (
+                  <line
+                    key={`h${i}`}
+                    x1={PAD}
+                    y1={y}
+                    x2={W - PAD}
+                    y2={y}
+                    className="grid"
+                  />
+                );
               })}
               {pointsSeries.map((_, i) => (
                 <line
@@ -227,16 +153,28 @@ export default function TournamentPoints() {
                 />
               ))}
 
-              <text x={PAD - 28} y={PAD - 10} className="axis-name">Points</text>
-              <text x={W - PAD + 6} y={PAD - 10} className="axis-name">NRR</text>
+              <text x={PAD - 28} y={PAD - 10} className="axis-name">
+                Points
+              </text>
+              <text x={W - PAD + 6} y={PAD - 10} className="axis-name">
+                NRR
+              </text>
 
               {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
                 const v = Math.round(yLMax * t);
                 const y =
-                  H - PAD -
-                  ((v - yLMin) / Math.max(1e-6, yLMax - yLMin)) * (H - PAD * 2);
+                  H -
+                  PAD -
+                  ((v - yLMin) / Math.max(1e-6, yLMax - yLMin)) *
+                    (H - PAD * 2);
                 return (
-                  <text key={`lt${i}`} x={PAD - 10} y={y} className="tick left" dy="4">
+                  <text
+                    key={`lt${i}`}
+                    x={PAD - 10}
+                    y={y}
+                    className="tick left"
+                    dy="4"
+                  >
                     {v}
                   </text>
                 );
@@ -244,7 +182,13 @@ export default function TournamentPoints() {
               {[0, 0.5, 1].map((t, i) => {
                 const v = +(nrrMin + t * (nrrMax - nrrMin)).toFixed(2);
                 return (
-                  <text key={`rt${i}`} x={W - PAD + 10} y={yRight(v)} className="tick right" dy="4">
+                  <text
+                    key={`rt${i}`}
+                    x={W - PAD + 10}
+                    y={yRight(v)}
+                    className="tick right"
+                    dy="4"
+                  >
                     {v}
                   </text>
                 );
@@ -262,8 +206,10 @@ export default function TournamentPoints() {
               {pointsSeries.map((d, i) => {
                 const x = PAD + i * step;
                 const yL =
-                  H - PAD -
-                  ((d.value - yLMin) / Math.max(1e-6, yLMax - yLMin)) * (H - PAD * 2);
+                  H -
+                  PAD -
+                  ((d.value - yLMin) / Math.max(1e-6, yLMax - yLMin)) *
+                    (H - PAD * 2);
                 const rVal = nrrSeries[i]?.value ?? 0;
                 const yR = yRight(rVal);
                 return (
@@ -273,7 +219,11 @@ export default function TournamentPoints() {
                     <text className="val goldv" x={x} y={yL - 8}>
                       {d.value}
                     </text>
-                    <text className="val tealv" x={x} y={yR + (rVal >= 0 ? -8 : 16)}>
+                    <text
+                      className="val tealv"
+                      x={x}
+                      y={yR + (rVal >= 0 ? -8 : 16)}
+                    >
                       {rVal.toFixed(2)}
                     </text>
                     <text
@@ -282,7 +232,9 @@ export default function TournamentPoints() {
                       y={H - PAD + 16}
                       dy="10"
                       transform={
-                        rotateLabels ? `rotate(-28 ${x} ${H - PAD + 16})` : undefined
+                        rotateLabels
+                          ? `rotate(-28 ${x} ${H - PAD + 16})`
+                          : undefined
                       }
                     >
                       {d.team}
@@ -291,13 +243,24 @@ export default function TournamentPoints() {
                 );
               })}
 
-              {/* Legend */}
+              {/* Legend placed leftwards to avoid right-axis overlap */}
               <g className="legend">
-                <rect x={W - 280} y={20} width="240" height="28" rx="8" className="legend-bg" />
+                <rect
+                  x={W - 280}
+                  y={20}
+                  width="240"
+                  height="28"
+                  rx="8"
+                  className="legend-bg"
+                />
                 <circle cx={W - 260} cy={34} r="5" className="dot gold" />
-                <text x={W - 248} y={38} className="legend-txt">Points</text>
+                <text x={W - 248} y={38} className="legend-txt">
+                  Points
+                </text>
                 <circle cx={W - 180} cy={34} r="5" className="dot teal" />
-                <text x={W - 168} y={38} className="legend-txt">NRR</text>
+                <text x={W - 168} y={38} className="legend-txt">
+                  NRR
+                </text>
               </g>
             </svg>
           ) : (
@@ -306,7 +269,7 @@ export default function TournamentPoints() {
         </div>
       </div>
 
-      {/* Standings table */}
+      {/* Standings */}
       <div className="card tp-table-card">
         <div className="card-head">Standings</div>
         <div className="table-wrap">
@@ -328,14 +291,23 @@ export default function TournamentPoints() {
             <tbody>
               {table.length === 0 ? (
                 <tr>
-                  <td colSpan="10" className="empty-row">No data</td>
+                  <td colSpan="10" className="empty-row">
+                    No data
+                  </td>
                 </tr>
               ) : (
                 table.map((t, idx) => (
-                  <tr key={t.team_name} className={`lb-row ${idx < 3 ? `top-${idx + 1}` : ""}`}>
-                    <td><span className="rank-badge">#{idx + 1}</span></td>
-                    <td className={`tname ${idx < 3 ? "goldtxt" : ""}`}>{t.team_name}</td>
-                    <td>{safeNum(t.matches)}</td>
+                  <tr
+                    key={t.team_name}
+                    className={`lb-row ${idx < 3 ? `top-${idx + 1}` : ""}`}
+                  >
+                    <td>
+                      <span className="rank-badge">#{idx + 1}</span>
+                    </td>
+                    <td className={`tname ${idx < 3 ? "goldtxt" : ""}`}>
+                      {t.team_name}
+                    </td>
+                    <td>{safeNum(t.matches_played)}</td>
                     <td className="good">{safeNum(t.wins)}</td>
                     <td className="bad">{safeNum(t.losses)}</td>
                     <td>{safeNum(t.draws)}</td>
@@ -347,8 +319,8 @@ export default function TournamentPoints() {
                     <td className={safeNum(t.nrr) >= 0 ? "good" : "bad"}>
                       {safeNum(t.nrr).toFixed(2)}
                     </td>
-                    <td className="muted">{t.tournament_name || "—"}</td>
-                    <td className="muted">{t.season_year || "—"}</td>
+                    <td className="muted">—</td>
+                    <td className="muted">—</td>
                   </tr>
                 ))
               )}
@@ -363,20 +335,20 @@ export default function TournamentPoints() {
           <div className="modal-box" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <h3>How this page works</h3>
-              <button className="modal-close" onClick={() => setInfoOpen(false)}>✕</button>
+              <button className="modal-close" onClick={() => setInfoOpen(false)}>
+                ✕
+              </button>
             </div>
             <div className="modal-body">
               <p>
-                Data is calculated on the server from <code>match_history</code>.
-                Filters above only change the API query—no client-side math here.
+                Numbers come directly from <code>/api/teams</code> (DB
+                aggregation). Win = 2, Draw = 1. NRR is (Runs/Over) differential.
               </p>
-              <ul>
-                <li>Win = +2, Draw = +1</li>
-                <li>NRR = (Runs&nbsp;For / Overs&nbsp;Faced) − (Runs&nbsp;Against / Overs&nbsp;Bowled)</li>
-              </ul>
             </div>
             <div className="modal-foot">
-              <button className="btn-gold" onClick={() => setInfoOpen(false)}>Got it</button>
+              <button className="btn-gold" onClick={() => setInfoOpen(false)}>
+                Got it
+              </button>
             </div>
           </div>
         </div>
