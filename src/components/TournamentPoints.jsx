@@ -1,336 +1,293 @@
-// ✅ src/components/TournamentPoints.jsx (Ant Design version)
-// Dark Pro look with gold accents, info chip, dropdowns sourced from data,
-// card grid (top-3 soft glow), and charts via @ant-design/plots.
+// src/components/TournamentPoints.jsx
+// Ant Design UI that computes points/NRR client-side from /api/match-history
+// Matches your CSS classes (tp-ant, tp-head, tp-card, team-card, podium-*).
 
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  Card,
-  Row,
-  Col,
-  Select,
-  Tooltip,
-  Typography,
-  Button,
-  Space,
-  Tag,
-  ConfigProvider,
-  theme as antdTheme,
-  Empty,
-} from "antd";
+import { Select, Button, Row, Col, Card, Tooltip, Empty, message } from "antd";
 import { InfoCircleTwoTone, ReloadOutlined } from "@ant-design/icons";
-import { Column, Line } from "@ant-design/plots";
+import { Column } from "@ant-design/plots";
+import axios from "axios";
+import { API_URL } from "../services/api";
 import "./TournamentPoints.css";
 
-const { Title, Text } = Typography;
-const API = "/api/match-history";
+// --- helpers ----------------------------------------------------
+const MTYPES = ["All", "T20", "ODI"]; // we ignore Test for NRR/points on this page
 
-/* ---------------- helpers ---------------- */
-const canon = (s = "") =>
-  s
-    .toString()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[’']/g, "'")
-    .replace(/[–—]/g, "-")
-    .trim()
-    .toLowerCase();
+const canon = (s) => (s || "").toString().trim().toLowerCase();
+const num = (v) => (v == null || v === "" || Number.isNaN(Number(v)) ? 0 : Number(v));
 
-const titleize = (s = "") =>
-  s.replace(/\s+/g, " ").trim().replace(/\w\S*/g, (w) => w[0].toUpperCase() + w.slice(1));
-
-const fmt = (n, d = 0) => (Number.isFinite(n) ? Number(n).toFixed(d) : "—");
-
-const isDraw = (winner = "") => {
+const isDraw = (winner) => {
   const w = canon(winner);
-  return w === "draw" || w === "match draw";
+  return w === "draw" || w === "match draw" || w === "match drawn";
 };
 
-const isWinFor = (winner = "", team = "") => {
+const winnerIsTeam = (winner, team) => {
   const w = canon(winner);
   const t = canon(team);
-  return w === t || w === `${t} won the match!`;
+  return w === t || w.startsWith(t + " ") || w.includes(`${t} won`);
 };
 
-/* ---------------- component ---------------- */
+function buildTable(rows, { matchType, tournamentName, seasonYear }) {
+  const map = new Map();
+
+  const filtered = rows.filter((r) => {
+    const mt = (r.match_type || "").toString();
+    if (matchType !== "All" && mt !== matchType) return false;
+    if (tournamentName && canon(r.tournament_name) !== canon(tournamentName)) return false;
+    if (seasonYear && Number(r.season_year) !== Number(seasonYear)) return false;
+    return mt === "T20" || mt === "ODI";
+  });
+
+  for (const r of filtered) {
+    const t1 = r.team1, t2 = r.team2, w = r.winner;
+
+    let t1Win = false, t2Win = false, draw = false;
+    if (isDraw(w)) draw = true;
+    else if (winnerIsTeam(w, t1)) t1Win = true;
+    else if (winnerIsTeam(w, t2)) t2Win = true;
+
+    const rf1 = num(r.runs1), rf2 = num(r.runs2);
+    const o1  = num(r.overs1), o2  = num(r.overs2);
+
+    if (!map.has(t1)) map.set(t1, { team: t1, matches: 0, wins: 0, losses: 0, draws: 0, points: 0, rf: 0, of: 0, ra: 0, ob: 0, tournament_name: r.tournament_name ?? "—", season_year: r.season_year ?? "—" });
+    if (!map.has(t2)) map.set(t2, { team: t2, matches: 0, wins: 0, losses: 0, draws: 0, points: 0, rf: 0, of: 0, ra: 0, ob: 0, tournament_name: r.tournament_name ?? "—", season_year: r.season_year ?? "—" });
+
+    const s1 = map.get(t1);
+    s1.matches += 1; s1.rf += rf1; s1.of += o1; s1.ra += rf2; s1.ob += o2;
+    if (t1Win) { s1.wins += 1; s1.points += 2; }
+    else if (draw) { s1.draws += 1; s1.points += 1; }
+    else { s1.losses += 1; }
+
+    const s2 = map.get(t2);
+    s2.matches += 1; s2.rf += rf2; s2.of += o2; s2.ra += rf1; s2.ob += o1;
+    if (t2Win) { s2.wins += 1; s2.points += 2; }
+    else if (draw) { s2.draws += 1; s2.points += 1; }
+    else { s2.losses += 1; }
+  }
+
+  const table = Array.from(map.values()).map((s) => {
+    const nrrFor = s.of > 0 ? s.rf / s.of : 0;
+    const nrrAg  = s.ob > 0 ? s.ra / s.ob : 0;
+    const nrr    = Number((nrrFor - nrrAg).toFixed(2));
+    return { ...s, nrr };
+  });
+
+  table.sort((a, b) => b.points - a.points || b.nrr - a.nrr || a.team.localeCompare(b.team));
+  return table;
+}
+
+function extractFilters(rows) {
+  const tnames = new Set();
+  const years = new Set();
+  rows.forEach((r) => {
+    if (r.tournament_name) tnames.add(r.tournament_name);
+    if (r.season_year) years.add(Number(r.season_year));
+  });
+  return {
+    tournaments: Array.from(tnames).sort((a, b) => a.localeCompare(b)),
+    years: Array.from(years).sort((a, b) => a - b),
+  };
+}
+
+// --- component --------------------------------------------------
 export default function TournamentPoints() {
+  const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  const [matchType, setMatchType] = useState("T20"); // All | T20 | ODI
-  const [tournament, setTournament] = useState("All tournaments");
-  const [seasonYear, setSeasonYear] = useState("All years");
+  const [matchType, setMatchType] = useState("T20");
+  const [tournamentName, setTournamentName] = useState();
+  const [seasonYear, setSeasonYear] = useState();
 
-  const { darkAlgorithm } = antdTheme;
+  const { tournaments, years } = useMemo(() => extractFilters(rows), [rows]);
+  const table = useMemo(
+    () => buildTable(rows, { matchType, tournamentName, seasonYear }),
+    [rows, matchType, tournamentName, seasonYear]
+  );
 
-  // Load data once
-  const load = async () => {
-    setLoading(true);
+  const topPoints = useMemo(
+    () => table.slice(0, 10).map(({ team, points }) => ({ team, value: points })),
+    [table]
+  );
+  const topNRR = useMemo(
+    () => table.slice(0, 10).map(({ team, nrr }) => ({ team, value: nrr })),
+    [table]
+  );
+
+  async function reload() {
     try {
-      const res = await fetch(API, { credentials: "include" });
-      const js = await res.json();
-      setRows(Array.isArray(js) ? js : []);
+      setLoading(true);
+      const params = {};
+      if (matchType !== "All") params.match_type = matchType;
+      const { data } = await axios.get(`${API_URL}/match-history`, { params });
+      setRows(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error(e);
+      message.error("Failed to load match history.");
+      setRows([]);
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEffect(() => { reload(); /* initial */ }, []); // eslint-disable-line
 
-  // Build dropdown choices from actual data (keeps in sync with match entry)
-  const allTournaments = useMemo(() => {
-    const set = new Set(
-      rows
-        .filter((r) => r.tournament_name && (r.match_type === "ODI" || r.match_type === "T20"))
-        .map((r) => titleize(r.tournament_name))
-    );
-    return ["All tournaments", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
-  }, [rows]);
-
-  const allYears = useMemo(() => {
-    const set = new Set(
-      rows
-        .filter((r) => (r.match_type === "ODI" || r.match_type === "T20") && Number.isFinite(Number(r.season_year)))
-        .map((r) => Number(r.season_year))
-    );
-    const arr = Array.from(set).sort((a, b) => b - a);
-    return ["All years", ...arr];
-  }, [rows]);
-
-  // Compute standings from match_history (ODI/T20 only)
-  const standings = useMemo(() => {
-    const filtered = rows.filter((r) => {
-      if (!(r.match_type === "ODI" || r.match_type === "T20")) return false;
-      if (matchType !== "All" && r.match_type !== matchType) return false;
-      if (tournament && tournament !== "All tournaments") {
-        if (titleize(r.tournament_name || "") !== tournament) return false;
+  const infoTip = (
+    <Tooltip
+      color="#151b28"
+      title={
+        <div style={{ maxWidth: 320 }}>
+          Points/NRR computed on the client from <code>/api/match-history</code>.
+          Filter by match type, tournament, and year.
+        </div>
       }
-      if (seasonYear && seasonYear !== "All years") {
-        if (String(r.season_year) !== String(seasonYear)) return false;
-      }
-      return true;
-    });
-
-    const map = new Map();
-    const add = (team, runsFor, oversFaced, runsAg, oversBowled, win, draw) => {
-      const key = titleize(team || "");
-      if (!key) return;
-      if (!map.has(key))
-        map.set(key, {
-          team: key,
-          matches: 0,
-          wins: 0,
-          losses: 0,
-          draws: 0,
-          points: 0,
-          rf: 0,
-          of: 0,
-          ra: 0,
-          ob: 0,
-        });
-      const o = map.get(key);
-      o.matches += 1;
-      o.rf += runsFor;
-      o.of += oversFaced;
-      o.ra += runsAg;
-      o.ob += oversBowled;
-      if (draw) {
-        o.draws += 1;
-        o.points += 1;
-      } else if (win) {
-        o.wins += 1;
-        o.points += 2;
-      } else {
-        o.losses += 1;
-      }
-    };
-
-    for (const r of filtered) {
-      const t1 = r.team1,
-        t2 = r.team2;
-      const w = r.winner || "";
-      const t1Win = isWinFor(w, t1),
-        t2Win = isWinFor(w, t2);
-      const draw = isDraw(w);
-
-      add(t1, Number(r.runs1 || 0), Number(r.overs1 || 0), Number(r.runs2 || 0), Number(r.overs2 || 0), t1Win, draw);
-      add(t2, Number(r.runs2 || 0), Number(r.overs2 || 0), Number(r.runs1 || 0), Number(r.overs1 || 0), t2Win, draw);
-    }
-
-    const arr = Array.from(map.values())
-      .map((o) => {
-        const nrr = o.of > 0 && o.ob > 0 ? o.rf / o.of - o.ra / o.ob : 0;
-        return { ...o, nrr };
-      })
-      .sort((a, b) => b.points - a.points || b.nrr - a.nrr);
-
-    return arr.map((o, idx) => ({ rank: idx + 1, ...o }));
-  }, [rows, matchType, tournament, seasonYear]);
-
-  const top10 = standings.slice(0, 10);
-  const pointsData = top10.map((s) => ({ team: s.team, value: s.points }));
-  const nrrData = top10.map((s, i) => ({ idx: i + 1, team: s.team, value: Number(s.nrr.toFixed(2)) }));
-
-  // Charts configs (Ant Design Plots / G2Plot)
-  const columnCfg = {
-    data: pointsData,
-    xField: "team",
-    yField: "value",
-    columnWidthRatio: 0.6,
-    label: { position: "top", style: { fill: "#dfe7ff" } },
-    tooltip: { showMarkers: false },
-    interactions: [{ type: "active-region" }],
-  };
-
-  const lineCfg = {
-    data: nrrData,
-    xField: "idx",
-    yField: "value",
-    smooth: true,
-    xAxis: { label: { formatter: (v) => (top10[Number(v) - 1]?.team || "").split(" ")[0] } },
-    yAxis: { label: { formatter: (v) => String(v) } },
-    tooltip: {
-      customItems: (items) =>
-        items.map((it) => ({
-          ...it,
-          name: top10[it.data.idx - 1]?.team || "Team",
-          value: it.data.value,
-        })),
-    },
-  };
+    >
+      <InfoCircleTwoTone twoToneColor="#f5d26b" className="tp-info" />
+    </Tooltip>
+  );
 
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: darkAlgorithm,
-        token: {
-          colorPrimary: "#F5D26B", // gold
-          colorInfo: "#F5D26B",
-          colorText: "#E8EEFC",
-          colorTextSecondary: "#A9B5CF",
-          borderRadius: 12,
-          colorBgContainer: "#121B2A",
-        },
-      }}
-    >
-      <div className="tp-ant">
-        {/* header & filters */}
-        <div className="tp-head">
-          <Title level={3} className="tp-title">
-            <span className="medal">🏆</span> Tournament Points
-            <Tooltip
-              placement="right"
-              title="This view is computed from your ODI/T20 entries in /api/match-history. Make sure you fill Tournament & Season Year during match entry."
-            >
-              <InfoCircleTwoTone twoToneColor="#F5D26B" className="tp-info" />
-            </Tooltip>
-          </Title>
+    <div className="tp-ant">
+      {/* Header */}
+      <div className="tp-head">
+        <h2 className="tp-title">
+          <span className="medal" role="img" aria-label="trophy">🏆</span>
+          Tournament Points
+          {infoTip}
+        </h2>
 
-          <Space wrap size="middle" className="tp-filters">
+        {/* Filters */}
+        <Row gutter={8} className="tp-filters">
+          <Col>
             <div className="tp-filter">
-              <Text type="secondary">Match Type</Text>
+              <small>Match Type</small>
               <Select
-                popupClassName="tp-dropdown"
                 value={matchType}
                 onChange={setMatchType}
-                options={[{ value: "All" }, { value: "T20" }, { value: "ODI" }]}
+                options={MTYPES.map((m) => ({ value: m, label: m }))}
+                dropdownClassName="tp-dropdown"
                 style={{ minWidth: 140 }}
               />
             </div>
+          </Col>
 
+          <Col>
             <div className="tp-filter">
-              <Text type="secondary">Tournament</Text>
+              <small>Tournament</small>
               <Select
+                allowClear
+                placeholder="All tournaments"
+                value={tournamentName}
+                onChange={setTournamentName}
+                options={tournaments.map((t) => ({ value: t, label: t }))}
                 showSearch
                 optionFilterProp="label"
-                popupClassName="tp-dropdown"
-                value={tournament}
-                onChange={setTournament}
-                options={allTournaments.map((n) => ({ value: n, label: n }))}
-                style={{ minWidth: 240 }}
+                dropdownClassName="tp-dropdown"
+                style={{ minWidth: 220 }}
               />
             </div>
+          </Col>
 
+          <Col>
             <div className="tp-filter">
-              <Text type="secondary">Season Year</Text>
+              <small>Season Year</small>
               <Select
-                showSearch
-                optionFilterProp="label"
-                popupClassName="tp-dropdown"
+                allowClear
+                placeholder="All years"
                 value={seasonYear}
                 onChange={setSeasonYear}
-                options={allYears.map((y) => ({ value: String(y), label: String(y) }))}
-                style={{ minWidth: 160 }}
+                options={years.map((y) => ({ value: y, label: String(y) }))}
+                showSearch
+                optionFilterProp="label"
+                dropdownClassName="tp-dropdown"
+                style={{ minWidth: 140 }}
               />
             </div>
-
-            <Button type="primary" icon={<ReloadOutlined />} onClick={load}>
-              Reload
-            </Button>
-          </Space>
-        </div>
-
-        {/* charts */}
-        <Row gutter={[16, 16]} className="tp-row">
-          <Col xs={24} lg={12}>
-            <Card title="Points (Top 10)" className="tp-card chart-card" bordered>
-              {top10.length ? <Column {...columnCfg} /> : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />}
-            </Card>
           </Col>
-          <Col xs={24} lg={12}>
-            <Card title="NRR (Top 10)" className="tp-card chart-card" bordered>
-              {top10.length ? <Line {...lineCfg} /> : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />}
-            </Card>
+
+          <Col>
+            <div className="tp-filter">
+              <small>&nbsp;</small>
+              <Button type="primary" icon={<ReloadOutlined />} loading={loading} onClick={reload}>
+                Reload
+              </Button>
+            </div>
           </Col>
-        </Row>
-
-        {/* card grid */}
-        <Row gutter={[16, 16]} className="tp-row">
-          {loading && (
-            <Col span={24}>
-              <Card className="tp-card"><Text>Loading…</Text></Card>
-            </Col>
-          )}
-          {!loading && standings.length === 0 && (
-            <Col span={24}>
-              <Card className="tp-card"><Empty description="No matches for this selection" /></Card>
-            </Col>
-          )}
-
-          {standings.map((s) => (
-            <Col xs={24} sm={12} md={12} lg={8} xl={6} key={s.team}>
-              <Card
-                bordered
-                className={`tp-card team-card ${s.rank <= 3 ? `podium-${s.rank}` : ""}`}
-                title={
-                  <Space align="center">
-                    <Tag className="rank-badge">#{s.rank}</Tag>
-                    <Text strong className="team-name">
-                      {s.team}
-                    </Text>
-                  </Space>
-                }
-                extra={
-                  s.rank <= 3 ? (
-                    <Tag color="gold" className="top3">Top {s.rank}</Tag>
-                  ) : null
-                }
-              >
-                <div className="stats-grid">
-                  <div><Text type="secondary">Matches</Text><div className="num">{s.matches}</div></div>
-                  <div><Text type="secondary">Wins</Text><div className="num good">{s.wins}</div></div>
-                  <div><Text type="secondary">Losses</Text><div className="num bad">{s.losses}</div></div>
-                  <div><Text type="secondary">Draws</Text><div className="num">{s.draws}</div></div>
-                  <div><Text type="secondary">Points</Text><div className="num gold">{s.points}</div></div>
-                  <div><Text type="secondary">NRR</Text><div className="num">{fmt(s.nrr, 2)}</div></div>
-                </div>
-              </Card>
-            </Col>
-          ))}
         </Row>
       </div>
-    </ConfigProvider>
+
+      {/* Charts */}
+      <Row gutter={[16, 16]} className="tp-row">
+        <Col xs={24} lg={12}>
+          <Card className="tp-card" title="Points (Top 10)" bordered>
+            {topPoints.length ? (
+              <Column
+                data={topPoints}
+                xField="team"
+                yField="value"
+                xAxis={{ label: { autoHide: true, autoRotate: false } }}
+                height={300}
+                paddingLeft={16}
+                paddingRight={16}
+              />
+            ) : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />}
+          </Card>
+        </Col>
+
+        <Col xs={24} lg={12}>
+          <Card className="tp-card" title="NRR (Top 10)" bordered>
+            {topNRR.length ? (
+              <Column
+                data={topNRR}
+                xField="team"
+                yField="value"
+                xAxis={{ label: { autoHide: true, autoRotate: false } }}
+                height={300}
+                paddingLeft={16}
+                paddingRight={16}
+              />
+            ) : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />}
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Team card grid */}
+      <Row gutter={[16, 16]} className="tp-row">
+        {table.length === 0 ? (
+          <Col span={24}><Empty description="No matches for this selection" /></Col>
+        ) : (
+          table.map((t, idx) => {
+            const podium = idx === 0 ? "podium-1" : idx === 1 ? "podium-2" : idx === 2 ? "podium-3" : "";
+            return (
+              <Col key={t.team} xs={24} md={12} lg={8} xl={6}>
+                <Card
+                  className={`tp-card team-card ${podium}`}
+                  bordered
+                  title={
+                    <div>
+                      <span className="rank-badge">#{idx + 1}</span>
+                      <span className={`team-name ${idx < 3 ? "top3" : ""}`}>{t.team}</span>
+                    </div>
+                  }
+                >
+                  <div className="stats-grid">
+                    <div><small>Matches</small><div className="num">{t.matches}</div></div>
+                    <div><small>Wins</small><div className="num good">{t.wins}</div></div>
+                    <div><small>Losses</small><div className="num bad">{t.losses}</div></div>
+                    <div><small>Draws</small><div className="num">{t.draws}</div></div>
+                    <div><small>Points</small><div className={`num ${idx < 3 ? "gold" : ""}`}>{t.points}</div></div>
+                    <div><small>NRR</small><div className="num">{t.nrr.toFixed(2)}</div></div>
+                  </div>
+                  <div style={{ marginTop: 10, opacity: .8 }}>
+                    <small>Tournament:</small> <b>{t.tournament_name ?? "—"}</b>
+                    <span style={{ margin: "0 8px" }}>|</span>
+                    <small>Year:</small> <b>{t.season_year ?? "—"}</b>
+                  </div>
+                </Card>
+              </Col>
+            );
+          })
+        )}
+      </Row>
+    </div>
   );
 }
