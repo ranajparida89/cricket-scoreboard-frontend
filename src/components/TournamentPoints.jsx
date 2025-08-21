@@ -90,6 +90,7 @@ const nrrVals = nrrSeries
 const nrrMin = Math.min(0, ...(nrrVals.length ? nrrVals : [0]));
 const nrrMax = Math.max(1, ...(nrrVals.length ? nrrVals : [1]));
 const nrrRange = Math.max(1e-6, nrrMax - nrrMin);
+
 const yRight = (v) => H - PAD - ((v - nrrMin) / nrrRange) * (H - PAD * 2);
   const n = pointsSeries.length || 1;
   const step = (W - PAD * 2) / Math.max(1, n - 1);
