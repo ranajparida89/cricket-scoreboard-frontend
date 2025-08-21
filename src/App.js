@@ -57,7 +57,7 @@ import TeamDistributor from "./components/TeamDistributor";
 import AllBoardsView from "./components/AllBoardsView"; // ✅ Board Registration View
 import BoardRegistrationForm from "./components/BoardRegistrationForm";
 import BoardAnalyticsPro from "./components/BoardAnalyticsPro"; // 🔥 Pro Board Analytics UI
-
+import TournamentPoints from "./pages/TournamentPoints";
 
 // ✅ Homepage = Match Summary (ODI + T20) + Leaderboard (Allowed for all users)
 function HomePage() {
@@ -467,6 +467,7 @@ function App() {
 
           <Route path="/scheduler" element={<SchedulerPage />} />
           <Route path="/team-distributor" element={<TeamDistributor />} />
+          <Route path="/tournament-points" element={<TournamentPoints />} />
         </Routes>
 
         <Footer />

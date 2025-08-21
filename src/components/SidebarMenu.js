@@ -88,6 +88,12 @@ const SidebarMenu = () => {
   </Link>
 </li>
 
+<li>
+  <Link to="/tournament-points" onClick={handleClose}>
+    <FaChartLine className="me-2" /> Tournament Points
+  </Link>
+</li>
+
 
 {isAdmin || localStorage.getItem("token") ? (
   <li>
