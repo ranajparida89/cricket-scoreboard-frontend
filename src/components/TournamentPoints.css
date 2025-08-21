@@ -1,11 +1,12 @@
-/* ✅ Ant Design dark + gold accent tweaks */
+/* ✅ Ant Design dark + gold accent tweaks (refined) */
 
 .tp-ant {
-  background: #0f1724;
+  background: #0c121b;
   border: 1px solid rgba(255,255,255,.08);
   border-radius: 16px;
   padding: 18px;
   box-shadow: 0 12px 36px rgba(0,0,0,.35);
+  color: #e6eefc;
 }
 
 .tp-head {
@@ -22,66 +23,94 @@
   align-items: center;
   gap: 10px;
   margin: 0;
+  color: #e6eefc;
 }
 .tp-title .medal { filter: drop-shadow(0 3px 12px rgba(245,210,107,.4)); }
 .tp-info { margin-left: 6px; }
 
 .tp-filters { margin-left: auto; }
 .tp-filter { display: flex; flex-direction: column; gap: 6px; }
+.tp-filter small { color: #bcd0ff; }
 
-.tp-row { margin-top: 10px; }
+.btn-gold.ant-btn {
+  background: linear-gradient(180deg,#f5d26b,#c3a64a);
+  border: 0;
+  color: #1b2230;
+  font-weight: 700;
+  box-shadow: 0 6px 16px rgba(245,210,107,.25);
+}
+.btn-gold.ant-btn:hover,
+.btn-gold.ant-btn:focus {
+  filter: brightness(1.06);
+  color: #0f1420;
+}
+
+.tp-row { margin-top: 12px; }
 
 .tp-card {
   background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
   border-radius: 14px !important;
-  border: 1px solid rgba(255,255,255,.08) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  color: #e6eefc;
 }
+.tp-card .ant-card-head {
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.tp-card .ant-card-head-title { color: #e6eefc; }
+
+/* chart container */
+.tp-chart { margin-bottom: 6px; }
 
 /* team cards */
-.team-card .ant-card-head {
-  border-bottom: 1px solid rgba(255,255,255,.06);
-}
+.team-card .ant-card-head { border-bottom: 1px solid rgba(255,255,255,.06); }
 .rank-badge {
-  background: linear-gradient(180deg,#2b3447,#1a2436);
-  border: 1px solid rgba(255,255,255,.14);
+  background: #1a2230;
+  border: 1px solid rgba(255,255,255,.18);
   color: #dfe7ff;
   border-radius: 10px;
   font-weight: 800;
-  margin-right: 4px;
+  margin-right: 6px;
+  padding: 0 6px;
 }
 .team-name { font-weight: 800; letter-spacing: .2px; }
-.top3 { font-weight: 700; }
+.top3 { color: #f5d26b; }
+
+/* subtle gold-ring for top 3 */
+.gold-ring-1 { border-color: rgba(245,210,107,.65) !important; box-shadow: 0 0 10px rgba(245,210,107,.45); }
+.gold-ring-2 { border-color: rgba(245,210,107,.38) !important; box-shadow: 0 0 8px rgba(245,210,107,.28); }
+.gold-ring-3 { border-color: rgba(245,210,107,.28) !important; box-shadow: 0 0 8px rgba(245,210,107,.20); }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px 14px;
 }
+.stats-grid small { color: #bcd0ff; }
 .stats-grid .num {
   font-weight: 800;
   font-size: 20px;
   line-height: 1.1;
-  color: #e8eefc;
+  color: #ffffff;
 }
 .stats-grid .num.good { color: #7de39a; }
 .stats-grid .num.bad { color: #ff6b7a; }
 .stats-grid .num.gold {
   color: #f5d26b;
-  text-shadow: 0 0 12px rgba(245,210,107,.35);
+  text-shadow: 0 0 10px rgba(245,210,107,.35);
 }
 
-/* podium glow */
-.podium-1 {
-  box-shadow: 0 0 18px rgba(245,210,107,.45), 0 0 42px rgba(245,210,107,.25);
-  border-color: rgba(245,210,107,.55) !important;
+.meta-line {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: .9;
 }
-.podium-2 { box-shadow: 0 0 16px rgba(210,210,210,.25); }
-.podium-3 { box-shadow: 0 0 16px rgba(255,170,120,.28); }
+.meta-line small { color: #bcd0ff; }
+.meta-line .sep { opacity: .6; }
 
 /* dropdown panel tweak */
-.tp-dropdown .ant-select-item-option {
-  font-weight: 600;
-}
+.tp-dropdown .ant-select-item-option { font-weight: 600; }
 
 /* responsive */
 @media (max-width: 992px) {

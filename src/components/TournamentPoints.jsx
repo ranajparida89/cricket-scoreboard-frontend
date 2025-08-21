@@ -1,11 +1,11 @@
 // src/components/TournamentPoints.jsx
 // Ant Design UI that computes points/NRR client-side from /api/match-history
-// Matches your CSS classes (tp-ant, tp-head, tp-card, team-card, podium-*).
+// Redesigned: single DualAxes line chart + gold-ring cards
 
 import React, { useEffect, useMemo, useState } from "react";
 import { Select, Button, Row, Col, Card, Tooltip, Empty, message } from "antd";
 import { InfoCircleTwoTone, ReloadOutlined } from "@ant-design/icons";
-import { Column } from "@ant-design/plots";
+import { DualAxes } from "@ant-design/plots";
 import axios from "axios";
 import { API_URL } from "../services/api";
 import "./TournamentPoints.css";
@@ -104,13 +104,15 @@ export default function TournamentPoints() {
     [rows, matchType, tournamentName, seasonYear]
   );
 
-  const topPoints = useMemo(
-    () => table.slice(0, 10).map(({ team, points }) => ({ team, value: points })),
-    [table]
+  // Top 10 by points for the combined chart
+  const topTeams = useMemo(() => table.slice(0, 10).map((t) => t.team), [table]);
+  const pointsSeries = useMemo(
+    () => table.filter(t => topTeams.includes(t.team)).map(({ team, points }) => ({ team, value: points })),
+    [table, topTeams]
   );
-  const topNRR = useMemo(
-    () => table.slice(0, 10).map(({ team, nrr }) => ({ team, value: nrr })),
-    [table]
+  const nrrSeries = useMemo(
+    () => table.filter(t => topTeams.includes(t.team)).map(({ team, nrr }) => ({ team, value: nrr })),
+    [table, topTeams]
   );
 
   async function reload() {
@@ -135,15 +137,57 @@ export default function TournamentPoints() {
     <Tooltip
       color="#151b28"
       title={
-        <div style={{ maxWidth: 320 }}>
-          Points/NRR computed on the client from <code>/api/match-history</code>.
-          Filter by match type, tournament, and year.
+        <div style={{ maxWidth: 360 }}>
+          Points & NRR are computed on the client from <code>/api/match-history</code>.<br />
+          Use the filters to narrow by match type, tournament and year.
         </div>
       }
     >
       <InfoCircleTwoTone twoToneColor="#f5d26b" className="tp-info" />
     </Tooltip>
   );
+
+  const dualConfig = {
+    data: [pointsSeries, nrrSeries],
+    xField: "team",
+    yField: ["value", "value"],
+    geometryOptions: [
+      {
+        geometry: "line",
+        smooth: true,
+        color: "#f5d26b", // gold for Points
+        lineStyle: { lineWidth: 3 },
+        point: { size: 4, shape: "circle", style: { stroke: "#1b2230", lineWidth: 2, fill: "#f5d26b" } },
+      },
+      {
+        geometry: "line",
+        smooth: true,
+        color: "#58e6d9", // teal for NRR
+        lineStyle: { lineWidth: 3, opacity: 0.9 },
+        point: { size: 4, shape: "circle", style: { stroke: "#1b2230", lineWidth: 2, fill: "#58e6d9" } },
+      },
+    ],
+    theme: "classicDark",
+    tooltip: { shared: true, showMarkers: true },
+    legend: {
+      position: "top",
+      marker: { symbol: "circle" },
+      itemName: { style: { fill: "#e6eefc", fontWeight: 600 } },
+    },
+    yAxis: {
+      value: {
+        label: { style: { fill: "#bcd0ff" } },
+        grid: { line: { style: { stroke: "rgba(255,255,255,.06)" } } },
+      },
+    },
+    xAxis: {
+      label: { autoHide: true, style: { fill: "#bcd0ff" } },
+      line: { style: { stroke: "rgba(255,255,255,.12)" } },
+      tickLine: null,
+    },
+    padding: [24, 16, 24, 16],
+    height: 340,
+  };
 
   return (
     <div className="tp-ant">
@@ -207,7 +251,7 @@ export default function TournamentPoints() {
           <Col>
             <div className="tp-filter">
               <small>&nbsp;</small>
-              <Button type="primary" icon={<ReloadOutlined />} loading={loading} onClick={reload}>
+              <Button className="btn-gold" icon={<ReloadOutlined />} loading={loading} onClick={reload}>
                 Reload
               </Button>
             </div>
@@ -215,40 +259,14 @@ export default function TournamentPoints() {
         </Row>
       </div>
 
-      {/* Charts */}
-      <Row gutter={[16, 16]} className="tp-row">
-        <Col xs={24} lg={12}>
-          <Card className="tp-card" title="Points (Top 10)" bordered>
-            {topPoints.length ? (
-              <Column
-                data={topPoints}
-                xField="team"
-                yField="value"
-                xAxis={{ label: { autoHide: true, autoRotate: false } }}
-                height={300}
-                paddingLeft={16}
-                paddingRight={16}
-              />
-            ) : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />}
-          </Card>
-        </Col>
-
-        <Col xs={24} lg={12}>
-          <Card className="tp-card" title="NRR (Top 10)" bordered>
-            {topNRR.length ? (
-              <Column
-                data={topNRR}
-                xField="team"
-                yField="value"
-                xAxis={{ label: { autoHide: true, autoRotate: false } }}
-                height={300}
-                paddingLeft={16}
-                paddingRight={16}
-              />
-            ) : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />}
-          </Card>
-        </Col>
-      </Row>
+      {/* Combined Line Chart */}
+      <Card className="tp-card tp-chart" title="Points & NRR (Top 10)" bordered>
+        {pointsSeries.length ? (
+          <DualAxes {...dualConfig} />
+        ) : (
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No data" />
+        )}
+      </Card>
 
       {/* Team card grid */}
       <Row gutter={[16, 16]} className="tp-row">
@@ -256,7 +274,8 @@ export default function TournamentPoints() {
           <Col span={24}><Empty description="No matches for this selection" /></Col>
         ) : (
           table.map((t, idx) => {
-            const podium = idx === 0 ? "podium-1" : idx === 1 ? "podium-2" : idx === 2 ? "podium-3" : "";
+            const podium =
+              idx === 0 ? "gold-ring-1" : idx === 1 ? "gold-ring-2" : idx === 2 ? "gold-ring-3" : "";
             return (
               <Col key={t.team} xs={24} md={12} lg={8} xl={6}>
                 <Card
@@ -277,10 +296,10 @@ export default function TournamentPoints() {
                     <div><small>Points</small><div className={`num ${idx < 3 ? "gold" : ""}`}>{t.points}</div></div>
                     <div><small>NRR</small><div className="num">{t.nrr.toFixed(2)}</div></div>
                   </div>
-                  <div style={{ marginTop: 10, opacity: .8 }}>
-                    <small>Tournament:</small> <b>{t.tournament_name ?? "—"}</b>
-                    <span style={{ margin: "0 8px" }}>|</span>
-                    <small>Year:</small> <b>{t.season_year ?? "—"}</b>
+                  <div className="meta-line">
+                    <span><small>Tournament:</small> <b>{t.tournament_name ?? "—"}</b></span>
+                    <span className="sep">|</span>
+                    <span><small>Year:</small> <b>{t.season_year ?? "—"}</b></span>
                   </div>
                 </Card>
               </Col>
