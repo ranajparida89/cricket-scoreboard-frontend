@@ -1,9 +1,9 @@
-// Lightweight Tournament Points (no Ant Design)
+// Tournament Points (no libraries)
 // - Fetches /api/match-history
 // - Client-calculates Points + NRR for ODI/T20
-// - SVG dual-line chart (Points left axis, NRR right axis)
-// - Dark filters, gold accents, glow rings for Top 3
-// - Info button opens modal
+// - SVG dual-line chart with value labels + grid
+// - Dark filters + info modal
+// - Slick dark table (replaces previous card grid)
 
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
@@ -151,7 +151,7 @@ export default function TournamentPoints() {
   useEffect(() => { reload(); }, []); // initial
 
   // SVG chart sizing + scales
-  const W = 980, H = 320, PAD = 40;
+  const W = 980, H = 360, PAD = 44;
   const ptsMax = Math.max(2, ...pointsSeries.map(d => d.value));
   const yLMin = 0, yLMax = Math.ceil(ptsMax * 1.15);
   const nrrMin = Math.min(0, ...nrrSeries.map(d => d.value));
@@ -162,6 +162,10 @@ export default function TournamentPoints() {
     const t = (v - nrrMin) / nrrRange;
     return H - PAD - t * (H - PAD * 2);
   };
+
+  // ticks + grids
+  const leftTicks = [0, 0.25, 0.5, 0.75, 1].map(t => Math.round(yLMax * t));
+  const rightTicks = [0, 0.5, 1].map(t => +(nrrMin + t * (nrrMax - nrrMin)).toFixed(2));
 
   return (
     <div className="tp-simple">
@@ -210,44 +214,52 @@ export default function TournamentPoints() {
               <Axis x={PAD} y={PAD}   x2={PAD}   y2={H-PAD} />
               <Axis x={W-PAD} y={PAD} x2={W-PAD} y2={H-PAD} opacity={0.25} />
 
+              {/* Gridlines (horizontal for left scale) */}
+              {leftTicks.map((v, i) => {
+                const y = H - PAD - (v - yLMin) / Math.max(1e-6, yLMax - yLMin) * (H - PAD * 2);
+                return <line key={`h-${i}`} x1={PAD} y1={y} x2={W-PAD} y2={y} className="grid" />;
+              })}
+
+              {/* Vertical gridlines (per x step) */}
+              {pointsSeries.map((_, i) => {
+                const n = pointsSeries.length || 1;
+                const step = (W - PAD * 2) / Math.max(1, n - 1);
+                const x = PAD + i * step;
+                return <line key={`v-${i}`} x1={x} y1={PAD} x2={x} y2={H-PAD} className="grid v" />;
+              })}
+
+              {/* Axis labels */}
+              <text x={PAD-28} y={PAD-10} className="axis-name">Points</text>
+              <text x={W-PAD+6} y={PAD-10} className="axis-name">NRR</text>
+
               {/* Left ticks (Points) */}
-              {[0, yLMax].map((v, i) => (
-                <g key={i}>
-                  <text x={PAD-10} y={H-PAD - (H-PAD* (v / yLMax))} className="tick left" dy="4">{v}</text>
-                </g>
-              ))}
+              {leftTicks.map((v, i) => {
+                const y = H - PAD - (v - yLMin) / Math.max(1e-6, yLMax - yLMin) * (H - PAD * 2);
+                return <text key={`lt-${i}`} x={PAD-10} y={y} className="tick left" dy="4">{v}</text>;
+              })}
 
               {/* Right ticks (NRR) */}
-              {[nrrMin, nrrMax].map((v, i) => (
-                <g key={i}>
-                  <text x={W-PAD+10} y={yRight(v)} className="tick right" dy="4">{v}</text>
-                </g>
-              ))}
+              {rightTicks.map((v, i) => <text key={`rt-${i}`} x={W-PAD+10} y={yRight(v)} className="tick right" dy="4">{v}</text>)}
 
               {/* Lines */}
-              <polyline
-                className="line gold"
-                points={polyPoints(pointsSeries, W, H, PAD, yLMin, yLMax)}
-              />
-              <polyline
-                className="line teal"
-                points={polyPoints(nrrSeries, W, H, PAD, nrrMin, nrrMax)}
-              />
+              <polyline className="line gold" points={polyPoints(pointsSeries, W, H, PAD, yLMin, yLMax)} />
+              <polyline className="line teal"  points={polyPoints(nrrSeries,   W, H, PAD, nrrMin, nrrMax)} />
 
-              {/* Points */}
+              {/* Points + value labels */}
               {pointsSeries.map((d, i) => {
                 const n = pointsSeries.length || 1;
                 const step = (W - PAD * 2) / Math.max(1, n - 1);
                 const x = PAD + i * step;
                 const yL = H - PAD - (d.value - yLMin) / Math.max(1e-6, yLMax - yLMin) * (H - PAD * 2);
-                const yR = yRight(nrrSeries[i]?.value ?? 0);
+                const rVal = nrrSeries[i]?.value ?? 0;
+                const yR = yRight(rVal);
                 return (
                   <g key={d.team}>
                     <circle cx={x} cy={yL} r="4" className="dot gold" />
                     <circle cx={x} cy={yR} r="4" className="dot teal" />
-                    <text className="xlabel" x={x} y={H - PAD + 16} dy="10" transform={`rotate(0, ${x}, ${H - PAD + 16})`}>
-                      {d.team}
-                    </text>
+                    <text className="val goldv" x={x} y={yL - 8}>{d.value}</text>
+                    <text className="val tealv" x={x} y={yR + (rVal >= 0 ? -8 : 16)}>{rVal.toFixed(2)}</text>
+                    <text className="xlabel" x={x} y={H - PAD + 16} dy="10">{d.team}</text>
                   </g>
                 );
               })}
@@ -265,40 +277,49 @@ export default function TournamentPoints() {
         </div>
       </div>
 
-      {/* Cards grid */}
-      <div className="cards-grid">
-        {table.length === 0 ? (
-          <div className="empty">No matches for this selection</div>
-        ) : (
-          table.map((t, idx) => {
-            const ring =
-              idx === 0 ? "ring-1" : idx === 1 ? "ring-2" : idx === 2 ? "ring-3" : "";
-            return (
-              <div key={t.team} className={`card team ${ring}`}>
-                <div className="card-head">
-                  <span className="rank">#{idx + 1}</span>
-                  <span className={`name ${idx < 3 ? "goldtxt" : ""}`}>{t.team}</span>
-                </div>
-                <div className="stats">
-                  <div><span>Matches</span><b>{t.matches}</b></div>
-                  <div><span>Wins</span><b className="good">{t.wins}</b></div>
-                  <div><span>Losses</span><b className="bad">{t.losses}</b></div>
-                  <div><span>Draws</span><b>{t.draws}</b></div>
-                  <div className="points-pill-wrap">
-                    <span>Points</span>
-                    <div className="points-pill">{t.points}</div>
-                  </div>
-                  <div><span>NRR</span><b>{t.nrr.toFixed(2)}</b></div>
-                </div>
-                <div className="meta">
-                  <span>🏷️ {t.tournament_name ?? "—"}</span>
-                  <span className="sep">|</span>
-                  <span>📅 {t.season_year ?? "—"}</span>
-                </div>
-              </div>
-            );
-          })
-        )}
+      {/* Standings table */}
+      <div className="card tp-table-card">
+        <div className="card-head">Standings</div>
+        <div className="table-wrap">
+          <table className="tp-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Team</th>
+                <th>Matches</th>
+                <th>Wins</th>
+                <th>Losses</th>
+                <th>Draws</th>
+                <th>Points</th>
+                <th>NRR</th>
+                <th>Tournament</th>
+                <th>Year</th>
+              </tr>
+            </thead>
+            <tbody>
+              {table.length === 0 ? (
+                <tr><td colSpan="10" className="empty-row">No matches for this selection</td></tr>
+              ) : (
+                table.map((t, idx) => (
+                  <tr key={t.team} className={`r${idx+1 <=3 ? idx+1 : ""}`}>
+                    <td><span className="rank-badge">#{idx + 1}</span></td>
+                    <td className={`tname ${idx<3 ? "goldtxt":""}`}>{t.team}</td>
+                    <td>{t.matches}</td>
+                    <td className="good">{t.wins}</td>
+                    <td className="bad">{t.losses}</td>
+                    <td>{t.draws}</td>
+                    <td>
+                      <span className={`points-chip ${idx<3 ? "pulse":""}`}>{t.points}</span>
+                    </td>
+                    <td className={t.nrr >= 0 ? "good" : "bad"}>{t.nrr.toFixed(2)}</td>
+                    <td className="muted">{t.tournament_name ?? "—"}</td>
+                    <td className="muted">{t.season_year ?? "—"}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Info modal */}
