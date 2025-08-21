@@ -1,8 +1,5 @@
 // src/components/TournamentPoints.jsx
-// Tournament Points (no UI libs)
-// - Uses /api/tournaments + /api/tournaments/leaderboard
-// - Robust chart labels + legend position
-// - Dark pro table (top-3 get soft gold glow)
+// Uses /api/tournaments + /api/tournaments/leaderboard (server-side NRR/Points)
 
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
@@ -19,18 +16,21 @@ export default function TournamentPoints() {
   const [tournamentName, setTournamentName] = useState("");
   const [seasonYear, setSeasonYear] = useState("");
 
-  const [catalog, setCatalog] = useState([]);     // [{ name, editions:[{season_year, match_type, matches}] }]
-  const [table, setTable] = useState([]);         // API result rows
+  const [catalog, setCatalog] = useState([]);
+  const [table, setTable] = useState([]);
 
-  // build filter lists from catalog
-  const tournaments = useMemo(() => catalog.map(c => c.name).sort((a,b)=>a.localeCompare(b)), [catalog]);
+  // filters
+  const tournaments = useMemo(
+    () => catalog.map(c => c.name).sort((a,b)=>a.localeCompare(b)),
+    [catalog]
+  );
   const years = useMemo(() => {
     const s = new Set();
     catalog.forEach(c => c.editions.forEach(e => s.add(Number(e.season_year))));
     return Array.from(s).sort((a,b)=>a-b);
   }, [catalog]);
 
-  // series for the chart (Top 10 by points)
+  // chart series (top 10)
   const pointsSeries = useMemo(
     () => table.slice(0, 10).map(r => ({ team: r.team_name, value: Number(r.points) })),
     [table]
@@ -50,12 +50,9 @@ export default function TournamentPoints() {
   async function reload() {
     try {
       setLoading(true);
-      const params = {
-        match_type: matchType
-      };
+      const params = { match_type: matchType };
       if (tournamentName) params.tournament_name = tournamentName;
-      if (seasonYear)     params.season_year     = seasonYear;
-
+      if (seasonYear)     params.season_year = seasonYear;
       const { data } = await axios.get(`${API_URL}/tournaments/leaderboard`, { params });
       setTable(Array.isArray(data) ? data : []);
     } catch {
@@ -81,16 +78,11 @@ export default function TournamentPoints() {
     return H - PAD - t * (H - PAD * 2);
   };
 
-  // ticks + grids
-  const leftTicks = [0, 0.25, 0.5, 0.75, 1].map(t => Math.round(yLMax * t));
-  const rightTicks = [0, 0.5, 1].map(t => +(nrrMin + t * (nrrMax - nrrMin)).toFixed(2));
-
-  // label overlap handling
   const n = pointsSeries.length || 1;
   const step = (W - PAD * 2) / Math.max(1, n - 1);
   const rotateLabels = step < 90;
 
-  const polyPoints = (series, w, h, pad, yMin, yMax) => {
+  function polyPoints(series, w, h, pad, yMin, yMax) {
     const n = series.length || 1;
     const step = (w - pad * 2) / Math.max(1, n - 1);
     const yScale = (v) => {
@@ -102,7 +94,7 @@ export default function TournamentPoints() {
       const y = yScale(d.value);
       return `${x},${y}`;
     }).join(" ");
-  };
+  }
 
   const Axis = ({ x, y, x2, y2, opacity=0.5 }) => (
     <line x1={x} y1={y} x2={x2} y2={y2} stroke="rgba(255,255,255,.12)" strokeWidth="1" opacity={opacity} />
@@ -146,42 +138,48 @@ export default function TournamentPoints() {
 
       {/* Chart */}
       <div className="card tp-chart">
-        <div className="card-head">Points & NRR (Top 10)</div>
+        <div className="card-head">Points &amp; NRR (Top 10)</div>
         <div className="chart-wrap">
           {pointsSeries.length ? (
             <svg viewBox={`0 0 ${W} ${H}`} className="linechart">
+              {/* Axes */}
               <Axis x={PAD} y={H-PAD} x2={W-PAD} y2={H-PAD} />
               <Axis x={PAD} y={PAD}   x2={PAD}   y2={H-PAD} />
               <Axis x={W-PAD} y={PAD} x2={W-PAD} y2={H-PAD} opacity={0.25} />
 
-              {leftTicks.map((v, i) => {
-                const y = H - PAD - (v - 0) / Math.max(1e-6, yLMax - 0) * (H - PAD * 2);
+              {/* Gridlines */}
+              {[0, 0.25, 0.5, 0.75, 1].map((t,i) => {
+                const v = Math.round(yLMax * t);
+                const y = H - PAD - (v - yLMin) / Math.max(1e-6, yLMax - yLMin) * (H - PAD * 2);
                 return <line key={`h-${i}`} x1={PAD} y1={y} x2={W-PAD} y2={y} className="grid" />;
               })}
               {pointsSeries.map((_, i) => {
-                const stepX = (W - PAD * 2) / Math.max(1, n - 1);
-                const x = PAD + i * stepX;
+                const x = PAD + i * step;
                 return <line key={`v-${i}`} x1={x} y1={PAD} x2={x} y2={H-PAD} className="grid v" />;
               })}
 
+              {/* Labels */}
               <text x={PAD-28} y={PAD-10} className="axis-name">Points</text>
               <text x={W-PAD+6} y={PAD-10} className="axis-name">NRR</text>
 
-              {leftTicks.map((v, i) => {
-                const y = H - PAD - (v - 0) / Math.max(1e-6, yLMax - 0) * (H - PAD * 2);
+              {[0, 0.25, 0.5, 0.75, 1].map((t,i) => {
+                const v = Math.round(yLMax * t);
+                const y = H - PAD - (v - yLMin) / Math.max(1e-6, yLMax - yLMin) * (H - PAD * 2);
                 return <text key={`lt-${i}`} x={PAD-10} y={y} className="tick left" dy="4">{v}</text>;
               })}
-              {rightTicks.map((v, i) =>
-                <text key={`rt-${i}`} x={W-PAD+10} y={yRight(v)} className="tick right" dy="4">{v}</text>
-              )}
+              {[0, 0.5, 1].map((t,i) => {
+                const v = +(nrrMin + t * (nrrMax - nrrMin)).toFixed(2);
+                return <text key={`rt-${i}`} x={W-PAD+10} y={yRight(v)} className="tick right" dy="4">{v}</text>;
+              })}
 
-              <polyline className="line gold" points={polyPoints(pointsSeries, W, H, PAD, 0, yLMax)} />
+              {/* Lines */}
+              <polyline className="line gold" points={polyPoints(pointsSeries, W, H, PAD, yLMin, yLMax)} />
               <polyline className="line teal"  points={polyPoints(nrrSeries,   W, H, PAD, nrrMin, nrrMax)} />
 
+              {/* Points + value labels */}
               {pointsSeries.map((d, i) => {
-                const stepX = (W - PAD * 2) / Math.max(1, n - 1);
-                const x = PAD + i * stepX;
-                const yL = H - PAD - (d.value - 0) / Math.max(1e-6, yLMax - 0) * (H - PAD * 2);
+                const x = PAD + i * step;
+                const yL = H - PAD - (d.value - yLMin) / Math.max(1e-6, yLMax - yLMin) * (H - PAD * 2);
                 const rVal = nrrSeries[i]?.value ?? 0;
                 const yR = yRight(rVal);
                 return (
@@ -192,7 +190,9 @@ export default function TournamentPoints() {
                     <text className="val tealv" x={x} y={yR + (rVal >= 0 ? -8 : 16)}>{rVal.toFixed(2)}</text>
                     <text
                       className={`xlabel ${rotateLabels ? "small rot" : ""}`}
-                      x={x} y={H - PAD + 16} dy="10"
+                      x={x}
+                      y={H - PAD + 16}
+                      dy="10"
                       transform={rotateLabels ? `rotate(-28 ${x} ${H - PAD + 16})` : undefined}
                     >
                       {d.team}
@@ -201,7 +201,7 @@ export default function TournamentPoints() {
                 );
               })}
 
-              {/* Legend moved left to avoid overlap */}
+              {/* Legend moved left so it never clashes with right-axis labels */}
               <g className="legend">
                 <rect x={W-280} y={20} width="240" height="28" rx="8" className="legend-bg"/>
                 <circle cx={W-260} cy={34} r="5" className="dot gold"/><text x={W-248} y={38} className="legend-txt">Points</text>
@@ -269,8 +269,8 @@ export default function TournamentPoints() {
             </div>
             <div className="modal-body">
               <p>
-                Points & NRR are computed from <code>match_history</code> with exact winner parsing
-                (e.g. <code>India won the match!</code>). Select filters above to narrow the view.
+                Points &amp; NRR are computed on the server from <code>match_history</code> with exact winner parsing
+                (e.g. <code>India won the match!</code>). Use the filters to narrow results.
               </p>
               <ul>
                 <li>Win = +2, Draw = +1.</li>
