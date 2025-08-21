@@ -2,29 +2,60 @@
   --bg:#0b1119; --panel:#0f1724; --soft:rgba(255,255,255,.08); --soft2:rgba(255,255,255,.12);
   --text:#f8fbff; --muted:#cfe0ff; --gold:#f5d26b; --gold-d:#c3a64a; --teal:#58e6d9;
   --good:#79e39a; --bad:#ff6b7a;
+
+  /* Top-3 row highlight */
+  --top3-bg-1: rgba(70, 160, 110, .16);
+  --top3-bg-2: rgba(40, 110, 80,  .12);
+  --top3-border: rgba(121, 227, 154, .35);
+  --top3-glow: rgba(121, 227, 154, .18);
 }
 
-.tp-simple{ background:var(--panel); border:1px solid var(--soft); border-radius:16px; padding:16px; color:var(--text); box-shadow:0 14px 40px rgba(0,0,0,.35); }
+.tp-simple{
+  background:var(--panel);
+  border:1px solid var(--soft);
+  border-radius:16px;
+  padding:16px;
+  color:var(--text);
+  box-shadow:0 14px 40px rgba(0,0,0,.35);
+}
 
 /* header */
-.tp-head{ display:flex; align-items:flex-end; gap:16px; justify-content:space-between; flex-wrap:wrap; margin-bottom:10px; }
+.tp-head{
+  display:flex; align-items:flex-end; gap:16px; justify-content:space-between; flex-wrap:wrap; margin-bottom:10px;
+}
 .tp-title{ display:flex; align-items:center; gap:10px; margin:0; color:var(--text); font-weight:900; }
 .tp-title .medal{ filter:drop-shadow(0 3px 10px rgba(245,210,107,.4)); }
 
-.info-btn{ margin-left:6px; width:24px; height:24px; border-radius:50%; background:#121a28; border:1px solid var(--soft2); color:var(--gold); font-weight:800; line-height:24px; text-align:center; cursor:pointer; box-shadow:0 0 10px rgba(245,210,107,.15) inset; }
+.info-btn{
+  margin-left:6px; width:24px; height:24px; border-radius:50%;
+  background:#121a28; border:1px solid var(--soft2); color:var(--gold);
+  font-weight:800; line-height:24px; text-align:center; cursor:pointer;
+  box-shadow:0 0 10px rgba(245,210,107,.15) inset;
+}
 .filters{ display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin-left:auto; }
 .filters label{ display:flex; flex-direction:column; gap:6px; }
 .filters label span{ color:var(--muted); font-size:12px; }
 
-.sel.dark{ appearance:none; background:#0b1119; color:var(--text); border:1px solid var(--soft2); padding:8px 10px; border-radius:10px; min-width:160px; box-shadow:0 0 0 1px rgba(245,210,107,.05), 0 10px 30px rgba(0,0,0,.25); }
+.sel.dark{
+  appearance:none; background:#0b1119; color:var(--text); border:1px solid var(--soft2);
+  padding:8px 10px; border-radius:10px; min-width:160px;
+  box-shadow:0 0 0 1px rgba(245,210,107,.05), 0 10px 30px rgba(0,0,0,.25);
+}
 .sel.dark:focus{ outline:none; border-color:rgba(245,210,107,.35); box-shadow:0 0 10px rgba(245,210,107,.25); }
 
-.btn-gold{ background:linear-gradient(180deg,var(--gold),var(--gold-d)); border:0; color:#151b22; font-weight:800; padding:10px 16px; border-radius:12px; cursor:pointer; box-shadow:0 8px 20px rgba(245,210,107,.25); }
+.btn-gold{
+  background:linear-gradient(180deg,var(--gold),var(--gold-d));
+  border:0; color:#151b22; font-weight:800; padding:10px 16px; border-radius:12px;
+  cursor:pointer; box-shadow:0 8px 20px rgba(245,210,107,.25);
+}
 .btn-gold:disabled{ opacity:.7; cursor:default; }
 .btn-gold:hover{ filter:brightness(1.06); }
 
 /* cards */
-.card{ background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012)); border:1px solid var(--soft); border-radius:14px; box-shadow:0 6px 20px rgba(0,0,0,.25); }
+.card{
+  background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+  border:1px solid var(--soft); border-radius:14px; box-shadow:0 6px 20px rgba(0,0,0,.25);
+}
 .card-head{ padding:12px 14px; border-bottom:1px solid var(--soft); font-weight:900; color:var(--text); }
 
 /* chart */
@@ -51,33 +82,54 @@
 
 /* Value label contrast on dark backgrounds */
 .val{ fill:#ffffff; font-weight:900; paint-order:stroke; stroke:rgba(0,0,0,.65); stroke-width:2px; }
-.goldv{ }
-.tealv{ }
 
 /* table */
 .tp-table-card{ margin-top:12px; }
 .table-wrap{ padding:10px; }
 .tp-table{ width:100%; border-collapse:separate; border-spacing:0 8px; table-layout:fixed; }
+
+/* >>> Dark header w/ white text (explicit) */
 .tp-table thead tr{
   background: linear-gradient(180deg, #102235, #0c1a2b) !important; /* darker band */
   border-bottom: 1px solid rgba(255,255,255,.08);
 }
 .tp-table thead th{
-  color: #eaf6ff !important;      /* bright text */
+  color: #ffffff !important;      /* bright white text */
   font-weight: 900;
-  text-shadow: 0 1px 0 rgba(0,0,0,.35); /* extra separation on light screens */
+  text-shadow: 0 1px 0 rgba(0,0,0,.35);
 }
 .tp-table thead { background: transparent !important; }
-.tp-table tbody td{ padding:12px 10px; font-size:16px; color:#ffffff; text-align:center; border:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.tp-table tbody tr{ background:linear-gradient(180deg, rgba(17,32,48,.65), rgba(10,23,35,.55)); border:1px solid rgba(255,255,255,.07); border-radius:12px; box-shadow:0 12px 28px rgba(0,0,0,.35); transition:transform .18s ease, box-shadow .18s ease, background-color .18s ease; }
-.tp-table tbody tr:hover{ transform:translateY(-2px); box-shadow:0 18px 38px rgba(0,0,0,.42); }
+
+/* Base row look */
+.tp-table tbody td{
+  padding:12px 10px; font-size:16px; color:#ffffff; text-align:center; border:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.tp-table tbody tr{
+  background:linear-gradient(180deg, rgba(17,32,48,.65), rgba(10,23,35,.55));
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;
+  box-shadow:0 12px 28px rgba(0,0,0,.35);
+  transition:transform .18s ease, box-shadow .18s ease, background-color .18s ease, border-color .18s ease;
+}
+.tp-table tbody tr:hover{
+  transform:translateY(-2px);
+  box-shadow:0 18px 38px rgba(0,0,0,.42);
+}
+
+/* Rank + name */
 .rank-badge{ background:#1a2230; border:1px solid var(--soft2); color:#dfe7ff; padding:0 6px; border-radius:10px; font-weight:900; font-size:13px; }
 .tname{ font-weight:1000; letter-spacing:.2px; text-align:left; }
 .goldtxt{ color:var(--gold); text-shadow:0 0 14px rgba(245,210,107,.22); }
 
-/* Points: only top 3 bright; others muted */
+/* Points chip */
 .points-chip{ display:inline-block; min-width:36px; padding:6px 10px; border-radius:10px; font-weight:1000; text-align:center; }
-.points-chip.top3{ background:linear-gradient(180deg,var(--gold), var(--gold-d)); color:#121620; box-shadow:0 0 18px rgba(245,210,107,.18), 0 0 6px rgba(245,210,107,.12); animation:softPulse 4s ease-in-out infinite; }
+.points-chip.top3{
+  background:linear-gradient(180deg,var(--gold), var(--gold-d));
+  color:#121620;
+  box-shadow:0 0 18px rgba(245,210,107,.18), 0 0 6px rgba(245,210,107,.12);
+  animation:softPulse 4s ease-in-out infinite;
+}
 .points-chip.dim{ background:#0e1624; color:#eaf6ff; border:1px solid rgba(245,210,107,.18); box-shadow:0 0 6px rgba(245,210,107,.12) inset; }
 @keyframes softPulse{ 0%,100%{ box-shadow:0 0 12px rgba(245,210,107,.15); } 50%{ box-shadow:0 0 22px rgba(245,210,107,.28); } }
 
@@ -85,6 +137,35 @@
 .bad{ color:var(--bad); font-weight:900; }
 .muted{ color:var(--muted); }
 
+/* >>> Soft light-green highlight for entire Top-3 rows */
+.tp-table tbody tr.lb-row.top-1,
+.tp-table tbody tr.lb-row.top-2,
+.tp-table tbody tr.lb-row.top-3{
+  background: linear-gradient(180deg, var(--top3-bg-1), var(--top3-bg-2)) !important;
+  border-color: var(--top3-border) !important;
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.35),
+    0 0 0 1px var(--top3-border) inset,
+    0 0 24px var(--top3-glow);
+}
+.tp-table tbody tr.lb-row.top-1:hover,
+.tp-table tbody tr.lb-row.top-2:hover,
+.tp-table tbody tr.lb-row.top-3:hover{
+  box-shadow:
+    0 18px 38px rgba(0,0,0,.42),
+    0 0 0 1px var(--top3-border) inset,
+    0 0 30px var(--top3-glow);
+}
+/* Optional: make the rank badge hint green for top-3 */
+.tp-table tbody tr.lb-row.top-1 .rank-badge,
+.tp-table tbody tr.lb-row.top-2 .rank-badge,
+.tp-table tbody tr.lb-row.top-3 .rank-badge{
+  border-color: var(--top3-border);
+  color:#eafff0;
+  background:#12241a;
+}
+
+/* empty states */
 .empty{ padding:28px; text-align:center; color:var(--muted); }
 .empty-row{ padding:20px 0 !important; text-align:center; color:var(--muted); }
 

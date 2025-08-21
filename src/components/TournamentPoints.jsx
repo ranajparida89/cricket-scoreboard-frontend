@@ -62,15 +62,11 @@ export default function TournamentPoints() {
   async function reload() {
     try {
       setLoading(true);
-      const params = {
-        match_type: matchType,
-      };
+      const params = { match_type: matchType };
       if (norm(tournamentName)) params.tournament_name = tournamentName;
       if (norm(seasonYear)) params.season_year = Number(seasonYear);
 
-      const { data } = await axios.get(`${API_URL}/teams/leaderboard`, {
-        params,
-      });
+      const { data } = await axios.get(`${API_URL}/teams/leaderboard`, { params });
 
       const normalized = (Array.isArray(data) ? data : []).map((r) => ({
         team_name: r.team_name,
@@ -80,6 +76,8 @@ export default function TournamentPoints() {
         draws: safeNum(r.draws),
         points: safeNum(r.points),
         nrr: safeNum(r.nrr),
+        tournament_name: r.tournament_name ?? null, // echoed from backend
+        season_year: r.season_year ?? null,         // echoed from backend
       }));
 
       // Defensive sort (backend already orders this way)
@@ -125,24 +123,17 @@ export default function TournamentPoints() {
   );
 
   // ---------- Chart layout (robust bounds) ----------
-  const W = 980,
-    H = 360,
-    PAD = 44;
+  const W = 980, H = 360, PAD = 44;
 
   const yLMin = 0;
-  const yLMax = Math.ceil(
-    Math.max(2, ...pointsSeries.map((d) => d.value)) * 1.15
-  );
+  const yLMax = Math.ceil(Math.max(2, ...pointsSeries.map((d) => d.value)) * 1.15);
 
-  const nrrVals = nrrSeries
-    .map((d) => Number(d.value))
-    .filter((v) => Number.isFinite(v));
+  const nrrVals = nrrSeries.map((d) => Number(d.value)).filter(Number.isFinite);
   const nrrMin = Math.min(0, ...(nrrVals.length ? nrrVals : [0]));
   const nrrMax = Math.max(1, ...(nrrVals.length ? nrrVals : [1]));
   const nrrRange = Math.max(1e-6, nrrMax - nrrMin);
 
-  const yRight = (v) =>
-    H - PAD - ((v - nrrMin) / nrrRange) * (H - PAD * 2);
+  const yRight = (v) => H - PAD - ((v - nrrMin) / nrrRange) * (H - PAD * 2);
 
   const n = pointsSeries.length || 1;
   const step = (W - PAD * 2) / Math.max(1, n - 1);
@@ -170,21 +161,13 @@ export default function TournamentPoints() {
     />
   );
 
-  // Labels for Tournament/Year columns (selected filters)
-  const tournamentCell = norm(tournamentName) ? tournamentName : "—";
-  const yearCell = norm(seasonYear) ? seasonYear : "—";
-
   return (
     <div className="tp-simple">
       <div className="tp-head">
         <h2 className="tp-title">
-          <span className="medal" role="img" aria-label="trophy">
-            🏆
-          </span>
+          <span className="medal" role="img" aria-label="trophy">🏆</span>
           Tournament Points
-          <button className="info-btn" onClick={() => setInfoOpen(true)}>
-            i
-          </button>
+          <button className="info-btn" onClick={() => setInfoOpen(true)}>i</button>
         </h2>
 
         {/* Filters */}
@@ -197,9 +180,7 @@ export default function TournamentPoints() {
               className="sel dark"
             >
               {MTYPES.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
+                <option key={m} value={m}>{m}</option>
               ))}
             </select>
           </label>
@@ -213,9 +194,7 @@ export default function TournamentPoints() {
             >
               <option value="">All tournaments</option>
               {tournaments.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
+                <option key={t} value={t}>{t}</option>
               ))}
             </select>
           </label>
@@ -229,9 +208,7 @@ export default function TournamentPoints() {
             >
               <option value="">All years</option>
               {years.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
+                <option key={y} value={y}>{y}</option>
               ))}
             </select>
           </label>
@@ -250,129 +227,51 @@ export default function TournamentPoints() {
             <svg viewBox={`0 0 ${W} ${H}`} className="linechart">
               <Axis x={PAD} y={H - PAD} x2={W - PAD} y2={H - PAD} />
               <Axis x={PAD} y={PAD} x2={PAD} y2={H - PAD} />
-              <Axis
-                x={W - PAD}
-                y={PAD}
-                x2={W - PAD}
-                y2={H - PAD}
-                opacity={0.25}
-              />
+              <Axis x={W - PAD} y={PAD} x2={W - PAD} y2={H - PAD} opacity={0.25} />
 
               {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
                 const v = Math.round(yLMax * t);
                 const y =
-                  H -
-                  PAD -
-                  ((v - yLMin) / Math.max(1e-6, yLMax - yLMin)) *
-                    (H - PAD * 2);
-                return (
-                  <line
-                    key={`h${i}`}
-                    x1={PAD}
-                    y1={y}
-                    x2={W - PAD}
-                    y2={y}
-                    className="grid"
-                  />
-                );
+                  H - PAD - ((v - yLMin) / Math.max(1e-6, yLMax - yLMin)) * (H - PAD * 2);
+                return <line key={`h${i}`} x1={PAD} y1={y} x2={W - PAD} y2={y} className="grid" />;
               })}
               {pointsSeries.map((_, i) => (
-                <line
-                  key={`v${i}`}
-                  x1={PAD + i * step}
-                  y1={PAD}
-                  x2={PAD + i * step}
-                  y2={H - PAD}
-                  className="grid v"
-                />
+                <line key={`v${i}`} x1={PAD + i * step} y1={PAD} x2={PAD + i * step} y2={H - PAD} className="grid v" />
               ))}
 
-              <text x={PAD - 28} y={PAD - 10} className="axis-name">
-                Points
-              </text>
-              <text x={W - PAD + 6} y={PAD - 10} className="axis-name">
-                NRR
-              </text>
+              <text x={PAD - 28} y={PAD - 10} className="axis-name">Points</text>
+              <text x={W - PAD + 6} y={PAD - 10} className="axis-name">NRR</text>
 
               {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
                 const v = Math.round(yLMax * t);
                 const y =
-                  H -
-                  PAD -
-                  ((v - yLMin) / Math.max(1e-6, yLMax - yLMin)) *
-                    (H - PAD * 2);
-                return (
-                  <text
-                    key={`lt${i}`}
-                    x={PAD - 10}
-                    y={y}
-                    className="tick left"
-                    dy="4"
-                  >
-                    {v}
-                  </text>
-                );
+                  H - PAD - ((v - yLMin) / Math.max(1e-6, yLMax - yLMin)) * (H - PAD * 2);
+                return <text key={`lt${i}`} x={PAD - 10} y={y} className="tick left" dy="4">{v}</text>;
               })}
               {[0, 0.5, 1].map((t, i) => {
-                const v = +(
-                  nrrMin +
-                  t * (nrrMax - nrrMin)
-                ).toFixed(2);
-                return (
-                  <text
-                    key={`rt${i}`}
-                    x={W - PAD + 10}
-                    y={yRight(v)}
-                    className="tick right"
-                    dy="4"
-                  >
-                    {v}
-                  </text>
-                );
+                const v = +(nrrMin + t * (nrrMax - nrrMin)).toFixed(2);
+                return <text key={`rt${i}`} x={W - PAD + 10} y={yRight(v)} className="tick right" dy="4">{v}</text>;
               })}
 
-              <polyline
-                className="line gold"
-                points={polyPoints(pointsSeries, W, H, PAD, yLMin, yLMax)}
-              />
-              <polyline
-                className="line teal"
-                points={polyPoints(nrrSeries, W, H, PAD, nrrMin, nrrMax)}
-              />
+              <polyline className="line gold" points={polyPoints(pointsSeries, W, H, PAD, yLMin, yLMax)} />
+              <polyline className="line teal"  points={polyPoints(nrrSeries,   W, H, PAD, nrrMin, nrrMax)} />
 
               {pointsSeries.map((d, i) => {
                 const x = PAD + i * step;
                 const yL =
-                  H -
-                  PAD -
-                  ((d.value - yLMin) / Math.max(1e-6, yLMax - yLMin)) *
-                    (H - PAD * 2);
+                  H - PAD - ((d.value - yLMin) / Math.max(1e-6, yLMax - yLMin)) * (H - PAD * 2);
                 const rVal = nrrSeries[i]?.value ?? 0;
                 const yR = yRight(rVal);
                 return (
                   <g key={d.team}>
                     <circle cx={x} cy={yL} r="4" className="dot gold" />
                     <circle cx={x} cy={yR} r="4" className="dot teal" />
-                    <text className="val goldv" x={x} y={yL - 8}>
-                      {d.value}
-                    </text>
-                    <text
-                      className="val tealv"
-                      x={x}
-                      y={yR + (rVal >= 0 ? -8 : 16)}
-                    >
-                      {Number(rVal).toFixed(2)}
-                    </text>
+                    <text className="val goldv" x={x} y={yL - 8}>{d.value}</text>
+                    <text className="val tealv"  x={x} y={yR + (rVal >= 0 ? -8 : 16)}>{Number(rVal).toFixed(2)}</text>
                     <text
                       className={`xlabel ${rotateLabels ? "small rot" : ""}`}
-                      x={x}
-                      y={H - PAD + 16}
-                      dy="10"
-                      transform={
-                        rotateLabels
-                          ? `rotate(-28 ${x} ${H - PAD + 16})`
-                          : undefined
-                      }
+                      x={x} y={H - PAD + 16} dy="10"
+                      transform={rotateLabels ? `rotate(-28 ${x} ${H - PAD + 16})` : undefined}
                     >
                       {d.team}
                     </text>
@@ -381,22 +280,11 @@ export default function TournamentPoints() {
               })}
 
               <g className="legend">
-                <rect
-                  x={W - 280}
-                  y={20}
-                  width="240"
-                  height="28"
-                  rx="8"
-                  className="legend-bg"
-                />
+                <rect x={W - 280} y={20} width="240" height="28" rx="8" className="legend-bg" />
                 <circle cx={W - 260} cy={34} r="5" className="dot gold" />
-                <text x={W - 248} y={38} className="legend-txt">
-                  Points
-                </text>
+                <text x={W - 248} y={38} className="legend-txt">Points</text>
                 <circle cx={W - 180} cy={34} r="5" className="dot teal" />
-                <text x={W - 168} y={38} className="legend-txt">
-                  NRR
-                </text>
+                <text x={W - 168} y={38} className="legend-txt">NRR</text>
               </g>
             </svg>
           ) : (
@@ -426,42 +314,31 @@ export default function TournamentPoints() {
             </thead>
             <tbody>
               {table.length === 0 ? (
-                <tr>
-                  <td colSpan="10" className="empty-row">
-                    No data
-                  </td>
-                </tr>
+                <tr><td colSpan="10" className="empty-row">No data</td></tr>
               ) : (
                 table.map((t, idx) => (
                   <tr
                     key={t.team_name}
-                    className={`lb-row ${idx < 3 ? `top-${idx + 1}` : ""}`}
+                    className={`lb-row ${idx < 3 ? `top-${idx + 1}` : ""}`}  // ✅ highlight full row for top 3
                   >
-                    <td>
-                      <span className="rank-badge">#{idx + 1}</span>
-                    </td>
-                    <td className={`tname ${idx < 3 ? "goldtxt" : ""}`}>
-                      {t.team_name}
-                    </td>
+                    <td><span className="rank-badge">#{idx + 1}</span></td>
+                    <td className={`tname ${idx < 3 ? "goldtxt" : ""}`}>{t.team_name}</td>
                     <td>{safeNum(t.matches_played)}</td>
                     <td className="good">{safeNum(t.wins)}</td>
                     <td className="bad">{safeNum(t.losses)}</td>
                     <td>{safeNum(t.draws)}</td>
-                    <td>
-                      <span
-                        className={`points-chip ${idx < 3 ? "top3" : "dim"}`}
-                      >
-                        {safeNum(t.points)}
-                      </span>
-                    </td>
+
+                    {/* Neutral points chip (no yellow focus now) */}
+                    <td><span className="points-chip">{safeNum(t.points)}</span></td>
+
                     <td className={safeNum(t.nrr) >= 0 ? "good" : "bad"}>
                       {safeNum(t.nrr).toFixed(2)}
                     </td>
                     <td className="muted">
-                      {norm(tournamentName) ? tournamentName : "—"}
+                      {norm(t.tournament_name) ? t.tournament_name : "—"}
                     </td>
                     <td className="muted">
-                      {norm(seasonYear) ? seasonYear : "—"}
+                      {safeNum(t.season_year) ? t.season_year : "—"}
                     </td>
                   </tr>
                 ))
@@ -477,21 +354,16 @@ export default function TournamentPoints() {
           <div className="modal-box" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <h3>How this page works</h3>
-              <button className="modal-close" onClick={() => setInfoOpen(false)}>
-                ✕
-              </button>
+              <button className="modal-close" onClick={() => setInfoOpen(false)}>✕</button>
             </div>
             <div className="modal-body">
               <p>
-                Server computes totals from <code>teams</code> with filters via{" "}
-                <code>matches</code> (Win=2, Draw=1; NRR is run-rate diff). No
-                joins that alter totals.
+                Server computes totals from <code>teams</code> with filters via <code>matches</code>
+                (Win=2, Draw=1; NRR is run-rate diff). No joins that alter totals.
               </p>
             </div>
             <div className="modal-foot">
-              <button className="btn-gold" onClick={() => setInfoOpen(false)}>
-                Got it
-              </button>
+              <button className="btn-gold" onClick={() => setInfoOpen(false)}>Got it</button>
             </div>
           </div>
         </div>
