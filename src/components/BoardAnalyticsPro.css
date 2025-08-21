@@ -2,7 +2,7 @@
    BoardAnalyticsPro.css — polished dark UI
    ========================================= */
 
-/* Container & cards */
+/* ---------- Container & cards ---------- */
 .board-analytics-container{
   background: linear-gradient(145deg, #0d1117, #161b22);
   padding: 1.2rem;
@@ -26,7 +26,8 @@
   font-size:1.35rem; font-weight:800; color:#f1f5f9; letter-spacing:.3px;
 }
 
-/* Top board badge (pro) */
+/* ---------- Top board pill (works with either class name) ---------- */
+.top-board-highlight,
 .top-board-badge{
   position: relative;
   display:inline-flex; align-items:center; gap:.5rem;
@@ -36,18 +37,14 @@
   border:1px solid #5b3d00; color:#ffd166; font-weight:700;
   box-shadow: 0 10px 24px rgba(0,0,0,.4);
 }
+.top-board-highlight .tb-icon,
 .top-board-badge .tb-icon{ filter: drop-shadow(0 0 10px rgba(255,214,102,.4)); }
+.top-board-highlight .tb-label,
 .top-board-badge .tb-label{ opacity:.9; font-size:.9rem; }
-.top-board-badge .tb-sep{ opacity:.6; }
+.top-board-highlight .tb-name,
 .top-board-badge .tb-name{ color:#fff6d8; letter-spacing:.2px; }
-.top-board-badge .tb-glow{
-  content:""; position:absolute; inset:-2px;
-  border-radius: inherit;
-  background: conic-gradient(from 180deg at 50% 50%, rgba(255,214,102,.35), transparent 25%, rgba(255,214,102,.2) 50%, transparent 75%, rgba(255,214,102,.35));
-  filter: blur(14px); opacity:.28; pointer-events:none;
-}
 
-/* Filters */
+/* ---------- Filters / inputs ---------- */
 .filter-title{ color:#cfe5ff; font-weight:700; margin-bottom:.4rem; letter-spacing:.2px; }
 .dark-input{ background:#0b1220; color:#e6f0ff; border:1px solid #223454; }
 .dark-input:focus{ background:#0b1220; color:#e6f0ff; border-color:#2c4f7f; }
@@ -55,25 +52,42 @@
 .link-btn{ background:none; border:0; color:#8ab4ff; cursor:pointer; padding:0; }
 .link-btn:hover{ text-decoration:underline; }
 
-/* KPI */
+/* ---------- KPI ---------- */
 .kpi-title{ display:flex; align-items:center; gap:.35rem; color:#9fb2c7; font-weight:600; }
 .kpi-value{ font-size:1.6rem; font-weight:800; color:#eaf3ff; }
 
-/* Chart frames for consistent heights */
+/* ---------- Chart frames (consistent heights) ---------- */
 .chart-title{ display:flex; align-items:center; gap:.5rem; font-weight:800; color:#eaf3ff; margin-bottom:.4rem; }
 .chart-frame{ height:320px; }
 .chart-frame.tall{ height:340px; }
 
-/* Bootstrap button tweaks on dark */
+/* ---------- Buttons (dark-tuned Bootstrap) ---------- */
 .btn-outline-light{ color:#cbd5e1; border-color:#334155; }
 .btn-outline-light:hover{ background:#1f2937; border-color:#475569; }
 .btn-primary{ background:#2563eb; border-color:#2563eb; }
 .btn-primary:hover{ background:#1d4ed8; border-color:#1d4ed8; }
 
-/* Make "muted" text visible on dark */
+/* Make Bootstrap "muted" text visible on dark */
 .text-muted, .subtle, .small.text-muted{ color:#94a3b8 !important; }
 
-/* Table → Leaderboard style (inline, no extra file) */
+/* ---------- Tables ---------- */
+/* Bootstrap dark table base */
+.table-dark{
+  --bs-table-bg: #0b1220;
+  --bs-table-striped-bg: #101a2e;
+  --bs-table-hover-bg: #13203b;
+  color: #e5eefc;
+}
+.table td, .table th{ border-color:#1e2f4d !important; }
+
+/* Force a dark header with white text */
+.board-analytics-container .table-dark thead th{
+  background:#0f2234 !important;
+  color:#e6f0ff !important;
+  border:0 !important;
+}
+
+/* ---------- Leaderboard-style table (if you use it for Summary) ---------- */
 .leaderboard-glass{
   background: radial-gradient(900px 380px at 8% -10%, rgba(0,255,170,.08), transparent 60%),
               linear-gradient(180deg, rgba(13,31,47,.78), rgba(10,23,36,.68));
@@ -86,15 +100,20 @@
 .lb-title{ font-weight:800; color:#eaf6ff; }
 .leaderboard-table-wrapper{ padding:0 6px; }
 .leaderboard-table{ width:100%; border-collapse:separate; border-spacing:0 8px; table-layout:fixed; }
-.leaderboard-table thead tr{ background: linear-gradient(180deg, #0f2234, #0c1b2a); box-shadow:0 10px 24px rgba(0,0,0,.30); }
+.leaderboard-table thead tr,
 .leaderboard-table thead th{
-  font-weight:700; color:#dff2ff; border:0 !important; font-size:14px;
-  padding:12px 10px; letter-spacing:.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  background:#0f2234 !important; color:#e6f0ff !important; border:0 !important;
+  box-shadow:0 10px 24px rgba(0,0,0,.30);
+}
+.leaderboard-table thead th{
+  font-weight:700; font-size:14px; padding:12px 10px; letter-spacing:.2px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .leaderboard-table thead th:first-child{ border-top-left-radius:12px; text-align:left; }
 .leaderboard-table thead th:last-child{ border-top-right-radius:12px; }
 .leaderboard-table tbody td{
-  padding:12px 10px; font-size:15px; color:#eaf6ff; text-align:center; border:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  padding:12px 10px; font-size:15px; color:#eaf6ff; text-align:center; border:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .leaderboard-table tbody tr{
   background: linear-gradient(180deg, rgba(17,32,48,.65), rgba(10,23,35,.55));
@@ -106,7 +125,8 @@
 .team-name{ font-weight:800; letter-spacing:.2px; text-align:left; }
 .pos{ color:#c9ffef; } .neg{ color:#ffc2c2; } .warn{ color:#ffe680; }
 
-/* Recharts: axes, ticks, legend text */
+/* ---------- Recharts dark theme tweaks ---------- */
+/* Axis / legend text */
 .recharts-cartesian-axis-tick text,
 .recharts-legend-item-text,
 .recharts-polar-angle-axis-tick text,
@@ -121,7 +141,7 @@
 /* Bar labels */
 .recharts-label-list text{ fill:#e6f0ff !important; font-weight:700; }
 
-/* Info modal */
+/* ---------- Info modal ---------- */
 .info-btn{ background:transparent; border:0; color:#93c5fd; display:inline-flex; align-items:center; cursor:pointer; }
 .info-btn:hover{ color:#bfdbfe; }
 .info-modal{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:9999; }
@@ -129,17 +149,17 @@
 .info-modal-title{ font-weight:700; color:#f1f5f9; margin-bottom:.5rem; }
 .soft-scroll{ max-height:150px; overflow-y:auto; }
 
-/* React-Select prefix (rs) cleanup on dark */
+/* ---------- React-Select (optional) ---------- */
 .rs__control, .rs__menu{ font-size:14px; }
 .rs__multi-value__label{ font-size:13px; }
 
-/* Small utils */
+/* ---------- Utilities ---------- */
 .fade-in{ animation:fadeInUp .6s ease both; }
 @keyframes fadeInUp{ from{opacity:0; transform:translate3d(0,15px,0);} to{opacity:1; transform:none;} }
 .spin{ animation:spin 1s linear infinite; }
 @keyframes spin{ to{ transform:rotate(360deg); } }
 
-/* Mobile tweaks */
+/* ---------- Mobile tweaks ---------- */
 @media (max-width: 768px){
   .chart-frame{ height:260px; }
   .chart-frame.tall{ height:280px; }
