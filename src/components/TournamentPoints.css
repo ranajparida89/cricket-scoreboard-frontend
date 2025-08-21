@@ -184,3 +184,14 @@
   .tp-table tbody tr{ box-shadow:none; border-bottom:1px solid rgba(255,255,255,.06); transform:none; }
   .tp-table thead th, .tp-table tbody td{ padding:10px 8px; font-size:14px; }
 }
+/* ───── FORCE dark header (wins against any global th styles) ───── */
+.tp-table thead,
+.tp-table thead tr,
+.tp-table thead th,
+.tp-table thead th * {
+  background: #0f2336 !important; /* dark base */
+  background-image: linear-gradient(180deg, #10253a, #0b1a2a) !important; /* darker band */
+  color: #ffffff !important;      /* white text */
+  border-color: rgba(255,255,255,.08) !important;
+  text-shadow: 0 1px 0 rgba(0,0,0,.35); /* separation */
+}
