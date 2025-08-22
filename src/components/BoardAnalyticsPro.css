@@ -26,7 +26,7 @@
   font-size:1.35rem; font-weight:800; color:#f1f5f9; letter-spacing:.3px;
 }
 
-/* ---------- Top board pill (works with either class name) ---------- */
+/* ---------- Top board pill ---------- */
 .top-board-highlight,
 .top-board-badge{
   position: relative;
@@ -56,12 +56,12 @@
 .kpi-title{ display:flex; align-items:center; gap:.35rem; color:#9fb2c7; font-weight:600; }
 .kpi-value{ font-size:1.6rem; font-weight:800; color:#eaf3ff; }
 
-/* ---------- Chart frames (consistent heights) ---------- */
+/* ---------- Chart frames ---------- */
 .chart-title{ display:flex; align-items:center; gap:.5rem; font-weight:800; color:#eaf3ff; margin-bottom:.4rem; }
 .chart-frame{ height:320px; }
 .chart-frame.tall{ height:340px; }
 
-/* ---------- Buttons (dark-tuned Bootstrap) ---------- */
+/* ---------- Buttons ---------- */
 .btn-outline-light{ color:#cbd5e1; border-color:#334155; }
 .btn-outline-light:hover{ background:#1f2937; border-color:#475569; }
 .btn-primary{ background:#2563eb; border-color:#2563eb; }
@@ -71,7 +71,6 @@
 .text-muted, .subtle, .small.text-muted{ color:#94a3b8 !important; }
 
 /* ---------- Tables ---------- */
-/* Bootstrap dark table base */
 .table-dark{
   --bs-table-bg: #0b1220;
   --bs-table-striped-bg: #101a2e;
@@ -80,14 +79,13 @@
 }
 .table td, .table th{ border-color:#1e2f4d !important; }
 
-/* Force a dark header with white text */
 .board-analytics-container .table-dark thead th{
   background:#0f2234 !important;
   color:#e6f0ff !important;
   border:0 !important;
 }
 
-/* ---------- Leaderboard-style table (if you use it for Summary) ---------- */
+/* ---------- Leaderboard ---------- */
 .leaderboard-glass{
   background: radial-gradient(900px 380px at 8% -10%, rgba(0,255,170,.08), transparent 60%),
               linear-gradient(180deg, rgba(13,31,47,.78), rgba(10,23,36,.68));
@@ -125,21 +123,22 @@
 .team-name{ font-weight:800; letter-spacing:.2px; text-align:left; }
 .pos{ color:#c9ffef; } .neg{ color:#ffc2c2; } .warn{ color:#ffe680; }
 
-/* ---------- Recharts dark theme tweaks ---------- */
-/* Axis / legend text */
+/* ---------- Recharts dark theme ---------- */
 .recharts-cartesian-axis-tick text,
 .recharts-legend-item-text,
 .recharts-polar-angle-axis-tick text,
 .recharts-polar-radius-axis .recharts-polar-radius-axis-tick-value{
   fill:#cbd5e1 !important; font-weight:500;
 }
-/* Grid lines */
 .recharts-cartesian-grid-horizontal line,
 .recharts-cartesian-grid-vertical line,
 .recharts-polar-grid .recharts-polar-grid-angle line,
 .recharts-polar-grid .recharts-polar-grid-concentric path{ stroke:#223454 !important; }
-/* Bar labels */
 .recharts-label-list text{ fill:#e6f0ff !important; font-weight:700; }
+
+/* Remove bar hover glow/highlight globally (belt & suspenders with no Tooltip) */
+.recharts-bar-rectangle:hover path,
+.recharts-rectangle:hover { opacity: 1 !important; filter: none !important; }
 
 /* ---------- Info modal ---------- */
 .info-btn{ background:transparent; border:0; color:#93c5fd; display:inline-flex; align-items:center; cursor:pointer; }
@@ -149,7 +148,7 @@
 .info-modal-title{ font-weight:700; color:#f1f5f9; margin-bottom:.5rem; }
 .soft-scroll{ max-height:150px; overflow-y:auto; }
 
-/* ---------- React-Select (optional) ---------- */
+/* ---------- React-Select ---------- */
 .rs__control, .rs__menu{ font-size:14px; }
 .rs__multi-value__label{ font-size:13px; }
 
@@ -168,11 +167,8 @@
 }
 
 /* =========================================================
-   HALL OF FAME — scoped styles (NEW)
-   These styles power the tabs + cabinet + trophy chain + cards
+   HALL OF FAME — scoped styles
    ========================================================= */
-
-/* ===== Tabs ===== */
 .tabs-nav{ display:flex; gap:.5rem; }
 .tab-pill{
   border:1px solid #1b2a41; background:#0e1726; color:#cfe5ff;
@@ -180,7 +176,6 @@
 }
 .tab-pill.active{ background:#14233a; border-color:#2b466f; color:#fff; }
 
-/* ===== Hall of Fame: Cabinet ===== */
 .hof-cabinet{ display:grid; gap:14px; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); }
 .hof-cabinet-col{ background:#0b1220; border:1px solid #1b2a41; border-radius:12px; padding:.75rem; }
 .hof-cabinet-title{ font-weight:800; color:#cfe5ff; margin-bottom:.4rem; }
@@ -191,7 +186,6 @@
   padding:.25rem .5rem; font-weight:700; display:inline-flex; align-items:center;
 }
 
-/* ===== Hall of Fame: Trophy Chain ===== */
 .hof-chain{
   overflow-x:auto; padding:8px 4px; display:flex; gap:22px;
   scroll-snap-type: x proximity;
@@ -222,7 +216,6 @@
 .hof-chain-sub{ color:#d6e3f5; }
 .hof-chain-board{ color:#93c5fd; font-weight:700; margin-top:.25rem; }
 
-/* ===== Hall of Fame: Wall cards ===== */
 .hof-grid{ display:grid; gap:16px; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); }
 .hof-card{
   background:linear-gradient(180deg, rgba(17,32,48,.7), rgba(10,23,35,.6));
@@ -239,12 +232,12 @@
 .hof-card-remarks{ margin-top:.35rem; color:#9fb2c7; font-style:italic; }
 .hof-card-actions{ margin-top:.6rem; text-align:right; }
 
-/* ===== Hall of Fame: Mobile chain behavior ===== */
 @media (max-width: 680px){
   .hof-chain{ flex-direction:column; }
   .hof-chain-item{ width:100%; }
   .hof-chain-item::after{ display:none; }
 }
+
 /* Make date pickers white/visible on dark */
 .light-date{
   background:#ffffff !important;

@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import Select from "react-select";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LabelList,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, LabelList,
   AreaChart, Area, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Cell,
   LineChart, Line
 } from "recharts";
@@ -12,6 +12,7 @@ import "./BoardAnalyticsPro.css";
 
 const API = "https://cricket-scoreboard-backend.onrender.com";
 const PALETTE = ["#22c55e","#3b82f6","#ef4444","#a855f7","#f59e0b","#14b8a6","#f43f5e","#8b5cf6","#10b981","#eab308"];
+const SERIES = { ODI:"#3b82f6", T20:"#10b981", TEST:"#a855f7" }; // distinct, professional colors
 const fmts = ["ALL","ODI","T20","TEST"];
 const months = [
   {v:1,l:"Jan"},{v:2,l:"Feb"},{v:3,l:"Mar"},{v:4,l:"Apr"},{v:5,l:"May"},{v:6,l:"Jun"},
@@ -21,7 +22,7 @@ const nf = (n)=> new Intl.NumberFormat().format(n ?? 0);
 const fmtOrZero = (b, f, k) => Number(b?.formats?.[f]?.[k] ?? 0);
 const pc = (n)=> (isFinite(n) ? Number(n.toFixed(2)) : 0);
 
-/* Info popover (unchanged) */
+/* Info popover */
 function Info({ title, children }) {
   const [open, setOpen] = useState(false);
   return (
@@ -44,7 +45,7 @@ function Info({ title, children }) {
   );
 }
 
-/* Fancy badge (unchanged) */
+/* Crown pill */
 function TopBoardBadge({ name }) {
   if (!name) return null;
   return (
@@ -73,8 +74,8 @@ export default function BoardAnalyticsPro() {
   const [activeTab, setActiveTab] = useState("analytics");
   const [hofWall, setHofWall] = useState([]);
   const [hofStats, setHofStats] = useState({});
-  const [hofMeta, setHofMeta] = useState({ tournaments: [], years: [], teams: [] }); // for filters
-  const [hofAddMeta, setHofAddMeta] = useState({ tournaments: [], teams: [], boards: [] }); // for modal
+  const [hofMeta, setHofMeta] = useState({ tournaments: [], years: [], teams: [] }); // filters
+  const [hofAddMeta, setHofAddMeta] = useState({ tournaments: [], teams: [], boards: [] }); // modal
   const [hofFilters, setHofFilters] = useState({ tournament: "", year: "", team: "" });
   const [hofLoading, setHofLoading] = useState(false);
   const [showHofModal, setShowHofModal] = useState(false);
@@ -172,7 +173,7 @@ export default function BoardAnalyticsPro() {
     });
   }, [summary, activeFmt]);
 
-  // info text (unchanged)
+  // info text
   const scoringInfo = (
     <ul className="mb-0">
       <li><b>ODI/T20</b> — Win: <b>10</b>, Draw: <b>5</b>, Loss: <b>2</b></li>
@@ -267,10 +268,21 @@ export default function BoardAnalyticsPro() {
     setShowHofModal(true);
   };
 
-  // runner-up filters
+  // de-duplicate team list by name (fix duplicate options)
+  const dedupTeams = useMemo(() => {
+    const seen = new Map();
+    (hofAddMeta.teams || []).forEach(t => {
+      const key = String(t.name || "").trim().toLowerCase();
+      if (key && !seen.has(key)) seen.set(key, { id: t.id, name: t.name });
+    });
+    return Array.from(seen.values());
+  }, [hofAddMeta.teams]);
+
+  // runner-up options (distinct and not equal to champion)
   const ruTeamOptions = useMemo(() => {
-    return (hofAddMeta.teams || []).filter(t => String(t.name).toLowerCase() !== String(hofForm.champion_team).toLowerCase());
-  }, [hofAddMeta.teams, hofForm.champion_team]);
+    const champ = String(hofForm.champion_team || "").toLowerCase();
+    return dedupTeams.filter(t => String(t.name).toLowerCase() !== champ);
+  }, [dedupTeams, hofForm.champion_team]);
 
   const ruBoardOptions = useMemo(() => {
     return (hofAddMeta.boards || []).filter(b => String(b.id) !== String(hofForm.champion_board_id || hofForm.board_id));
@@ -430,9 +442,9 @@ export default function BoardAnalyticsPro() {
           </div>
         ) : (
           <>
-            {/* KPI row (unchanged content; spacing tightened a bit by CSS) */}
+            {/* KPI row — trimmed to 3 cards as requested */}
             <div className="row g-3 mb-3">
-              <div className="col-12 col-md-3">
+              <div className="col-12 col-md-4">
                 <div className="card chart-card h-100">
                   <div className="card-body">
                     <div className="kpi-title">Boards Compared <Info title="Boards Compared">How many boards are included in this analysis window.</Info></div>
@@ -440,7 +452,7 @@ export default function BoardAnalyticsPro() {
                   </div>
                 </div>
               </div>
-              <div className="col-12 col-md-3">
+              <div className="col-12 col-md-4">
                 <div className="card chart-card h-100">
                   <div className="card-body">
                     <div className="kpi-title">Total Matches <Info title="Total Matches">Sum of matches across the selected boards and date range.</Info></div>
@@ -448,19 +460,11 @@ export default function BoardAnalyticsPro() {
                   </div>
                 </div>
               </div>
-              <div className="col-12 col-md-3">
+              <div className="col-12 col-md-4">
                 <div className="card chart-card h-100">
                   <div className="card-body">
                     <div className="kpi-title">Total Points <Info title="Board Points (BP)">{scoringInfo}</Info></div>
                     <div className="kpi-value">{nf(summary.data.reduce((a,b)=>a+(b.totals?.points||0),0))}</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-12 col-md-3">
-                <div className="card chart-card h-100">
-                  <div className="card-body d-flex align-items-center gap-2">
-                    <FaMedal className="text-warning"/><div className="subtle-strong">Top Board</div>
-                    <div className="ms-auto fw-semibold">{summary.top_board?.board_name || "—"}</div>
                   </div>
                 </div>
               </div>
@@ -478,7 +482,7 @@ export default function BoardAnalyticsPro() {
                           <CartesianGrid strokeDasharray="3 3" stroke="#233" />
                           <XAxis dataKey="name" />
                           <YAxis />
-                          <Tooltip />
+                          {/* Tooltip removed to eliminate hover highlight */}
                           <Legend />
                           <Bar dataKey="points" name="Points" radius={[10,10,0,0]} activeBar={false}>
                             <LabelList dataKey="points" position="top" />
@@ -501,7 +505,7 @@ export default function BoardAnalyticsPro() {
                           <CartesianGrid strokeDasharray="3 3" stroke="#233" />
                           <XAxis dataKey="name" />
                           <YAxis />
-                          <Tooltip />
+                          {/* Tooltip removed to eliminate hover highlight */}
                           <Legend />
                           <Bar dataKey="Wins" fill="#22c55e" stackId="a" radius={[10,10,0,0]} activeBar={false}>
                             <LabelList dataKey="Wins" position="top" />
@@ -547,7 +551,7 @@ export default function BoardAnalyticsPro() {
                           <CartesianGrid strokeDasharray="3 3" stroke="#233" />
                           <XAxis dataKey="name" />
                           <YAxis />
-                          <Tooltip />
+                          {/* Tooltip removed to eliminate hover highlight */}
                           <Legend />
                           <Bar dataKey="AvgRunMargin" fill="#38bdf8" radius={[10,10,0,0]} activeBar={false}>
                             <LabelList dataKey="AvgRunMargin" position="top" />
@@ -559,7 +563,7 @@ export default function BoardAnalyticsPro() {
                 </div>
               </div>
 
-              {/* Replaced stacked bar with clean multiline chart */}
+              {/* Points by Format — distinct colors & thicker lines */}
               <div className="col-12">
                 <div className="card chart-card">
                   <div className="card-body">
@@ -570,11 +574,12 @@ export default function BoardAnalyticsPro() {
                           <CartesianGrid strokeDasharray="3 3" stroke="#233" />
                           <XAxis dataKey="name" />
                           <YAxis />
-                          <Tooltip />
                           <Legend />
-                          <Line type="monotone" dataKey="ODI"  dot={false} />
-                          <Line type="monotone" dataKey="T20"  dot={false} />
-                          <Line type="monotone" dataKey="TEST" dot={false} />
+                          {/* keep tooltip here for readability */}
+                          {/* Distinct colors + thickness + rounded caps */}
+                          <Line type="monotone" dataKey="ODI"  stroke={SERIES.ODI}  strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 5 }} strokeLinecap="round" />
+                          <Line type="monotone" dataKey="T20"  stroke={SERIES.T20}  strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 5 }} strokeLinecap="round" />
+                          <Line type="monotone" dataKey="TEST" stroke={SERIES.TEST} strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 5 }} strokeLinecap="round" />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -602,8 +607,8 @@ export default function BoardAnalyticsPro() {
                             <CartesianGrid strokeDasharray="3 3" stroke="#233" />
                             <XAxis dataKey="date" />
                             <YAxis />
-                            <Tooltip />
-                            <Area type="monotone" dataKey="points" stroke="#22c55e" fillOpacity={1} fill="url(#grad1)" />
+                            {/* Keep tooltip on timeline */}
+                            <Area type="monotone" dataKey="points" stroke="#22c55e" strokeWidth={2} fillOpacity={1} fill="url(#grad1)" />
                           </AreaChart>
                         </ResponsiveContainer>
                       </div>
@@ -643,7 +648,7 @@ export default function BoardAnalyticsPro() {
               </div>
             ) : null}
 
-            {/* Leaderboard Summary (unchanged) */}
+            {/* Leaderboard Summary */}
             <div className="leaderboard-glass mt-3">
               <div className="lb-header">
                 <div className="lb-title">Summary ({activeFmt})</div>
@@ -859,12 +864,12 @@ export default function BoardAnalyticsPro() {
                       value={hofForm.champion_team_id}
                       onChange={e=>{
                         const id = e.target.value;
-                        const name = hofAddMeta.teams.find(t=>String(t.id)===String(id))?.name || "";
+                        const name = dedupTeams.find(t=>String(t.id)===String(id))?.name || "";
                         setHofForm(f=>({...f, champion_team_id:id, champion_team:name}));
                       }}
                     >
                       <option value="">Select team</option>
-                      {hofAddMeta.teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                      {dedupTeams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                     </select>
                   </div>
                   <div className="col-12 col-md-6">
@@ -885,7 +890,7 @@ export default function BoardAnalyticsPro() {
                       onChange={e=>setHofForm(f=>({...f, champion_board_id:e.target.value}))}
                     >
                       <option value="">Select board</option>
-                      {hofAddMeta.boards.map(b => <option key={b.id} value={b.id}>{b.board_name}</option>)}
+                      {(hofAddMeta.boards||[]).map(b => <option key={b.id} value={b.id}>{b.board_name}</option>)}
                     </select>
                   </div>
                   <div className="col-12 col-md-6">
