@@ -166,3 +166,82 @@
   .kpi-value{ font-size:1.35rem; }
   .leaderboard-table thead th, .leaderboard-table tbody td{ font-size:14px; padding:10px 8px; }
 }
+
+/* =========================================================
+   HALL OF FAME — scoped styles (NEW)
+   These styles power the tabs + cabinet + trophy chain + cards
+   ========================================================= */
+
+/* ===== Tabs ===== */
+.tabs-nav{ display:flex; gap:.5rem; }
+.tab-pill{
+  border:1px solid #1b2a41; background:#0e1726; color:#cfe5ff;
+  padding:.4rem .8rem; border-radius:999px; cursor:pointer; font-weight:700;
+}
+.tab-pill.active{ background:#14233a; border-color:#2b466f; color:#fff; }
+
+/* ===== Hall of Fame: Cabinet ===== */
+.hof-cabinet{ display:grid; gap:14px; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); }
+.hof-cabinet-col{ background:#0b1220; border:1px solid #1b2a41; border-radius:12px; padding:.75rem; }
+.hof-cabinet-title{ font-weight:800; color:#cfe5ff; margin-bottom:.4rem; }
+.hof-cabinet-badges{ display:flex; flex-wrap:wrap; gap:.5rem; }
+.hof-badge{
+  background:linear-gradient(90deg,#241a00,#3c2b00);
+  color:#ffd166; border:1px solid #5b3d00; border-radius:999px;
+  padding:.25rem .5rem; font-weight:700; display:inline-flex; align-items:center;
+}
+
+/* ===== Hall of Fame: Trophy Chain ===== */
+.hof-chain{
+  overflow-x:auto; padding:8px 4px; display:flex; gap:22px;
+  scroll-snap-type: x proximity;
+}
+.hof-chain-item{
+  min-width: 280px; max-width: 320px; flex: 0 0 auto;
+  background: linear-gradient(180deg, rgba(17,32,48,.72), rgba(10,23,35,.6));
+  border:1px solid rgba(255,255,255,.07); border-radius:16px;
+  padding:.75rem .8rem; position:relative; scroll-snap-align: start;
+  box-shadow:0 12px 28px rgba(0,0,0,.35);
+}
+.hof-chain-item::after{
+  content:""; position:absolute; top:50%; right:-22px; width:22px; height:2px;
+  background: linear-gradient(90deg, rgba(88,166,255,.35), rgba(88,166,255,0));
+}
+.hof-chain-item.last::after{ display:none; }
+
+.hof-chain-trophy{
+  width:42px; height:42px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background: radial-gradient(120% 120% at 30% 20%, rgba(255,214,102,.35), transparent 60%), #241a00;
+  border:1px solid #5b3d00; color:#ffd166; box-shadow: inset 0 0 8px rgba(255,214,102,.22);
+  margin-bottom:.5rem;
+}
+.hof-chain-content .hof-chain-title{ font-weight:900; color:#fce68a; font-size:1.05rem; }
+.hof-chain-content .hof-chain-meta{ color:#bcd2ea; display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
+.hof-chain-content .hof-chain-meta .dot{ opacity:.6; }
+.hof-chain-sub{ color:#d6e3f5; }
+.hof-chain-board{ color:#93c5fd; font-weight:700; margin-top:.25rem; }
+
+/* ===== Hall of Fame: Wall cards ===== */
+.hof-grid{ display:grid; gap:16px; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); }
+.hof-card{
+  background:linear-gradient(180deg, rgba(17,32,48,.7), rgba(10,23,35,.6));
+  border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:.8rem;
+  box-shadow:0 10px 24px rgba(0,0,0,.35);
+}
+.hof-card-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:.4rem; }
+.hof-card-board{ font-weight:800; color:#eaf6ff; }
+.hof-card-type{ font-weight:700; color:#93c5fd; }
+.hof-card-champ{ font-weight:900; color:#fce68a; font-size:1.1rem; display:flex; align-items:center; }
+.hof-card-sub{ color:#bcd2ea; }
+.hof-card-runner{ color:#d6e3f5; }
+.hof-card-date{ color:#9fb2c7; }
+.hof-card-remarks{ margin-top:.35rem; color:#9fb2c7; font-style:italic; }
+.hof-card-actions{ margin-top:.6rem; text-align:right; }
+
+/* ===== Hall of Fame: Mobile chain behavior ===== */
+@media (max-width: 680px){
+  .hof-chain{ flex-direction:column; }
+  .hof-chain-item{ width:100%; }
+  .hof-chain-item::after{ display:none; }
+}
