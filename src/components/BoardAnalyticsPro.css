@@ -245,3 +245,17 @@
   .hof-chain-item{ width:100%; }
   .hof-chain-item::after{ display:none; }
 }
+/* Make date pickers white/visible on dark */
+.light-date{
+  background:#ffffff !important;
+  color:#0b1220 !important;
+  border:1px solid #cbd5e1 !important;
+}
+.light-date:focus{
+  background:#ffffff !important;
+  color:#0b1220 !important;
+  border-color:#60a5fa !important;
+}
+
+/* Slightly tighter KPI cards */
+.chart-card .card-body { padding: .85rem 1rem; }

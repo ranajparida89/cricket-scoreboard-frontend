@@ -4,7 +4,8 @@ import axios from "axios";
 import Select from "react-select";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LabelList,
-  AreaChart, Area, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Cell
+  AreaChart, Area, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Cell,
+  LineChart, Line
 } from "recharts";
 import { FaCrown, FaPlay, FaSyncAlt, FaMedal, FaInfoCircle, FaTrophy, FaTrash } from "react-icons/fa";
 import "./BoardAnalyticsPro.css";
@@ -12,11 +13,15 @@ import "./BoardAnalyticsPro.css";
 const API = "https://cricket-scoreboard-backend.onrender.com";
 const PALETTE = ["#22c55e","#3b82f6","#ef4444","#a855f7","#f59e0b","#14b8a6","#f43f5e","#8b5cf6","#10b981","#eab308"];
 const fmts = ["ALL","ODI","T20","TEST"];
+const months = [
+  {v:1,l:"Jan"},{v:2,l:"Feb"},{v:3,l:"Mar"},{v:4,l:"Apr"},{v:5,l:"May"},{v:6,l:"Jun"},
+  {v:7,l:"Jul"},{v:8,l:"Aug"},{v:9,l:"Sep"},{v:10,l:"Oct"},{v:11,l:"Nov"},{v:12,l:"Dec"}
+];
 const nf = (n)=> new Intl.NumberFormat().format(n ?? 0);
 const fmtOrZero = (b, f, k) => Number(b?.formats?.[f]?.[k] ?? 0);
 const pc = (n)=> (isFinite(n) ? Number(n.toFixed(2)) : 0);
 
-/* ——— Tiny “i” popover ——— */
+/* Info popover (unchanged) */
 function Info({ title, children }) {
   const [open, setOpen] = useState(false);
   return (
@@ -39,7 +44,7 @@ function Info({ title, children }) {
   );
 }
 
-/* ——— Fancy Top Board badge ——— */
+/* Fancy badge (unchanged) */
 function TopBoardBadge({ name }) {
   if (!name) return null;
   return (
@@ -54,7 +59,7 @@ function TopBoardBadge({ name }) {
 }
 
 export default function BoardAnalyticsPro() {
-  // ====== shared analytics state ======
+  // ====== analytics state ======
   const [boards, setBoards] = useState([]);
   const [selected, setSelected] = useState([]);
   const [from, setFrom] = useState("");
@@ -65,17 +70,20 @@ export default function BoardAnalyticsPro() {
   const [timeline, setTimeline] = useState(null);
 
   // ====== hall of fame state ======
-  const [activeTab, setActiveTab] = useState("analytics"); // "analytics" | "hall"
+  const [activeTab, setActiveTab] = useState("analytics");
   const [hofWall, setHofWall] = useState([]);
-  const [hofStats, setHofStats] = useState({}); // byBoard: { [board_id]: [{champion_team, titles}] }
-  const [hofMeta, setHofMeta] = useState({ tournaments: [], years: [], teams: [] });
+  const [hofStats, setHofStats] = useState({});
+  const [hofMeta, setHofMeta] = useState({ tournaments: [], years: [], teams: [] }); // for filters
+  const [hofAddMeta, setHofAddMeta] = useState({ tournaments: [], teams: [], boards: [] }); // for modal
   const [hofFilters, setHofFilters] = useState({ tournament: "", year: "", team: "" });
   const [hofLoading, setHofLoading] = useState(false);
   const [showHofModal, setShowHofModal] = useState(false);
   const [hofForm, setHofForm] = useState({
     board_id: "", match_name: "", match_type: "T20",
     tournament_name: "", season_year: new Date().getFullYear(),
-    champion_team: "", runner_up_team: "", final_date: "", remarks: ""
+    season_month: "", champion_team: "", champion_team_id: "",
+    champion_board_id: "", runner_up_board_id: "",
+    runner_up_team: "", final_date: "", remarks: ""
   });
 
   useEffect(() => {
@@ -142,7 +150,7 @@ export default function BoardAnalyticsPro() {
   const pointsData   = useMemo(()=> rows.map(r=>({ name:r.name, points:r.points, color:colorMap.get(r.id) })), [rows, colorMap]);
   const outcomesData = useMemo(()=> rows.map(r=>({ name:r.name, Wins:r.wins, Draws:r.draws, Losses:r.losses })), [rows]);
   const radarData    = useMemo(()=> rows.map(r=>({ board:r.name, WinPct:r.win_pct })), [rows]);
-  const perFormatStack = useMemo(()=> {
+  const perFormatLine = useMemo(()=> {
     if (!summary?.data) return [];
     return summary.data.map(b=>({
       name: b.board_name,
@@ -164,20 +172,17 @@ export default function BoardAnalyticsPro() {
     });
   }, [summary, activeFmt]);
 
-  // helpful strings for the info popups
+  // info text (unchanged)
   const scoringInfo = (
     <ul className="mb-0">
       <li><b>ODI/T20</b> — Win: <b>10</b>, Draw: <b>5</b>, Loss: <b>2</b></li>
       <li><b>Test</b> — Win: <b>18</b>, Draw: <b>9</b>, Loss: <b>4</b></li>
-      <li>“Board Points” = sum of points by matches for selected format(s).</li>
+      <li>“Board Points” also include any <b>Champion Bonus</b> (25 ODI/T20, 50 Test).</li>
     </ul>
   );
   const timelineInfo = (
     <ul className="mb-0">
-      <li>We add each day’s points to a running total.</li>
-      <li>The chart shows the <b>current leader’s cumulative points</b> across time.</li>
-      <li><b>Switches</b> = how many times a new leader took the crown.</li>
-      <li><b>Days Held</b> = number of days a board stayed on top.</li>
+      <li>Daily cumulative leader including champion bonuses on their award dates.</li>
     </ul>
   );
 
@@ -204,6 +209,17 @@ export default function BoardAnalyticsPro() {
         tournaments: data.tournaments || [],
         years: data.years || [],
         teams: data.teams || []
+      });
+    } catch (e) { console.error(e); }
+  };
+
+  const loadHOFAddMeta = async () => {
+    try {
+      const { data } = await axios.get(`${API}/api/boards/hof/meta`);
+      setHofAddMeta({
+        tournaments: data.tournaments || [],
+        teams: data.teams || [],
+        boards: data.boards || []
       });
     } catch (e) { console.error(e); }
   };
@@ -236,6 +252,30 @@ export default function BoardAnalyticsPro() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, selected.join(","), hofFilters.tournament, hofFilters.year, hofFilters.team]);
 
+  // open HOF modal
+  const openHofModal = async () => {
+    await loadHOFAddMeta();
+    setHofForm(f => ({
+      ...f,
+      board_id: selected[0] || "",
+      champion_board_id: selected[0] || "",
+      match_type: "T20",
+      season_year: new Date().getFullYear(),
+      season_month: "",
+      final_date: ""
+    }));
+    setShowHofModal(true);
+  };
+
+  // runner-up filters
+  const ruTeamOptions = useMemo(() => {
+    return (hofAddMeta.teams || []).filter(t => String(t.name).toLowerCase() !== String(hofForm.champion_team).toLowerCase());
+  }, [hofAddMeta.teams, hofForm.champion_team]);
+
+  const ruBoardOptions = useMemo(() => {
+    return (hofAddMeta.boards || []).filter(b => String(b.id) !== String(hofForm.champion_board_id || hofForm.board_id));
+  }, [hofAddMeta.boards, hofForm.champion_board_id, hofForm.board_id]);
+
   return (
     <div className="board-analytics-container">
       <div className="d-flex align-items-center justify-content-between mb-3">
@@ -251,7 +291,7 @@ export default function BoardAnalyticsPro() {
         <button className={`tab-pill ${activeTab==='hall' ? 'active':''}`} onClick={()=>setActiveTab('hall')}>Hall of Fame</button>
       </div>
 
-      {/* Filters Row (shared Boards; Analytics also has dates/format) */}
+      {/* Filters Row */}
       <div className="row g-3 mb-3">
         <div className="col-12 col-lg-5">
           <div className="card chart-card h-100">
@@ -287,7 +327,7 @@ export default function BoardAnalyticsPro() {
               <div className="card chart-card h-100">
                 <div className="card-body">
                   <div className="filter-title">From</div>
-                  <input type="date" className="form-control dark-input" value={from} onChange={e=>setFrom(e.target.value)}/>
+                  <input type="date" className="form-control light-date" value={from} onChange={e=>setFrom(e.target.value)}/>
                 </div>
               </div>
             </div>
@@ -296,7 +336,7 @@ export default function BoardAnalyticsPro() {
               <div className="card chart-card h-100">
                 <div className="card-body">
                   <div className="filter-title">To</div>
-                  <input type="date" className="form-control dark-input" value={to} onChange={e=>setTo(e.target.value)}/>
+                  <input type="date" className="form-control light-date" value={to} onChange={e=>setTo(e.target.value)}/>
                 </div>
               </div>
             </div>
@@ -326,7 +366,7 @@ export default function BoardAnalyticsPro() {
             </div>
           </>
         ) : (
-          // Hall of Fame filter row (Tournament / Year / Team)
+          // Hall of Fame filter row
           <div className="col-12 col-lg-7">
             <div className="card chart-card h-100">
               <div className="card-body">
@@ -341,9 +381,7 @@ export default function BoardAnalyticsPro() {
                       onChange={e=>setHofFilters(f=>({...f, tournament: e.target.value}))}
                     />
                     <datalist id="hof-tournaments">
-                      {(hofMeta.tournaments||[]).map(t=>(
-                        <option key={t.key} value={t.label} />
-                      ))}
+                      {(hofMeta.tournaments||[]).map(t=>(<option key={t.key} value={t.label} />))}
                     </datalist>
                   </div>
                   <div className="col-6 col-md-3">
@@ -366,9 +404,7 @@ export default function BoardAnalyticsPro() {
                       onChange={e=>setHofFilters(f=>({...f, team: e.target.value}))}
                     />
                     <datalist id="hof-teams">
-                      {(hofMeta.teams||[]).map(t=>(
-                        <option key={t.key} value={t.label} />
-                      ))}
+                      {(hofMeta.teams||[]).map(t=>(<option key={t.key} value={t.label} />))}
                     </datalist>
                   </div>
                 </div>
@@ -378,13 +414,7 @@ export default function BoardAnalyticsPro() {
                     {hofLoading ? <FaSyncAlt className="me-1 spin"/> : <FaSyncAlt className="me-1"/>}
                     Refresh
                   </button>
-                  <button className="btn btn-primary btn-sm"
-                    onClick={()=>{
-                      setHofForm(f=>({...f, board_id: selected[0] || "", match_type:"T20", season_year: new Date().getFullYear(), final_date:""}));
-                      setShowHofModal(true);
-                    }}
-                    disabled={!selected.length}
-                  >+ Add Entry</button>
+                  <button className="btn btn-primary btn-sm" onClick={openHofModal} disabled={!selected.length}>+ Add Entry</button>
                 </div>
               </div>
             </div>
@@ -400,7 +430,7 @@ export default function BoardAnalyticsPro() {
           </div>
         ) : (
           <>
-            {/* KPI Cards */}
+            {/* KPI row (unchanged content; spacing tightened a bit by CSS) */}
             <div className="row g-3 mb-3">
               <div className="col-12 col-md-3">
                 <div className="card chart-card h-100">
@@ -421,12 +451,7 @@ export default function BoardAnalyticsPro() {
               <div className="col-12 col-md-3">
                 <div className="card chart-card h-100">
                   <div className="card-body">
-                    <div className="kpi-title">Total Points <Info title="Board Points (BP)">
-                      <ul className="mb-0">
-                        <li><b>ODI/T20</b> Win 10 • Draw 5 • Loss 2</li>
-                        <li><b>Test</b> Win 18 • Draw 9 • Loss 4</li>
-                      </ul>
-                    </Info></div>
+                    <div className="kpi-title">Total Points <Info title="Board Points (BP)">{scoringInfo}</Info></div>
                     <div className="kpi-value">{nf(summary.data.reduce((a,b)=>a+(b.totals?.points||0),0))}</div>
                   </div>
                 </div>
@@ -455,7 +480,7 @@ export default function BoardAnalyticsPro() {
                           <YAxis />
                           <Tooltip />
                           <Legend />
-                          <Bar dataKey="points" name="Points" radius={[10,10,0,0]}>
+                          <Bar dataKey="points" name="Points" radius={[10,10,0,0]} activeBar={false}>
                             <LabelList dataKey="points" position="top" />
                             {pointsData.map((d,i)=> <Cell key={i} fill={d.color} />)}
                           </Bar>
@@ -469,7 +494,7 @@ export default function BoardAnalyticsPro() {
               <div className="col-12 col-lg-6">
                 <div className="card chart-card">
                   <div className="card-body">
-                    <div className="chart-title">Wins / Draws / Losses <Info title="W/D/L">Counts of outcomes for the selected format (or ALL). Draw may include tie/no result/abandoned.</Info></div>
+                    <div className="chart-title">Wins / Draws / Losses <Info title="W/D/L">Counts of outcomes for the selected format (or ALL).</Info></div>
                     <div className="chart-frame">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={outcomesData}>
@@ -478,13 +503,13 @@ export default function BoardAnalyticsPro() {
                           <YAxis />
                           <Tooltip />
                           <Legend />
-                          <Bar dataKey="Wins" fill="#22c55e" stackId="a" radius={[10,10,0,0]}>
+                          <Bar dataKey="Wins" fill="#22c55e" stackId="a" radius={[10,10,0,0]} activeBar={false}>
                             <LabelList dataKey="Wins" position="top" />
                           </Bar>
-                          <Bar dataKey="Draws" fill="#eab308" stackId="a" radius={[10,10,0,0]}>
+                          <Bar dataKey="Draws" fill="#eab308" stackId="a" radius={[10,10,0,0]} activeBar={false}>
                             <LabelList dataKey="Draws" position="top" />
                           </Bar>
-                          <Bar dataKey="Losses" fill="#ef4444" stackId="a" radius={[10,10,0,0]}>
+                          <Bar dataKey="Losses" fill="#ef4444" stackId="a" radius={[10,10,0,0]} activeBar={false}>
                             <LabelList dataKey="Losses" position="top" />
                           </Bar>
                         </BarChart>
@@ -497,7 +522,7 @@ export default function BoardAnalyticsPro() {
               <div className="col-12 col-lg-6">
                 <div className="card chart-card">
                   <div className="card-body">
-                    <div className="chart-title">Win % Radar <Info title="Win %">Percentage of wins out of matches for the active format.</Info></div>
+                    <div className="chart-title">Win % Radar</div>
                     <div className="chart-frame">
                       <ResponsiveContainer width="100%" height="100%">
                         <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="80%">
@@ -515,7 +540,7 @@ export default function BoardAnalyticsPro() {
               <div className="col-12 col-lg-6">
                 <div className="card chart-card">
                   <div className="card-body">
-                    <div className="chart-title">Avg Run Margin <Info title="Avg Run Margin">Average of run margins (ODI/T20: |R1-R2|; Test: |(R1+R1_2)-(R2+R2_2)|). In ALL, we average per-format averages.</Info></div>
+                    <div className="chart-title">Avg Run Margin</div>
                     <div className="chart-frame">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={marginData}>
@@ -524,7 +549,7 @@ export default function BoardAnalyticsPro() {
                           <YAxis />
                           <Tooltip />
                           <Legend />
-                          <Bar dataKey="AvgRunMargin" fill="#38bdf8" radius={[10,10,0,0]}>
+                          <Bar dataKey="AvgRunMargin" fill="#38bdf8" radius={[10,10,0,0]} activeBar={false}>
                             <LabelList dataKey="AvgRunMargin" position="top" />
                           </Bar>
                         </BarChart>
@@ -534,28 +559,23 @@ export default function BoardAnalyticsPro() {
                 </div>
               </div>
 
+              {/* Replaced stacked bar with clean multiline chart */}
               <div className="col-12">
                 <div className="card chart-card">
                   <div className="card-body">
-                    <div className="chart-title">Points by Format (stacked) <Info title="Points by Format">{scoringInfo}</Info></div>
+                    <div className="chart-title">Points by Format (line)</div>
                     <div className="chart-frame tall">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={perFormatStack}>
+                        <LineChart data={perFormatLine}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#233" />
                           <XAxis dataKey="name" />
                           <YAxis />
                           <Tooltip />
                           <Legend />
-                          <Bar dataKey="ODI" stackId="fmt" fill="#22c55e" radius={[10,10,0,0]}>
-                            <LabelList dataKey="ODI" position="top" />
-                          </Bar>
-                          <Bar dataKey="T20" stackId="fmt" fill="#3b82f6" radius={[10,10,0,0]}>
-                            <LabelList dataKey="T20" position="top" />
-                          </Bar>
-                          <Bar dataKey="TEST" stackId="fmt" fill="#a855f7" radius={[10,10,0,0]}>
-                            <LabelList dataKey="TEST" position="top" />
-                          </Bar>
-                        </BarChart>
+                          <Line type="monotone" dataKey="ODI"  dot={false} />
+                          <Line type="monotone" dataKey="T20"  dot={false} />
+                          <Line type="monotone" dataKey="TEST" dot={false} />
+                        </LineChart>
                       </ResponsiveContainer>
                     </div>
                   </div>
@@ -594,7 +614,7 @@ export default function BoardAnalyticsPro() {
                 <div className="col-12 col-lg-4">
                   <div className="card chart-card">
                     <div className="card-body">
-                      <div className="chart-title">Timeline Stats <Info title="Timeline Stats">{timelineInfo}</Info></div>
+                      <div className="chart-title">Timeline Stats</div>
                       <div className="small">
                         <div className="d-flex justify-content-between">
                           <span>Total Switches</span>
@@ -623,12 +643,12 @@ export default function BoardAnalyticsPro() {
               </div>
             ) : null}
 
-            {/* Leaderboard-style Summary */}
+            {/* Leaderboard Summary (unchanged) */}
             <div className="leaderboard-glass mt-3">
               <div className="lb-header">
                 <div className="lb-title">Summary ({activeFmt})</div>
                 <Info title="Summary Table">
-                  Per-board totals for Matches, Wins, Draws, Losses, Win% and Points under the selected format.
+                  Per-board totals for Matches, Wins, Draws, Losses, Win% and Points (includes bonuses).
                 </Info>
               </div>
               <div className="leaderboard-table-wrapper">
@@ -663,9 +683,9 @@ export default function BoardAnalyticsPro() {
           </>
         )
       ) : (
-        // ====== HALL OF FAME TAB ======
+        // ====== HALL OF FAME ======
         <div className="row g-3">
-          {/* Trophy Cabinet (3×+ champions) */}
+          {/* Trophy Cabinet */}
           <div className="col-12">
             <div className="card chart-card">
               <div className="card-body">
@@ -713,9 +733,7 @@ export default function BoardAnalyticsPro() {
                     const isLast = idx === hofWall.length - 1;
                     return (
                       <div className={`hof-chain-item ${isLast ? "last" : ""}`} key={item.id}>
-                        <div className="hof-chain-trophy">
-                          <FaTrophy />
-                        </div>
+                        <div className="hof-chain-trophy"><FaTrophy /></div>
                         <div className="hof-chain-content">
                           <div className="hof-chain-title">{item.champion_team}</div>
                           <div className="hof-chain-meta">
@@ -737,7 +755,7 @@ export default function BoardAnalyticsPro() {
             </div>
           </div>
 
-          {/* Hall of Fame Wall (cards) */}
+          {/* Hall of Fame Wall */}
           <div className="col-12">
             <div className="card chart-card">
               <div className="card-body">
@@ -756,7 +774,10 @@ export default function BoardAnalyticsPro() {
                         </div>
                         <div className="hof-card-main">
                           <div className="hof-card-champ"><FaCrown className="me-1 text-warning"/>{item.champion_team}</div>
-                          <div className="hof-card-sub">{item.tournament_name} &middot; {item.season_year}</div>
+                          <div className="hof-card-sub">
+                            {item.tournament_name} &middot; {item.season_year}
+                            {item.season_month ? ` (${months.find(m=>m.v===item.season_month)?.l||item.season_month})` : ""}
+                          </div>
                           {item.runner_up_team ? <div className="hof-card-runner">Runner-up: {item.runner_up_team}</div> : null}
                           {item.final_date ? <div className="hof-card-date">Final: {item.final_date}</div> : null}
                           {item.remarks ? <div className="hof-card-remarks">{item.remarks}</div> : null}
@@ -781,14 +802,14 @@ export default function BoardAnalyticsPro() {
           {/* Add Entry Modal */}
           {showHofModal && (
             <div className="info-modal">
-              <div className="info-modal-body">
+              <div className="info-modal-body" style={{maxWidth: 800}}>
                 <div className="info-modal-title">Add Hall of Fame Entry</div>
                 <div className="row g-3">
                   <div className="col-12 col-md-6">
                     <label className="form-label">Board</label>
                     <select className="form-select dark-input"
                       value={hofForm.board_id}
-                      onChange={e=>setHofForm(f=>({...f, board_id:e.target.value}))}
+                      onChange={e=>setHofForm(f=>({...f, board_id:e.target.value, champion_board_id:e.target.value}))}
                     >
                       <option value="">Select</option>
                       {boards.map(b=><option key={b.board_id} value={b.board_id}>{b.board_name}</option>)}
@@ -809,21 +830,75 @@ export default function BoardAnalyticsPro() {
                       value={hofForm.season_year}
                       onChange={e=>setHofForm(f=>({...f, season_year:e.target.value}))}/>
                   </div>
-                  <div className="col-12">
-                    <label className="form-label">Tournament Name</label>
-                    <input className="form-control dark-input" value={hofForm.tournament_name}
-                      onChange={e=>setHofForm(f=>({...f, tournament_name:e.target.value}))}/>
+
+                  <div className="col-6 col-md-3">
+                    <label className="form-label">Season Month</label>
+                    <select className="form-select dark-input"
+                      value={hofForm.season_month}
+                      onChange={e=>setHofForm(f=>({...f, season_month:e.target.value}))}
+                    >
+                      <option value="">—</option>
+                      {months.map(m=> <option key={m.v} value={m.v}>{m.l}</option>)}
+                    </select>
                   </div>
+
+                  <div className="col-12 col-md-9">
+                    <label className="form-label">Tournament</label>
+                    <select className="form-select dark-input"
+                      value={hofForm.tournament_name}
+                      onChange={e=>setHofForm(f=>({...f, tournament_name:e.target.value}))}
+                    >
+                      <option value="">Select tournament</option>
+                      {hofAddMeta.tournaments.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+
                   <div className="col-12 col-md-6">
                     <label className="form-label">Champion Team</label>
-                    <input className="form-control dark-input" value={hofForm.champion_team}
-                      onChange={e=>setHofForm(f=>({...f, champion_team:e.target.value}))}/>
+                    <select className="form-select dark-input"
+                      value={hofForm.champion_team_id}
+                      onChange={e=>{
+                        const id = e.target.value;
+                        const name = hofAddMeta.teams.find(t=>String(t.id)===String(id))?.name || "";
+                        setHofForm(f=>({...f, champion_team_id:id, champion_team:name}));
+                      }}
+                    >
+                      <option value="">Select team</option>
+                      {hofAddMeta.teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">Runner-up Team</label>
-                    <input className="form-control dark-input" value={hofForm.runner_up_team}
-                      onChange={e=>setHofForm(f=>({...f, runner_up_team:e.target.value}))}/>
+                    <select className="form-select dark-input"
+                      value={hofForm.runner_up_team}
+                      onChange={e=>setHofForm(f=>({...f, runner_up_team:e.target.value}))}
+                    >
+                      <option value="">Select team</option>
+                      {ruTeamOptions.map(t => <option key={t.id} value={t.name}>{t.name}</option>)}
+                    </select>
                   </div>
+
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">Champion Board</label>
+                    <select className="form-select dark-input"
+                      value={hofForm.champion_board_id || hofForm.board_id}
+                      onChange={e=>setHofForm(f=>({...f, champion_board_id:e.target.value}))}
+                    >
+                      <option value="">Select board</option>
+                      {hofAddMeta.boards.map(b => <option key={b.id} value={b.id}>{b.board_name}</option>)}
+                    </select>
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">Runner-up Board</label>
+                    <select className="form-select dark-input"
+                      value={hofForm.runner_up_board_id}
+                      onChange={e=>setHofForm(f=>({...f, runner_up_board_id:e.target.value}))}
+                    >
+                      <option value="">Select board</option>
+                      {ruBoardOptions.map(b => <option key={b.id} value={b.id}>{b.board_name}</option>)}
+                    </select>
+                  </div>
+
                   <div className="col-12 col-md-6">
                     <label className="form-label">Final Date</label>
                     <input className="form-control dark-input" type="date"
@@ -841,8 +916,18 @@ export default function BoardAnalyticsPro() {
                 <div className="d-flex justify-content-end gap-2 mt-3">
                   <button className="btn btn-outline-light btn-sm" onClick={()=>setShowHofModal(false)}>Cancel</button>
                   <button className="btn btn-primary btn-sm" onClick={async ()=>{
-                    if (!hofForm.board_id || !hofForm.tournament_name || !hofForm.champion_team) {
-                      alert("Board, Tournament and Champion are required.");
+                    if (!hofForm.board_id || !hofForm.tournament_name || !hofForm.champion_team_id) {
+                      alert("Board, Tournament and Champion team are required.");
+                      return;
+                    }
+                    if (hofForm.runner_up_team &&
+                        String(hofForm.runner_up_team).toLowerCase() === String(hofForm.champion_team).toLowerCase()) {
+                      alert("Runner-up team cannot be the same as Champion team.");
+                      return;
+                    }
+                    if (hofForm.runner_up_board_id &&
+                        String(hofForm.runner_up_board_id) === String(hofForm.champion_board_id || hofForm.board_id)) {
+                      alert("Runner-up board cannot be the same as Champion board.");
                       return;
                     }
                     try{
