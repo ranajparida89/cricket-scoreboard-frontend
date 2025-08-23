@@ -1,4 +1,6 @@
 // ✅ src/components/PlayerPerformance.js
+// [GPT UPDATE 24-Aug-2025] Auto-calc + lock Fifties/Hundreds from Runs Scored
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
@@ -10,7 +12,6 @@ const API_PERF    = "https://cricket-scoreboard-backend.onrender.com/api/player-
 
 // Try to discover the logged-in user's id from localStorage or JWT
 function getUserIdFromClient() {
-  // common localStorage keys your app might use
   const candidates = ["user", "authUser", "profile"];
   for (const key of candidates) {
     const raw = localStorage.getItem(key);
@@ -22,7 +23,6 @@ function getUserIdFromClient() {
       if (obj?.user_id) return obj.user_id;
     } catch {}
   }
-  // fall back to a JWT token if present
   const token =
     localStorage.getItem("token") ||
     localStorage.getItem("authToken") ||
@@ -30,11 +30,20 @@ function getUserIdFromClient() {
   if (token && token.split(".").length === 3) {
     try {
       const payload = JSON.parse(atob(token.split(".")[1]));
-      // common id claims
       return payload.id || payload.user_id || payload.sub || null;
     } catch {}
   }
   return null;
+}
+
+// [GPT UPDATE] Single source of truth for stats derived from runs scored
+function deriveMilestones(score) {
+  const s = Number.isFinite(score) ? score : 0;
+  if (s >= 50 && s < 100) return { fifties: 1, hundreds: 0 };
+  if (s >= 100 && s < 200) return { fifties: 0, hundreds: 1 };
+  if (s >= 200 && s < 300) return { fifties: 0, hundreds: 2 };
+  if (s >= 300)           return { fifties: 0, hundreds: Math.floor(s / 100) }; // graceful >300
+  return { fifties: 0, hundreds: 0 };
 }
 
 const PlayerPerformance = () => {
@@ -46,15 +55,15 @@ const PlayerPerformance = () => {
     match_name: "",
     player_id: "",
     team_name: "",
-    match_type: "ODI",      // must be "ODI" | "T20" | "Test"
+    match_type: "ODI",      // "ODI" | "T20" | "Test"
     against_team: "",
     run_scored: 0,
     balls_faced: 0,
     wickets_taken: 0,
     runs_given: 0,
-    fifties: 0,
-    hundreds: 0,
-    dismissed: "Out"        // "Out" | "Not Out"
+    fifties: 0,   // [GPT UPDATE] always derived
+    hundreds: 0,  // [GPT UPDATE] always derived
+    dismissed: "Out"
   });
 
   useEffect(() => {
@@ -73,25 +82,35 @@ const PlayerPerformance = () => {
     })();
   }, []);
 
-  // number validation (same rules you had)
+  // [GPT UPDATE] number validation + auto-derive 50s/100s when runs change
   const handleNumberChange = (e, key) => {
     let value = e.target.value;
     if (value === "") { setForm({ ...form, [key]: "" }); return; }
+
     if (value.includes(".")) {
       if (key === "balls_faced") toast.error("Please enter full number without any dot (.)");
-      else if (["wickets_taken","runs_given","fifties","hundreds"].includes(key))
-        toast.error("Ooops! Only full number allowed no number with dot.");
+      else if (["wickets_taken","runs_given","fifties","hundreds","run_scored"].includes(key))
+        toast.error("Ooops! Only full number allowed, no decimals.");
       return;
     }
+
     const intValue = parseInt(value, 10);
-    if (["balls_faced","wickets_taken","runs_given","fifties","hundreds","run_scored"].includes(key)) {
-      if (isNaN(intValue) || intValue < 0) return;
-      if (key === "wickets_taken" && (form.match_type === "ODI" || form.match_type === "T20") && intValue > 10) {
-        toast.error("Maximum 10 wickets are allowed in a match");
-        return;
-      }
-      setForm({ ...form, [key]: intValue });
+    if (!Number.isInteger(intValue) || intValue < 0) return;
+
+    // wickets upper bound (ODI/T20 only)
+    if (key === "wickets_taken" && (form.match_type === "ODI" || form.match_type === "T20") && intValue > 10) {
+      toast.error("Maximum 10 wickets are allowed in a match");
+      return;
     }
+
+    // [GPT UPDATE] When runs change, lock/update fifties/hundreds automatically
+    if (key === "run_scored") {
+      const { fifties, hundreds } = deriveMilestones(intValue);
+      setForm({ ...form, run_scored: intValue, fifties, hundreds });
+      return;
+    }
+
+    setForm({ ...form, [key]: intValue });
   };
 
   const handleTeamNameChange = (team_name) => {
@@ -119,9 +138,11 @@ const PlayerPerformance = () => {
     }
     if (!window.confirm("Are you sure you want to submit this performance?")) return;
 
-    // Attach user_id if we can detect it
-    const userId = getUserIdFromClient();
-    const payload = { ...form, user_id: userId ?? undefined };
+    // [GPT UPDATE] Ensure we send derived values (defense-in-depth)
+    const { fifties, hundreds } = deriveMilestones(Number(form.run_scored) || 0);
+
+    const userId  = getUserIdFromClient();
+    const payload = { ...form, fifties, hundreds, user_id: userId ?? undefined };
     const headers = userId ? { "x-user-id": String(userId) } : {};
 
     try {
@@ -155,6 +176,10 @@ const PlayerPerformance = () => {
     value !== "" && value !== null && (typeof value === "string" ? value.trim() !== "" : true);
 
   if (loading) return <div className="text-center text-light mt-5">⏳ Loading Players...</div>;
+
+  // [GPT UPDATE] lock flags (we keep them disabled in all cases to avoid accidental edits)
+  const lockFifties  = true;
+  const lockHundreds = true;
 
   return (
     <div className="container mt-4 text-white">
@@ -234,22 +259,26 @@ const PlayerPerformance = () => {
 
           <div className="row">
             {[
-              { label: "Runs Scored", key: "run_scored" },
-              { label: "Ball Faced", key: "balls_faced" },
-              { label: "Wickets Taken", key: "wickets_taken" },
-              { label: "Runs Given", key: "runs_given" },
-              { label: "Fifties", key: "fifties" },
-              { label: "Hundreds", key: "hundreds" },
+              { label: "Runs Scored", key: "run_scored", disabled: false, title: "" },
+              { label: "Ball Faced", key: "balls_faced", disabled: false, title: "" },
+              { label: "Wickets Taken", key: "wickets_taken", disabled: false, title: "" },
+              { label: "Runs Given", key: "runs_given", disabled: false, title: "" },
+              // [GPT UPDATE] Lock these two — always derived from runs
+              { label: "Fifties", key: "fifties", disabled: lockFifties, title: "Auto-calculated from Runs Scored" },
+              { label: "Hundreds", key: "hundreds", disabled: lockHundreds, title: "Auto-calculated from Runs Scored" },
             ].map((f) => (
               <div className="col-md-4 mb-2" key={f.key}>
                 <label>{f.label}</label>
                 <input
                   type="number"
-                  className={`form-control ${isFilled(form[f.key]) ? "field-filled" : ""}`}
+                  className={`form-control ${f.disabled ? "input-locked" : ""} ${isFilled(form[f.key]) ? "field-filled" : ""}`}
                   value={form[f.key]}
                   onChange={(e) => handleNumberChange(e, f.key)}
-                  required
+                  disabled={f.disabled}
+                  title={f.title}
+                  required={!f.disabled}
                 />
+                {f.disabled && <small className="text-muted">Auto</small>}
               </div>
             ))}
 

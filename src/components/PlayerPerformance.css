@@ -37,3 +37,29 @@
 @keyframes fadeIn{
   from{opacity:0; transform: translateY(-6px);} to{opacity:1; transform:none;}
 }
+
+/* ──────────────────────────────────────────────────────────── */
+/* Auto-calculated / disabled fields (Fifties, Hundreds) look  */
+/* greyed and uneditable — keep these at the end of the file.  */
+/* ──────────────────────────────────────────────────────────── */
+
+.input-locked,
+.performance-card input:disabled,
+.performance-card select:disabled{
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.performance-card input:disabled,
+.performance-card select:disabled{
+  background-color: #0c1723;           /* slightly darker than base */
+  border-color: rgba(0,229,255,.18);
+  color: #9bb6c9;
+}
+
+/* If a disabled field also has .field-filled, keep it grey (not green) */
+.performance-card input:disabled.field-filled,
+.performance-card select:disabled.field-filled{
+  background-color: #0c1723 !important;
+  color: #9bb6c9 !important;
+}
