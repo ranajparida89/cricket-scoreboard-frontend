@@ -5,14 +5,14 @@ import Select from "react-select";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, LabelList,
   AreaChart, Area, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Cell,
-  LineChart, Line
+  LineChart, Line, ReferenceLine, Tooltip, Brush
 } from "recharts";
-import { FaCrown, FaPlay, FaSyncAlt, FaMedal, FaInfoCircle, FaTrophy, FaTrash } from "react-icons/fa";
+import { FaCrown, FaPlay, FaSyncAlt, FaInfoCircle, FaTrophy, FaTrash } from "react-icons/fa";
 import "./BoardAnalyticsPro.css";
 
 const API = "https://cricket-scoreboard-backend.onrender.com";
 const PALETTE = ["#22c55e","#3b82f6","#ef4444","#a855f7","#f59e0b","#14b8a6","#f43f5e","#8b5cf6","#10b981","#eab308"];
-const SERIES = { ODI:"#3b82f6", T20:"#10b981", TEST:"#a855f7" }; // distinct, professional colors
+const SERIES = { ODI:"#3b82f6", T20:"#06b6d4", TEST:"#a855f7" }; // T20 moved to cyan for contrast
 const fmts = ["ALL","ODI","T20","TEST"];
 const months = [
   {v:1,l:"Jan"},{v:2,l:"Feb"},{v:3,l:"Mar"},{v:4,l:"Apr"},{v:5,l:"May"},{v:6,l:"Jun"},
@@ -22,7 +22,15 @@ const nf = (n)=> new Intl.NumberFormat().format(n ?? 0);
 const fmtOrZero = (b, f, k) => Number(b?.formats?.[f]?.[k] ?? 0);
 const pc = (n)=> (isFinite(n) ? Number(n.toFixed(2)) : 0);
 
-/* Info popover */
+// util: ISO or ISO-like -> YYYY-MM-DD (clean)
+const cleanISO = (s) => {
+  if (!s) return "";
+  const str = String(s);
+  if (str.includes("T")) return str.slice(0,10);
+  return str;
+};
+
+/* Info popover (modal) */
 function Info({ title, children }) {
   const [open, setOpen] = useState(false);
   return (
@@ -45,12 +53,17 @@ function Info({ title, children }) {
   );
 }
 
-/* Crown pill */
+/* Format chip with high-contrast per type (fixes #2) */
+function FormatChip({ type }) {
+  const fmt = String(type || "").toUpperCase();
+  return <span className={`fmt-chip ${fmt.toLowerCase()}`}>{fmt}</span>;
+}
+
+/* Crown banner — moved to the left of the title so it never collides with page-level X (fixes #3) */
 function TopBoardBadge({ name }) {
   if (!name) return null;
   return (
     <div className="top-board-badge">
-      <span className="tb-glow" />
       <span className="tb-icon">👑</span>
       <span className="tb-label">Crown Holder</span>
       <span className="tb-sep">•</span>
@@ -130,6 +143,11 @@ export default function BoardAnalyticsPro() {
     return m;
   }, [summary]);
 
+  // board name by id
+  const boardName = (id) => boards.find(b=>String(b.board_id)===String(id))?.board_name
+    || summary?.data?.find(x=>String(x.board_id)===String(id))?.board_name
+    || `#${id}`;
+
   // table rows
   const rows = useMemo(()=> {
     if (!summary?.data) return [];
@@ -173,6 +191,17 @@ export default function BoardAnalyticsPro() {
     });
   }, [summary, activeFmt]);
 
+  // dynamic Y ticks for Points-by-Format (fix #5 readability)
+  const yTicks = useMemo(() => {
+    const vals = [];
+    perFormatLine.forEach(r => vals.push(r.ODI, r.T20, r.TEST));
+    const max = Math.max(10, ...vals.map(v => Number(v||0)));
+    const step = Math.max(10, Math.ceil(max/5));
+    const ticks = [];
+    for (let t=0; t<=max+step; t+=step) ticks.push(t);
+    return ticks;
+  }, [perFormatLine]);
+
   // info text
   const scoringInfo = (
     <ul className="mb-0">
@@ -182,9 +211,52 @@ export default function BoardAnalyticsPro() {
     </ul>
   );
   const timelineInfo = (
-    <ul className="mb-0">
-      <li>Daily cumulative leader including champion bonuses on their award dates.</li>
-    </ul>
+    <div>
+      <p><b>Daily Leader Curve.</b> Each day we add the points earned that day (including any Hall-of-Fame champion bonus awarded on its date) and plot the <i>cumulative top board</i>.</p>
+      <ul>
+        <li><b>Hover</b> to see the leading board and its cumulative points on that date.</li>
+        <li>Dates shown on the axis are cleaned and evenly spaced for readability.</li>
+        <li>The right panel summarizes how often leadership changed and how many days a board stayed at #1.</li>
+      </ul>
+    </div>
+  );
+  const radarInfo = (
+    <div>
+      <p><b>Win % Radar.</b> Compares boards by overall win percentage for the selected format filter.</p>
+      <ul>
+        <li>100 = all wins; 0 = no wins.</li>
+        <li>Use the format selector to view per-format performance.</li>
+      </ul>
+    </div>
+  );
+  const marginInfo = (
+    <div>
+      <p><b>Average Run Margin.</b> The average winning margin (in runs) across matches for the selection.</p>
+      <ul>
+        <li>For ALL formats, this is the mean of each format’s average.</li>
+        <li>Higher is generally better; small values indicate tighter contests.</li>
+      </ul>
+    </div>
+  );
+  const byFormatInfo = (
+    <div>
+      <p><b>Points by Format.</b> Total points each board earned in ODI, T20, and Test.</p>
+      <ul>
+        <li>Includes outcome points and champion bonuses.</li>
+        <li>Use the legend to toggle series. The brush lets you focus on a subset of boards.</li>
+        <li>Guidelines and value labels improve quick reading.</li>
+      </ul>
+    </div>
+  );
+  const timelineStatsInfo = (
+    <div>
+      <p><b>Leadership Summary.</b> How the top position changed over the period.</p>
+      <ul>
+        <li><b>Lead Changes</b>: how many times the leader switched.</li>
+        <li><b>Lead Changes by Board</b>: who captured the lead and how often.</li>
+        <li><b>Days at #1</b>: how many days a board stayed on top.</li>
+      </ul>
+    </div>
   );
 
   // react-select dark styles
@@ -290,10 +362,9 @@ export default function BoardAnalyticsPro() {
 
   return (
     <div className="board-analytics-container">
-      <div className="d-flex align-items-center justify-content-between mb-3">
-        <div>
-          <h2 className="analytics-section-title mb-1">CrickEdge • Board Analytics</h2>
-        </div>
+      {/* Header — crown badge moved next to the title (fixes #3) */}
+      <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
+        <h2 className="analytics-section-title mb-0">CrickEdge • Board Analytics</h2>
         <TopBoardBadge name={summary?.top_board?.board_name} />
       </div>
 
@@ -393,7 +464,7 @@ export default function BoardAnalyticsPro() {
                       onChange={e=>setHofFilters(f=>({...f, tournament: e.target.value}))}
                     />
                     <datalist id="hof-tournaments">
-                      {(hofMeta.tournaments||[]).map(t=>(<option key={t.key} value={t.label} />))}
+                      {(hofMeta.tournaments||[]).map(t=>(<option key={t.key || t} value={t.label || t} />))}
                     </datalist>
                   </div>
                   <div className="col-6 col-md-3">
@@ -442,7 +513,7 @@ export default function BoardAnalyticsPro() {
           </div>
         ) : (
           <>
-            {/* KPI row — trimmed to 3 cards as requested */}
+            {/* KPI row */}
             <div className="row g-3 mb-3">
               <div className="col-12 col-md-4">
                 <div className="card chart-card h-100">
@@ -482,8 +553,8 @@ export default function BoardAnalyticsPro() {
                           <CartesianGrid strokeDasharray="3 3" stroke="#233" />
                           <XAxis dataKey="name" />
                           <YAxis />
-                          {/* Tooltip removed to eliminate hover highlight */}
                           <Legend />
+                          <Tooltip formatter={(v)=>[v,"Points"]}/>
                           <Bar dataKey="points" name="Points" radius={[10,10,0,0]} activeBar={false}>
                             <LabelList dataKey="points" position="top" />
                             {pointsData.map((d,i)=> <Cell key={i} fill={d.color} />)}
@@ -505,8 +576,8 @@ export default function BoardAnalyticsPro() {
                           <CartesianGrid strokeDasharray="3 3" stroke="#233" />
                           <XAxis dataKey="name" />
                           <YAxis />
-                          {/* Tooltip removed to eliminate hover highlight */}
                           <Legend />
+                          <Tooltip />
                           <Bar dataKey="Wins" fill="#22c55e" stackId="a" radius={[10,10,0,0]} activeBar={false}>
                             <LabelList dataKey="Wins" position="top" />
                           </Bar>
@@ -526,7 +597,7 @@ export default function BoardAnalyticsPro() {
               <div className="col-12 col-lg-6">
                 <div className="card chart-card">
                   <div className="card-body">
-                    <div className="chart-title">Win % Radar</div>
+                    <div className="chart-title">Win % Radar <Info title="Win % Radar">{radarInfo}</Info></div>
                     <div className="chart-frame">
                       <ResponsiveContainer width="100%" height="100%">
                         <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="80%">
@@ -534,6 +605,8 @@ export default function BoardAnalyticsPro() {
                           <PolarAngleAxis dataKey="board" />
                           <PolarRadiusAxis angle={30} domain={[0, 100]} />
                           <Radar name="Win %" dataKey="WinPct" stroke="#22c55e" fill="#22c55e" fillOpacity={0.35} />
+                          <Legend />
+                          <Tooltip />
                         </RadarChart>
                       </ResponsiveContainer>
                     </div>
@@ -544,15 +617,15 @@ export default function BoardAnalyticsPro() {
               <div className="col-12 col-lg-6">
                 <div className="card chart-card">
                   <div className="card-body">
-                    <div className="chart-title">Avg Run Margin</div>
+                    <div className="chart-title">Avg Run Margin <Info title="Average Run Margin">{marginInfo}</Info></div>
                     <div className="chart-frame">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={marginData}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#233" />
                           <XAxis dataKey="name" />
                           <YAxis />
-                          {/* Tooltip removed to eliminate hover highlight */}
                           <Legend />
+                          <Tooltip />
                           <Bar dataKey="AvgRunMargin" fill="#38bdf8" radius={[10,10,0,0]} activeBar={false}>
                             <LabelList dataKey="AvgRunMargin" position="top" />
                           </Bar>
@@ -563,23 +636,26 @@ export default function BoardAnalyticsPro() {
                 </div>
               </div>
 
-              {/* Points by Format — distinct colors & thicker lines */}
+              {/* Points by Format — modern look (fix #5) */}
               <div className="col-12">
                 <div className="card chart-card">
                   <div className="card-body">
-                    <div className="chart-title">Points by Format (line)</div>
+                    <div className="chart-title">
+                      Points by Format (line) <Info title="Points by Format">{byFormatInfo}</Info>
+                    </div>
                     <div className="chart-frame tall">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={perFormatLine}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#233" />
-                          <XAxis dataKey="name" />
-                          <YAxis />
+                          <CartesianGrid strokeDasharray="4 4" stroke="#233" />
+                          <XAxis dataKey="name" tickMargin={8}/>
+                          <YAxis ticks={yTicks} domain={[0, Math.max(...yTicks)]} />
                           <Legend />
-                          {/* keep tooltip here for readability */}
-                          {/* Distinct colors + thickness + rounded caps */}
+                          <Tooltip />
+                          <ReferenceLine y={0} stroke="#94a3b8" />
                           <Line type="monotone" dataKey="ODI"  stroke={SERIES.ODI}  strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 5 }} strokeLinecap="round" />
-                          <Line type="monotone" dataKey="T20"  stroke={SERIES.T20}  strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 5 }} strokeLinecap="round" />
+                          <Line type="monotone" dataKey="T20"  stroke={SERIES.T20}  strokeWidth={3} strokeDasharray="6 3" dot={{ r: 3 }} activeDot={{ r: 5 }} strokeLinecap="round" />
                           <Line type="monotone" dataKey="TEST" stroke={SERIES.TEST} strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 5 }} strokeLinecap="round" />
+                          <Brush height={18} travellerWidth={8}/>
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -594,7 +670,9 @@ export default function BoardAnalyticsPro() {
                 <div className="col-12 col-lg-8">
                   <div className="card chart-card">
                     <div className="card-body">
-                      <div className="chart-title">Crown Timeline (daily leader) <Info title="Crown Timeline">{timelineInfo}</Info></div>
+                      <div className="chart-title">
+                        Crown Timeline (daily leader) <Info title="Crown Timeline">{timelineInfo}</Info>
+                      </div>
                       <div className="chart-frame tall">
                         <ResponsiveContainer width="100%" height="100%">
                           <AreaChart data={timeline.timeline}>
@@ -605,9 +683,21 @@ export default function BoardAnalyticsPro() {
                               </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" stroke="#233" />
-                            <XAxis dataKey="date" />
+                            <XAxis
+                              dataKey="date"
+                              tickFormatter={(d)=> new Date(d).toLocaleDateString(undefined,{month:"short", day:"2-digit"})}
+                              minTickGap={24}
+                              interval="preserveStartEnd"
+                            />
                             <YAxis />
-                            {/* Keep tooltip on timeline */}
+                            {/* Tooltip enabled again, with clean content (fix #6) */}
+                            <Tooltip
+                              labelFormatter={(d)=> new Date(d).toLocaleDateString(undefined,{year:"numeric", month:"short", day:"2-digit"})}
+                              formatter={(v, _k, p)=>{
+                                const bn = boardName(p?.payload?.board_id);
+                                return [nf(v), `Leader: ${bn}`];
+                              }}
+                            />
                             <Area type="monotone" dataKey="points" stroke="#22c55e" strokeWidth={2} fillOpacity={1} fill="url(#grad1)" />
                           </AreaChart>
                         </ResponsiveContainer>
@@ -619,25 +709,27 @@ export default function BoardAnalyticsPro() {
                 <div className="col-12 col-lg-4">
                   <div className="card chart-card">
                     <div className="card-body">
-                      <div className="chart-title">Timeline Stats</div>
+                      <div className="chart-title">
+                        Leadership Summary <Info title="Leadership Summary">{timelineStatsInfo}</Info>
+                      </div>
                       <div className="small">
                         <div className="d-flex justify-content-between">
-                          <span>Total Switches</span>
+                          <span>Lead Changes</span>
                           <strong>{Object.values(timeline.switches||{}).reduce((a,b)=>a+Number(b||0),0)}</strong>
                         </div>
                         <hr/>
-                        <div className="mb-1 subtle-strong">By Board (switches)</div>
+                        <div className="mb-1 subtle-strong">Lead Changes by Board</div>
                         <ul className="list-unstyled soft-scroll">
                           {Object.entries(timeline.switches||{}).map(([bid,c])=>{
-                            const name = summary?.data?.find(x=>String(x.board_id)===String(bid))?.board_name || `#${bid}`;
+                            const name = boardName(bid);
                             return <li key={bid} className="d-flex justify-content-between"><span>{name}</span><span className="text-success">{c}</span></li>;
                           })}
                         </ul>
                         <hr/>
-                        <div className="mb-1 subtle-strong">Days Held (Top)</div>
+                        <div className="mb-1 subtle-strong">Days at #1</div>
                         <ul className="list-unstyled soft-scroll">
                           {Object.entries(timeline.days_held||{}).map(([bid,c])=>{
-                            const name = summary?.data?.find(x=>String(x.board_id)===String(bid))?.board_name || `#${bid}`;
+                            const name = boardName(bid);
                             return <li key={bid} className="d-flex justify-content-between"><span>{name}</span><span className="text-info">{c}</span></li>;
                           })}
                         </ul>
@@ -700,11 +792,11 @@ export default function BoardAnalyticsPro() {
                 </div>
                 <div className="hof-cabinet">
                   {selected.map(bid => {
-                    const boardName = boards.find(b=>String(b.board_id)===String(bid))?.board_name || `#${bid}`;
+                    const boardNameTxt = boardName(bid);
                     const items = hofStats[bid] || [];
                     return (
                       <div className="hof-cabinet-col" key={bid}>
-                        <div className="hof-cabinet-title">{boardName}</div>
+                        <div className="hof-cabinet-title">{boardNameTxt}</div>
                         <div className="hof-cabinet-badges">
                           {items.length ? items.map((it, i)=>(
                             <div className="hof-badge" key={i} title={`${it.champion_team}: ${it.titles} titles`}>
@@ -733,8 +825,8 @@ export default function BoardAnalyticsPro() {
                   {hofLoading ? (
                     <div className="subtle">Loading…</div>
                   ) : (hofWall.length ? hofWall.map((item, idx) => {
-                    const boardName = boards.find(b=>b.board_id===item.board_id)?.board_name || `#${item.board_id}`;
-                    const dateStr = item.final_date || item.season_year;
+                    const bName = boardName(item.board_id);
+                    const dateStr = cleanISO(item.final_date) || item.season_year;
                     const isLast = idx === hofWall.length - 1;
                     return (
                       <div className={`hof-chain-item ${isLast ? "last" : ""}`} key={item.id}>
@@ -742,7 +834,7 @@ export default function BoardAnalyticsPro() {
                         <div className="hof-chain-content">
                           <div className="hof-chain-title">{item.champion_team}</div>
                           <div className="hof-chain-meta">
-                            <span className="badge bg-primary bg-opacity-25 text-info me-1">{item.match_type}</span>
+                            <FormatChip type={item.match_type} />
                             <span className="text">{item.tournament_name}</span>
                             <span className="dot">•</span>
                             <span className="text">{dateStr}</span>
@@ -750,7 +842,7 @@ export default function BoardAnalyticsPro() {
                           {item.runner_up_team ? (
                             <div className="hof-chain-sub">Runner-up: <b>{item.runner_up_team}</b></div>
                           ) : null}
-                          <div className="hof-chain-board">{boardName}</div>
+                          <div className="hof-chain-board">{bName}</div>
                         </div>
                       </div>
                     );
@@ -770,12 +862,12 @@ export default function BoardAnalyticsPro() {
                 </div>
                 <div className="hof-grid">
                   {hofWall.map(item => {
-                    const bName = boards.find(b=>b.board_id===item.board_id)?.board_name || `#${item.board_id}`;
+                    const bName = boardName(item.board_id);
                     return (
                       <div className="hof-card" key={item.id}>
                         <div className="hof-card-top">
                           <div className="hof-card-board">{bName}</div>
-                          <div className="hof-card-type">{item.match_type}</div>
+                          <div className="hof-card-type"><FormatChip type={item.match_type} /></div>
                         </div>
                         <div className="hof-card-main">
                           <div className="hof-card-champ"><FaCrown className="me-1 text-warning"/>{item.champion_team}</div>
@@ -784,7 +876,7 @@ export default function BoardAnalyticsPro() {
                             {item.season_month ? ` (${months.find(m=>m.v===item.season_month)?.l||item.season_month})` : ""}
                           </div>
                           {item.runner_up_team ? <div className="hof-card-runner">Runner-up: {item.runner_up_team}</div> : null}
-                          {item.final_date ? <div className="hof-card-date">Final: {item.final_date}</div> : null}
+                          {item.final_date ? <div className="hof-card-date">Final: {cleanISO(item.final_date)}</div> : null}
                           {item.remarks ? <div className="hof-card-remarks">{item.remarks}</div> : null}
                         </div>
                         <div className="hof-card-actions">
