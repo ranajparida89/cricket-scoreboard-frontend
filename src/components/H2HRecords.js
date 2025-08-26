@@ -68,7 +68,7 @@ export default function H2HRecords() {
   const [player2, setPlayer2] = useState("");
   const [playerStats, setPlayerStats] = useState(null);
 
-  // NEW: Leaderboards filters
+  // Leaderboards filters
   const [lbType, setLbType] = useState("ALL");
   const [lbTournament, setLbTournament] = useState("ALL");
   const [lbYear, setLbYear] = useState("ALL");
@@ -85,17 +85,17 @@ export default function H2HRecords() {
   useEffect(() => {
     fetchJSON(`${API}/api/h2h/teams`, []).then(d => setTeams(arr(d)));
     fetchJSON(`${API}/api/players/list`, []).then(d => setPlayers(arr(d)));
-    // seed meta for leaderboards
-    fetchJSON(`${API}/api/meta/tournaments?type=${lbType}`, []).then(d => setTournaments(["ALL", ...arr(d)]));
-    fetchJSON(`${API}/api/meta/years?type=${lbType}`, []).then(d => setYears(["ALL", ...arr(d)]));
+    // seed meta for leaderboards (correct base path under /api/h2h)
+    fetchJSON(`${API}/api/h2h/meta/tournaments?type=${lbType}`, []).then(d => setTournaments(["ALL", ...arr(d)]));
+    fetchJSON(`${API}/api/h2h/meta/years?type=${lbType}`, []).then(d => setYears(["ALL", ...arr(d)]));
   }, []);
 
   // Keep meta in sync with type
   useEffect(() => {
     setLbTournament("ALL");
     setLbYear("ALL");
-    fetchJSON(`${API}/api/meta/tournaments?type=${lbType}`, []).then(d => setTournaments(["ALL", ...arr(d)]));
-    fetchJSON(`${API}/api/meta/years?type=${lbType}`, []).then(d => setYears(["ALL", ...arr(d)]));
+    fetchJSON(`${API}/api/h2h/meta/tournaments?type=${lbType}`, []).then(d => setTournaments(["ALL", ...arr(d)]));
+    fetchJSON(`${API}/api/h2h/meta/years?type=${lbType}`, []).then(d => setYears(["ALL", ...arr(d)]));
   }, [lbType]);
 
   // Fetch leaderboards whenever any filter changes
@@ -103,11 +103,13 @@ export default function H2HRecords() {
     const qs = new URLSearchParams({
       type: lbType,
       tournament: lbTournament || "ALL",
-      year: String(lbYear || "ALL"),
+      // IMPORTANT: don't send "ALL" for year (avoids NaN on server)
+      year: lbYear === "ALL" ? "" : String(lbYear || ""),
       team: lbTeam || "ALL",
       limit: "10",
     }).toString();
-    fetchJSON(`${API}/api/players/leaderboards?${qs}`, null).then(setLeaderboards);
+    // correct endpoint path + shape from /players/highlights
+    fetchJSON(`${API}/api/h2h/players/highlights?${qs}`, null).then(setLeaderboards);
   }, [lbType, lbTournament, lbYear, lbTeam]);
 
   // ---------- H2H summary ----------
@@ -241,7 +243,7 @@ export default function H2HRecords() {
     labelStyle: { color: COLORS.ink },
   };
 
-  // helper to render a simple horizontal bar list
+  // simple horizontal bar list
   const HBar = ({ title, rows, dataKey = "value" }) => (
     <div className="chart-card">
       <div className="chart-title">{title}</div>
@@ -479,7 +481,7 @@ export default function H2HRecords() {
             </div>
           </div>
 
-          {/* NEW: Best Players (global leaderboards with filters) */}
+          {/* Best Players (global leaderboards with filters) */}
           <div className="player-sec">
             <h3 className="h3">Best Players (by filters)</h3>
             <div className="h2h-row h2h-selects">
@@ -499,13 +501,13 @@ export default function H2HRecords() {
             </div>
 
             <div className="charts-grid two">
-              <HBar title="Best Run Scored" rows={arr(leaderboards?.best_runs)} />
-              <HBar title="Highest Wicket Taker" rows={arr(leaderboards?.highest_wickets)} />
-              <HBar title="Best Batting Average" rows={arr(leaderboards?.best_batting_avg)} />
-              <HBar title="Best Strike Rate" rows={arr(leaderboards?.best_strike_rate)} />
-              <HBar title="Most Centuries" rows={arr(leaderboards?.most_centuries)} />
-              <HBar title="Most Half-Centuries" rows={arr(leaderboards?.most_fifties)} />
-              <HBar title="Most Successful (25+ runs or 2+ wkts in a match)" rows={arr(leaderboards?.most_successful)} />
+              <HBar title="Best Run Scored" rows={arr(leaderboards?.leaders?.most_runs)} dataKey="total_runs" />
+              <HBar title="Highest Wicket Taker" rows={arr(leaderboards?.leaders?.highest_wickets)} dataKey="total_wickets" />
+              <HBar title="Best Batting Average" rows={arr(leaderboards?.leaders?.best_batting_avg)} dataKey="batting_avg" />
+              <HBar title="Best Strike Rate" rows={arr(leaderboards?.leaders?.best_strike_rate)} dataKey="strike_rate" />
+              <HBar title="Most Centuries" rows={arr(leaderboards?.leaders?.most_centuries)} dataKey="total_hundreds" />
+              <HBar title="Most Half-Centuries" rows={arr(leaderboards?.leaders?.most_fifties)} dataKey="total_fifties" />
+              <HBar title="Most Successful (25+ runs and 2+ wkts in a match)" rows={arr(leaderboards?.leaders?.most_successful)} dataKey="success_matches" />
             </div>
           </div>
 
