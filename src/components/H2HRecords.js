@@ -4,7 +4,6 @@ import "./H2HRecords.css";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
   ResponsiveContainer, PieChart, Pie, Cell, LabelList, ReferenceLine,
-  LineChart, Line, Brush,
 } from "recharts";
 import { FaInfoCircle } from "react-icons/fa";
 
@@ -16,11 +15,9 @@ const COLORS = {
   draw: "#94a3b8",
   grid: "#334155",
   gold: "#e8caa4",
-  goldStrong: "#ffd889",
   ink: "#eaf2ff",
 };
 
-// small fetch wrapper
 const fetchJSON = async (url, fallback) => {
   try {
     const r = await fetch(url);
@@ -33,7 +30,6 @@ const fetchJSON = async (url, fallback) => {
   }
 };
 
-// absolute labels for mirror chart
 const MirrorLabel = ({ x, y, width, height, value }) => {
   if (value == null) return null;
   const abs = Math.abs(value);
@@ -72,13 +68,15 @@ export default function H2HRecords() {
   const [player2, setPlayer2] = useState("");
   const [playerStats, setPlayerStats] = useState(null);
 
-  // Trends
-  const [trendPlayer, setTrendPlayer] = useState("");
-  const [trendType, setTrendType] = useState("ALL");
-  const [trendOpponent, setTrendOpponent] = useState("ALL");
-  const [trendMetric, setTrendMetric] = useState("runs");
-  const [trendSeries, setTrendSeries] = useState([]);
-  const [oppSummary, setOppSummary] = useState({ opponents: [], overall: {} });
+  // NEW: Leaderboards filters
+  const [lbType, setLbType] = useState("ALL");
+  const [lbTournament, setLbTournament] = useState("ALL");
+  const [lbYear, setLbYear] = useState("ALL");
+  const [lbTeam, setLbTeam] = useState("ALL");
+
+  const [tournaments, setTournaments] = useState([]);
+  const [years, setYears] = useState([]);
+  const [leaderboards, setLeaderboards] = useState(null);
 
   const [teamError, setTeamError] = useState("");
   const [playerError, setPlayerError] = useState("");
@@ -86,12 +84,31 @@ export default function H2HRecords() {
 
   useEffect(() => {
     fetchJSON(`${API}/api/h2h/teams`, []).then(d => setTeams(arr(d)));
-    fetchJSON(`${API}/api/players/list`, []).then(d => {
-      const list = arr(d);
-      setPlayers(list);
-      if (list.length) setTrendPlayer(list[0]);
-    });
+    fetchJSON(`${API}/api/players/list`, []).then(d => setPlayers(arr(d)));
+    // seed meta for leaderboards
+    fetchJSON(`${API}/api/meta/tournaments?type=${lbType}`, []).then(d => setTournaments(["ALL", ...arr(d)]));
+    fetchJSON(`${API}/api/meta/years?type=${lbType}`, []).then(d => setYears(["ALL", ...arr(d)]));
   }, []);
+
+  // Keep meta in sync with type
+  useEffect(() => {
+    setLbTournament("ALL");
+    setLbYear("ALL");
+    fetchJSON(`${API}/api/meta/tournaments?type=${lbType}`, []).then(d => setTournaments(["ALL", ...arr(d)]));
+    fetchJSON(`${API}/api/meta/years?type=${lbType}`, []).then(d => setYears(["ALL", ...arr(d)]));
+  }, [lbType]);
+
+  // Fetch leaderboards whenever any filter changes
+  useEffect(() => {
+    const qs = new URLSearchParams({
+      type: lbType,
+      tournament: lbTournament || "ALL",
+      year: String(lbYear || "ALL"),
+      team: lbTeam || "ALL",
+      limit: "10",
+    }).toString();
+    fetchJSON(`${API}/api/players/leaderboards?${qs}`, null).then(setLeaderboards);
+  }, [lbType, lbTournament, lbYear, lbTeam]);
 
   // ---------- H2H summary ----------
   useEffect(() => {
@@ -114,11 +131,9 @@ export default function H2HRecords() {
     fetchJSON(`${API}/api/h2h/points?team1=${t1}&team2=${t2}&type=${matchType}`, null)
       .then(setPoints);
 
-    // FIX: pass the selected matchType so backend can filter (and UI won't "stick" to T20)
     fetchJSON(`${API}/api/h2h/runs-by-format?team1=${t1}&team2=${t2}&type=${matchType}`, [])
       .then(d => setRunsByFormat(arr(d)));
 
-    // test-only extras when selected or ALL
     if (matchType === "TEST" || matchType === "ALL") {
       fetchJSON(`${API}/api/h2h/test-innings-lead?team1=${t1}&team2=${t2}`, null)
         .then(setTestLead);
@@ -152,21 +167,6 @@ export default function H2HRecords() {
         .then(d => setPlayerStats(obj(d?.players) ? d.players : null));
     }
   }, [player1, player2]);
-
-  // ---------- Player Trends ----------
-  useEffect(() => {
-    if (!trendPlayer) return;
-    const qs = `player=${encodeURIComponent(trendPlayer)}&type=${trendType}&opponent=${encodeURIComponent(trendOpponent)}&metric=${trendMetric}`;
-    fetchJSON(`${API}/api/players/trend?${qs}`, { series: [] })
-      .then(d => setTrendSeries(arr(d?.series)));
-  }, [trendPlayer, trendType, trendOpponent, trendMetric]);
-
-  useEffect(() => {
-    if (!trendPlayer) return;
-    const qs = `player=${encodeURIComponent(trendPlayer)}&type=${trendType}`;
-    fetchJSON(`${API}/api/players/opponent-summary?${qs}`, { opponents: [], overall: {} })
-      .then(d => setOppSummary({ opponents: arr(d?.opponents), overall: d?.overall || {} }));
-  }, [trendPlayer, trendType]);
 
   // ---------- Derived ----------
   const teamBarData = useMemo(() => {
@@ -216,15 +216,6 @@ export default function H2HRecords() {
     return rows.map(r => ({ metric: r.metric, [player1]: -r.a, [player2]: r.b }));
   }, [playerStats, player1, player2]);
 
-  const mirrorDomain = useMemo(() => {
-    if (!playerMirrorData.length) return [-10, 10];
-    const maxAbs = Math.max(...playerMirrorData.flatMap(d => [Math.abs(d[player1] || 0), Math.abs(d[player2] || 0)]));
-    const pad = Math.ceil(maxAbs * 0.12);
-    return [-(maxAbs + pad), (maxAbs + pad)];
-  }, [playerMirrorData, player1, player2]);
-
-  const absTick = (v) => Math.abs(v);
-
   const formatChart = arr(byFormat).map(row => ({
     format: row.match_type,
     [team1]: Number(row.t1_wins || 0),
@@ -238,23 +229,10 @@ export default function H2HRecords() {
     [team2]: Number(r[team2] || 0),
   }));
 
-  // Also filter client-side as a defensive fallback
   const runsFormatChart = useMemo(() => {
     if (matchType === "ALL") return runsFormatChartRaw;
     return runsFormatChartRaw.filter(x => String(x.format).toUpperCase() === matchType);
   }, [runsFormatChartRaw, matchType]);
-
-  const testAvgByTeam = arr(testAvg).reduce((acc, r) => (acc[r.team] = r, acc), {});
-
-  const oppBars = useMemo(() => {
-    const rows = arr(oppSummary?.opponents);
-    const key = ["wickets", "bowling_avg"].includes(trendMetric)
-      ? trendMetric
-      : ["batting_avg", "strike_rate"].includes(trendMetric)
-        ? trendMetric
-        : "runs";
-    return [...rows].sort((a, b) => Number(b[key] || 0) - Number(a[key] || 0)).slice(0, 8);
-  }, [oppSummary, trendMetric]);
 
   const tooltipProps = {
     cursor: false,
@@ -262,6 +240,25 @@ export default function H2HRecords() {
     itemStyle: { color: COLORS.ink },
     labelStyle: { color: COLORS.ink },
   };
+
+  // helper to render a simple horizontal bar list
+  const HBar = ({ title, rows, dataKey = "value" }) => (
+    <div className="chart-card">
+      <div className="chart-title">{title}</div>
+      <ResponsiveContainer width="100%" height={rows.length ? Math.max(220, rows.length * 34) : 240}>
+        <BarChart data={rows} layout="vertical" margin={{ top: 8, right: 24, left: 28, bottom: 6 }}>
+          <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
+          <XAxis type="number" tick={{ fill: "#93a4c3", fontSize: 12 }} />
+          <YAxis type="category" dataKey="player_name" tick={{ fill: "#cfd9ee", fontSize: 12 }} width={180} />
+          <Tooltip {...tooltipProps} />
+          <Bar dataKey={dataKey} fill={COLORS.gold} barSize={18} isAnimationActive={false}>
+            <LabelList dataKey={dataKey} position="right" fill={COLORS.ink} fontSize={12} />
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+      {!rows.length && <div className="tr empty" style={{ padding: 12 }}>No data</div>}
+    </div>
+  );
 
   return (
     <div className="h2h-wrap">
@@ -290,11 +287,12 @@ export default function H2HRecords() {
         </select>
       </div>
 
+      {/* Errors */}
       {teamError && <div className="alert warn">{teamError}</div>}
 
+      {/* Summary + charts */}
       {summary && !teamError && (
         <>
-          {/* KPIs */}
           <div className="summary-card wide">
             <div className="sum-head">
               <span className="sum-title">Summary</span>
@@ -303,31 +301,30 @@ export default function H2HRecords() {
             <div className="kpi-grid">
               <div className="kpi">
                 <div className="kpi-label">Total Matches</div>
-                <div className="kpi-value">{kpi?.total ?? 0}</div>
+                <div className="kpi-value">{summary?.total_matches ?? 0}</div>
               </div>
 
               <div className="kpi kpi-t1">
                 <div className="kpi-pill">{team1 || "Team 1"}</div>
-                <div className="kpi-pair"><span>Wins</span><b>{kpi?.t1w ?? 0}</b></div>
-                <div className="kpi-pair"><span>Losses</span><b>{kpi?.t1l ?? 0}</b></div>
-                <div className="kpi-pair"><span>Win %</span><b>{kpi?.t1p ?? 0}%</b></div>
+                <div className="kpi-pair"><span>Wins</span><b>{summary?.[team1] ?? 0}</b></div>
+                <div className="kpi-pair"><span>Losses</span><b>{summary ? summary[team2] : 0}</b></div>
+                <div className="kpi-pair"><span>Win %</span><b>{summary?.win_percentage_team1 ?? 0}%</b></div>
               </div>
 
               <div className="kpi kpi-t2">
                 <div className="kpi-pill">{team2 || "Team 2"}</div>
-                <div className="kpi-pair"><span>Wins</span><b>{kpi?.t2w ?? 0}</b></div>
-                <div className="kpi-pair"><span>Losses</span><b>{kpi?.t2l ?? 0}</b></div>
-                <div className="kpi-pair"><span>Win %</span><b>{kpi?.t2p ?? 0}%</b></div>
+                <div className="kpi-pair"><span>Wins</span><b>{summary?.[team2] ?? 0}</b></div>
+                <div className="kpi-pair"><span>Losses</span><b>{summary ? summary[team1] : 0}</b></div>
+                <div className="kpi-pair"><span>Win %</span><b>{summary?.win_percentage_team2 ?? 0}%</b></div>
               </div>
 
               <div className="kpi">
                 <div className="kpi-label">Draws</div>
-                <div className="kpi-value">{kpi?.draws ?? 0}</div>
+                <div className="kpi-value">{summary?.draws ?? 0}</div>
               </div>
             </div>
           </div>
 
-          {/* Outcome + Pie */}
           <div className="charts-grid two">
             <div className="chart-card">
               <div className="chart-title">Outcome Comparison</div>
@@ -353,10 +350,9 @@ export default function H2HRecords() {
               <ResponsiveContainer width="100%" height={320}>
                 <PieChart>
                   <Pie data={outcomePieData} dataKey="value" innerRadius={70} outerRadius={110} paddingAngle={2} isAnimationActive={false}>
-                    {outcomePieData.map((e, i) => <Cell key={i} fill={e.color} />)}
+                    {arr(outcomePieData).map((e, i) => <Cell key={i} fill={e.color} />)}
                     <LabelList dataKey="value" position="outside" fill={COLORS.ink} fontSize={12} />
                   </Pie>
-                  {/* readable tooltip text */}
                   <Tooltip {...tooltipProps} />
                   <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
                 </PieChart>
@@ -364,13 +360,11 @@ export default function H2HRecords() {
             </div>
           </div>
 
-          {/* Wins by Format + Total Runs by Format */}
           <div className="charts-grid two">
             {!!formatChart.length && (
               <div className="chart-card">
                 <div className="chart-title">Wins by Format</div>
                 <ResponsiveContainer width="100%" height={320}>
-                  {/* extra top margin so labels never clip */}
                   <BarChart data={formatChart} margin={{ top: 28, right: 20, left: 10, bottom: 6 }}>
                     <CartesianGrid vertical={false} stroke={COLORS.grid} strokeDasharray="3 3" />
                     <XAxis dataKey="format" tick={{ fill: "#93a4c3", fontSize: 12 }} />
@@ -391,7 +385,6 @@ export default function H2HRecords() {
                   {matchType === "ALL" ? "Total Runs by Format" : `Total Runs — ${matchType === "TEST" ? "Test" : matchType}`}
                 </div>
                 <ResponsiveContainer width="100%" height={320}>
-                  {/* extra top margin so labels never clip */}
                   <BarChart data={runsFormatChart} margin={{ top: 28, right: 20, left: 14, bottom: 6 }}>
                     <CartesianGrid vertical={false} stroke={COLORS.grid} strokeDasharray="3 3" />
                     <XAxis dataKey="format" tick={{ fill: "#93a4c3", fontSize: 12 }}
@@ -408,7 +401,6 @@ export default function H2HRecords() {
             )}
           </div>
 
-          {/* Test extras + points */}
           {(matchType === "TEST" || matchType === "ALL") && (
             <>
               {(testLead || points) && (
@@ -448,43 +440,10 @@ export default function H2HRecords() {
                   )}
                 </div>
               )}
-
-              {!!Object.keys(testAvgByTeam).length && (
-                <div className="chart-card wide">
-                  <div className="chart-title">Test Batting Averages per Innings</div>
-                  <ResponsiveContainer width="100%" height={320}>
-                    <BarChart
-                      data={[team1, team2].map((t) => ({
-                        team: t,
-                        "Innings 1": testAvgByTeam?.[t]?.avg_inn1_runs || 0,
-                        "Innings 2": testAvgByTeam?.[t]?.avg_inn2_runs || 0,
-                      }))}
-                      margin={{ top: 18, right: 20, left: 8, bottom: 6 }}
-                    >
-                      <CartesianGrid vertical={false} stroke={COLORS.grid} strokeDasharray="3 3" />
-                      <XAxis dataKey="team" tick={{ fill: "#93a4c3", fontSize: 12 }} />
-                      <YAxis allowDecimals={false} tick={{ fill: "#93a4c3", fontSize: 12 }} />
-                      <Tooltip {...tooltipProps} />
-                      <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
-                      <Bar dataKey="Innings 1" fill={COLORS.gold} isAnimationActive={false}><LabelList position="top" fill={COLORS.ink} /></Bar>
-                      <Bar dataKey="Innings 2" fill={COLORS.draw} isAnimationActive={false}><LabelList position="top" fill={COLORS.ink} /></Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                  <div className="rpw-row">
-                    {[team1, team2].map(t => (
-                      <div key={t} className="rpw-chip">
-                        <span className="label">{t}</span>
-                        <span className="mini">Inn1 RPW: <b>{testAvgByTeam?.[t]?.inn1_rpw ?? "-"}</b></span>
-                        <span className="mini">Inn2 RPW: <b>{testAvgByTeam?.[t]?.inn2_rpw ?? "-"}</b></span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </>
           )}
 
-          {/* Leaderboards */}
+          {/* Leaderboards (pair) */}
           <div className="leader-grid two">
             <div className="chart-card">
               <div className="chart-title">Top Batters ({matchType})</div>
@@ -520,149 +479,84 @@ export default function H2HRecords() {
             </div>
           </div>
 
-          {/* Recent strip */}
-          {!!arr(recent).length && (
-            <div className="recent-strip wide">
-              <div className="strip-title">Recent Results (new → old)</div>
-              <div className="dots">
-                {recent.map((r, idx) => {
-                  const w = (r.winner || "").toLowerCase();
-                  let bg = COLORS.draw;
-                  if (w.includes((team1 || "").toLowerCase())) bg = COLORS.t1;
-                  else if (w.includes((team2 || "").toLowerCase())) bg = COLORS.t2;
-                  return <span key={idx} className="dot" style={{ background: bg }} title={`${r.match_type}: ${r.winner || "Draw"}`} />;
-                })}
-              </div>
-              <div className="legend">
-                <span className="legend-chip" style={{ background: COLORS.t1 }} /> {team1}
-                <span className="legend-chip" style={{ background: COLORS.t2 }} /> {team2}
-                <span className="legend-chip" style={{ background: COLORS.draw }} /> Draw
-              </div>
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Player Comparison */}
-      <div className="player-sec">
-        <h3 className="h3">Player Comparison</h3>
-        <div className="h2h-row h2h-selects">
-          <select value={player1} onChange={e => setPlayer1(e.target.value)} className="sel">
-            <option value="">Select Player 1</option>
-            {players.map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
-          <select value={player2} onChange={e => setPlayer2(e.target.value)} className="sel">
-            <option value="">Select Player 2</option>
-            {players.map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
-        </div>
-        {playerError && <div className="alert warn">{playerError}</div>}
-
-        {playerStats && playerStats[player1] && playerStats[player2] && !playerError && (
-          <div className="player-card">
-            <div className="legend-row">
-              <div className="legend-chip" style={{ background: COLORS.t1 }} />
-              <span>{player1}</span>
-              <div className="legend-chip" style={{ background: COLORS.t2 }} />
-              <span>{player2}</span>
-              <span className="legend-note">Mirror chart (0 center). <b>Bowling Avg</b> lower is better.</span>
+          {/* NEW: Best Players (global leaderboards with filters) */}
+          <div className="player-sec">
+            <h3 className="h3">Best Players (by filters)</h3>
+            <div className="h2h-row h2h-selects">
+              <select value={lbType} onChange={e => setLbType(e.target.value)} className="sel">
+                <option value="ALL">All</option><option value="ODI">ODI</option><option value="T20">T20</option><option value="TEST">Test</option>
+              </select>
+              <select value={lbTournament} onChange={e => setLbTournament(e.target.value)} className="sel">
+                {arr(tournaments).map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <select value={lbYear} onChange={e => setLbYear(e.target.value)} className="sel">
+                {arr(years).map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+              <select value={lbTeam} onChange={e => setLbTeam(e.target.value)} className="sel">
+                <option value="ALL">All Teams</option>
+                {teams.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
             </div>
 
-            <div className="player-chart">
-              <ResponsiveContainer width="100%" height={420}>
-                <BarChart data={playerMirrorData} layout="vertical" margin={{ top: 8, right: 40, left: 40, bottom: 8 }}>
-                  <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
-                  <XAxis type="number" domain={[-100, 100]} tickFormatter={absTick} tick={{ fill: "#93a4c3", fontSize: 12 }} />
-                  <YAxis type="category" dataKey="metric" tick={{ fill: "#cfd9ee", fontSize: 12 }} width={160} />
-                  <Tooltip {...tooltipProps} formatter={(v, k) => [Math.abs(v), k]} />
-                  <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
-                  <ReferenceLine x={0} stroke="#6b7280" />
-                  <Bar dataKey={player1} fill={COLORS.t1} barSize={18} radius={[0, 6, 6, 0]} isAnimationActive={false}>
-                    <LabelList content={(props) => <MirrorLabel {...props} />} />
-                  </Bar>
-                  <Bar dataKey={player2} fill={COLORS.t2} barSize={18} radius={[0, 6, 6, 0]} isAnimationActive={false}>
-                    <LabelList content={(props) => <MirrorLabel {...props} />} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="charts-grid two">
+              <HBar title="Best Run Scored" rows={arr(leaderboards?.best_runs)} />
+              <HBar title="Highest Wicket Taker" rows={arr(leaderboards?.highest_wickets)} />
+              <HBar title="Best Batting Average" rows={arr(leaderboards?.best_batting_avg)} />
+              <HBar title="Best Strike Rate" rows={arr(leaderboards?.best_strike_rate)} />
+              <HBar title="Most Centuries" rows={arr(leaderboards?.most_centuries)} />
+              <HBar title="Most Half-Centuries" rows={arr(leaderboards?.most_fifties)} />
+              <HBar title="Most Successful (25+ runs or 2+ wkts in a match)" rows={arr(leaderboards?.most_successful)} />
             </div>
           </div>
-        )}
-      </div>
 
-      {/* Player Trends */}
-      <div className="player-sec">
-        <h3 className="h3">Player Trends</h3>
-        <div className="h2h-row h2h-selects">
-          <select value={trendPlayer} onChange={e => setTrendPlayer(e.target.value)} className="sel">
-            {players.map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
-          <select value={trendType} onChange={e => setTrendType(e.target.value)} className="sel">
-            <option value="ALL">All</option><option value="ODI">ODI</option><option value="T20">T20</option><option value="TEST">Test</option>
-          </select>
-          <select value={trendOpponent} onChange={e => setTrendOpponent(e.target.value)} className="sel">
-            <option value="ALL">All Opponents</option>
-            {[...new Set(arr(oppSummary?.opponents).map(o => o.opponent))].map(o => <option key={o} value={o}>{o}</option>)}
-          </select>
-          <select value={trendMetric} onChange={e => setTrendMetric(e.target.value)} className="sel sel-type">
-            <option value="runs">Runs</option>
-            <option value="batting_avg">Batting Avg</option>
-            <option value="strike_rate">Strike Rate</option>
-            <option value="wickets">Wickets</option>
-            <option value="bowling_avg">Bowling Avg</option>
-          </select>
-        </div>
+          {/* Player Comparison */}
+          <div className="player-sec">
+            <h3 className="h3">Player Comparison</h3>
+            <div className="h2h-row h2h-selects">
+              <select value={player1} onChange={e => setPlayer1(e.target.value)} className="sel">
+                <option value="">Select Player 1</option>
+                {players.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+              <select value={player2} onChange={e => setPlayer2(e.target.value)} className="sel">
+                <option value="">Select Player 2</option>
+                {players.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+            {playerError && <div className="alert warn">{playerError}</div>}
 
-        <div className="charts-grid two">
-          <div className="chart-card">
-            <div className="chart-title">Performance vs Opponents (top 8)</div>
-            <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={oppBars} layout="vertical" margin={{ top: 6, right: 24, left: 28, bottom: 6 }}>
-                <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
-                <XAxis type="number" tick={{ fill: "#93a4c3", fontSize: 12 }} />
-                <YAxis type="category" dataKey="opponent" tick={{ fill: "#cfd9ee", fontSize: 12 }} width={180} />
-                <Tooltip {...tooltipProps} />
-                <Bar
-                  dataKey={
-                    ["wickets", "bowling_avg"].includes(trendMetric)
-                      ? trendMetric
-                      : ["batting_avg", "strike_rate"].includes(trendMetric)
-                        ? trendMetric
-                        : "runs"
-                  }
-                  fill={COLORS.gold}
-                  barSize={18}
-                  isAnimationActive={false}
-                >
-                  <LabelList position="right" fill={COLORS.ink} fontSize={12} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-            {oppBars?.length > 0 && (
-              <div className="chip-row mt8">
-                <div className="kpi-chip"><span className="dot" style={{ background: COLORS.gold }} /> Best vs <b>{oppBars[0].opponent}</b></div>
-                <div className="kpi-chip"><span className="dot" style={{ background: COLORS.draw }} /> Tough vs <b>{oppBars[oppBars.length - 1].opponent}</b></div>
+            {playerStats && playerStats[player1] && playerStats[player2] && !playerError && (
+              <div className="player-card">
+                <div className="legend-row">
+                  <div className="legend-chip" style={{ background: COLORS.t1 }} />
+                  <span>{player1}</span>
+                  <div className="legend-chip" style={{ background: COLORS.t2 }} />
+                  <span>{player2}</span>
+                  <span className="legend-note">Mirror chart (0 center). <b>Bowling Avg</b> lower is better.</span>
+                </div>
+
+                <div className="player-chart">
+                  <ResponsiveContainer width="100%" height={420}>
+                    <BarChart data={playerMirrorData} layout="vertical" margin={{ top: 8, right: 40, left: 40, bottom: 8 }}>
+                      <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
+                      <XAxis type="number" domain={[-100, 100]} tickFormatter={(v) => Math.abs(v)} tick={{ fill: "#93a4c3", fontSize: 12 }} />
+                      <YAxis type="category" dataKey="metric" tick={{ fill: "#cfd9ee", fontSize: 12 }} width={160} />
+                      <Tooltip {...tooltipProps} formatter={(v, k) => [Math.abs(v), k]} />
+                      <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
+                      <ReferenceLine x={0} stroke="#6b7280" />
+                      <Bar dataKey={player1} fill={COLORS.t1} barSize={18} radius={[0, 6, 6, 0]} isAnimationActive={false}>
+                        <LabelList content={(props) => <MirrorLabel {...props} />} />
+                      </Bar>
+                      <Bar dataKey={player2} fill={COLORS.t2} barSize={18} radius={[0, 6, 6, 0]} isAnimationActive={false}>
+                        <LabelList content={(props) => <MirrorLabel {...props} />} />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             )}
           </div>
-
-          <div className="chart-card">
-            <div className="chart-title">Per-match Trend ({trendMetric.replace("_", " ")})</div>
-            <ResponsiveContainer width="100%" height={320}>
-              <LineChart data={arr(trendSeries)} margin={{ top: 6, right: 24, left: 12, bottom: 6 }}>
-                <CartesianGrid stroke={COLORS.grid} strokeDasharray="3 3" />
-                <XAxis dataKey="match_name" tick={false} />
-                <YAxis tick={{ fill: "#93a4c3", fontSize: 12 }} />
-                <Tooltip {...tooltipProps} />
-                <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
-                <Line type="monotone" dataKey="metric_value" name="Per match" stroke="#60a5fa" strokeWidth={2.4} dot={false} isAnimationActive={false} />
-                <Line type="monotone" dataKey="ma5" name="MA(5)" stroke="#f59e0b" strokeWidth={2.8} dot={false} isAnimationActive={false} />
-                <Brush height={20} travellerWidth={8} stroke="#2a3f60" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
+        </>
+      )}
 
       {showInfo && (
         <div className="modal" onClick={() => setShowInfo(false)}>
@@ -671,8 +565,8 @@ export default function H2HRecords() {
             <ul className="modal-list">
               <li>Points: Test 12/6/4, ODI/T20 2/0/1.</li>
               <li>Wins & runs by format, first-innings lead, Test innings averages.</li>
-              <li>Leaderboards, recent results, no hover shading.</li>
-              <li>Player Trends: opponent bars + timeline with 5-match MA.</li>
+              <li>Leaderboards, recent results.</li>
+              <li>Best Players: global leaderboards with format/tournament/year/team filters.</li>
             </ul>
             <div className="modal-actions">
               <button className="btn" onClick={() => setShowInfo(false)}>Got it</button>
