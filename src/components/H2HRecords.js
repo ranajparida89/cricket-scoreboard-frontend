@@ -5,7 +5,8 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
   ResponsiveContainer, PieChart, Pie, Cell, LabelList, ReferenceLine,
 } from "recharts";
-import { FaInfoCircle } from "react-icons/fa";
+import { FaInfoCircle, FaTrophy } from "react-icons/fa";
+const TOP_N = 5;
 
 const API = process.env.REACT_APP_API_BASE || "https://cricket-scoreboard-backend.onrender.com";
 
@@ -82,35 +83,37 @@ export default function H2HRecords() {
   const [playerError, setPlayerError] = useState("");
   const [showInfo, setShowInfo] = useState(false);
 
-  useEffect(() => {
-    fetchJSON(`${API}/api/h2h/teams`, []).then(d => setTeams(arr(d)));
-    fetchJSON(`${API}/api/players/list`, []).then(d => setPlayers(arr(d)));
-    // seed meta for leaderboards (correct base path under /api/h2h)
-    fetchJSON(`${API}/api/h2h/meta/tournaments?type=${lbType}`, []).then(d => setTournaments(["ALL", ...arr(d)]));
-    fetchJSON(`${API}/api/h2h/meta/years?type=${lbType}`, []).then(d => setYears(["ALL", ...arr(d)]));
-  }, []);
+useEffect(() => {
+  fetchJSON(`${API}/api/h2h/teams`, []).then(d => setTeams(arr(d)));
+  fetchJSON(`${API}/api/players/list`, []).then(d => setPlayers(arr(d)));
+  // seed meta for leaderboards (from PP + MH)
+  fetchJSON(`${API}/api/h2h/meta/tournaments?type=${lbType}`, []).then(d => setTournaments(["ALL", ...arr(d)]));
+  fetchJSON(`${API}/api/h2h/meta/years?type=${lbType}`, []).then(d => setYears(["ALL", ...arr(d)]));
+}, []);
+
 
   // Keep meta in sync with type
-  useEffect(() => {
-    setLbTournament("ALL");
-    setLbYear("ALL");
-    fetchJSON(`${API}/api/h2h/meta/tournaments?type=${lbType}`, []).then(d => setTournaments(["ALL", ...arr(d)]));
-    fetchJSON(`${API}/api/h2h/meta/years?type=${lbType}`, []).then(d => setYears(["ALL", ...arr(d)]));
-  }, [lbType]);
+ useEffect(() => {
+  setLbTournament("ALL");
+  setLbYear("ALL");
+  fetchJSON(`${API}/api/h2h/meta/tournaments?type=${lbType}`, []).then(d => setTournaments(["ALL", ...arr(d)]));
+  fetchJSON(`${API}/api/h2h/meta/years?type=${lbType}`, []).then(d => setYears(["ALL", ...arr(d)]));
+}, [lbType]);
+
 
   // Fetch leaderboards whenever any filter changes
-  useEffect(() => {
-    const qs = new URLSearchParams({
-      type: lbType,
-      tournament: lbTournament || "ALL",
-      // IMPORTANT: don't send "ALL" for year (avoids NaN on server)
-      year: lbYear === "ALL" ? "" : String(lbYear || ""),
-      team: lbTeam || "ALL",
-      limit: "10",
-    }).toString();
-    // correct endpoint path + shape from /players/highlights
-    fetchJSON(`${API}/api/h2h/players/highlights?${qs}`, null).then(setLeaderboards);
-  }, [lbType, lbTournament, lbYear, lbTeam]);
+useEffect(() => {
+  const qs = new URLSearchParams({
+    type: lbType,
+    tournament: lbTournament || "ALL",
+    year: lbYear === "ALL" ? "" : String(lbYear || ""),
+    team: lbTeam || "ALL",
+    limit: String(TOP_N), // Top-5 from backend
+  }).toString();
+  fetchJSON(`${API}/api/h2h/players/highlights?${qs}`, null).then(setLeaderboards);
+}, [lbType, lbTournament, lbYear, lbTeam]);
+
+
 
   // ---------- H2H summary ----------
   useEffect(() => {
@@ -244,23 +247,70 @@ export default function H2HRecords() {
   };
 
   // simple horizontal bar list
-  const HBar = ({ title, rows, dataKey = "value" }) => (
-    <div className="chart-card">
+const HBar = ({ title, rows, dataKey = "value" }) => {
+  // filter: valid rows only, then cap to Top-5
+  const clean = arr(rows)
+    .filter(r => r && r.player_name && r[dataKey] != null && r[dataKey] !== 0)
+    .slice(0, TOP_N);
+
+  const top = clean[0];
+
+  return (
+    <div className="chart-card card-glow">
       <div className="chart-title">{title}</div>
-      <ResponsiveContainer width="100%" height={rows.length ? Math.max(220, rows.length * 34) : 240}>
-        <BarChart data={rows} layout="vertical" margin={{ top: 8, right: 24, left: 28, bottom: 6 }}>
+
+      {/* Congrats ribbon for the #1 */}
+      {top && (
+        <div className="congrats-ribbon">
+          <FaTrophy className="trophy" />
+          <span>
+            Congrats <b>{top.player_name}</b>{top.team_name ? ` (${top.team_name})` : ""}! — <i>{title}</i> <b>{top[dataKey]}</b>
+          </span>
+        </div>
+      )}
+
+      <ResponsiveContainer
+        width="100%"
+        height={clean.length ? Math.max(220, clean.length * 40) : 220}
+      >
+        <BarChart data={clean} layout="vertical" margin={{ top: 8, right: 28, left: 32, bottom: 8 }}>
+          <defs>
+            <linearGradient id="grad-gold" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#fff2c6" />
+              <stop offset="50%" stopColor="#e8caa4" />
+              <stop offset="100%" stopColor="#cda56e" />
+            </linearGradient>
+          </defs>
           <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
           <XAxis type="number" tick={{ fill: "#93a4c3", fontSize: 12 }} />
-          <YAxis type="category" dataKey="player_name" tick={{ fill: "#cfd9ee", fontSize: 12 }} width={180} />
-          <Tooltip {...tooltipProps} />
-          <Bar dataKey={dataKey} fill={COLORS.gold} barSize={18} isAnimationActive={false}>
+          <YAxis
+            type="category"
+            dataKey="player_name"
+            tick={{ fill: "#e7efff", fontSize: 12 }}
+            width={190}
+          />
+          <Tooltip
+            {...tooltipProps}
+            formatter={(v, _k, p) => [v, p?.payload?.team_name ? `${p.payload.player_name} (${p.payload.team_name})` : p.payload.player_name]}
+          />
+          <Bar
+            dataKey={dataKey}
+            fill="url(#grad-gold)"
+            barSize={20}
+            radius={[10, 10, 10, 10]}
+            animationDuration={700}
+            animationEasing="ease-out"
+          >
             <LabelList dataKey={dataKey} position="right" fill={COLORS.ink} fontSize={12} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-      {!rows.length && <div className="tr empty" style={{ padding: 12 }}>No data</div>}
+
+      {!clean.length && <div className="tr empty" style={{ padding: 12 }}>No data</div>}
     </div>
   );
+};
+
 
   return (
     <div className="h2h-wrap">
@@ -501,14 +551,15 @@ export default function H2HRecords() {
             </div>
 
             <div className="charts-grid two">
-              <HBar title="Best Run Scored" rows={arr(leaderboards?.leaders?.most_runs)} dataKey="total_runs" />
-              <HBar title="Highest Wicket Taker" rows={arr(leaderboards?.leaders?.highest_wickets)} dataKey="total_wickets" />
-              <HBar title="Best Batting Average" rows={arr(leaderboards?.leaders?.best_batting_avg)} dataKey="batting_avg" />
-              <HBar title="Best Strike Rate" rows={arr(leaderboards?.leaders?.best_strike_rate)} dataKey="strike_rate" />
-              <HBar title="Most Centuries" rows={arr(leaderboards?.leaders?.most_centuries)} dataKey="total_hundreds" />
-              <HBar title="Most Half-Centuries" rows={arr(leaderboards?.leaders?.most_fifties)} dataKey="total_fifties" />
-              <HBar title="Most Successful (25+ runs and 2+ wkts in a match)" rows={arr(leaderboards?.leaders?.most_successful)} dataKey="success_matches" />
-            </div>
+  <HBar title="Best Run Scored" rows={arr(leaderboards?.leaders?.most_runs)} dataKey="total_runs" />
+  <HBar title="Highest Wicket Taker" rows={arr(leaderboards?.leaders?.highest_wickets)} dataKey="total_wickets" />
+  <HBar title="Best Batting Average" rows={arr(leaderboards?.leaders?.best_batting_avg)} dataKey="batting_avg" />
+  <HBar title="Best Strike Rate" rows={arr(leaderboards?.leaders?.best_strike_rate)} dataKey="strike_rate" />
+  <HBar title="Most Centuries" rows={arr(leaderboards?.leaders?.most_centuries)} dataKey="total_hundreds" />
+  <HBar title="Most Half-Centuries" rows={arr(leaderboards?.leaders?.most_fifties)} dataKey="total_fifties" />
+  <HBar title="Most Successful (25+ runs and 2+ wkts in a match)" rows={arr(leaderboards?.leaders?.most_successful)} dataKey="success_matches" />
+</div>
+
           </div>
 
           {/* Player Comparison */}

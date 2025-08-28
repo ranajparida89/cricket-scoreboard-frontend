@@ -133,3 +133,60 @@
 *::-webkit-scrollbar{ width:8px; height:8px; }
 *::-webkit-scrollbar-track{ background:#0b111a; }
 *::-webkit-scrollbar-thumb{ background:#304463; border-radius:8px; }
+/* Card glow + subtle glass look */
+.card-glow {
+  position: relative;
+  background: radial-gradient(120% 120% at 0% 0%, rgba(232,202,164,0.08), rgba(10,16,26,0.6)),
+              linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0));
+  border: 1px solid rgba(232,202,164,0.18);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.02);
+  border-radius: 14px;
+}
+
+/* Congrats ribbon */
+.congrats-ribbon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 10px 2px 10px;
+  padding: 8px 12px;
+  background: linear-gradient(90deg, rgba(255,209,112,0.16), rgba(255,240,200,0.06));
+  border: 1px solid rgba(255,209,112,0.25);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  color: #ffe6b3;
+  position: relative;
+  overflow: hidden;
+}
+
+.congrats-ribbon .trophy {
+  color: #ffd76a;
+  filter: drop-shadow(0 2px 6px rgba(255,215,106,0.4));
+  font-size: 16px;
+}
+
+/* shimmer across ribbon */
+.congrats-ribbon::after {
+  content: "";
+  position: absolute;
+  top: -40%;
+  left: -20%;
+  width: 40%;
+  height: 200%;
+  background: linear-gradient(120deg, rgba(255,255,255,0.1), rgba(255,255,255,0.0) 60%);
+  transform: rotate(15deg);
+  animation: ribbonShine 2.4s infinite;
+}
+
+@keyframes ribbonShine {
+  0% { transform: translateX(-120%) rotate(15deg); }
+  60% { transform: translateX(220%) rotate(15deg); }
+  100% { transform: translateX(220%) rotate(15deg); }
+}
+
+/* Recharts tweaks */
+.recharts-wrapper text {
+  paint-order: stroke fill;
+  stroke: rgba(4,12,20,0.6);
+  stroke-width: 1;
+}
