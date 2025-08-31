@@ -221,3 +221,56 @@
   .match-card.poster{ transform:none !important; }
   .match-card.poster::after{ opacity:.18; }
 }
+/* === Watermark for Test cards (same style as LOI) === */
+.team-block { position: relative; }
+.team-block::before{
+  content: attr(data-code);
+  position:absolute; inset:auto auto -6px -6px; z-index:0; pointer-events:none;
+  font-family: "Oxanium", ui-monospace, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-weight:800;
+  font-size: clamp(40px, 8vw, 74px);
+  line-height:1;
+  color:#fff; opacity:.06;
+  transform: rotate(-8deg);
+  text-shadow: 0 0 12px rgba(255,255,255,.15);
+}
+.team-block--right::before{
+  left:auto; right:-6px; transform: rotate(8deg);
+}
+
+/* ensure text sits above watermark */
+.team-block > .name,
+.team-block > .meta,
+.rowline { position: relative; z-index: 1; }
+
+/* === Safer neon border: use mask when supported, otherwise fallback === */
+
+/* default: simple glow fallback (no mask), quiets editor warnings */
+.match-card.poster::before{
+  content:"";
+  position:absolute; inset:-1px; border-radius:inherit; pointer-events:none;
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
+  opacity:.38;
+}
+
+/* enhanced ring when mask is supported */
+@supports ((-webkit-mask: none) or (mask: none)) {
+  .match-card.poster::before{
+    background: conic-gradient(from 180deg,
+      color-mix(in srgb, var(--accent) 96%, #fff) 0 22%,
+      transparent 40% 60%,
+      color-mix(in srgb, var(--accent) 80%, #fff) 78% 100%);
+    filter: blur(10px) saturate(125%);
+    opacity:.48;
+    /* vendor + standard mask; some editors warn without @supports */
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    padding:1.5px;
+    border: none; /* ring is drawn by the pseudo-element itself */
+    box-shadow: none;
+  }
+}

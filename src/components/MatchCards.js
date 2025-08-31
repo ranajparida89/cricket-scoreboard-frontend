@@ -247,41 +247,43 @@ const MatchCards = () => {
   };
 
   const renderTestCard = (m) => {
-    const live = isLiveRow(m);
-    const recent = recentUID.Test === getUid(m);
-    const accent = pickAccent(
-      (m?.winner || "").includes(m?.team1) ? m?.team1 :
-      (m?.winner || "").includes(m?.team2) ? m?.team2 : m?.team1
-    );
+  const live = isLiveRow(m);
+  const recent = recentUID.Test === getUid(m);
+  const accent = pickAccent(
+    (m?.winner || "").includes(m?.team1) ? m?.team1 :
+    (m?.winner || "").includes(m?.team2) ? m?.team2 : m?.team1
+  );
 
-    return (
-      <RippleCard live={live} recent={recent} accent={accent}>
-        <div className="match-title">{formatMatchTitle(m.match_name)}</div>
+  return (
+    <RippleCard live={live} recent={recent} accent={accent}>
+      <div className="match-title">{formatMatchTitle(m.match_name)}</div>
 
-        <div className="team-block">
-          <div className="name">{getTeamCode(m.team1)}</div>
-          <div className="meta">1st Innings: {m.runs1}/{m.wickets1} ({formatOvers(m.overs1)} ov)</div>
-          <div className="meta">2nd Innings: {m.runs1_2}/{m.wickets1_2} ({formatOvers(m.overs1_2)} ov)</div>
+      {/* ✅ add data-code so watermark shows */}
+      <div className="team-block" data-code={getTeamCode(m.team1)}>
+        <div className="name">{getTeamCode(m.team1)}</div>
+        <div className="meta">1st Innings: {m.runs1}/{m.wickets1} ({formatOvers(m.overs1)} ov)</div>
+        <div className="meta">2nd Innings: {m.runs1_2}/{m.wickets1_2} ({formatOvers(m.overs1_2)} ov)</div>
+      </div>
+
+      {/* ✅ and for team2 as well */}
+      <div className="team-block team-block--right" data-code={getTeamCode(m.team2)} style={{ marginTop: 6 }}>
+        <div className="name">{getTeamCode(m.team2)}</div>
+        <div className="meta">1st Innings: {m.runs2}/{m.wickets2} ({formatOvers(m.overs2)} ov)</div>
+        <div className="meta">2nd Innings: {m.runs2_2}/{m.wickets2_2} ({formatOvers(m.overs2_2)} ov)</div>
+      </div>
+
+      {!live && (
+        <div className="result-line winner-banner">
+          <strong>🏆 {m.winner === "Draw"
+            ? "Match is drawn."
+            : (m.winner || "").toLowerCase().includes("won the match")
+            ? m.winner
+            : `${m.winner} won the match!`}</strong>
         </div>
-
-        <div className="team-block" style={{ marginTop: 6 }}>
-          <div className="name">{getTeamCode(m.team2)}</div>
-          <div className="meta">1st Innings: {m.runs2}/{m.wickets2} ({formatOvers(m.overs2)} ov)</div>
-          <div className="meta">2nd Innings: {m.runs2_2}/{m.wickets2_2} ({formatOvers(m.overs2_2)} ov)</div>
-        </div>
-
-        {!live && (
-          <div className="result-line winner-banner">
-            <strong>🏆 {m.winner === "Draw"
-              ? "Match is drawn."
-              : (m.winner || "").toLowerCase().includes("won the match")
-              ? m.winner
-              : `${m.winner} won the match!`}</strong>
-          </div>
-        )}
-      </RippleCard>
-    );
-  };
+      )}
+    </RippleCard>
+  );
+};
 
   return (
     <div className="container mt-4 mc-container">
