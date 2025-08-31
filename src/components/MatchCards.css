@@ -303,3 +303,47 @@
     transform: none !important;
   }
 }
+/* === Mobile Compositing Hardening v3 — MatchCards === */
+@media (max-width: 900px), (pointer: coarse) {
+  /* DO NOT promote cards to a new layer on phones */
+  .match-card,
+  .match-card.live {
+    transform: none !important;        /* remove translateZ(0) / 3D tilt */
+    will-change: auto !important;
+    contain: none !important;           /* undo contain: paint */
+    isolation: isolate;                 /* clip children within this stacking context */
+    overflow: hidden;                   /* enforce rounded clipping */
+    background-clip: padding-box;       /* avoid square tiles bleeding */
+    box-shadow: 0 2px 8px rgba(0,0,0,.22) !important; /* lighter shadow = fewer re-raster ops */
+  }
+
+  /* Kill any heavy pseudo effects that can form their own layers */
+  .match-card.poster::before,
+  .match-card.poster::after {
+    content: none !important;
+  }
+
+  /* Keep the background simple so the GPU doesn’t recompose huge areas */
+  .match-card {
+    background: #0f1b28 !important;
+    border: 1px solid rgba(255,255,255,.08) !important;
+  }
+
+  /* Ripple without blend modes (blend + scroll = artifacts on some GPUs) */
+  .tap-ripple{
+    mix-blend-mode: normal !important;
+    background: radial-gradient(circle, rgba(255,255,255,.22),
+                                         rgba(232,202,164,.15) 60%,
+                                         transparent 70%) !important;
+  }
+
+  /* Make the format bar non-sticky on phones to remove another repaint band */
+  .format-toggle{
+    position: static !important;
+    top: auto !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: #0f1b28 !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,.2) !important;
+  }
+}

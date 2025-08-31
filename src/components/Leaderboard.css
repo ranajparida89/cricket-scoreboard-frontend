@@ -158,3 +158,31 @@
     padding: 10px 8px;
   }
 }
+/* === Mobile Compositing Hardening v3 — Leaderboard === */
+@media (max-width: 900px), (pointer: coarse) {
+  /* Solid wrapper; clip children to rounded edges */
+  .leaderboard-glass{
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: #0f1b28 !important;
+    border: 1px solid rgba(255,255,255,.06) !important;
+    box-shadow: 0 6px 16px rgba(0,0,0,.28) !important;
+    overflow: hidden;                  /* important: clip to radius */
+    isolation: isolate;                /* keep internal layers contained */
+  }
+
+  /* Remove any row/left ribbons that become separate tiles */
+  .leaderboard-table tbody tr::before,
+  .rank-ribbon { display: none !important; }
+
+  /* Sticky header/cols off on phones to avoid extra compositing bands */
+  .leaderboard-table thead th,
+  .sticky-col { position: static !important; background: transparent !important; }
+
+  /* Rows render as simple blocks; avoid big shadows */
+  .leaderboard-table tbody tr{
+    box-shadow: 0 2px 8px rgba(0,0,0,.22) !important;
+    overflow: hidden; /* some engines honor this for clipping children in tables */
+    background-clip: padding-box;
+  }
+}
