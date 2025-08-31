@@ -1,9 +1,6 @@
 /*****************************************************
- * Leaderboards.css — desktop pretty, mobile stable
+ * Leaderboard.css — Stunning glass table (pure UI)
  *****************************************************/
-
-/* small spacing for the ScopeBar block above the table */
-.leaderboard-controls{ margin-bottom: 10px; }
 
 /* ===== Glassy wrapper (frosted card) ===== */
 .leaderboard-glass{
@@ -11,21 +8,35 @@
               linear-gradient(180deg, rgba(13,31,47,.78), rgba(10,23,36,.68));
   border: 1px solid rgba(255,255,255,.08);
   border-radius: 16px;
-  padding: 14px;
+  padding: 12px;
   box-shadow: 0 16px 40px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.06);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
-/* Wrapper keeps header/body aligned */
-.leaderboard-table-wrapper{ padding: 0 6px; }
+/* ===== Scrollable wrapper with shadows ===== */
+.leaderboard-table-wrapper{
+  position: relative;
+  padding: 0 6px;
+  max-height: 540px;           /* gives room for sticky header & reveal */
+  overflow: auto;
+}
+.leaderboard-table-wrapper.scrollable::before,
+.leaderboard-table-wrapper.scrollable::after{
+  content:""; position:absolute; left:6px; right:6px; height:14px; z-index:3; pointer-events:none;
+  opacity:0; transition: opacity .2s ease;
+}
+.leaderboard-table-wrapper.scrollable::before{ top:0; background: linear-gradient(180deg, rgba(7,19,29,0.8), rgba(7,19,29,0)); }
+.leaderboard-table-wrapper.scrollable::after{ bottom:0; background: linear-gradient(0deg, rgba(7,19,29,0.85), rgba(7,19,29,0)); }
+.leaderboard-table-wrapper.shadow-top::before{ opacity:1; }
+.leaderboard-table-wrapper.shadow-bottom::after{ opacity:1; }
 
 /* ===== Table base ===== */
 .leaderboard-table{
   width: 100%;
-  border-collapse: separate;      /* row gaps on desktop */
-  table-layout: fixed;            /* stable widths */
-  border-spacing: 0 8px;          /* vertical gaps only */
+  border-collapse: separate;
+  table-layout: fixed;
+  border-spacing: 0 8px;      /* vertical gaps only */
   background: transparent;
   margin: 0;
 }
@@ -36,18 +47,39 @@
   box-shadow: 0 10px 24px rgba(0,0,0,.30);
 }
 .leaderboard-table thead th{
-  font-weight: 700;
+  position: sticky;            /* sticky header */
+  top: 0;
+  z-index: 4;
+  font-weight: 800;
   color: #dff2ff;
   border: 0 !important;
   font-size: 14px;
   padding: 12px 10px;
   letter-spacing: .2px;
-  white-space: nowrap;            /* never wrap (prevents stepped rows) */
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  background: inherit;         /* keep gradient when sticky */
 }
 .leaderboard-table thead th:first-child{ border-top-left-radius: 12px; }
 .leaderboard-table thead th:last-child { border-top-right-radius: 12px; }
+
+/* Header tips */
+.th-tip{
+  display:inline-flex; align-items:center; justify-content:center;
+  margin-left:6px; width:16px; height:16px; border-radius:50%;
+  font-size:11px; font-weight:800; background:#143148; color:#dff2ff;
+  border:1px solid rgba(255,255,255,.18); cursor:default; position:relative;
+}
+.th-tip::before{
+  content: attr(data-tip);
+  position:absolute; left:50%; transform: translateX(-50%); bottom: calc(100% + 6px);
+  background:#0e1c2a; color:#eaf6ff; font-weight:600; font-size:12px;
+  white-space:nowrap; padding:6px 8px; border-radius:8px; border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 8px 20px rgba(0,0,0,.35);
+  opacity:0; pointer-events:none; transition: opacity .15s ease, transform .15s ease;
+}
+.th-tip:hover::before{ opacity:1; transform: translateX(-50%) translateY(-2px); }
 
 /* ===== Body cells ===== */
 .leaderboard-table tbody td{
@@ -56,34 +88,75 @@
   color: #eaf6ff;
   text-align: center;
   border: 0;
-  white-space: nowrap;            /* keep one line */
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* ===== Rows as "cards" (desktop) ===== */
+/* ===== Rows as cards + reveal ===== */
 .leaderboard-table tbody tr{
   background: linear-gradient(180deg, rgba(17,32,48,.65), rgba(10,23,35,.55));
   border: 1px solid rgba(255,255,255,.07);
   border-radius: 12px;
   box-shadow: 0 12px 28px rgba(0,0,0,.35);
   transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
+  animation: rowIn .35s ease both;
+  animation-delay: calc(var(--i, 0) * 35ms);
+}
+@keyframes rowIn{
+  from{ opacity:0; transform: translateY(6px); }
+  to  { opacity:1; transform: translateY(0); }
 }
 .leaderboard-table tbody tr:hover{
   transform: translateY(-2px);
   box-shadow: 0 18px 38px rgba(0,0,0,.42);
 }
 
-/* Emoji medals */
 .medal-emoji{ font-size: 1.15rem; margin-right: 4px; }
 .pos{ color:#c9ffef; }
 .neg{ color:#ffc2c2; }
-.team-name{ font-weight: 800; letter-spacing: .2px; text-align: left; }
 
-/* ===== NRR tiny bar ===== */
+/* Team column pinned (desktop) */
+.sticky-col{
+  position: sticky;
+  background: linear-gradient(180deg, rgba(17,32,48,.65), rgba(10,23,35,.55));
+  z-index: 2;
+}
+.left-col{ left: 0; }
+.team-col{ left: 52px; text-align: left; }
+.rank-cell{ text-align:left; width: 52px; }
+
+.team-name{
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+
+/* Podium styles (top 3) */
+.lb-top1{
+  background: linear-gradient(180deg, rgba(30,76,60,.55), rgba(18,52,42,.45));
+  border-color: rgba(20, 226, 138, .35);
+  box-shadow: 0 16px 40px rgba(20,226,138,.18);
+}
+.lb-top2{
+  background: linear-gradient(180deg, rgba(54,64,92,.55), rgba(28,36,56,.45));
+  border-color: rgba(137,165,255,.28);
+}
+.lb-top3{
+  background: linear-gradient(180deg, rgba(82,64,44,.55), rgba(52,40,30,.45));
+  border-color: rgba(255,184,108,.28);
+}
+
+/* Crown aura for #1 */
+.crown-aura{
+  position:absolute; left:-10px; top:-12px; width:20px; height:20px; border-radius:50%;
+  background: radial-gradient(closest-side, rgba(255,220,120,.9), rgba(255,220,120,.1) 60%, transparent 70%);
+  box-shadow: 0 0 16px rgba(255,220,120,.45), 0 0 36px rgba(20,226,138,.22);
+}
+
+/* ===== NRR bar ===== */
 .nrr-cell{
   position: relative;
-  overflow: visible;              /* was hidden → could clip/glitch */
+  overflow: visible;
   height: 34px;
 }
 .nrr-track{
@@ -107,14 +180,19 @@
 .lb-row[data-bucket="purple"]:hover { background-color: rgba(165,124,255,.12); }
 .lb-row[data-bucket="red"]:hover    { background-color: rgba(255, 43, 43,.12); }
 
-/* Bar colors */
+/* Bar colors (extra safety; JS also sets gradient inline) */
 .lb-row[data-bucket="green"]  .nrr-bar{ background: linear-gradient(90deg,#14e29a,#00c986); }
 .lb-row[data-bucket="yellow"] .nrr-bar{ background: linear-gradient(90deg,#ffe76a,#ffb03a); }
 .lb-row[data-bucket="orange"] .nrr-bar{ background: linear-gradient(90deg,#ffb03a,#ff7a3d); }
 .lb-row[data-bucket="purple"] .nrr-bar{ background: linear-gradient(90deg,#a57cff,#6dd6ff); }
 .lb-row[data-bucket="red"]    .nrr-bar{ background: linear-gradient(90deg,#ff6b6b,#ff2b2b); }
 
-/* ===== Mobile/touch stability (S23-safe) ===== */
+/* ===== Mobile/touch ===== */
+@media (max-width: 1024px){
+  .team-col{ left: 46px; }
+  .rank-cell{ width: 46px; }
+}
+
 @media (max-width: 900px), (pointer: coarse){
   /* Solid wrapper, no blur: avoids GPU tiling artifacts */
   .leaderboard-glass{
@@ -125,36 +203,35 @@
     -webkit-backdrop-filter:none !important;
   }
 
-  /* Collapse gaps, solid row bg, no per-row shadow */
+  /* Keep table robust on mobile */
   .leaderboard-table{
     border-collapse: collapse !important;
     border-spacing: 0 !important;
     table-layout: fixed !important;
   }
-  .leaderboard-table tbody tr{
-    background:#0f1e2d !important;
-    box-shadow:none !important;
-    border-bottom:1px solid rgba(255,255,255,.06) !important;
-    transform:none !important;           /* no hover lift on touch */
-  }
-
-  /* Bars: no extra glow/filters on mobile */
-  .nrr-track{ background: rgba(255,255,255,.12) !important; }
-  .nrr-bar{ box-shadow:none !important; filter:none !important; }
-
-  /* Tighter spacing */
   .leaderboard-table thead th,
   .leaderboard-table tbody td{
     padding:10px 8px !important;
     font-size:14px !important;
   }
+
+  /* No hover lift on touch */
+  .leaderboard-table tbody tr{
+    background:#0f1e2d !important;
+    box-shadow:none !important;
+    border-bottom:1px solid rgba(255,255,255,.06) !important;
+    transform:none !important;
+  }
+
+  /* remove sticky columns on small screens */
+  .sticky-col{ position: static !important; }
+  .leaderboard-table-wrapper{ max-height: none; }
 }
 
-/* Responsive text scale */
-@media (max-width: 768px){
+@media (max-width: 520px){
   .leaderboard-table thead th,
   .leaderboard-table tbody td{
-    font-size: 14px;
-    padding: 10px 8px;
+    font-size:13px !important;
+    padding:8px 6px !important;
   }
 }
