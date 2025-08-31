@@ -1,7 +1,7 @@
-// ✅ src/components/Navbar.js — Sleek Glass Nav (UI-only)
-// - Keeps: PWA install flow, sounds, auth badge, Logout, More, action buttons
-// - Adds: active-tab underline, subtle glass blur, tighter spacing
-// - New CSS: ./Navbar.css (namespaced ce-* so it won't clash with theme.css)
+// ✅ src/components/Navbar.js — Sleek Glass Nav + Progress/Aura (UI-only)
+// - Keeps: PWA install, sounds, auth badge, Logout, More, actions
+// - Adds: scroll progress bar, active-pill highlight, brand dot bounce
+// - Needs: ./Navbar.css
 
 import React, { useEffect, useState } from "react";
 import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
@@ -12,9 +12,10 @@ import "./Navbar.css";
 
 const AppNavbar = ({ onAuthClick }) => {
   const [loggedInUser, setLoggedInUser] = useState(null);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [progress, setProgress] = useState(0); // page scroll progress %
 
   // ----- PWA install flow -----
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
   useEffect(() => {
     const handler = (e) => {
       e.preventDefault();
@@ -55,12 +56,29 @@ const AppNavbar = ({ onAuthClick }) => {
   const { pathname } = useLocation();
   const isActive = (path) => pathname.startsWith(path);
 
+  // ----- page scroll progress (for the aurora bar) -----
+  useEffect(() => {
+    const onScroll = () => {
+      const doc = document.documentElement;
+      const max = doc.scrollHeight - window.innerHeight;
+      const p = max > 0 ? Math.min(100, Math.max(0, (window.scrollY / max) * 100)) : 0;
+      setProgress(p);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
   return (
     <Navbar
       expand="lg"
       variant="dark"
       className="px-3 py-2 sticky-top ce-navbar slumber-nav"
-      style={{ zIndex: 1030 }}
+      style={{ zIndex: 1030, ["--ce-prog"]: `${progress}%` }}
     >
       <Container fluid>
         {/* Hamburger */}
@@ -84,7 +102,9 @@ const AppNavbar = ({ onAuthClick }) => {
         >
           <span className="slumber-brand-word ce-brand-word">Crick</span>
           <span className="slumber-brand-accent ce-brand-accent">Edge</span>
-          <span className="slumber-brand-dot ce-brand-dot">.in</span>
+          <span className="slumber-brand-dot ce-brand-dot" aria-hidden>
+            .in
+          </span>
         </Navbar.Brand>
 
         <Navbar.Toggle aria-controls="navbarScroll" className="slumber-toggler ce-toggler" />

@@ -1,18 +1,18 @@
-/* Navbar.css — Sleek glass nav for CrickEdge
+/* Navbar.css — Sleek glass nav for CrickEdge (with progress bar)
    Namespaced with ce-* to avoid collisions
 */
 :root{
-  --ce-deep: #081722;
+  --ce-deep:#081722;
   --ce-deeper:#07131d;
-  --ce-line: rgba(232,202,164,.22);
+  --ce-line:rgba(232,202,164,.22);
   --ce-teal:#5fd0c7;
   --ce-link:#cfe9ff;
-  --ce-link-dim:#aac8de;
   --ce-green:#14e29a;
 }
 
 /* ===== NAV WRAPPER ===== */
 .ce-navbar{
+  position: relative;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   background:
@@ -20,6 +20,19 @@
     linear-gradient(180deg, rgba(15,27,40,.88), rgba(8,19,31,.80));
   border-bottom: 1px solid rgba(255,255,255,.08);
   box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+
+/* Aurora scroll progress (very visible but classy) */
+.ce-navbar::after{
+  content:"";
+  position:absolute;
+  left:0; bottom:0;
+  width: var(--ce-prog, 0%);   /* set from inline style */
+  height:3px;
+  background: linear-gradient(90deg, var(--ce-teal), #8be6de, #baf7ef);
+  box-shadow: 0 0 14px rgba(95,208,199,.45);
+  border-radius: 0 8px 0 0;
+  transition: width .08s linear;
 }
 
 /* toggler + icon button */
@@ -40,7 +53,19 @@
   -webkit-text-fill-color: transparent;
   font-weight: 900;
 }
-.ce-brand-dot{ color:#e8caa4; opacity:.9; }
+.ce-brand-dot{
+  color:#e8caa4; opacity:.95; display:inline-block;
+  transform-origin: center;
+}
+.ce-brand:hover .ce-brand-dot{
+  animation: ceBounce .9s ease both;
+}
+@keyframes ceBounce{
+  0%{ transform: translateY(0) scale(1); }
+  35%{ transform: translateY(-3px) scale(1.05); }
+  70%{ transform: translateY(0) scale(0.98); }
+  100%{ transform: translateY(0) scale(1); }
+}
 
 /* ===== LINKS ===== */
 .ce-link{
@@ -48,15 +73,17 @@
   color: var(--ce-link);
   font-weight: 700;
   letter-spacing:.2px;
-  padding: .35rem .75rem;
+  padding: .4rem .8rem;
   margin: 0 .1rem;
   transition: color .18s ease;
 }
 .ce-link:hover{ color:#ffffff; }
 .ce-link.active{ color:#ffffff; }
+
+/* animated underline (existing) */
 .ce-link::after{
   content:"";
-  position:absolute; left:.55rem; right:.55rem; bottom:-6px; height:2px;
+  position:absolute; left:.65rem; right:.65rem; bottom:-6px; height:2px;
   background: linear-gradient(90deg, var(--ce-teal), #b6f1ea);
   transform: scaleX(0);
   transform-origin: left center;
@@ -65,6 +92,17 @@
 }
 .ce-link:hover::after,
 .ce-link.active::after{ transform: scaleX(1); }
+
+/* NEW: active pill backdrop */
+.ce-link.active::before{
+  content:"";
+  position:absolute; inset: -.2rem -.35rem;
+  background: linear-gradient(180deg, rgba(95,208,199,.16), rgba(95,208,199,.08));
+  border: 1px solid rgba(95,208,199,.25);
+  border-radius: 10px;
+  filter: blur(0);
+  z-index: -1;
+}
 
 /* ===== DROPDOWN ===== */
 .ce-dropdown .dropdown-menu{
@@ -122,6 +160,6 @@
 
 /* Small screens: give links a bit more vertical space */
 @media (max-width: 991.98px){
-  .ce-link{ padding:.5rem .75rem; }
+  .ce-link{ padding:.55rem .8rem; }
   .ce-link::after{ bottom:0; }
 }
