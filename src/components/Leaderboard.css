@@ -139,17 +139,22 @@
   }
 
   /* 3) Simplify the wrapper: no blur, strong clipping. */
-  .leaderboard-glass{
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: #0f1b28 !important;
-    border: 1px solid rgba(255,255,255,.06) !important;
-    box-shadow: 0 6px 16px rgba(0,0,0,.28) !important;
-    overflow: hidden !important;
-    background-clip: padding-box;
-    isolation: isolate;                     /* contain any child layers */
-    -webkit-mask-image: -webkit-radial-gradient(white, black); /* force radius clip */
-  }
+ .leaderboard-glass{
+  /* ... */
+  overflow: hidden !important;
+  background-clip: padding-box;
+  isolation: isolate;
+
+  /* Radius clipping (no extra compositing) */
+  clip-path: inset(0 round 16px);
+
+  /* Standards first + WebKit fallback */
+  mask-image: radial-gradient(#fff, #000);
+  -webkit-mask-image: radial-gradient(#fff, #000);
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%;
+}
+
 
   /* 4) Render rows as simple blocks; no heavy shadow/radius mixing. */
   .leaderboard-table{

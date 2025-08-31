@@ -235,16 +235,19 @@
 
   /* Make cards a single composited block and enforce rounded clipping */
   .match-card,
-  .match-card.live{
-    transform: none !important;
-    will-change: auto !important;
-    contain: none !important;
-    isolation: isolate;
-    overflow: hidden;
-    background-clip: padding-box;
-    box-shadow: 0 2px 8px rgba(0,0,0,.22) !important;
-    -webkit-mask-image: -webkit-radial-gradient(white, black); /* force radius clip */
-  }
+.match-card.live{
+  /* ...other props... */
+
+  /* Radius clipping that doesn’t cause extra layers */
+  clip-path: inset(0 round 16px);
+
+  /* Standards first + WebKit fallback (removes linter warning) */
+  mask-image: radial-gradient(#fff, #000);
+  -webkit-mask-image: radial-gradient(#fff, #000);
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%;
+}
+
 
   /* Remove heavy pseudos (neon ring + light spot) */
   .match-card.poster::before,
