@@ -1,0 +1,127 @@
+/* Navbar.css — Sleek glass nav for CrickEdge
+   Namespaced with ce-* to avoid collisions
+*/
+:root{
+  --ce-deep: #081722;
+  --ce-deeper:#07131d;
+  --ce-line: rgba(232,202,164,.22);
+  --ce-teal:#5fd0c7;
+  --ce-link:#cfe9ff;
+  --ce-link-dim:#aac8de;
+  --ce-green:#14e29a;
+}
+
+/* ===== NAV WRAPPER ===== */
+.ce-navbar{
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background:
+    radial-gradient(800px 300px at 6% -30%, rgba(95,208,199,.10), transparent 60%),
+    linear-gradient(180deg, rgba(15,27,40,.88), rgba(8,19,31,.80));
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+
+/* toggler + icon button */
+.ce-icon-btn,
+.ce-toggler{
+  border:1px solid rgba(255,255,255,.12) !important;
+  background: rgba(255,255,255,.04) !important;
+  width: 38px; height: 38px; border-radius: 10px !important;
+}
+.ce-icon-btn i{ font-size: 1.05rem; }
+
+/* ===== BRAND ===== */
+.ce-brand{ display:flex; align-items:center; gap:2px; }
+.ce-brand-word{ color:#eaf6ff; letter-spacing:.2px; }
+.ce-brand-accent{
+  background: linear-gradient(90deg, var(--ce-teal), #8be6de);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 900;
+}
+.ce-brand-dot{ color:#e8caa4; opacity:.9; }
+
+/* ===== LINKS ===== */
+.ce-link{
+  position:relative;
+  color: var(--ce-link);
+  font-weight: 700;
+  letter-spacing:.2px;
+  padding: .35rem .75rem;
+  margin: 0 .1rem;
+  transition: color .18s ease;
+}
+.ce-link:hover{ color:#ffffff; }
+.ce-link.active{ color:#ffffff; }
+.ce-link::after{
+  content:"";
+  position:absolute; left:.55rem; right:.55rem; bottom:-6px; height:2px;
+  background: linear-gradient(90deg, var(--ce-teal), #b6f1ea);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .22s ease;
+  border-radius: 2px;
+}
+.ce-link:hover::after,
+.ce-link.active::after{ transform: scaleX(1); }
+
+/* ===== DROPDOWN ===== */
+.ce-dropdown .dropdown-menu{
+  background: linear-gradient(180deg, #0e1c2a, #0a1520);
+  border:1px solid rgba(255,255,255,.08);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 12px 28px rgba(0,0,0,.4);
+  padding:.35rem;
+  border-radius: 12px;
+}
+.ce-dd-item{
+  color:#dbeeff;
+  padding:.5rem .65rem;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.ce-dd-item:hover{
+  background: rgba(95,208,199,.12);
+  color:#ffffff;
+}
+
+/* ===== USER + BUTTONS ===== */
+.ce-userwrap{ gap:.25rem; }
+.ce-user{ color:#eaf6ff; font-weight:700; }
+
+.ce-ghost{
+  border:1px solid rgba(255,255,255,.14) !important;
+  background: rgba(255,255,255,.04) !important;
+  color:#d9f4ff !important;
+  border-radius: 10px !important;
+  transition: transform .12s ease, box-shadow .18s ease, background .18s ease;
+}
+.ce-ghost:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.07) !important;
+  box-shadow: 0 10px 20px rgba(0,0,0,.25);
+}
+
+.ce-cta{
+  border:1px solid rgba(20,226,138,.35) !important;
+  background: linear-gradient(180deg, #1f4d58, #163b45) !important;
+  color:#d7fff1 !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+  letter-spacing:.2px;
+  box-shadow: 0 10px 26px rgba(20,226,138,.2);
+}
+.ce-cta:hover{
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+/* Tighter alignment for the actions group */
+.navbar-actions-group .btn{ padding:.38rem .65rem; }
+
+/* Small screens: give links a bit more vertical space */
+@media (max-width: 991.98px){
+  .ce-link{ padding:.5rem .75rem; }
+  .ce-link::after{ bottom:0; }
+}
