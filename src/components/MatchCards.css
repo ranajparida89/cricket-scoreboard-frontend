@@ -274,3 +274,32 @@
     box-shadow: none;
   }
 }
+/* === Mobile/touch stability fixes for match cards === */
+@media (max-width: 900px), (pointer: coarse) {
+  /* 3) Remove masked neon ring (mask-composite + blur causes shimmer on scroll) */
+  .match-card.poster::before{ content:none !important; }
+
+  /* keep it extra light; if you still want a soft spot, reduce it */
+  .match-card.poster::after{
+    opacity: .12 !important;
+    background: radial-gradient(260px 140px at 50% 30%, rgba(95,208,199,.18), transparent 60%) !important;
+  }
+
+  /* 4) The sticky format toggle: drop blur on mobile to avoid flicker */
+  .format-toggle{
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: linear-gradient(180deg, rgba(8,23,34,.96), rgba(7,19,29,.94)) !important;
+  }
+
+  /* 5) Ripple: avoid blend mode on mobile GPUs */
+  .tap-ripple{
+    mix-blend-mode: normal !important;
+    background: radial-gradient(circle, rgba(255,255,255,.25), rgba(232,202,164,.18) 60%, transparent 70%) !important;
+  }
+
+  /* 6) Safety: no 3D tilt on coarse pointers (you already reduce motion, this enforces it) */
+  .match-card.poster{
+    transform: none !important;
+  }
+}

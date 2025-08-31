@@ -163,3 +163,16 @@
   .ce-link{ padding:.55rem .8rem; }
   .ce-link::after{ bottom:0; }
 }
+/* === Mobile/touch stability fixes (Android/iOS) === */
+@media (max-width: 900px), (pointer: coarse) {
+  /* 1) Turn off heavy blur on sticky nav to avoid flicker */
+  .ce-navbar{
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: linear-gradient(180deg, rgba(15,27,40,.98), rgba(8,19,31,.95)) !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,.35);
+  }
+
+  /* 2) Disable the live-updating progress bar on mobile (big repaint source) */
+  .ce-navbar::after{ content:none !important; }
+}
