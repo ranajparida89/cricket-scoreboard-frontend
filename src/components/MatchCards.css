@@ -1,8 +1,4 @@
-/* MatchCards.css — cinematic desktop, *flat and rock-solid on mobile* */
-
-/* Display/score fonts */
-@import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@400;700;800&family=Inter:wght@400;600;800&display=swap');
-
+/* ===== Slumber-like dark + warm gold ===== */
 :root{
   --deep:#081722;
   --deeper:#07131d;
@@ -10,10 +6,9 @@
   --gold:#e8caa4;
   --gold-strong:#f2d7b7;
   --line: rgba(232,202,164,.28);
-  --accent:#5fd0c7;
 }
 
-/* Section heading */
+/* Section heading with thin gold divider */
 .section-heading{
   color: var(--gold-strong);
   font-family: "Josefin Sans","Karla",sans-serif;
@@ -23,165 +18,142 @@
   margin-bottom: 12px;
 }
 
-/* Sticky format toggle (desktop) */
+/* ===== Sticky format toggle (dark + gold) ===== */
 .format-toggle{
-  position: sticky; top: 86px; z-index: 9;
+  position: sticky;
+  top: 86px;
+  z-index: 9;
   display:flex; flex-wrap:wrap; gap:10px;
   background: linear-gradient(180deg, rgba(8,23,34,.92), rgba(7,19,29,.92));
   border-bottom: 1px solid var(--line);
-  padding: 10px 14px; backdrop-filter: blur(6px);
+  padding: 10px 14px;
+  backdrop-filter: blur(6px);
 }
+
 .format-btn{
-  min-width:170px; padding:10px 14px; border-radius:12px;
-  font-weight:700; letter-spacing:.02em; border:1px solid var(--line);
-  color:var(--teal); background:#0f1b28; box-shadow:0 6px 18px rgba(232,202,164,.10);
+  min-width: 170px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  letter-spacing:.02em;
+  border:1px solid var(--line);
+  color: var(--teal);
+  background: #0f1b28;
+  box-shadow: 0 6px 18px rgba(232,202,164,.10);
   transition: transform .12s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
 }
 .format-btn:hover{ transform: translateY(-1px); box-shadow:0 10px 24px rgba(232,202,164,.16); }
 .format-btn.active{ color:#041014; background: linear-gradient(180deg,#1f4d58,#163b45); border-color: var(--gold); box-shadow: 0 10px 26px rgba(232,202,164,.25); }
-.format-btn.odi{ background:#102a3f; } .format-btn.t20{ background:#2a1e2f; } .format-btn.test{ background:#13312a; }
 
-/* ===== Card ===== */
+.format-btn.odi{ background:#102a3f; }
+.format-btn.t20{ background:#2a1e2f; }
+.format-btn.test{ background:#13312a; }
+
+/* ===== Match card ===== */
 .match-card{
-  position:relative; border-radius:16px; padding:16px;
-  color:#eaf6ff; overflow:hidden;
+  position:relative;
+  border-radius:14px;
+  padding:16px;
   background:
     radial-gradient(900px 360px at 8% -20%, rgba(95,208,199,.10), transparent 55%),
     linear-gradient(180deg, #0f1b28, #0a1520);
   border:1px solid var(--line);
-  box-shadow: 0 12px 30px rgba(7,19,29,.45), 0 10px 28px rgba(232,202,164,.10);
+  box-shadow: 0 10px 28px rgba(232,202,164,.12);
+  color:#eaf6ff;
+  overflow:hidden; /* prevent any spill */
 }
+.match-card.simple:hover{ box-shadow: 0 14px 34px rgba(232,202,164,.16); }
 
-/* Poster enhancements (desktop) */
-.match-card.poster{
-  transform: perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
-  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
-  will-change: transform;
-}
-.match-card.poster:hover{
-  transform: perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(-3px) scale(1.01);
-  box-shadow: 0 22px 48px color-mix(in srgb, var(--accent) 20%, #000), 0 10px 28px rgba(232,202,164,.12);
-}
-
-/* Neon ring (desktop). We use a safe fallback + enhanced version behind @supports */
-.match-card.poster::before{
-  content:"";
-  position:absolute; inset:-1px; border-radius:inherit; pointer-events:none;
-  background: none;
-  border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
-  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
-  opacity:.38;
-}
-@supports ((-webkit-mask: none) or (mask: none)) {
-  .match-card.poster::before{
-    background: conic-gradient(from 180deg,
-      color-mix(in srgb, var(--accent) 96%, #fff) 0 22%,
-      transparent 40% 60%,
-      color-mix(in srgb, var(--accent) 80%, #fff) 78% 100%);
-    filter: blur(10px) saturate(125%);
-    opacity:.48;
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    padding:1.5px;
-    border: none;
-    box-shadow: none;
-  }
-}
-.match-card.poster::after{
-  content:"";
-  position:absolute; inset:-1px; border-radius:inherit; pointer-events:none;
-  background: radial-gradient(360px 200px at var(--mx,50%) var(--my,40%), color-mix(in srgb, var(--accent) 40%, transparent), transparent 60%);
-  opacity:.28;
-}
-
-/* LIVE tint */
+/* LIVE state – blue tint + border */
 .match-card.live{
   background:
-    radial-gradient(900px 360px at 80% -30%, rgba(13,110,253,.18), transparent 60%),
+    radial-gradient(900px 360px at 80% -30%, rgba(13,110,253,.15), transparent 60%),
     linear-gradient(180deg, #0f1f33, #0a1624);
   border-color: #2a7dff88;
+  box-shadow: 0 16px 38px rgba(13,110,253,.18), 0 10px 28px rgba(232,202,164,.10);
 }
 
-/* Status chips */
-.status-badges{ position:absolute; right:10px; top:10px; display:flex; gap:8px; z-index:2; }
+/* Status chips (top-right) */
+.status-badges{
+  position:absolute; right:10px; top:10px; display:flex; gap:8px; z-index:2;
+}
 .badge-chip{
-  display:inline-flex; align-items:center; gap:8px; padding:4px 10px; border-radius:999px;
-  font-weight:800; letter-spacing:.02em; border:1px solid rgba(255,255,255,.12); box-shadow: 0 4px 10px rgba(0,0,0,.25);
+  display:inline-flex; align-items:center; gap:8px;
+  padding:4px 10px; border-radius:999px;
+  font-weight:800; letter-spacing:.02em;
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow: 0 4px 10px rgba(0,0,0,.25);
   font-size:.82rem;
 }
 .badge-live{ background:#0d6efd; color:#fff; border-color:#2a7dff; }
 .badge-recent{ background:#0f1b28; color:#fff; border-color:#ff6b6b; }
-.pulse-ring{
-  width:11px; height:11px; border-radius:50%; display:inline-block; margin-right:6px;
-  background:#ff3b30; box-shadow:0 0 0 0 rgba(255,59,48,.7);
-  animation: ring 1.6s infinite;
-}
-@keyframes ring{
-  0%{ box-shadow:0 0 0 0 rgba(255,59,48,.7); }
-  70%{ box-shadow:0 0 0 10px rgba(255,59,48,0); }
-  100%{ box-shadow:0 0 0 0 rgba(255,59,48,0); }
+.dot-red{
+  width:11px; height:11px; border-radius:50%; background:#ff3b30;
+  box-shadow:0 0 10px #ff3b3088, 0 0 2px #ff3b30;
 }
 
 /* Title */
 .match-title{
   color: var(--gold-strong);
   font-family: "Josefin Sans","Karla",sans-serif;
-  font-size: 1.08rem; margin-bottom: 10px;
+  font-size: 1.05rem;
+  margin-bottom: 10px;
   text-shadow: 0 0 10px rgba(232,202,164,.22);
 }
 
-/* Layout */
+/* === Mobile-safe layout fixes === */
 .teams-row{
-  display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr);
-  gap:12px; margin-bottom:8px; align-items:start;
+  display:grid;
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr); /* allow shrink */
+  gap:12px;
+  margin-bottom:8px;
+  align-items:start;
 }
-.teams-row > .team{ min-width:0; position:relative; }
-
-/* BIG watermark: team code ghost text (desktop only; disabled on phones below) */
-.team::before{
-  content: attr(data-code);
-  position:absolute; inset:auto auto -6px -6px; z-index:0; pointer-events:none;
-  font-family: "Oxanium", ui-monospace, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  font-weight:800;
-  font-size: clamp(40px, 8vw, 74px);
-  line-height:1;
-  color:#fff; opacity:.06;
-  transform: rotate(-8deg);
-  text-shadow: 0 0 12px rgba(255,255,255,.15);
-}
-.team--right::before{ left:auto; right:-6px; transform: rotate(8deg); text-align:right; }
+.teams-row > .team{ min-width:0; }
 
 .rowline{
-  position:relative; z-index:1;
-  display:grid; grid-template-columns: minmax(0,1fr) auto; align-items: baseline; column-gap: 10px;
+  display:grid;
+  grid-template-columns: minmax(0,1fr) auto; /* name shrinks, score hugs right */
+  align-items: baseline;
+  column-gap: 10px; /* slightly larger since no flag */
 }
-.rowline .name, .rowline .score{
-  min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+.rowline .name,
+.rowline .score{
+  min-width:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
+
+/* Right column */
+.team--right .name,
+.team--right .score{ text-align:right; }
 
 .team .name{
   font-weight:800; color:#fff;
   text-shadow:0 0 6px rgba(255,255,255,.28), 0 0 14px rgba(232,202,164,.18);
 }
 .team .score{
-  font-weight:900; font-size:1.14rem; color:#fff;
-  font-family: "Oxanium", ui-monospace, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-weight:900; font-size:1.05rem; color:#fff;
   font-variant-numeric: tabular-nums;
   text-shadow:0 0 6px rgba(255,255,255,.28), 0 0 14px rgba(232,202,164,.18);
 }
-.team .meta{ font-size:.9rem; color:#d7e7f5; opacity:.9; font-variant-numeric:tabular-nums; }
+.team .meta{
+  font-size:.9rem; color:#d7e7f5; opacity:.9; font-variant-numeric:tabular-nums;
+}
 
-.team-block{ margin-bottom:6px; position:relative; }
-.team-block .name{ font-weight:800; color:#fff; text-shadow:0 0 6px rgba(255,255,255,.28), 0 0 14px rgba(232,202,164,.18); }
-.team-block .meta{ font-size:.9rem; color:#d7e7f5; opacity:.9; font-variant-numeric:tabular-nums; }
+.team-block{ margin-bottom:6px; }
+.team-block .name{
+  font-weight:800; color:#fff;
+  text-shadow:0 0 6px rgba(255,255,255,.28), 0 0 14px rgba(232,202,164,.18);
+}
+.team-block .meta{
+  font-size:.9rem; color:#d7e7f5; opacity:.9; font-variant-numeric:tabular-nums;
+}
 
-/* Winner banner with accent line */
-.result-line{ margin-top:6px; border-top: 1px dashed var(--line); padding-top:8px; color:#dfeffc; position:relative; }
-.winner-banner::before{
-  content:""; position:absolute; left:-12px; right:-12px; top:-2px; height:2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity:.65;
+.result-line{
+  margin-top:6px;
+  border-top: 1px dashed var(--line);
+  padding-top:8px;
+  color:#dfeffc;
 }
 
 /* Ripple */
@@ -189,95 +161,36 @@
   position:absolute; width:22px; height:22px; border-radius:50%;
   transform:translate(-50%,-50%) scale(0);
   background: radial-gradient(circle, rgba(255,255,255,.35), rgba(232,202,164,.25) 60%, transparent 70%);
-  mix-blend-mode: screen; pointer-events:none; animation: rippleExpand .6s ease-out forwards;
+  mix-blend-mode: screen;
+  pointer-events:none;
+  animation: rippleExpand .6s ease-out forwards;
 }
-@keyframes rippleExpand{ to{ transform:translate(-50%,-50%) scale(14); opacity:0; } }
-
-/* ===== Mobile: snap row (horizontal scrolling for cards) ===== */
-.mc-row-snap{ position:relative; }
-@media (max-width: 640px){
-  .mc-container .row.g-3{
-    display:flex; overflow-x:auto; -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x mandatory; gap:.75rem; padding-bottom:.25rem;
-  }
-  .mc-container .row.g-3::-webkit-scrollbar{ display:none; }
-  .mc-container .row.g-3 > [class*="col-"]{ flex: 0 0 86%; max-width: 86%; }
-  .mc-row-snap::before, .mc-row-snap::after{
-    content:""; position:absolute; top:0; bottom:0; width:24px; pointer-events:none; z-index:3;
-  }
-  .mc-row-snap::before{ left:-2px; background: linear-gradient(90deg, rgba(7,19,29,1), rgba(7,19,29,0)); }
-  .mc-row-snap::after{ right:-2px; background: linear-gradient(270deg, rgba(7,19,29,1), rgba(7,19,29,0)); }
+@keyframes rippleExpand{
+  to{ transform:translate(-50%,-50%) scale(14); opacity:0; }
 }
 
-/* small tweaks */
+/* ====== Responsive tweaks ====== */
+
+/* slightly reduce gutters on phones for more usable width */
 .mc-container .row.g-3{ --bs-gutter-x: .75rem; }
-@media (max-width: 480px){ .mc-container .row.g-3{ --bs-gutter-x: .5rem; } }
+@media (max-width: 480px){
+  .mc-container .row.g-3{ --bs-gutter-x: .5rem; }
+}
+
+/* stack earlier + scale badges a touch on small screens */
 @media (max-width:520px){
   .teams-row{ grid-template-columns: 1fr; gap:8px; }
-  .team--right{ text-align:left; border-top:1px dashed var(--line); padding-top:6px; margin-top:6px; }
+  .team--right{
+    text-align:left;
+    border-top:1px dashed var(--line);
+    padding-top:6px; margin-top:6px;
+  }
+  .status-badges{ right:6px; transform: scale(.92); }
 }
+
+/* smallest phones: tighten spacing slightly */
 @media (max-width:360px){
   .rowline{ column-gap:6px; }
   .match-card{ padding:14px 12px; }
   .format-btn{ min-width: 140px; }
-}
-
-/* Respect reduced motion / touch (disables tilt) */
-@media (prefers-reduced-motion: reduce), (pointer: coarse){
-  .match-card.poster{ transform:none !important; }
-  .match-card.poster::after{ opacity:.18; }
-}
-
-/* =======================================================================
-   MOBILE / TOUCH HARDENING — remove tiling sources & stick to one layer
-   ======================================================================= */
-@media (max-width: 900px), (pointer: coarse){
-
-  /* Make cards a single composited block and enforce rounded clipping */
-  .match-card,
-.match-card.live{
-  /* ...other props... */
-
-  /* Radius clipping that doesn’t cause extra layers */
-  clip-path: inset(0 round 16px);
-
-  /* Standards first + WebKit fallback (removes linter warning) */
-  mask-image: radial-gradient(#fff, #000);
-  -webkit-mask-image: radial-gradient(#fff, #000);
-  mask-repeat: no-repeat;
-  mask-size: 100% 100%;
-}
-
-
-  /* Remove heavy pseudos (neon ring + light spot) */
-  .match-card.poster::before,
-  .match-card.poster::after{ content:none !important; }
-
-  /* Disable big watermarks on phones (these often become separate tiles) */
-  .team::before,
-  .team-block::before{ display:none !important; }
-
-  /* Keep background simple (no big radial grads on phones) */
-  .match-card{
-    background:#0f1b28 !important;
-    border:1px solid rgba(255,255,255,.08) !important;
-  }
-
-  /* Non-sticky format bar on phones to avoid extra repaint bands */
-  .format-toggle{
-    position: static !important;
-    top: auto !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: #0f1b28 !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,.2) !important;
-  }
-
-  /* Ripple without blend modes (blend + scroll can artifact on some GPUs) */
-  .tap-ripple{
-    mix-blend-mode: normal !important;
-    background: radial-gradient(circle, rgba(255,255,255,.22),
-                                         rgba(232,202,164,.15) 60%,
-                                         transparent 70%) !important;
-  }
 }
