@@ -1,10 +1,10 @@
 /*****************************************************
- * Leaderboard.css — Stunning + unmistakable changes
+ * Leaderboard.css — Clean pro table (no gimmicks)
  *****************************************************/
 
-/* ===== Glassy wrapper (frosted card) ===== */
+/* ===== Glassy wrapper ===== */
 .leaderboard-glass{
-  background: radial-gradient(900px 380px at 8% -10%, rgba(0,255,170,.08), transparent 60%),
+  background: radial-gradient(900px 380px at 8% -10%, rgba(0,255,170,.07), transparent 60%),
               linear-gradient(180deg, rgba(13,31,47,.78), rgba(10,23,36,.68));
   border: 1px solid rgba(255,255,255,.08);
   border-radius: 16px;
@@ -14,7 +14,7 @@
   -webkit-backdrop-filter: blur(10px);
 }
 
-/* ===== Scrollable wrapper with top/bottom shadows ===== */
+/* ===== Scrollable wrapper with shadows ===== */
 .leaderboard-table-wrapper{
   position: relative;
   padding: 0 6px;
@@ -36,7 +36,7 @@
   width: 100%;
   border-collapse: separate;
   table-layout: fixed;
-  border-spacing: 0 10px;       /* bigger vertical gaps */
+  border-spacing: 0 10px;
   background: transparent;
   margin: 0;
 }
@@ -92,20 +92,13 @@
 /* ===== Rows as cards + reveal ===== */
 .leaderboard-table tbody tr{
   position: relative;
-  background: linear-gradient(180deg, rgba(17,32,48,.65), rgba(10,23,35,.55));
+  background: linear-gradient(180deg, rgba(17,32,48,.62), rgba(10,23,35,.52));
   border: 1px solid rgba(255,255,255,.07);
   border-radius: 12px;
   box-shadow: 0 12px 28px rgba(0,0,0,.35);
   transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
   animation: rowIn .35s ease both;
   animation-delay: calc(var(--i, 0) * 35ms);
-  /* left neon ribbon per row (uses --accent from inline style) */
-}
-.leaderboard-table tbody tr::before{
-  content:""; position:absolute; left:-1px; top:-1px; bottom:-1px; width:4px; border-radius:12px 0 0 12px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent, #5fd0c7) 85%, #fff), transparent);
-  box-shadow: 0 0 18px color-mix(in srgb, var(--accent, #5fd0c7) 40%, transparent);
-  opacity:.8;
 }
 @keyframes rowIn{
   from{ opacity:0; transform: translateY(6px); }
@@ -113,127 +106,90 @@
 }
 .leaderboard-table tbody tr:hover{
   transform: translateY(-2px);
-  box-shadow: 0 18px 38px rgba(0,0,0,.42), 0 0 22px color-mix(in srgb, var(--accent, #5fd0c7) 20%, transparent);
+  box-shadow: 0 18px 38px rgba(0,0,0,.42);
 }
 
-/* Emoji medals */
-.medal-emoji{ font-size: 1.15rem; margin-right: 4px; }
+/* Podium (subtle corner tab) */
+.lb-top1::after, .lb-top2::after, .lb-top3::after{
+  content:""; position:absolute; top:-1px; right:-1px; width:26px; height:8px; border-radius:0 12px 0 12px;
+}
+.lb-top1::after{ background: linear-gradient(90deg, rgba(20,226,138,.8), rgba(20,226,138,0)); }
+.lb-top2::after{ background: linear-gradient(90deg, rgba(137,165,255,.8), rgba(137,165,255,0)); }
+.lb-top3::after{ background: linear-gradient(90deg, rgba(255,184,108,.9), rgba(255,184,108,0)); }
+
+/* Basic colors */
+.medal-emoji{ font-size: 1.05rem; margin-right: 4px; }
 .pos{ color:#c9ffef; }
 .neg{ color:#ffc2c2; }
 
 /* Sticky columns (desktop) */
 .sticky-col{
   position: sticky;
-  background: linear-gradient(180deg, rgba(17,32,48,.65), rgba(10,23,35,.55));
+  background: linear-gradient(180deg, rgba(17,32,48,.62), rgba(10,23,35,.52));
   z-index: 2;
 }
-.left-col{ left: 0; }
-.team-col{ left: 60px; text-align: left; }
-.rank-cell{ text-align:left; width: 60px; }
+.left-col{ left: 0; text-align: left; width: 56px; }
+.team-col{ left: 56px; text-align: left; }
 
-/* ===== Team cell with win% ring ===== */
+/* ===== Team chip ===== */
 .team-name{ font-weight: 800; letter-spacing: .2px; }
-.team-cell{ display:inline-flex; align-items:center; gap:10px; position:relative; }
-.ring{
-  width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;
-  border-radius:50%;
-  background:
-    radial-gradient(closest-side, #0c1b2a 72%, transparent 73% 100%),
-    conic-gradient(var(--accent, #5fd0c7) var(--winpct, 0%), rgba(255,255,255,.12) 0);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--accent, #5fd0c7) 25%, transparent);
+.team-chip{
+  display:inline-block; margin-right:8px; padding:3px 8px; border-radius:8px;
+  background: color-mix(in srgb, var(--accent, #5fd0c7) 16%, transparent);
+  border:1px solid color-mix(in srgb, var(--accent, #5fd0c7) 45%, transparent);
+  color:#eafffb; font-weight:900; font-size:12px; letter-spacing:.3px;
+  text-shadow: 0 0 6px rgba(255,255,255,.18);
 }
-.flag{ font-size:16px; line-height:1; filter: drop-shadow(0 0 4px rgba(0,0,0,.25)); }
-.team-text{ position:relative; z-index:1; }
+.team-text{ vertical-align: middle; }
 
-/* Win% column value (number mirrors ring) */
+/* ===== Win% micro bar ===== */
 .winpct-cell{
-  font-weight: 900;
   font-variant-numeric: tabular-nums;
-  color: #e6fff7;
+  font-weight: 800;
+  color:#e8fff7;
 }
-.winpct-val{
-  padding:4px 8px; border-radius:8px;
-  background: linear-gradient(180deg, rgba(20,226,138,.22), rgba(16,120,92,.12));
-  border: 1px solid rgba(20,226,138,.25);
-  box-shadow: 0 6px 16px rgba(20,226,138,.18) inset;
+.mini-track{
+  display:inline-block; vertical-align:middle; width:72px; height:6px; margin-right:8px;
+  border-radius:999px; background: rgba(255,255,255,.10); position:relative; overflow:hidden;
+}
+.mini-bar{
+  position:absolute; left:0; top:0; bottom:0; width: var(--w, 0);
+  background: linear-gradient(90deg, #12e0a3, #0fb48a);
 }
 
-/* Points pill */
+/* Points pill (subtle) */
 .points-pill{
-  display:inline-block; min-width:36px; padding:4px 10px; border-radius:999px;
-  background: linear-gradient(180deg, #153a2f, #0f2b24);
-  border:1px solid rgba(20,226,138,.35);
-  color:#bfffe9; font-weight:900;
-  box-shadow: 0 6px 18px rgba(20,226,138,.22), inset 0 0 12px rgba(20,226,138,.12);
+  display:inline-block; min-width:34px; padding:4px 10px; border-radius:999px;
+  background: linear-gradient(180deg, #142b24, #0e201b);
+  border:1px solid rgba(20,226,138,.28);
+  color:#c9ffe9; font-weight:900;
+  box-shadow: inset 0 0 10px rgba(20,226,138,.10);
 }
 
-/* Crown aura for #1 */
-.crown-aura{
-  position:absolute; left:-10px; top:-12px; width:20px; height:20px; border-radius:50%;
-  background: radial-gradient(closest-side, rgba(255,220,120,.9), rgba(255,220,120,.1) 60%, transparent 70%);
-  box-shadow: 0 0 16px rgba(255,220,120,.45), 0 0 36px rgba(20,226,138,.22);
-}
-
-/* ===== NRR bar (thicker + end dot + sheen) ===== */
-.nrr-cell{ position: relative; overflow: visible; height: 38px; }
+/* ===== NRR bar ===== */
+.nrr-cell{ position: relative; overflow: visible; height: 34px; }
 .nrr-track{
-  position:absolute; left: 8px; right: 8px; bottom: 8px; height: 8px;
-  border-radius:999px; background: rgba(255,255,255,.09);
+  position:absolute; left: 8px; right: 8px; bottom: 8px; height: 6px;
+  border-radius:999px; background: rgba(255,255,255,.10);
 }
 .nrr-bar{
-  position:absolute; bottom: 8px; height: 8px; width: var(--w, 0); border-radius:999px;
-  box-shadow: 0 0 10px rgba(255,255,255,.18);
+  position:absolute; bottom: 8px; height: 6px; width: var(--w, 0); border-radius:999px;
+  box-shadow: 0 0 8px rgba(255,255,255,.14);
   transition: width .35s ease;
-}
-.nrr-bar::after{
-  content:""; position:absolute; top:50%; transform: translateY(-50%);
-  width:10px; height:10px; border-radius:50%;
-  background: #fff; opacity:.85; box-shadow: 0 0 10px rgba(255,255,255,.35);
-}
-.nrr-bar.from-left::after{ right: -3px; }
-.nrr-bar.from-right::after{ left:  -3px; }
-.nrr-cell:hover .nrr-bar{
-  filter: brightness(1.08) saturate(1.05);
-}
-.nrr-cell:hover .nrr-track{
-  background: linear-gradient(90deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
 }
 
 /* Hover tint synced to buckets */
 .lb-row{ cursor: default; }
-.lb-row[data-bucket="green"]:hover  { background-color: rgba(22,226,138,.12); }
-.lb-row[data-bucket="yellow"]:hover { background-color: rgba(255,231,106,.12); }
-.lb-row[data-bucket="orange"]:hover { background-color: rgba(255,176,58,.12); }
-.lb-row[data-bucket="purple"]:hover { background-color: rgba(165,124,255,.12); }
-.lb-row[data-bucket="red"]:hover    { background-color: rgba(255, 43, 43,.12); }
-
-/* Podium styles (top 3) */
-.lb-top1{
-  background: linear-gradient(180deg, rgba(30,76,60,.55), rgba(18,52,42,.45));
-  border-color: rgba(20,226,138,.38);
-  box-shadow: 0 16px 40px rgba(20,226,138,.22);
-}
-.lb-top2{
-  background: linear-gradient(180deg, rgba(54,64,92,.55), rgba(28,36,56,.45));
-  border-color: rgba(137,165,255,.32);
-}
-.lb-top3{
-  background: linear-gradient(180deg, rgba(82,64,44,.55), rgba(52,40,30,.45));
-  border-color: rgba(255,184,108,.32);
-}
-
-/* Rank neon ribbon on the left edge of sticky # column */
-.rank-cell{ position: relative; }
-.rank-ribbon{
-  position:absolute; left:-6px; top:4px; bottom:4px; width:4px; border-radius:8px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent, #5fd0c7) 85%, #fff), transparent);
-  box-shadow: 0 0 16px color-mix(in srgb, var(--accent, #5fd0c7) 40%, transparent);
-}
+.lb-row[data-bucket="green"]:hover  { background-color: rgba(22,226,138,.10); }
+.lb-row[data-bucket="yellow"]:hover { background-color: rgba(255,231,106,.10); }
+.lb-row[data-bucket="orange"]:hover { background-color: rgba(255,176,58,.10); }
+.lb-row[data-bucket="purple"]:hover { background-color: rgba(165,124,255,.10); }
+.lb-row[data-bucket="red"]:hover    { background-color: rgba(255, 43, 43,.10); }
 
 /* ===== Mobile/touch ===== */
-@media (max-width: 1100px){
-  .team-col{ left: 58px; }
-  .rank-cell{ width: 58px; }
+@media (max-width: 1024px){
+  .team-col{ left: 52px; }
+  .left-col{ width: 52px; }
 }
 @media (max-width: 900px), (pointer: coarse){
   .leaderboard-glass{
@@ -261,10 +217,6 @@
   }
   .sticky-col{ position: static !important; }
   .leaderboard-table-wrapper{ max-height: none; }
-  /* simplify ring on small/touch */
-  .ring{ box-shadow:none; }
-  .nrr-track{ height:6px; bottom:6px; }
-  .nrr-bar{ height:6px; }
 }
 @media (max-width: 520px){
   .leaderboard-table thead th,
@@ -272,6 +224,4 @@
     font-size:13px !important;
     padding:8px 6px !important;
   }
-  .team-col{ left: 52px !important; }
-  .rank-cell{ width: 52px !important; }
 }

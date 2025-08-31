@@ -7,7 +7,7 @@ import "./Leaderboard.css";
 const socket = io("https://cricket-scoreboard-backend.onrender.com");
 
 /* ---------- helpers ---------- */
-// Map |NRR| to 0..100% for the small bar
+// Map |NRR| to 0..100% for the bar
 const nrrWidth = (nrr) => {
   if (nrr === null || Number.isNaN(nrr)) return 0;
   const max = 8; // clamp for UI
@@ -25,7 +25,7 @@ const nrrBucket = (nrr) => {
   return { bucket: "green", neg: false };
 };
 
-// Ensure bar color even if other CSS tries to override
+// Bar gradient by bucket
 const bucketGradient = (bucket) => {
   switch (bucket) {
     case "green":  return "linear-gradient(90deg,#14e29a,#00c986)";
@@ -37,7 +37,7 @@ const bucketGradient = (bucket) => {
   }
 };
 
-/* Team → code + simple flag emoji (fallback to code if unknown) */
+/* Team → code (for chip) + accent color (UI only) */
 const teamCode = (name = "") => {
   const n = String(name).trim().toLowerCase();
   const MAP = {
@@ -46,29 +46,13 @@ const teamCode = (name = "") => {
     ireland: "IRE", kenya: "KEN", namibia: "NAM", bangladesh: "BAN",
     afghanistan: "AFG", zimbabwe: "ZIM", netherlands: "NED", scotland: "SCO",
     nepal: "NEP", oman: "OMA", uae: "UAE", "united arab emirates": "UAE",
-    usa: "USA", "hong kong": "HKG", "papua new guinea": "PNG",
-    "west indies": "WI",
+    usa: "USA", "hong kong": "HKG", "papua new guinea": "PNG", "west indies": "WI",
   };
   if (MAP[n]) return MAP[n];
   const letters = n.replace(/[^a-z]/g, "");
   return (letters.slice(0, 3) || "UNK").toUpperCase();
 };
-const teamFlag = (name = "") => {
-  const n = String(name).trim().toLowerCase();
-  const MAP = {
-    india: "🇮🇳", australia: "🇦🇺", england: "🏴" /* fallback UK below if not supported */,
-    "united kingdom": "🇬🇧", uk: "🇬🇧", "new zealand": "🇳🇿",
-    pakistan: "🇵🇰", "south africa": "🇿🇦", "sri lanka": "🇱🇰",
-    ireland: "🇮🇪", kenya: "🇰🇪", namibia: "🇳🇦", bangladesh: "🇧🇩",
-    afghanistan: "🇦🇫", zimbabwe: "🇿🇼", netherlands: "🇳🇱",
-    scotland: "🏴", nepal: "🇳🇵", oman: "🇴🇲", uae: "🇦🇪",
-    usa: "🇺🇸", "hong kong": "🇭🇰", "papua new guinea": "🇵🇬",
-    "west indies": "🟣", // no real flag
-  };
-  return MAP[n] || "";
-};
 
-/* Accent by team code (UI only) */
 const ACCENTS = {
   IND: "#4cc9f0", AUS: "#f9c74f", ENG: "#64dfdf", NZ: "#90e0ef",
   PAK: "#80ed99", RSA: "#00f5d4", SL: "#ffd166", AFG: "#ef476f",
@@ -185,7 +169,7 @@ const Leaderboard = () => {
               const width = nrrWidth(team.nrr);
               const podium =
                 index === 0 ? "lb-top1" : index === 1 ? "lb-top2" : index === 2 ? "lb-top3" : "";
-              const winpct = team.matches_played ? (team.wins / team.matches_played) * 100 : 0;
+              const winpct = team.matches_played ? Math.round((team.wins / team.matches_played) * 100) : 0;
               const accent = pickAccent(team.team_name);
 
               return (
@@ -193,23 +177,17 @@ const Leaderboard = () => {
                   key={team.team_name}
                   className={`lb-row ${podium}`}
                   data-bucket={bucket}
-                  style={{ ["--i"]: index, ["--accent"]: accent, ["--winpct"]: `${winpct}%` }}
+                  style={{ ["--i"]: index, ["--accent"]: accent }}
                 >
                   <td className="sticky-col left-col rank-cell">
-                    {/* Neon rank ribbon */}
-                    <span className="rank-ribbon" aria-hidden />
                     {getMedal(index)} {index + 1}
                   </td>
 
                   <td className="sticky-col team-col team-name">
-                    {/* Crown aura for #1 */}
-                    {index === 0 && <span className="crown-aura" aria-hidden />}
-                    <span className="team-cell">
-                      <span className="ring" aria-hidden>
-                        <span className="flag">{teamFlag(team.team_name) || teamCode(team.team_name)}</span>
-                      </span>
-                      <span className="team-text">{team.team_name}</span>
+                    <span className="team-chip" style={{ ["--accent"]: accent }}>
+                      {teamCode(team.team_name)}
                     </span>
+                    <span className="team-text">{team.team_name}</span>
                   </td>
 
                   <td>{team.matches_played}</td>
@@ -217,16 +195,19 @@ const Leaderboard = () => {
                   <td className="neg">{team.losses}</td>
                   <td>{calculateDraws(team)}</td>
 
-                  {/* Win% ring number (text fallback inside) */}
+                  {/* Simple Win% micro bar + number */}
                   <td className="winpct-cell">
-                    <span className="winpct-val">{Math.round(winpct)}</span>
+                    <span className="mini-track" aria-hidden>
+                      <span className="mini-bar" style={{ ["--w"]: `${winpct}%` }} aria-hidden />
+                    </span>
+                    {winpct}%
                   </td>
 
                   <td className="pos">
                     <span className="points-pill">{team.points}</span>
                   </td>
 
-                  {/* NRR value + bar */}
+                  {/* NRR bar + value (subtle) */}
                   <td className={`nrr-cell ${neg ? "neg" : "pos"}`}>
                     <div className="nrr-track" aria-hidden />
                     <div
