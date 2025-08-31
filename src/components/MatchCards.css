@@ -1,4 +1,4 @@
-/* Visibly stronger cinematic style for MatchCards */
+/* MatchCards.css — cinematic desktop, *flat and rock-solid on mobile* */
 
 /* Display/score fonts */
 @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@400;700;800&family=Inter:wght@400;600;800&display=swap');
@@ -23,7 +23,7 @@
   margin-bottom: 12px;
 }
 
-/* Sticky toggle */
+/* Sticky format toggle (desktop) */
 .format-toggle{
   position: sticky; top: 86px; z-index: 9;
   display:flex; flex-wrap:wrap; gap:10px;
@@ -52,7 +52,7 @@
   box-shadow: 0 12px 30px rgba(7,19,29,.45), 0 10px 28px rgba(232,202,164,.10);
 }
 
-/* Poster enhancements: visible border glow + tilt + light spot */
+/* Poster enhancements (desktop) */
 .match-card.poster{
   transform: perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
   transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
@@ -63,19 +63,31 @@
   box-shadow: 0 22px 48px color-mix(in srgb, var(--accent) 20%, #000), 0 10px 28px rgba(232,202,164,.12);
 }
 
-/* thick neon ring */
+/* Neon ring (desktop). We use a safe fallback + enhanced version behind @supports */
 .match-card.poster::before{
   content:"";
   position:absolute; inset:-1px; border-radius:inherit; pointer-events:none;
-  background: conic-gradient(from 180deg,
-    color-mix(in srgb, var(--accent) 96%, #fff) 0 22%,
-    transparent 40% 60%,
-    color-mix(in srgb, var(--accent) 80%, #fff) 78% 100%);
-  filter: blur(10px) saturate(125%);
-  opacity:.48;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor; mask-composite: exclude;
-  padding:1.5px;
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
+  opacity:.38;
+}
+@supports ((-webkit-mask: none) or (mask: none)) {
+  .match-card.poster::before{
+    background: conic-gradient(from 180deg,
+      color-mix(in srgb, var(--accent) 96%, #fff) 0 22%,
+      transparent 40% 60%,
+      color-mix(in srgb, var(--accent) 80%, #fff) 78% 100%);
+    filter: blur(10px) saturate(125%);
+    opacity:.48;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    padding:1.5px;
+    border: none;
+    box-shadow: none;
+  }
 }
 .match-card.poster::after{
   content:"";
@@ -92,7 +104,14 @@
   border-color: #2a7dff88;
 }
 
-/* "Recent" ring pulse */
+/* Status chips */
+.status-badges{ position:absolute; right:10px; top:10px; display:flex; gap:8px; z-index:2; }
+.badge-chip{
+  display:inline-flex; align-items:center; gap:8px; padding:4px 10px; border-radius:999px;
+  font-weight:800; letter-spacing:.02em; border:1px solid rgba(255,255,255,.12); box-shadow: 0 4px 10px rgba(0,0,0,.25);
+  font-size:.82rem;
+}
+.badge-live{ background:#0d6efd; color:#fff; border-color:#2a7dff; }
 .badge-recent{ background:#0f1b28; color:#fff; border-color:#ff6b6b; }
 .pulse-ring{
   width:11px; height:11px; border-radius:50%; display:inline-block; margin-right:6px;
@@ -104,15 +123,6 @@
   70%{ box-shadow:0 0 0 10px rgba(255,59,48,0); }
   100%{ box-shadow:0 0 0 0 rgba(255,59,48,0); }
 }
-
-/* badges */
-.status-badges{ position:absolute; right:10px; top:10px; display:flex; gap:8px; z-index:2; }
-.badge-chip{
-  display:inline-flex; align-items:center; gap:8px; padding:4px 10px; border-radius:999px;
-  font-weight:800; letter-spacing:.02em; border:1px solid rgba(255,255,255,.12); box-shadow: 0 4px 10px rgba(0,0,0,.25);
-  font-size:.82rem;
-}
-.badge-live{ background:#0d6efd; color:#fff; border-color:#2a7dff; }
 
 /* Title */
 .match-title{
@@ -129,7 +139,7 @@
 }
 .teams-row > .team{ min-width:0; position:relative; }
 
-/* BIG watermark: team code ghost text */
+/* BIG watermark: team code ghost text (desktop only; disabled on phones below) */
 .team::before{
   content: attr(data-code);
   position:absolute; inset:auto auto -6px -6px; z-index:0; pointer-events:none;
@@ -141,10 +151,7 @@
   transform: rotate(-8deg);
   text-shadow: 0 0 12px rgba(255,255,255,.15);
 }
-.team--right::before{
-  left:auto; right:-6px; transform: rotate(8deg);
-  text-align:right;
-}
+.team--right::before{ left:auto; right:-6px; transform: rotate(8deg); text-align:right; }
 
 .rowline{
   position:relative; z-index:1;
@@ -166,7 +173,7 @@
 }
 .team .meta{ font-size:.9rem; color:#d7e7f5; opacity:.9; font-variant-numeric:tabular-nums; }
 
-.team-block{ margin-bottom:6px; }
+.team-block{ margin-bottom:6px; position:relative; }
 .team-block .name{ font-weight:800; color:#fff; text-shadow:0 0 6px rgba(255,255,255,.28), 0 0 14px rgba(232,202,164,.18); }
 .team-block .meta{ font-size:.9rem; color:#d7e7f5; opacity:.9; font-variant-numeric:tabular-nums; }
 
@@ -186,7 +193,7 @@
 }
 @keyframes rippleExpand{ to{ transform:translate(-50%,-50%) scale(14); opacity:0; } }
 
-/* ===== Mobile: swipe hint ===== */
+/* ===== Mobile: snap row (horizontal scrolling for cards) ===== */
 .mc-row-snap{ position:relative; }
 @media (max-width: 640px){
   .mc-container .row.g-3{
@@ -195,7 +202,6 @@
   }
   .mc-container .row.g-3::-webkit-scrollbar{ display:none; }
   .mc-container .row.g-3 > [class*="col-"]{ flex: 0 0 86%; max-width: 86%; }
-  /* edge fades hint */
   .mc-row-snap::before, .mc-row-snap::after{
     content:""; position:absolute; top:0; bottom:0; width:24px; pointer-events:none; z-index:3;
   }
@@ -221,123 +227,40 @@
   .match-card.poster{ transform:none !important; }
   .match-card.poster::after{ opacity:.18; }
 }
-/* === Watermark for Test cards (same style as LOI) === */
-.team-block { position: relative; }
-.team-block::before{
-  content: attr(data-code);
-  position:absolute; inset:auto auto -6px -6px; z-index:0; pointer-events:none;
-  font-family: "Oxanium", ui-monospace, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  font-weight:800;
-  font-size: clamp(40px, 8vw, 74px);
-  line-height:1;
-  color:#fff; opacity:.06;
-  transform: rotate(-8deg);
-  text-shadow: 0 0 12px rgba(255,255,255,.15);
-}
-.team-block--right::before{
-  left:auto; right:-6px; transform: rotate(8deg);
-}
 
-/* ensure text sits above watermark */
-.team-block > .name,
-.team-block > .meta,
-.rowline { position: relative; z-index: 1; }
+/* =======================================================================
+   MOBILE / TOUCH HARDENING — remove tiling sources & stick to one layer
+   ======================================================================= */
+@media (max-width: 900px), (pointer: coarse){
 
-/* === Safer neon border: use mask when supported, otherwise fallback === */
-
-/* default: simple glow fallback (no mask), quiets editor warnings */
-.match-card.poster::before{
-  content:"";
-  position:absolute; inset:-1px; border-radius:inherit; pointer-events:none;
-  background: none;
-  border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
-  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
-  opacity:.38;
-}
-
-/* enhanced ring when mask is supported */
-@supports ((-webkit-mask: none) or (mask: none)) {
-  .match-card.poster::before{
-    background: conic-gradient(from 180deg,
-      color-mix(in srgb, var(--accent) 96%, #fff) 0 22%,
-      transparent 40% 60%,
-      color-mix(in srgb, var(--accent) 80%, #fff) 78% 100%);
-    filter: blur(10px) saturate(125%);
-    opacity:.48;
-    /* vendor + standard mask; some editors warn without @supports */
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    padding:1.5px;
-    border: none; /* ring is drawn by the pseudo-element itself */
-    box-shadow: none;
-  }
-}
-/* === Mobile/touch stability fixes for match cards === */
-@media (max-width: 900px), (pointer: coarse) {
-  /* 3) Remove masked neon ring (mask-composite + blur causes shimmer on scroll) */
-  .match-card.poster::before{ content:none !important; }
-
-  /* keep it extra light; if you still want a soft spot, reduce it */
-  .match-card.poster::after{
-    opacity: .12 !important;
-    background: radial-gradient(260px 140px at 50% 30%, rgba(95,208,199,.18), transparent 60%) !important;
-  }
-
-  /* 4) The sticky format toggle: drop blur on mobile to avoid flicker */
-  .format-toggle{
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: linear-gradient(180deg, rgba(8,23,34,.96), rgba(7,19,29,.94)) !important;
-  }
-
-  /* 5) Ripple: avoid blend mode on mobile GPUs */
-  .tap-ripple{
-    mix-blend-mode: normal !important;
-    background: radial-gradient(circle, rgba(255,255,255,.25), rgba(232,202,164,.18) 60%, transparent 70%) !important;
-  }
-
-  /* 6) Safety: no 3D tilt on coarse pointers (you already reduce motion, this enforces it) */
-  .match-card.poster{
-    transform: none !important;
-  }
-}
-/* === Mobile Compositing Hardening v3 — MatchCards === */
-@media (max-width: 900px), (pointer: coarse) {
-  /* DO NOT promote cards to a new layer on phones */
+  /* Make cards a single composited block and enforce rounded clipping */
   .match-card,
-  .match-card.live {
-    transform: none !important;        /* remove translateZ(0) / 3D tilt */
+  .match-card.live{
+    transform: none !important;
     will-change: auto !important;
-    contain: none !important;           /* undo contain: paint */
-    isolation: isolate;                 /* clip children within this stacking context */
-    overflow: hidden;                   /* enforce rounded clipping */
-    background-clip: padding-box;       /* avoid square tiles bleeding */
-    box-shadow: 0 2px 8px rgba(0,0,0,.22) !important; /* lighter shadow = fewer re-raster ops */
+    contain: none !important;
+    isolation: isolate;
+    overflow: hidden;
+    background-clip: padding-box;
+    box-shadow: 0 2px 8px rgba(0,0,0,.22) !important;
+    -webkit-mask-image: -webkit-radial-gradient(white, black); /* force radius clip */
   }
 
-  /* Kill any heavy pseudo effects that can form their own layers */
+  /* Remove heavy pseudos (neon ring + light spot) */
   .match-card.poster::before,
-  .match-card.poster::after {
-    content: none !important;
+  .match-card.poster::after{ content:none !important; }
+
+  /* Disable big watermarks on phones (these often become separate tiles) */
+  .team::before,
+  .team-block::before{ display:none !important; }
+
+  /* Keep background simple (no big radial grads on phones) */
+  .match-card{
+    background:#0f1b28 !important;
+    border:1px solid rgba(255,255,255,.08) !important;
   }
 
-  /* Keep the background simple so the GPU doesn’t recompose huge areas */
-  .match-card {
-    background: #0f1b28 !important;
-    border: 1px solid rgba(255,255,255,.08) !important;
-  }
-
-  /* Ripple without blend modes (blend + scroll = artifacts on some GPUs) */
-  .tap-ripple{
-    mix-blend-mode: normal !important;
-    background: radial-gradient(circle, rgba(255,255,255,.22),
-                                         rgba(232,202,164,.15) 60%,
-                                         transparent 70%) !important;
-  }
-
-  /* Make the format bar non-sticky on phones to remove another repaint band */
+  /* Non-sticky format bar on phones to avoid extra repaint bands */
   .format-toggle{
     position: static !important;
     top: auto !important;
@@ -345,5 +268,13 @@
     -webkit-backdrop-filter: none !important;
     background: #0f1b28 !important;
     box-shadow: 0 4px 10px rgba(0,0,0,.2) !important;
+  }
+
+  /* Ripple without blend modes (blend + scroll can artifact on some GPUs) */
+  .tap-ripple{
+    mix-blend-mode: normal !important;
+    background: radial-gradient(circle, rgba(255,255,255,.22),
+                                         rgba(232,202,164,.15) 60%,
+                                         transparent 70%) !important;
   }
 }

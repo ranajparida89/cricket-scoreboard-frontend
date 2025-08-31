@@ -1,11 +1,11 @@
 /*****************************************************
- * Leaderboards.css — desktop pretty, mobile stable
+ * Leaderboards.css — desktop pretty, *mobile bulletproof*
  *****************************************************/
 
 /* small spacing for the ScopeBar block above the table */
 .leaderboard-controls{ margin-bottom: 10px; }
 
-/* ===== Glassy wrapper (frosted card) ===== */
+/* ===== Glassy wrapper (desktop) ===== */
 .leaderboard-glass{
   background: radial-gradient(900px 380px at 8% -10%, rgba(0,255,170,.08), transparent 60%),
               linear-gradient(180deg, rgba(13,31,47,.78), rgba(10,23,36,.68));
@@ -15,9 +15,10 @@
   box-shadow: 0 16px 40px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.06);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  overflow: hidden;                 /* clip any child to radius */
 }
 
-/* Wrapper keeps header/body aligned */
+/* Wrapper keeps header/body aligned (desktop only) */
 .leaderboard-table-wrapper{ padding: 0 6px; }
 
 /* ===== Table base ===== */
@@ -74,7 +75,7 @@
   box-shadow: 0 18px 38px rgba(0,0,0,.42);
 }
 
-/* Emoji medals */
+/* Emoji medals + tint helpers */
 .medal-emoji{ font-size: 1.15rem; margin-right: 4px; }
 .pos{ color:#c9ffef; }
 .neg{ color:#ffc2c2; }
@@ -83,7 +84,7 @@
 /* ===== NRR tiny bar ===== */
 .nrr-cell{
   position: relative;
-  overflow: visible;              /* was hidden → could clip/glitch */
+  overflow: visible;
   height: 34px;
 }
 .nrr-track{
@@ -114,18 +115,43 @@
 .lb-row[data-bucket="purple"] .nrr-bar{ background: linear-gradient(90deg,#a57cff,#6dd6ff); }
 .lb-row[data-bucket="red"]    .nrr-bar{ background: linear-gradient(90deg,#ff6b6b,#ff2b2b); }
 
-/* ===== Mobile/touch stability (S23-safe) ===== */
+
+/* =======================================================================
+   MOBILE / TOUCH HARDENING (stops rectangular tiling & flicker on Android)
+   ======================================================================= */
 @media (max-width: 900px), (pointer: coarse){
-  /* Solid wrapper, no blur: avoids GPU tiling artifacts */
-  .leaderboard-glass{
-    background:#0f1b28 !important;
-    border:1px solid rgba(255,255,255,.06) !important;
-    box-shadow:0 6px 16px rgba(0,0,0,.28) !important;
-    backdrop-filter:none !important;
-    -webkit-backdrop-filter:none !important;
+
+  /* 1) Remove any inner scroller. Let the page scroll. */
+  .leaderboard-table-wrapper{
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+  .leaderboard-table-wrapper.scrollable::before,
+  .leaderboard-table-wrapper.scrollable::after{ display:none !important; }
+
+  /* 2) Disable sticky behaviors (common tiling trigger). */
+  .leaderboard-table thead th,
+  .sticky-col{
+    position: static !important;
+    z-index: auto !important;
+    background: transparent !important;
   }
 
-  /* Collapse gaps, solid row bg, no per-row shadow */
+  /* 3) Simplify the wrapper: no blur, strong clipping. */
+  .leaderboard-glass{
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: #0f1b28 !important;
+    border: 1px solid rgba(255,255,255,.06) !important;
+    box-shadow: 0 6px 16px rgba(0,0,0,.28) !important;
+    overflow: hidden !important;
+    background-clip: padding-box;
+    isolation: isolate;                     /* contain any child layers */
+    -webkit-mask-image: -webkit-radial-gradient(white, black); /* force radius clip */
+  }
+
+  /* 4) Render rows as simple blocks; no heavy shadow/radius mixing. */
   .leaderboard-table{
     border-collapse: collapse !important;
     border-spacing: 0 !important;
@@ -133,16 +159,19 @@
   }
   .leaderboard-table tbody tr{
     background:#0f1e2d !important;
+    border: 1px solid rgba(255,255,255,.06) !important;
+    border-radius: 0 !important;
     box-shadow:none !important;
-    border-bottom:1px solid rgba(255,255,255,.06) !important;
-    transform:none !important;           /* no hover lift on touch */
+    transform:none !important;
+    overflow: hidden;
+    background-clip: padding-box;
   }
 
-  /* Bars: no extra glow/filters on mobile */
+  /* 5) Bars simplified: no extra glow. */
   .nrr-track{ background: rgba(255,255,255,.12) !important; }
   .nrr-bar{ box-shadow:none !important; filter:none !important; }
 
-  /* Tighter spacing */
+  /* 6) Tighter spacing */
   .leaderboard-table thead th,
   .leaderboard-table tbody td{
     padding:10px 8px !important;
@@ -150,39 +179,11 @@
   }
 }
 
-/* Responsive text scale */
+/* Slight scale down on small phones */
 @media (max-width: 768px){
   .leaderboard-table thead th,
   .leaderboard-table tbody td{
     font-size: 14px;
     padding: 10px 8px;
-  }
-}
-/* === Mobile Compositing Hardening v3 — Leaderboard === */
-@media (max-width: 900px), (pointer: coarse) {
-  /* Solid wrapper; clip children to rounded edges */
-  .leaderboard-glass{
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: #0f1b28 !important;
-    border: 1px solid rgba(255,255,255,.06) !important;
-    box-shadow: 0 6px 16px rgba(0,0,0,.28) !important;
-    overflow: hidden;                  /* important: clip to radius */
-    isolation: isolate;                /* keep internal layers contained */
-  }
-
-  /* Remove any row/left ribbons that become separate tiles */
-  .leaderboard-table tbody tr::before,
-  .rank-ribbon { display: none !important; }
-
-  /* Sticky header/cols off on phones to avoid extra compositing bands */
-  .leaderboard-table thead th,
-  .sticky-col { position: static !important; background: transparent !important; }
-
-  /* Rows render as simple blocks; avoid big shadows */
-  .leaderboard-table tbody tr{
-    box-shadow: 0 2px 8px rgba(0,0,0,.22) !important;
-    overflow: hidden; /* some engines honor this for clipping children in tables */
-    background-clip: padding-box;
   }
 }
