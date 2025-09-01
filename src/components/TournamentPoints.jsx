@@ -19,46 +19,50 @@ export default function TournamentPoints() {
   const [tournamentName, setTournamentName] = useState("");
   const [seasonYear, setSeasonYear] = useState("");
 
-  // Dropdown catalog
-  const [catalog, setCatalog] = useState([]);
+  // Distinct dropdown options (from DB)
+  const [tournaments, setTournaments] = useState([]);
+  const [years, setYears] = useState([]);
 
   // Table rows
   const [rows, setRows] = useState([]);
 
   const [infoOpen, setInfoOpen] = useState(false);
 
-  // Load tournaments catalog for current matchType
-  useEffect(() => {
-    (async () => {
+  // --------- FILTER CATALOG (distinct values from match_history) ----------
+  async function loadFilters(type = matchType) {
+    try {
+      const { data } = await axios.get(`${API_URL}/tournaments/filters`, {
+        params: { match_type: type },
+      });
+      setTournaments(Array.isArray(data?.tournaments) ? data.tournaments : []);
+      setYears(Array.isArray(data?.years) ? data.years : []);
+    } catch (e) {
+      // Fallback to old /tournaments if /filters isn’t deployed yet
       try {
         const { data } = await axios.get(`${API_URL}/tournaments`, {
-          params: { match_type: matchType },
+          params: { match_type: type },
         });
-        setCatalog(Array.isArray(data) ? data : []);
+        const cats = Array.isArray(data) ? data : [];
+        setTournaments(cats.map((c) => c.name).sort((a, b) => a.localeCompare(b)));
+        const yrSet = new Set();
+        cats.forEach((c) => (Array.isArray(c.editions) ? c.editions : []).forEach((e) => {
+          if (!type || type === "All" || e.match_type === type) yrSet.add(Number(e.season_year));
+        }));
+        setYears(Array.from(yrSet).sort((a, b) => b - a));
       } catch {
-        setCatalog([]);
+        setTournaments([]);
+        setYears([]);
       }
-    })();
+    }
+  }
+
+  // initial + when type changes
+  useEffect(() => {
+    loadFilters(matchType);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchType]);
 
-  // Build dropdown lists
-  const tournaments = useMemo(
-    () => catalog.map((c) => c.name).sort((a, b) => a.localeCompare(b)),
-    [catalog]
-  );
-  const years = useMemo(() => {
-    const s = new Set();
-    catalog.forEach((c) =>
-      c.editions.forEach((e) => {
-        if (!matchType || matchType === "All" || e.match_type === matchType) {
-          s.add(Number(e.season_year));
-        }
-      })
-    );
-    return Array.from(s).sort((a, b) => a - b);
-  }, [catalog, matchType]);
-
-  // Load leaderboard (server does all maths from TEAMS table, with filters)
+  // --------- LEADERBOARD ----------
   async function reload() {
     try {
       setLoading(true);
@@ -66,21 +70,21 @@ export default function TournamentPoints() {
       if (norm(tournamentName)) params.tournament_name = tournamentName;
       if (norm(seasonYear)) params.season_year = Number(seasonYear);
 
-      const { data } = await axios.get(`${API_URL}/teams/leaderboard`, { params });
+      // FIX: correct endpoint
+      const { data } = await axios.get(`${API_URL}/tournaments/leaderboard`, { params });
 
       const normalized = (Array.isArray(data) ? data : []).map((r) => ({
         team_name: r.team_name,
-        matches_played: safeNum(r.matches_played),
+        matches_played: safeNum(r.matches),
         wins: safeNum(r.wins),
         losses: safeNum(r.losses),
         draws: safeNum(r.draws),
         points: safeNum(r.points),
         nrr: safeNum(r.nrr),
-        tournament_name: r.tournament_name ?? null, // echoed from backend
-        season_year: r.season_year ?? null,         // echoed from backend
+        tournament_name: r.tournament_name ?? null,
+        season_year: r.season_year ?? null,
       }));
 
-      // Defensive sort (backend already orders this way)
       normalized.sort(
         (a, b) =>
           b.points - a.points ||
@@ -90,7 +94,7 @@ export default function TournamentPoints() {
 
       setRows(normalized);
     } catch (e) {
-      console.error("Failed to load /teams/leaderboard:", e);
+      console.error("Failed to load /tournaments/leaderboard:", e);
       setRows([]);
     } finally {
       setLoading(false);
@@ -122,7 +126,7 @@ export default function TournamentPoints() {
     [table]
   );
 
-  // ---------- Chart layout (robust bounds) ----------
+  // ---------- Chart layout ----------
   const W = 980, H = 360, PAD = 44;
 
   const yLMin = 0;
@@ -160,6 +164,46 @@ export default function TournamentPoints() {
       opacity={opacity}
     />
   );
+
+  // ---------- PREDICTIONS ----------
+  function buildPredictions(list) {
+    if (!list?.length) return { super8: [], super6: [], semifinal: [] };
+
+    const ptsMax = Math.max(...list.map((r) => safeNum(r.points, 0)), 1);
+    const wrArr = list.map((r) => (safeNum(r.wins) / Math.max(1, safeNum(r.matches_played))));
+    const wrMax = Math.max(...wrArr, 1);
+    const nrrMinL = Math.min(...list.map((r) => safeNum(r.nrr, 0)));
+    const nrrMaxL = Math.max(...list.map((r) => safeNum(r.nrr, 0)));
+    const nrrRangeL = Math.max(1e-6, nrrMaxL - nrrMinL);
+
+    const scored = list.map((r) => {
+      const ptsNorm = safeNum(r.points, 0) / ptsMax;
+      const wr = safeNum(r.wins) / Math.max(1, safeNum(r.matches_played));
+      const wrNorm = wr / wrMax;
+      const nrrNorm = (safeNum(r.nrr) - nrrMinL) / nrrRangeL; // 0..1
+
+      // Weights tuned for readability: points (55%), win-rate (35%), NRR (10%)
+      const score = 0.55 * ptsNorm + 0.35 * wrNorm + 0.10 * nrrNorm;
+      return { ...r, ptsNorm, wr, nrrNorm, score };
+    });
+
+    const sMin = Math.min(...scored.map((s) => s.score));
+    const sMax = Math.max(...scored.map((s) => s.score), sMin + 1e-6);
+    const withProb = scored
+      .map((s) => ({
+        ...s,
+        probability: Math.round(((s.score - sMin) / (sMax - sMin)) * 100),
+      }))
+      .sort((a, b) => b.score - a.score);
+
+    const super8 = withProb.slice(0, 8);
+    const super6 = withProb.slice(0, 6);
+    const semifinal = withProb.slice(0, 4);
+
+    return { super8, super6, semifinal };
+  }
+
+  const predictions = useMemo(() => buildPredictions(rows), [rows]);
 
   return (
     <div className="tp-simple">
@@ -319,7 +363,7 @@ export default function TournamentPoints() {
                 table.map((t, idx) => (
                   <tr
                     key={t.team_name}
-                    className={`lb-row ${idx < 3 ? `top-${idx + 1}` : ""}`}  // ✅ highlight full row for top 3
+                    className={`lb-row ${idx < 3 ? `top-${idx + 1}` : ""}`}
                   >
                     <td><span className="rank-badge">#{idx + 1}</span></td>
                     <td className={`tname ${idx < 3 ? "goldtxt" : ""}`}>{t.team_name}</td>
@@ -327,10 +371,7 @@ export default function TournamentPoints() {
                     <td className="good">{safeNum(t.wins)}</td>
                     <td className="bad">{safeNum(t.losses)}</td>
                     <td>{safeNum(t.draws)}</td>
-
-                    {/* Neutral points chip (no yellow focus now) */}
                     <td><span className="points-chip">{safeNum(t.points)}</span></td>
-
                     <td className={safeNum(t.nrr) >= 0 ? "good" : "bad"}>
                       {safeNum(t.nrr).toFixed(2)}
                     </td>
@@ -348,6 +389,86 @@ export default function TournamentPoints() {
         </div>
       </div>
 
+      {/* Predictions */}
+      <div className="card tp-predict">
+        <div className="card-head">Predictions (data-driven)</div>
+
+        <div className="predict-grid">
+          {/* Super 8 */}
+          <div className="predict-col">
+            <div className="predict-title">Super 8 — strongest 8</div>
+            <ol className="predict-list">
+              {predictions.super8.map((t, i) => (
+                <li key={`s8-${t.team_name}`} className="predict-item">
+                  <span className="p-rank">#{i + 1}</span>
+                  <span className="p-team">{t.team_name}</span>
+                  <span className="p-bar">
+                    <span className="p-fill" style={{ width: `${t.probability}%` }} />
+                  </span>
+                  <span className="p-prob">{t.probability}%</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {/* Super 6 */}
+          <div className="predict-col">
+            <div className="predict-title">Super 6 — strongest 6</div>
+            <ol className="predict-list">
+              {predictions.super6.map((t, i) => (
+                <li key={`s6-${t.team_name}`} className="predict-item">
+                  <span className="p-rank">#{i + 1}</span>
+                  <span className="p-team">{t.team_name}</span>
+                  <span className="p-bar">
+                    <span className="p-fill" style={{ width: `${t.probability}%` }} />
+                  </span>
+                  <span className="p-prob">{t.probability}%</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {/* Semi Final */}
+          <div className="predict-col">
+            <div className="predict-title">Semi-finals — strongest 4</div>
+            <ol className="predict-list">
+              {predictions.semifinal.map((t, i) => (
+                <li key={`sf-${t.team_name}`} className="predict-item">
+                  <span className="p-rank">#{i + 1}</span>
+                  <span className="p-team">{t.team_name}</span>
+                  <span className="p-bar">
+                    <span className="p-fill" style={{ width: `${t.probability}%` }} />
+                  </span>
+                  <span className="p-prob">{t.probability}%</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+
+        <div className="predict-note">
+          <strong>Disclaimer:</strong> This is a **prediction** generated from historical data
+          ({matchType === "All" ? "ODI & T20" : matchType}
+          {tournamentName ? ` • ${tournamentName}` : ""}{seasonYear ? ` • ${seasonYear}` : ""})
+          . Confidence % is derived from a weighted blend of Points, Win-rate and NRR.
+        </div>
+
+        {/* minimal CSS so we don't touch your main stylesheet */}
+        <style>{`
+          .predict-grid{display:grid;gap:14px;grid-template-columns:repeat(3,minmax(0,1fr));}
+          @media(max-width: 992px){.predict-grid{grid-template-columns:1fr;}}
+          .predict-title{font-weight:800;color:#e8caa4;margin-bottom:8px}
+          .predict-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+          .predict-item{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center}
+          .p-rank{font-weight:800;color:#cfe9ff;opacity:.9}
+          .p-team{font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+          .p-bar{height:8px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}
+          .p-fill{display:block;height:100%;background:linear-gradient(90deg,#14e29a,#5fd0c7)}
+          .p-prob{font-weight:800;color:#d7fff1;min-width:44px;text-align:right}
+          .predict-note{margin-top:12px;color:#a9bdd9;font-size:.92rem}
+        `}</style>
+      </div>
+
       {/* Info modal */}
       {infoOpen && (
         <div className="modal" onClick={() => setInfoOpen(false)}>
@@ -358,8 +479,8 @@ export default function TournamentPoints() {
             </div>
             <div className="modal-body">
               <p>
-                Server computes totals from <code>teams</code> with filters via <code>matches</code>
-                (Win=2, Draw=1; NRR is run-rate diff). No joins that alter totals.
+                Server computes totals from <code>match_history</code> (ODI/T20) and returns a
+                leaderboard. Predictions are client-side using Points, Win-rate and NRR.
               </p>
             </div>
             <div className="modal-foot">
