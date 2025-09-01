@@ -1,21 +1,15 @@
-// ✅ src/components/MatchCards.js — compact dark cards + gold accents + LIVE/Recent (no flags)
-// - Exactly ONE “Recent” per format (ODI/T20/Test)
-// - LIVE uses blue-tinted card + "LIVE" chip
-// - Alignment stable (two equal columns; name+score in a single rowline)
-// - Only ripple kept (no heavy animations)
-// - Team codes: ENG, AUS, SL, RSA (per your request) + ICC-style codes for others
+// ✅ src/components/MatchCards.js — Cinematic cards (pure UI)
+// - Same data/logic + API calls as before
+// - Desktop: soft parallax tilt + glow border that adapts to the winner color
+// - Mobile: horizontal swipe (scroll-snap) without changing layout logic
+// - Accessibility: respects prefers-reduced-motion
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getMatchHistory, getTestMatches } from "../services/api";
 import "./MatchCards.css";
 
 /* ------------------------------------------
    Team codes (per your request)
-   - England → ENG
-   - Australia → AUS
-   - Sri Lanka → SL
-   - South Africa → RSA
-   - Plus common ICC codes for others
 -------------------------------------------*/
 const getTeamCode = (teamName = "") => {
   const n = String(teamName).trim().toLowerCase();
@@ -88,8 +82,28 @@ const isLiveRow = (m) => {
   return m?.is_live === true || (!w || LIVE_RE.test(w));
 };
 
-/* Ripple-only shell */
-function RippleCard({ children, live, recent }) {
+/* Accent color by team (UI only) */
+const ACCENTS = {
+  IND: "#4cc9f0",
+  AUS: "#f9c74f",
+  ENG: "#64dfdf",
+  NZ:  "#90e0ef",
+  PAK: "#80ed99",
+  RSA: "#00f5d4",
+  SL:  "#ffd166",
+  AFG: "#ef476f",
+  BAN: "#06d6a0",
+  WI:  "#b5179e",
+  SCO: "#4895ef",
+  NED: "#ff7b00",
+  ZIM: "#ffba08",
+};
+const pickAccent = (team) => ACCENTS[getTeamCode(team)] || "#5fd0c7";
+
+/* ---------- Ripple + Parallax card shell ---------- */
+function RippleCard({ children, live, recent, accent }) {
+  const cardRef = useRef(null);
+
   const onPointerDown = (e) => {
     const el = e.currentTarget;
     const rect = el.getBoundingClientRect();
@@ -103,12 +117,54 @@ function RippleCard({ children, live, recent }) {
     ripple.addEventListener("animationend", () => ripple.remove());
   };
 
+  // desktop tilt (respects reduced motion + ignores coarse pointers)
+  const onMouseMove = (e) => {
+    const prefersReduced =
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) return;
+
+    const isCoarse =
+      window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    if (isCoarse) return;
+
+    const el = cardRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width;  // 0..1
+    const py = (e.clientY - r.top) / r.height;  // 0..1
+    const rx = (0.5 - py) * 8; // rotateX
+    const ry = (px - 0.5) * 10; // rotateY
+
+    el.style.setProperty("--rx", `${rx}deg`);
+    el.style.setProperty("--ry", `${ry}deg`);
+    el.style.setProperty("--mx", `${px * 100}%`);
+    el.style.setProperty("--my", `${py * 100}%`);
+  };
+
+  const onMouseLeave = () => {
+    const el = cardRef.current;
+    if (!el) return;
+    el.style.setProperty("--rx", `0deg`);
+    el.style.setProperty("--ry", `0deg`);
+  };
+
   return (
-    <div className={`match-card simple${live ? " live" : ""}`} onPointerDown={onPointerDown} role="article">
+    <div
+      ref={cardRef}
+      className={`match-card poster${live ? " live" : ""}${recent ? " recent" : ""}`}
+      onPointerDown={onPointerDown}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+      role="article"
+      style={{ ["--accent"]: accent }}
+    >
       <div className="status-badges">
         {live && <span className="badge-chip badge-live">LIVE</span>}
         {!live && recent && (
-          <span className="badge-chip badge-recent"><span className="dot-red" /> Recent</span>
+          <span className="badge-chip badge-recent">
+            <span className="dot-red" /> Recent
+          </span>
         )}
       </div>
       {children}
@@ -157,7 +213,9 @@ const MatchCards = () => {
   const recentUID = useMemo(() => {
     const pick = (list) => {
       if (!list.length) return null;
-      const withTime = list.map((m) => ({ m, t: getWhen(m) ?? -Infinity })).sort((a, b) => b.t - a.t);
+      const withTime = list
+        .map((m) => ({ m, t: getWhen(m) ?? -Infinity }))
+        .sort((a, b) => b.t - a.t);
       const best = isFinite(withTime[0].t) ? withTime[0].m : list[0];
       return getUid(best);
     };
@@ -168,12 +226,12 @@ const MatchCards = () => {
   const Section = ({ title, list, render }) => (
     <>
       <h3 className="section-heading">{title}</h3>
-      <div className="row g-3">
+      <div className="row g-3 mc-row-snap">
         {list.length === 0 ? (
           <p className="text-white mt-1">No {title} available.</p>
         ) : (
           list.map((match, i) => (
-            <div key={`${getUid(match)}-${i}`} className="col-sm-6 col-lg-4">
+            <div key={`${getUid(match)}-${i}`} className="col-sm-6 col-lg-4 mc-col-snap">
               {render(match, i)}
             </div>
           ))
@@ -185,8 +243,12 @@ const MatchCards = () => {
   const renderLOICard = (m) => {
     const live = isLiveRow(m);
     const recent = recentUID[m.match_type] === getUid(m);
+    const accent = pickAccent(
+      (m?.winner || "").includes(m?.team1) ? m?.team1 : (m?.winner || "").includes(m?.team2) ? m?.team2 : m?.team1
+    );
+
     return (
-      <RippleCard live={live} recent={recent}>
+      <RippleCard live={live} recent={recent} accent={accent}>
         <div className="match-title">{formatMatchTitle(m.match_name)}</div>
 
         <div className="teams-row">
@@ -194,7 +256,9 @@ const MatchCards = () => {
           <div className="team">
             <div className="rowline">
               <div className="name">{getTeamCode(m.team1)}</div>
-              <div className="score">{m.runs1}/{m.wickets1}</div>
+              <div className="score">
+                {m.runs1}/{m.wickets1}
+              </div>
             </div>
             <div className="meta">Overs: {formatOvers(m.overs1)}</div>
           </div>
@@ -203,17 +267,19 @@ const MatchCards = () => {
           <div className="team team--right">
             <div className="rowline">
               <div className="name">{getTeamCode(m.team2)}</div>
-              <div className="score">{m.runs2}/{m.wickets2}</div>
+              <div className="score">
+                {m.runs2}/{m.wickets2}
+              </div>
             </div>
             <div className="meta">Overs: {formatOvers(m.overs2)}</div>
           </div>
         </div>
 
         {!live && (
-          <div className="result-line">
+          <div className="result-line winner-banner">
             <strong>
               🏆{" "}
-              {m.winner === "Draw"
+              {m.wwinner === "Draw" || m.winner === "Draw"
                 ? "Match is drawn."
                 : (m.winner || "").toLowerCase().includes("won the match")
                 ? m.winner
@@ -228,24 +294,36 @@ const MatchCards = () => {
   const renderTestCard = (m) => {
     const live = isLiveRow(m);
     const recent = recentUID.Test === getUid(m);
+    const accent = pickAccent(
+      (m?.winner || "").includes(m?.team1) ? m?.team1 : (m?.winner || "").includes(m?.team2) ? m?.team2 : m?.team1
+    );
+
     return (
-      <RippleCard live={live} recent={recent}>
+      <RippleCard live={live} recent={recent} accent={accent}>
         <div className="match-title">{formatMatchTitle(m.match_name)}</div>
 
         <div className="team-block">
           <div className="name">{getTeamCode(m.team1)}</div>
-          <div className="meta">1st Innings: {m.runs1}/{m.wickets1} ({formatOvers(m.overs1)} ov)</div>
-          <div className="meta">2nd Innings: {m.runs1_2}/{m.wickets1_2} ({formatOvers(m.overs1_2)} ov)</div>
+          <div className="meta">
+            1st Innings: {m.runs1}/{m.wickets1} ({formatOvers(m.overs1)} ov)
+          </div>
+          <div className="meta">
+            2nd Innings: {m.runs1_2}/{m.wickets1_2} ({formatOvers(m.overs1_2)} ov)
+          </div>
         </div>
 
         <div className="team-block" style={{ marginTop: 6 }}>
           <div className="name">{getTeamCode(m.team2)}</div>
-          <div className="meta">1st Innings: {m.runs2}/{m.wickets2} ({formatOvers(m.overs2)} ov)</div>
-          <div className="meta">2nd Innings: {m.runs2_2}/{m.wickets2_2} ({formatOvers(m.overs2_2)} ov)</div>
+          <div className="meta">
+            1st Innings: {m.runs2}/{m.wickets2} ({formatOvers(m.overs2)} ov)
+          </div>
+          <div className="meta">
+            2nd Innings: {m.runs2_2}/{m.wickets2_2} ({formatOvers(m.overs2_2)} ov)
+          </div>
         </div>
 
         {!live && (
-          <div className="result-line">
+          <div className="result-line winner-banner">
             <strong>
               🏆{" "}
               {m.winner === "Draw"
@@ -264,14 +342,32 @@ const MatchCards = () => {
     <div className="container mt-4 mc-container">
       {/* Sticky format toggle (dark + gold) */}
       <div className="format-toggle">
-        <button className={`format-btn odi ${tab === "ODI" ? "active" : ""}`} onClick={() => setTab("ODI")} type="button">🏏 ODI</button>
-        <button className={`format-btn t20 ${tab === "T20" ? "active" : ""}`} onClick={() => setTab("T20")} type="button">🔥 T20</button>
-        <button className={`format-btn test ${tab === "Test" ? "active" : ""}`} onClick={() => setTab("Test")} type="button">🧪 Test</button>
+        <button
+          className={`format-btn odi ${tab === "ODI" ? "active" : ""}`}
+          onClick={() => setTab("ODI")}
+          type="button"
+        >
+          🏏 ODI
+        </button>
+        <button
+          className={`format-btn t20 ${tab === "T20" ? "active" : ""}`}
+          onClick={() => setTab("T20")}
+          type="button"
+        >
+          🔥 T20
+        </button>
+        <button
+          className={`format-btn test ${tab === "Test" ? "active" : ""}`}
+          onClick={() => setTab("Test")}
+          type="button"
+        >
+          🧪 Test
+        </button>
       </div>
 
-      {tab === "ODI"  && <Section title="ODI Matches"  list={odiMatches} render={renderLOICard} />}
-      {tab === "T20"  && <Section title="T20 Matches"  list={t20Matches} render={renderLOICard} />}
-      {tab === "Test" && <Section title="Test Matches" list={testList}   render={renderTestCard} />}
+      {tab === "ODI" && <Section title="ODI Matches" list={odiMatches} render={renderLOICard} />}
+      {tab === "T20" && <Section title="T20 Matches" list={t20Matches} render={renderLOICard} />}
+      {tab === "Test" && <Section title="Test Matches" list={testList} render={renderTestCard} />}
     </div>
   );
 };

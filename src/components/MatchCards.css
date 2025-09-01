@@ -1,4 +1,12 @@
-/* ===== Slumber-like dark + warm gold ===== */
+/* GPT UPDATE — Cinematic polish for MatchCards
+   - Subtle stadium/aurora poster background
+   - Tilt parallax on desktop with gradient border
+   - Mobile horizontal swipe (scroll-snap)
+*/
+
+/* Optional display/score fonts (lightweight). If you prefer, move to global CSS. */
+@import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@400;700;800&family=Inter:wght@400;600;800&display=swap');
+
 :root{
   --deep:#081722;
   --deeper:#07131d;
@@ -6,6 +14,7 @@
   --gold:#e8caa4;
   --gold-strong:#f2d7b7;
   --line: rgba(232,202,164,.28);
+  --accent: #5fd0c7;         /* set per-card inline */
 }
 
 /* Section heading with thin gold divider */
@@ -49,20 +58,52 @@
 .format-btn.t20{ background:#2a1e2f; }
 .format-btn.test{ background:#13312a; }
 
-/* ===== Match card ===== */
+/* ===== Match card base ===== */
 .match-card{
   position:relative;
-  border-radius:14px;
+  border-radius:16px;
   padding:16px;
+  color:#eaf6ff;
+  overflow:hidden;
+  /* poster background */
   background:
     radial-gradient(900px 360px at 8% -20%, rgba(95,208,199,.10), transparent 55%),
     linear-gradient(180deg, #0f1b28, #0a1520);
   border:1px solid var(--line);
   box-shadow: 0 10px 28px rgba(232,202,164,.12);
-  color:#eaf6ff;
-  overflow:hidden; /* prevent any spill */
 }
-.match-card.simple:hover{ box-shadow: 0 14px 34px rgba(232,202,164,.16); }
+
+/* cinematic "poster" enhancements */
+.match-card.poster{
+  transform: perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateZ(0);
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+  will-change: transform;
+}
+/* glowing gradient border layer */
+.match-card.poster::before{
+  content:"";
+  position:absolute; inset:-1px;
+  background: conic-gradient(from 180deg, color-mix(in srgb, var(--accent) 96%, #fff) 0 20%, transparent 40% 60%, color-mix(in srgb, var(--accent) 80%, #fff) 80% 100%);
+  filter: blur(8px) saturate(125%);
+  opacity:.35;
+  -webkit-mask: 
+    linear-gradient(#000, #000) content-box, 
+    linear-gradient(#000, #000);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  padding:1px; border-radius:inherit; pointer-events:none;
+}
+/* animated light spot that follows cursor */
+.match-card.poster::after{
+  content:"";
+  position:absolute; inset:-1px;
+  background: radial-gradient(350px 180px at var(--mx,50%) var(--my,40%), color-mix(in srgb, var(--accent) 40%, transparent), transparent 60%);
+  opacity:.22; pointer-events:none;
+}
+
+/* Hover lift */
+.match-card.poster:hover{
+  box-shadow: 0 18px 48px color-mix(in srgb, var(--accent) 18%, #000), 0 10px 28px rgba(232,202,164,.12);
+}
 
 /* LIVE state – blue tint + border */
 .match-card.live{
@@ -71,6 +112,15 @@
     linear-gradient(180deg, #0f1f33, #0a1624);
   border-color: #2a7dff88;
   box-shadow: 0 16px 38px rgba(13,110,253,.18), 0 10px 28px rgba(232,202,164,.10);
+}
+
+/* "Recent" subtle pulse */
+.match-card.recent::before{
+  animation: borderPulse 3.2s ease-in-out infinite;
+}
+@keyframes borderPulse{
+  0%,100%{ opacity:.28 }
+  50%{ opacity:.42 }
 }
 
 /* Status chips (top-right) */
@@ -101,10 +151,10 @@
   text-shadow: 0 0 10px rgba(232,202,164,.22);
 }
 
-/* === Mobile-safe layout fixes === */
+/* === Layout === */
 .teams-row{
   display:grid;
-  grid-template-columns: minmax(0,1fr) minmax(0,1fr); /* allow shrink */
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
   gap:12px;
   margin-bottom:8px;
   align-items:start;
@@ -113,9 +163,9 @@
 
 .rowline{
   display:grid;
-  grid-template-columns: minmax(0,1fr) auto; /* name shrinks, score hugs right */
+  grid-template-columns: minmax(0,1fr) auto;
   align-items: baseline;
-  column-gap: 10px; /* slightly larger since no flag */
+  column-gap: 10px;
 }
 .rowline .name,
 .rowline .score{
@@ -132,7 +182,8 @@
   text-shadow:0 0 6px rgba(255,255,255,.28), 0 0 14px rgba(232,202,164,.18);
 }
 .team .score{
-  font-weight:900; font-size:1.05rem; color:#fff;
+  font-weight:900; font-size:1.08rem; color:#fff;
+  font-family: "Oxanium", ui-monospace, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   font-variant-numeric: tabular-nums;
   text-shadow:0 0 6px rgba(255,255,255,.28), 0 0 14px rgba(232,202,164,.18);
 }
@@ -149,11 +200,21 @@
   font-size:.9rem; color:#d7e7f5; opacity:.9; font-variant-numeric:tabular-nums;
 }
 
+/* Winner banner (keeps your text, just styles it) */
 .result-line{
   margin-top:6px;
   border-top: 1px dashed var(--line);
   padding-top:8px;
   color:#dfeffc;
+}
+.winner-banner{
+  position: relative;
+}
+.winner-banner::before{
+  content:"";
+  position:absolute; left:-12px; right:-12px; top:-2px; height:2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity:.55;
 }
 
 /* Ripple */
@@ -169,7 +230,29 @@
   to{ transform:translate(-50%,-50%) scale(14); opacity:0; }
 }
 
-/* ====== Responsive tweaks ====== */
+/* ===== Mobile: swipeable row ===== */
+.mc-row-snap{
+  /* default grid via bootstrap on desktop */
+}
+.mc-col-snap{
+  scroll-snap-align: start;
+}
+
+@media (max-width: 640px){
+  .mc-container .row.g-3{
+    display:flex;
+    overflow-x:auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    gap:.75rem;
+    padding-bottom:.25rem;
+  }
+  .mc-container .row.g-3::-webkit-scrollbar{ display:none; }
+  .mc-container .row.g-3 > [class*="col-"]{
+    flex: 0 0 86%;
+    max-width: 86%;
+  }
+}
 
 /* slightly reduce gutters on phones for more usable width */
 .mc-container .row.g-3{ --bs-gutter-x: .75rem; }
@@ -193,4 +276,12 @@
   .rowline{ column-gap:6px; }
   .match-card{ padding:14px 12px; }
   .format-btn{ min-width: 140px; }
+}
+
+/* Respect reduced motion & coarse pointers (turn off tilt) */
+@media (prefers-reduced-motion: reduce), (pointer: coarse){
+  .match-card.poster{
+    transform: none !important;
+  }
+  .match-card.poster::after{ opacity:.14; }
 }
