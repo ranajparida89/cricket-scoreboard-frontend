@@ -203,14 +203,14 @@ const MatchCards = () => {
 
   const renderLOICard = (m) => {
     const live = isLiveRow(m);
-    theRecent = recentUID[m.match_type] === getUid(m);
+    const recent = recentUID[m.match_type] === getUid(m); // ✅ fixed variable
     const accent = pickAccent(
       (m?.winner || "").includes(m?.team1) ? m?.team1 :
       (m?.winner || "").includes(m?.team2) ? m?.team2 : m?.team1
     );
 
     return (
-      <RippleCard live={live} recent={theRecent} accent={accent}>
+      <RippleCard live={live} recent={recent} accent={accent}>
         <div className="match-title">{formatMatchTitle(m.match_name)}</div>
 
         <div className="teams-row">
