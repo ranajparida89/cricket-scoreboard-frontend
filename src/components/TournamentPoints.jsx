@@ -36,7 +36,7 @@ export default function TournamentPoints() {
       });
       setTournaments(Array.isArray(data?.tournaments) ? data.tournaments : []);
       setYears(Array.isArray(data?.years) ? data.years : []);
-    } catch (e) {
+    } catch {
       // Fallback to old /tournaments if /filters isn’t deployed yet
       try {
         const { data } = await axios.get(`${API_URL}/tournaments`, {
@@ -45,9 +45,12 @@ export default function TournamentPoints() {
         const cats = Array.isArray(data) ? data : [];
         setTournaments(cats.map((c) => c.name).sort((a, b) => a.localeCompare(b)));
         const yrSet = new Set();
-        cats.forEach((c) => (Array.isArray(c.editions) ? c.editions : []).forEach((e) => {
-          if (!type || type === "All" || e.match_type === type) yrSet.add(Number(e.season_year));
-        }));
+        cats.forEach((c) =>
+          (Array.isArray(c.editions) ? c.editions : []).forEach((e) => {
+            if (!type || type === "All" || e.match_type === type)
+              yrSet.add(Number(e.season_year));
+          })
+        );
         setYears(Array.from(yrSet).sort((a, b) => b - a));
       } catch {
         setTournaments([]);
@@ -56,7 +59,6 @@ export default function TournamentPoints() {
     }
   }
 
-  // initial + when type changes
   useEffect(() => {
     loadFilters(matchType);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -70,7 +72,6 @@ export default function TournamentPoints() {
       if (norm(tournamentName)) params.tournament_name = tournamentName;
       if (norm(seasonYear)) params.season_year = Number(seasonYear);
 
-      // FIX: correct endpoint
       const { data } = await axios.get(`${API_URL}/tournaments/leaderboard`, { params });
 
       const normalized = (Array.isArray(data) ? data : []).map((r) => ({
@@ -85,11 +86,9 @@ export default function TournamentPoints() {
         season_year: r.season_year ?? null,
       }));
 
+      // Defensive sort (backend also orders this way)
       normalized.sort(
-        (a, b) =>
-          b.points - a.points ||
-          b.nrr - a.nrr ||
-          a.team_name.localeCompare(b.team_name)
+        (a, b) => b.points - a.points || b.nrr - a.nrr || a.team_name.localeCompare(b.team_name)
       );
 
       setRows(normalized);
@@ -127,7 +126,9 @@ export default function TournamentPoints() {
   );
 
   // ---------- Chart layout ----------
-  const W = 980, H = 360, PAD = 44;
+  const W = 980,
+    H = 360,
+    PAD = 44;
 
   const yLMin = 0;
   const yLMax = Math.ceil(Math.max(2, ...pointsSeries.map((d) => d.value)) * 1.15);
@@ -154,23 +155,24 @@ export default function TournamentPoints() {
   };
 
   const Axis = ({ x, y, x2, y2, opacity = 0.5 }) => (
-    <line
-      x1={x}
-      y1={y}
-      x2={x2}
-      y2={y2}
-      stroke="rgba(255,255,255,.12)"
-      strokeWidth="1"
-      opacity={opacity}
-    />
+    <line x1={x} y1={y} x2={x2} y2={y2} stroke="rgba(255,255,255,.12)" strokeWidth="1" opacity={opacity} />
   );
 
-  // ---------- PREDICTIONS ----------
-  function buildPredictions(list) {
-    if (!list?.length) return { super8: [], super6: [], semifinal: [] };
+  // ---------- Ranking / Prediction helpers ----------
+  const rankByStandings = (list) =>
+    [...list].sort(
+      (a, b) =>
+        b.points - a.points || // primary
+        b.nrr - a.nrr || // tie-break 1
+        b.wins - a.wins || // extra signal
+        a.team_name.localeCompare(b.team_name)
+    );
+
+  function scoreAndProb(list) {
+    if (!list?.length) return [];
 
     const ptsMax = Math.max(...list.map((r) => safeNum(r.points, 0)), 1);
-    const wrArr = list.map((r) => (safeNum(r.wins) / Math.max(1, safeNum(r.matches_played))));
+    const wrArr = list.map((r) => safeNum(r.wins) / Math.max(1, safeNum(r.matches_played)));
     const wrMax = Math.max(...wrArr, 1);
     const nrrMinL = Math.min(...list.map((r) => safeNum(r.nrr, 0)));
     const nrrMaxL = Math.max(...list.map((r) => safeNum(r.nrr, 0)));
@@ -181,26 +183,108 @@ export default function TournamentPoints() {
       const wr = safeNum(r.wins) / Math.max(1, safeNum(r.matches_played));
       const wrNorm = wr / wrMax;
       const nrrNorm = (safeNum(r.nrr) - nrrMinL) / nrrRangeL; // 0..1
-
-      // Weights tuned for readability: points (55%), win-rate (35%), NRR (10%)
       const score = 0.55 * ptsNorm + 0.35 * wrNorm + 0.10 * nrrNorm;
-      return { ...r, ptsNorm, wr, nrrNorm, score };
+      return { ...r, score };
     });
 
     const sMin = Math.min(...scored.map((s) => s.score));
     const sMax = Math.max(...scored.map((s) => s.score), sMin + 1e-6);
-    const withProb = scored
-      .map((s) => ({
-        ...s,
-        probability: Math.round(((s.score - sMin) / (sMax - sMin)) * 100),
-      }))
+
+    return scored
+      .map((s) => ({ ...s, probability: Math.round(((s.score - sMin) / (sMax - sMin)) * 100) }))
       .sort((a, b) => b.score - a.score);
+  }
 
-    const super8 = withProb.slice(0, 8);
-    const super6 = withProb.slice(0, 6);
-    const semifinal = withProb.slice(0, 4);
+  function buildStage(list) {
+    const teams = list?.length || 0;
+    if (teams > 9) return { mode: "S8", label: "Super 8", cut: 8, teams };
+    if (teams === 9) return { mode: "S6", label: "Super 6", cut: 6, teams };
+    if (teams < 5) return { mode: "DIRECT_SEMIS", label: "Direct Semi-finals", cut: 4, teams };
+    // 5..8: not enough for S8 and your rule makes S6 only if exactly 9
+    return { mode: "DIRECT_SEMIS", label: "Direct Semi-finals", cut: 4, teams };
+  }
 
-    return { super8, super6, semifinal };
+  function buildPredictions(list) {
+    if (!list?.length) {
+      return {
+        mode: "EMPTY",
+        super8: [],
+        super6: [],
+        semifinal: [],
+        summary: "No data for the chosen filters.",
+        suggestions: [],
+        cut: 0,
+      };
+    }
+
+    const stage = buildStage(list);
+    const withProb = scoreAndProb(list);
+    const rankedAll = rankByStandings(list);
+
+    let super8 = [];
+    let super6 = [];
+    let semifinal = [];
+
+    if (stage.mode === "S8") {
+      super8 = withProb.slice(0, 8);
+      const s8Names = new Set(super8.map((t) => t.team_name));
+      semifinal = withProb.filter((t) => s8Names.has(t.team_name)).slice(0, 4);
+    } else if (stage.mode === "S6") {
+      super6 = withProb.slice(0, 6);
+      // Semi rule: Top 3 from Super6 by points (tie → NRR) + 1 wildcard (best of the rest by points then NRR)
+      const s6Names = new Set(super6.map((t) => t.team_name));
+      const top3 = rankByStandings(super6).slice(0, 3);
+      const top3Names = new Set(top3.map((t) => t.team_name));
+      const rest = rankedAll.filter((t) => !top3Names.has(t.team_name));
+      const wildcard = rest[0] ? [rest[0]] : [];
+      semifinal = [...top3, ...wildcard];
+    } else if (stage.mode === "DIRECT_SEMIS") {
+      semifinal = withProb.slice(0, 4);
+    }
+
+    // Suggestions for teams below the cut (how to qualify)
+    const cut = stage.cut;
+    const cutoffTeam = rankedAll[cut - 1]; // may be undefined if fewer than cut teams
+    const maxMatches = Math.max(...list.map((t) => safeNum(t.matches_played, 0)), 0);
+    const notQualified = rankedAll.slice(cut);
+
+    const suggestions = cutoffTeam
+      ? notQualified.slice(0, 6).map((t) => {
+          const remaining = Math.max(0, maxMatches - safeNum(t.matches_played));
+          const diff = safeNum(cutoffTeam.points) - safeNum(t.points);
+          // wins to equal & to surpass cutoff (2 pts/win)
+          const winsToEqual = diff <= 0 ? 0 : Math.ceil(diff / 2);
+          const winsToPass = diff <= -1 ? 0 : Math.ceil((diff + 1) / 2);
+          const nrrTarget = (safeNum(cutoffTeam.nrr) + 0.01).toFixed(2); // small buffer
+          const nrrGap = Math.max(0, safeNum(cutoffTeam.nrr) + 0.01 - safeNum(t.nrr)).toFixed(2);
+
+          return {
+            team_name: t.team_name,
+            remaining,
+            winsToEqual,
+            winsToPass,
+            currentPoints: safeNum(t.points),
+            cutoffPoints: safeNum(cutoffTeam.points),
+            nrrGap,
+            nrrTarget,
+          };
+        })
+      : [];
+
+    let summary = "";
+    if (stage.mode === "S8") summary = `With ${stage.teams} teams in this tournament, the format is Super 8 → Semi-finals.`;
+    else if (stage.mode === "S6") summary = `Exactly 9 teams detected: the format is Super 6 → Semi-finals (Top 3 + 1 wildcard by Points, then NRR tiebreak).`;
+    else summary = `Not enough teams for Super 8 or Super 6; going straight to Semi-finals.`;
+
+    return {
+      mode: stage.mode,
+      cut: stage.cut,
+      super8,
+      super6,
+      semifinal,
+      suggestions,
+      summary,
+    };
   }
 
   const predictions = useMemo(() => buildPredictions(rows), [rows]);
@@ -275,8 +359,7 @@ export default function TournamentPoints() {
 
               {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
                 const v = Math.round(yLMax * t);
-                const y =
-                  H - PAD - ((v - yLMin) / Math.max(1e-6, yLMax - yLMin)) * (H - PAD * 2);
+                const y = H - PAD - ((v - yLMin) / Math.max(1e-6, yLMax - yLMin)) * (H - PAD * 2);
                 return <line key={`h${i}`} x1={PAD} y1={y} x2={W - PAD} y2={y} className="grid" />;
               })}
               {pointsSeries.map((_, i) => (
@@ -288,8 +371,7 @@ export default function TournamentPoints() {
 
               {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
                 const v = Math.round(yLMax * t);
-                const y =
-                  H - PAD - ((v - yLMin) / Math.max(1e-6, yLMax - yLMin)) * (H - PAD * 2);
+                const y = H - PAD - ((v - yLMin) / Math.max(1e-6, yLMax - yLMin)) * (H - PAD * 2);
                 return <text key={`lt${i}`} x={PAD - 10} y={y} className="tick left" dy="4">{v}</text>;
               })}
               {[0, 0.5, 1].map((t, i) => {
@@ -298,12 +380,11 @@ export default function TournamentPoints() {
               })}
 
               <polyline className="line gold" points={polyPoints(pointsSeries, W, H, PAD, yLMin, yLMax)} />
-              <polyline className="line teal"  points={polyPoints(nrrSeries,   W, H, PAD, nrrMin, nrrMax)} />
+              <polyline className="line teal" points={polyPoints(nrrSeries, W, H, PAD, nrrMin, nrrMax)} />
 
               {pointsSeries.map((d, i) => {
                 const x = PAD + i * step;
-                const yL =
-                  H - PAD - ((d.value - yLMin) / Math.max(1e-6, yLMax - yLMin)) * (H - PAD * 2);
+                const yL = H - PAD - ((d.value - yLMin) / Math.max(1e-6, yLMax - yLMin)) * (H - PAD * 2);
                 const rVal = nrrSeries[i]?.value ?? 0;
                 const yR = yRight(rVal);
                 return (
@@ -311,10 +392,14 @@ export default function TournamentPoints() {
                     <circle cx={x} cy={yL} r="4" className="dot gold" />
                     <circle cx={x} cy={yR} r="4" className="dot teal" />
                     <text className="val goldv" x={x} y={yL - 8}>{d.value}</text>
-                    <text className="val tealv"  x={x} y={yR + (rVal >= 0 ? -8 : 16)}>{Number(rVal).toFixed(2)}</text>
+                    <text className="val tealv" x={x} y={yR + (rVal >= 0 ? -8 : 16)}>
+                      {Number(rVal).toFixed(2)}
+                    </text>
                     <text
                       className={`xlabel ${rotateLabels ? "small rot" : ""}`}
-                      x={x} y={H - PAD + 16} dy="10"
+                      x={x}
+                      y={H - PAD + 16}
+                      dy="10"
                       transform={rotateLabels ? `rotate(-28 ${x} ${H - PAD + 16})` : undefined}
                     >
                       {d.team}
@@ -361,10 +446,7 @@ export default function TournamentPoints() {
                 <tr><td colSpan="10" className="empty-row">No data</td></tr>
               ) : (
                 table.map((t, idx) => (
-                  <tr
-                    key={t.team_name}
-                    className={`lb-row ${idx < 3 ? `top-${idx + 1}` : ""}`}
-                  >
+                  <tr key={t.team_name} className={`lb-row ${idx < 3 ? `top-${idx + 1}` : ""}`}>
                     <td><span className="rank-badge">#{idx + 1}</span></td>
                     <td className={`tname ${idx < 3 ? "goldtxt" : ""}`}>{t.team_name}</td>
                     <td>{safeNum(t.matches_played)}</td>
@@ -372,15 +454,9 @@ export default function TournamentPoints() {
                     <td className="bad">{safeNum(t.losses)}</td>
                     <td>{safeNum(t.draws)}</td>
                     <td><span className="points-chip">{safeNum(t.points)}</span></td>
-                    <td className={safeNum(t.nrr) >= 0 ? "good" : "bad"}>
-                      {safeNum(t.nrr).toFixed(2)}
-                    </td>
-                    <td className="muted">
-                      {norm(t.tournament_name) ? t.tournament_name : "—"}
-                    </td>
-                    <td className="muted">
-                      {safeNum(t.season_year) ? t.season_year : "—"}
-                    </td>
+                    <td className={safeNum(t.nrr) >= 0 ? "good" : "bad"}>{safeNum(t.nrr).toFixed(2)}</td>
+                    <td className="muted">{norm(t.tournament_name) ? t.tournament_name : "—"}</td>
+                    <td className="muted">{safeNum(t.season_year) ? t.season_year : "—"}</td>
                   </tr>
                 ))
               )}
@@ -391,81 +467,132 @@ export default function TournamentPoints() {
 
       {/* Predictions */}
       <div className="card tp-predict">
-        <div className="card-head">Predictions (data-driven)</div>
+        <div className="card-head">
+          Predictions
+          <span className="stage-badge">{predictions.summary}</span>
+        </div>
 
         <div className="predict-grid">
           {/* Super 8 */}
           <div className="predict-col">
-            <div className="predict-title">Super 8 — strongest 8</div>
-            <ol className="predict-list">
-              {predictions.super8.map((t, i) => (
-                <li key={`s8-${t.team_name}`} className="predict-item">
-                  <span className="p-rank">#{i + 1}</span>
-                  <span className="p-team">{t.team_name}</span>
-                  <span className="p-bar">
-                    <span className="p-fill" style={{ width: `${t.probability}%` }} />
-                  </span>
-                  <span className="p-prob">{t.probability}%</span>
-                </li>
-              ))}
-            </ol>
+            <div className="predict-title">
+              Super 8 — strongest 8
+              {predictions.mode !== "S8" && (
+                <span className="section-note">Not applicable for this tournament</span>
+              )}
+            </div>
+            {predictions.mode === "S8" ? (
+              <ol className="predict-list">
+                {predictions.super8.map((t, i) => (
+                  <li key={`s8-${t.team_name}`} className="predict-item">
+                    <span className="p-rank">#{i + 1}</span>
+                    <span className="p-team">{t.team_name}</span>
+                    <span className="p-bar"><span className="p-fill" style={{ width: `${t.probability}%` }} /></span>
+                    <span className="p-prob">{t.probability}%</span>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <div className="empty small">Super 8 appears only when the tournament has **more than 9** teams.</div>
+            )}
           </div>
 
           {/* Super 6 */}
           <div className="predict-col">
-            <div className="predict-title">Super 6 — strongest 6</div>
-            <ol className="predict-list">
-              {predictions.super6.map((t, i) => (
-                <li key={`s6-${t.team_name}`} className="predict-item">
-                  <span className="p-rank">#{i + 1}</span>
-                  <span className="p-team">{t.team_name}</span>
-                  <span className="p-bar">
-                    <span className="p-fill" style={{ width: `${t.probability}%` }} />
-                  </span>
-                  <span className="p-prob">{t.probability}%</span>
-                </li>
-              ))}
-            </ol>
+            <div className="predict-title">
+              Super 6 — strongest 6
+              {predictions.mode !== "S6" && (
+                <span className="section-note">Not applicable for this tournament</span>
+              )}
+            </div>
+            {predictions.mode === "S6" ? (
+              <ol className="predict-list">
+                {predictions.super6.map((t, i) => (
+                  <li key={`s6-${t.team_name}`} className="predict-item">
+                    <span className="p-rank">#{i + 1}</span>
+                    <span className="p-team">{t.team_name}</span>
+                    <span className="p-bar"><span className="p-fill" style={{ width: `${t.probability}%` }} /></span>
+                    <span className="p-prob">{t.probability}%</span>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <div className="empty small">
+                Super 6 appears only when the tournament has **exactly 9** teams.
+              </div>
+            )}
           </div>
 
           {/* Semi Final */}
           <div className="predict-col">
-            <div className="predict-title">Semi-finals — strongest 4</div>
+            <div className="predict-title">
+              Semi-finals — strongest 4
+              {predictions.mode === "S6" && (
+                <span className="section-note">Top 3 from Super 6 + 1 wildcard (Points → NRR)</span>
+              )}
+              {predictions.mode === "S8" && (
+                <span className="section-note">Picked from the Super 8 contenders</span>
+              )}
+            </div>
             <ol className="predict-list">
               {predictions.semifinal.map((t, i) => (
                 <li key={`sf-${t.team_name}`} className="predict-item">
                   <span className="p-rank">#{i + 1}</span>
                   <span className="p-team">{t.team_name}</span>
-                  <span className="p-bar">
-                    <span className="p-fill" style={{ width: `${t.probability}%` }} />
-                  </span>
-                  <span className="p-prob">{t.probability}%</span>
+                  <span className="p-bar"><span className="p-fill" style={{ width: `${t.probability ?? 90}%` }} /></span>
+                  <span className="p-prob">{(t.probability ?? 90)}%</span>
+                  {predictions.mode === "S6" && i === 3 && <span className="wild-tag">Wildcard</span>}
                 </li>
               ))}
             </ol>
           </div>
         </div>
 
-        <div className="predict-note">
-          <strong>Disclaimer:</strong> This is a **prediction** generated from historical data
-          ({matchType === "All" ? "ODI & T20" : matchType}
-          {tournamentName ? ` • ${tournamentName}` : ""}{seasonYear ? ` • ${seasonYear}` : ""})
-          . Confidence % is derived from a weighted blend of Points, Win-rate and NRR.
-        </div>
+        {/* Trailing teams: what they need */}
+        {predictions.suggestions?.length ? (
+          <div className="improve-card">
+            <div className="improve-title">What trailing teams need to qualify</div>
+            <ul className="needs-list">
+              {predictions.suggestions.map((s) => (
+                <li key={`need-${s.team_name}`}>
+                  <strong>{s.team_name}</strong> — {s.remaining} left. To be safe: win
+                  {" "}
+                  <b>{s.winsToPass}</b> more (equaling needs {s.winsToEqual}).
+                  If tied on points, target NRR ≥ <b>{s.nrrTarget}</b> (needs +{s.nrrGap}).
+                </li>
+              ))}
+            </ul>
+            <div className="disclaimer">
+              Tips are indicative. NRR target is a guideline; actual NRR depends on runs/overs in upcoming matches.
+            </div>
+          </div>
+        ) : (
+          <div className="empty small">
+            All teams currently inside the qualifying cut (Top {predictions.cut}). Keep winning to hold position.
+          </div>
+        )}
 
-        {/* minimal CSS so we don't touch your main stylesheet */}
+        {/* minimal CSS scoped to this card */}
         <style>{`
           .predict-grid{display:grid;gap:14px;grid-template-columns:repeat(3,minmax(0,1fr));}
           @media(max-width: 992px){.predict-grid{grid-template-columns:1fr;}}
-          .predict-title{font-weight:800;color:#e8caa4;margin-bottom:8px}
+          .predict-title{font-weight:800;color:#e8caa4;margin-bottom:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+          .section-note{font-size:.82rem;color:#a9bdd9;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);padding:4px 8px;border-radius:999px}
           .predict-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
-          .predict-item{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center}
+          .predict-item{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;position:relative}
           .p-rank{font-weight:800;color:#cfe9ff;opacity:.9}
           .p-team{font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
           .p-bar{height:8px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}
           .p-fill{display:block;height:100%;background:linear-gradient(90deg,#14e29a,#5fd0c7)}
           .p-prob{font-weight:800;color:#d7fff1;min-width:44px;text-align:right}
-          .predict-note{margin-top:12px;color:#a9bdd9;font-size:.92rem}
+          .stage-badge{margin-left:8px;font-size:.85rem;color:#d9e8ff;background:rgba(88,230,217,.08);border:1px solid rgba(88,230,217,.25);padding:4px 8px;border-radius:8px}
+          .wild-tag{margin-left:8px;font-size:.72rem;color:#ffe59a;background:rgba(245,210,107,.08);border:1px solid rgba(245,210,107,.25);padding:2px 6px;border-radius:6px}
+          .empty.small{padding:12px;color:#a9bdd9}
+          .improve-card{margin-top:14px;padding:12px;border-top:1px dashed rgba(255,255,255,.08)}
+          .improve-title{font-weight:900;color:#e8caa4;margin-bottom:8px}
+          .needs-list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+          .needs-list li{color:#eaf2ff}
+          .disclaimer{margin-top:8px;color:#a9bdd9;font-size:.9rem}
         `}</style>
       </div>
 
@@ -479,8 +606,9 @@ export default function TournamentPoints() {
             </div>
             <div className="modal-body">
               <p>
-                Server computes totals from <code>match_history</code> (ODI/T20) and returns a
-                leaderboard. Predictions are client-side using Points, Win-rate and NRR.
+                Server computes totals from <code>match_history</code> (ODI/T20) and returns a leaderboard.
+                Predictions are recalculated on each reload using Points, Win-rate and NRR. Stages are chosen
+                automatically from the team count with your rules.
               </p>
             </div>
             <div className="modal-foot">
