@@ -1,61 +1,91 @@
 import React from "react";
 
 export default function Footer() {
+  const year = new Date().getFullYear();
+
   return (
-    <footer className="crickedge-footer">
+    <footer className="crickedge-footer" role="contentinfo">
       <div className="footer-content">
         <div className="footer-logo-wrap">
           <img
             src="/logo/crickedge-footer-logo.png"
-            alt="CrickEdge Logo"
+            alt="CrickEdge"
             className="footer-logo-img"
+            loading="lazy"
+            decoding="async"
           />
         </div>
+
         <div className="footer-copy">
-          © 2025 <span className="crickedge-name">CrickEdge</span>
+          © {year} <span className="crickedge-name">CrickEdge</span> · All rights reserved.
         </div>
-        {/* <div className="footer-slogan">Edge of Every Innings</div> */}
       </div>
+
       <style>{`
-        .crickedge-footer {
-          background: #191d24;
-          padding: 16px 0 12px 0;    /* much less vertical padding */
+        /* Wrapper */
+        .crickedge-footer{
+          background: linear-gradient(180deg, #0f1722, #0b1320);
+          border-top: 1px solid rgba(255,255,255,.06);
+          padding: 14px 0;                 /* comfortable but compact */
           display: flex;
           justify-content: center;
-        }
-        .footer-content {
           width: 100%;
-          max-width: 340px;  /* Makes the whole footer narrow! */
+        }
+
+        /* Responsive container (desktop: row, mobile: column) */
+        .footer-content{
+          width: 100%;
+          max-width: 1200px;                /* full-width container feel */
+          padding: 0 16px;
+          margin: 0 auto;
           display: flex;
-          flex-direction: column;
+          align-items: center;
+          justify-content: space-between;   /* row on desktop */
+          gap: 12px;
+          text-align: left;
+        }
+
+        .footer-logo-wrap{
+          display: flex;
           align-items: center;
         }
-        .footer-logo-wrap {
-          display: flex;
-          justify-content: center;
-        }
-        .footer-logo-img {
+
+        .footer-logo-img{
           width: 120px;
-          max-width: 90vw;
-          margin-bottom: 7px;
-          filter: drop-shadow(0 0 18px #ffb80066);
+          height: auto;
+          filter: drop-shadow(0 0 10px rgba(255,184,0,.35));
         }
-        .footer-copy {
-          font-size: 1.05em;
-          font-weight: 500;
-          letter-spacing: 1.5px;
-          color: #FFD700;
-          text-shadow: 0 1px 6px #000a;
+
+        .footer-copy{
+          color: #eaf2ff;
+          font-size: 0.95rem;
+          letter-spacing: .4px;
+          opacity: .95;
         }
-        .crickedge-name {
-          font-weight: bold;
-          color: #ffe066;
-          text-shadow: 0 1px 4px #333c;
+
+        .crickedge-name{
+          font-weight: 800;
+          color: #ffe38f;
+          text-shadow: 0 1px 4px rgba(0,0,0,.25);
         }
-        @media (max-width: 600px) {
-          .footer-logo-img { width: 82px; }
-          .footer-content { max-width: 98vw; }
-          .footer-copy { font-size: 0.92em; }
+
+        /* Mobile/tables: stack vertically & center */
+        @media (max-width: 768px){
+          .footer-content{
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 8px;
+          }
+          .footer-logo-img{ width: 92px; }
+          .footer-copy{ font-size: 0.9rem; }
+        }
+
+        /* Very small phones */
+        @media (max-width: 380px){
+          .footer-logo-img{ width: 84px; }
+          .footer-copy{ font-size: 0.88rem; }
         }
       `}</style>
     </footer>
