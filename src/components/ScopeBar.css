@@ -1,54 +1,115 @@
+/* ScopeBar — professional pills + icons, responsive, flicker-safe */
+
 .scope {
   display: grid;
-  gap: 10px;
-  grid-template-columns: 1fr 2fr 1fr auto;
-  background: linear-gradient(180deg, rgba(14,21,34,.8), rgba(10,16,28,.72));
-  border: 1px solid rgba(255,255,255,.06);
+  gap: 12px;
+  /* Desktop: four columns – actions auto width */
+  grid-template-columns: minmax(190px, 1fr) minmax(260px, 1.6fr) minmax(170px, 1fr) auto;
+
+  background: linear-gradient(180deg, rgba(14,21,34,.86), rgba(10,16,28,.78));
+  border: 1px solid rgba(255,255,255,.08);
   border-radius: 14px;
-  padding: 10px 12px;
+  padding: 12px;
   margin-bottom: 14px;
-  box-shadow: 0 6px 22px -14px rgba(0,0,0,.7), 0 0 0 1px rgba(247,201,72,.12) inset;
+  box-shadow: 0 8px 24px rgba(0,0,0,.38), inset 0 0 0 1px rgba(247,201,72,.12);
 }
 
-.scope--compact { grid-template-columns: 1fr 1.3fr .8fr auto; }
-
-.scope-group label {
-  display: block; font-size: 12px; color: #9fb2d3; margin-bottom: 4px;
+.scope--compact {
+  grid-template-columns: minmax(170px, 1fr) minmax(220px, 1.4fr) minmax(150px, .9fr) auto;
 }
 
-.scope-group select,
-.scope-group input {
+.scope-group { display: flex; flex-direction: column; }
+.scope-label {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: #9fb2d3; margin-bottom: 6px; letter-spacing: .25px;
+}
+.scope-label-icon { color: #e8caa4; opacity: .9; }
+
+/* Field with leading icon */
+.scope-field {
+  position: relative;
+}
+.scope-input {
   width: 100%;
   background: #0e1522;
   color: #e8f0ff;
-  border: 1px solid rgba(255,255,255,.09);
+  border: 1px solid rgba(255,255,255,.10);
   border-radius: 10px;
-  padding: 8px 10px;
+  padding: 9px 10px;
   outline: none;
+  font-weight: 600;
+  letter-spacing: .2px;
 }
-.scope-group select:focus,
-.scope-group input:focus {
+.scope-input:focus {
   border-color: #f7c948;
   box-shadow: 0 0 0 1px rgba(247,201,72,.32);
 }
+.with-icon .scope-input.has-icon { padding-left: 36px; }
+.scope-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  font-size: 14px; color: #d6e7ff; opacity: .75; pointer-events: none;
+}
 
-.scope-actions { display: flex; align-items: end; gap: 8px; }
+/* Actions */
+.scope-actions { display: flex; align-items: end; gap: 10px; }
+.scope-actions .scope-apply,
+.scope-actions .scope-clear { display: inline-flex; align-items: center; gap: 8px; }
 
 .scope-apply {
   background: rgba(247,201,72,.16);
   color: #f7c948;
   border: 1px solid rgba(247,201,72,.42);
-  padding: 8px 12px;
+  padding: 9px 14px;
   border-radius: 10px;
   font-weight: 800;
   letter-spacing: .2px;
+  transition: transform .12s ease, box-shadow .18s ease, background .18s ease;
 }
-.scope-apply:hover { background: rgba(247,201,72,.22); }
+.scope-apply:hover {
+  background: rgba(247,201,72,.22);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(0,0,0,.25);
+}
 
 .scope-clear {
   background: transparent;
-  color: #9fb2d3;
-  border: 1px solid rgba(255,255,255,.12);
-  padding: 8px 12px;
+  color: #c7d7ee;
+  border: 1px solid rgba(255,255,255,.14);
+  padding: 9px 14px;
   border-radius: 10px;
+  font-weight: 700;
+}
+.scope-clear:hover {
+  background: rgba(255,255,255,.06);
+}
+
+/* =========================
+   Responsive: stack cleanly
+   ========================= */
+@media (max-width: 1024px) {
+  .scope {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+  }
+  .scope-actions {
+    grid-column: 1 / -1;         /* actions go full row */
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 640px), (pointer: coarse) {
+  /* Keep it simple on phones to avoid any compositor artefacts */
+  .scope {
+    grid-template-columns: 1fr;  /* single column */
+    padding: 10px;
+    box-shadow: 0 6px 16px rgba(0,0,0,.28), inset 0 0 0 1px rgba(247,201,72,.10);
+    background: #0f1b28;         /* solid – no blur anywhere */
+  }
+  .scope-actions {
+    justify-content: stretch;
+  }
+  .scope-actions .scope-apply,
+  .scope-actions .scope-clear {
+    flex: 1 0 auto;
+    justify-content: center;
+  }
 }
