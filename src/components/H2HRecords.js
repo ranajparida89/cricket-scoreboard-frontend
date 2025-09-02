@@ -1,3 +1,4 @@
+// src/pages/H2HRecords.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./H2HRecords.css";
 import {
@@ -48,7 +49,7 @@ const MirrorLabel = ({ x, y, width, height, value }) => {
 const arr = (v) => (Array.isArray(v) ? v : []);
 const obj = (v) => (v && typeof v === "object" ? v : null);
 
-/* --------- soft gradients --------- */
+/* --------- soft gradients (same style, different hues) --------- */
 const THEME_GRADS = {
   gold:   [["0%","#fff2c6"],["50%","#e8caa4"],["100%","#cda56e"]],
   orange: [["0%","#ffe8c7"],["50%","#ffd58a"],["100%","#ffbf69"]],
@@ -85,7 +86,7 @@ export default function H2HRecords() {
   const [testLead, setTestLead] = useState(null);
   const [testAvg, setTestAvg] = useState([]);
 
-  // These three fix your ESLint errors:
+  // ↓↓↓ these three were missing and caused the build to fail
   const [topBatters, setTopBatters] = useState([]);
   const [topBowlers, setTopBowlers] = useState([]);
   const [recent, setRecent] = useState([]);
@@ -109,7 +110,7 @@ export default function H2HRecords() {
   const [playerError, setPlayerError] = useState("");
   const [showInfo, setShowInfo] = useState(false);
 
-  // PDF – whole page
+  // PDF – whole page (everything below the top bar)
   const exportRef = useRef(null);
   const [exporting, setExporting] = useState(false);
 
@@ -252,7 +253,7 @@ export default function H2HRecords() {
     labelStyle: { color: COLORS.ink },
   };
 
-  /** ---------- Generic HBar (single Bar) ---------- */
+  /** ---------- Generic HBar (single Bar: no duplicate overlays) ---------- */
   const HBar = ({ title, rows, dataKey = "value", theme = "gold" }) => {
     const clean = arr(rows)
       .filter((r) => r && r.player_name && r[dataKey] != null && r[dataKey] !== 0)
@@ -308,7 +309,7 @@ export default function H2HRecords() {
     );
   };
 
-  /* ========= 5W Hauls ========= */
+  /* ========= Most 5-Wicket Hauls (single Bar; no duplicates) ========= */
   const FiveWLabel = ({ x, y, width, height, value, payload }) => {
     if (value == null) return null;
     const tx = x + width + 8;
@@ -454,11 +455,12 @@ export default function H2HRecords() {
 
       const canvas = await html2canvas(exportRef.current, {
         backgroundColor: "#0b111a",
-        scale: 1.35,
+        scale: 1.35,        // readable text without giant file size
         useCORS: true,
         windowWidth: document.documentElement.scrollWidth,
       });
 
+      // JPEG compression keeps size small (vs. PNG)
       const imgData = canvas.toDataURL("image/jpeg", 0.82);
 
       const pdf = new jsPDF("p", "mm", "a4");
@@ -496,7 +498,7 @@ export default function H2HRecords() {
 
   return (
     <div className="h2h-wrap">
-      {/* Top bar with actions (not in PDF) */}
+      {/* Top bar with actions (not inside exportRef) */}
       <div className="h2h-topbar">
         <h2 className="h2h-title">VS Head-to-Head Records</h2>
         <div style={{ display: "flex", gap: 8 }}>
@@ -535,7 +537,216 @@ export default function H2HRecords() {
         {/* Summary + charts */}
         {summary && !teamError && (
           <>
-            {/* ... (the rest is unchanged from earlier message – included here) */}
+            <div className="summary-card wide">
+              <div className="sum-head">
+                <span className="sum-title">Summary</span>
+                <span className="sum-type">
+                  Format: {matchType === "ALL" ? "All Formats" : (matchType === "TEST" ? "Test" : matchType)}
+                </span>
+              </div>
+              <div className="kpi-grid">
+                <div className="kpi">
+                  <div className="kpi-label">Total Matches</div>
+                  <div className="kpi-value">{summary?.total_matches ?? 0}</div>
+                </div>
+
+                <div className="kpi kpi-t1">
+                  <div className="kpi-pill">{team1 || "Team 1"}</div>
+                  <div className="kpi-pair"><span>Wins</span><b>{summary?.[team1] ?? 0}</b></div>
+                  <div className="kpi-pair"><span>Losses</span><b>{summary ? summary[team2] : 0}</b></div>
+                  <div className="kpi-pair"><span>Win %</span><b>{summary?.win_percentage_team1 ?? 0}%</b></div>
+                </div>
+
+                <div className="kpi kpi-t2">
+                  <div className="kpi-pill">{team2 || "Team 2"}</div>
+                  <div className="kpi-pair"><span>Wins</span><b>{summary?.[team2] ?? 0}</b></div>
+                  <div className="kpi-pair"><span>Losses</span><b>{summary ? summary[team1] : 0}</b></div>
+                  <div className="kpi-pair"><span>Win %</span><b>{summary?.win_percentage_team2 ?? 0}%</b></div>
+                </div>
+
+                <div className="kpi">
+                  <div className="kpi-label">Draws</div>
+                  <div className="kpi-value">{summary?.draws ?? 0}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="charts-grid two">
+              <div className="chart-card">
+                <div className="chart-title">Outcome Comparison</div>
+                <ResponsiveContainer width="100%" height={320}>
+                  <BarChart data={teamBarData} margin={{ top: 18, right: 20, left: 8, bottom: 4 }}>
+                    <CartesianGrid vertical={false} stroke={COLORS.grid} strokeDasharray="3 3" />
+                    <XAxis dataKey="metric" tick={{ fill: "#93a4c3", fontSize: 12 }} />
+                    <YAxis allowDecimals={false} tick={{ fill: "#93a4c3", fontSize: 12 }} />
+                    <Tooltip {...tooltipProps} />
+                    <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
+                    <Bar dataKey={team1} fill={COLORS.t1} barSize={22} radius={[6,6,0,0]} isAnimationActive={false}>
+                      <LabelList dataKey={team1} position="top" fill="#cdeefa" fontSize={12} />
+                    </Bar>
+                    <Bar dataKey={team2} fill={COLORS.t2} barSize={22} radius={[6,6,0,0]} isAnimationActive={false}>
+                      <LabelList dataKey={team2} position="top" fill="#ffd8d8" fontSize={12} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="chart-card">
+                <div className="chart-title">Result Share</div>
+                <ResponsiveContainer width="100%" height={320}>
+                  <PieChart>
+                    <Pie data={outcomePieData} dataKey="value" innerRadius={70} outerRadius={110} paddingAngle={2} isAnimationActive={false}>
+                      {arr(outcomePieData).map((e, i) => <Cell key={i} fill={e.color} />)}
+                      <LabelList dataKey="value" position="outside" fill={COLORS.ink} fontSize={12} />
+                    </Pie>
+                    <Tooltip {...tooltipProps} />
+                    <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="charts-grid two">
+              {!!formatChart.length && (
+                <div className="chart-card">
+                  <div className="chart-title">Wins by Format</div>
+                  <ResponsiveContainer width="100%" height={320}>
+                    <BarChart data={formatChart} margin={{ top: 28, right: 20, left: 10, bottom: 6 }}>
+                      <CartesianGrid vertical={false} stroke={COLORS.grid} strokeDasharray="3 3" />
+                      <XAxis dataKey="format" tick={{ fill: "#93a4c3", fontSize: 12 }} />
+                      <YAxis allowDecimals={false} tick={{ fill: "#93a4c3", fontSize: 12 }} />
+                      <Tooltip {...tooltipProps} />
+                      <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
+                      <Bar dataKey={team1} fill={COLORS.t1} barSize={20} isAnimationActive={false}><LabelList position="top" fill={COLORS.ink} /></Bar>
+                      <Bar dataKey={team2} fill={COLORS.t2} barSize={20} isAnimationActive={false}><LabelList position="top" fill={COLORS.ink} /></Bar>
+                      <Bar dataKey="Draws" fill={COLORS.draw} barSize={20} isAnimationActive={false}><LabelList position="top" fill={COLORS.ink} /></Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
+              {!!runsFormatChart.length && (
+                <div className="chart-card">
+                  <div className="chart-title">
+                    {matchType === "ALL" ? "Total Runs by Format" : `Total Runs — ${matchType === "TEST" ? "Test" : matchType}`}
+                  </div>
+                  <ResponsiveContainer width="100%" height={320}>
+                    <BarChart data={runsFormatChart} margin={{ top: 28, right: 20, left: 14, bottom: 6 }}>
+                      <CartesianGrid vertical={false} stroke={COLORS.grid} strokeDasharray="3 3" />
+                      <XAxis dataKey="format" tick={{ fill: "#93a4c3", fontSize: 12 }}
+                        label={{ value: "Format", position: "insideBottom", offset: -2, fill: "#9fb3d6", fontSize: 12 }} />
+                      <YAxis allowDecimals={false} tick={{ fill: "#93a4c3", fontSize: 12 }}
+                        label={{ value: "Runs", angle: -90, position: "insideLeft", fill: "#9fb3d6", fontSize: 12 }} />
+                      <Tooltip {...tooltipProps} />
+                      <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
+                      <Bar dataKey={team1} fill={COLORS.gold} barSize={20} isAnimationActive={false}><LabelList position="top" fill={COLORS.ink} /></Bar>
+                      <Bar dataKey={team2} fill={COLORS.draw} barSize={20} isAnimationActive={false}><LabelList position="top" fill={COLORS.ink} /></Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </div>
+
+            {/* Best Players */}
+            <div className="player-sec">
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <h3 className="h3" style={{ marginBottom: 0 }}>Best Players (by filters)</h3>
+                {mvp && (
+                  <div className="card-glow"
+                    style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
+                      borderRadius: 12, border: "1px solid rgba(255,215,106,.45)",
+                      background: "linear-gradient(160deg, rgba(255,209,112,.18), rgba(255,240,200,.06))" }}
+                    title="Most Valuable Player (all-round impact across batting/bowling)">
+                    <div style={{ background: "conic-gradient(from 0deg, #ffd76a, #fff2c6, #ffd76a 70%)",
+                      width: 42, height: 42, borderRadius: "999px", display: "grid", placeItems: "center",
+                      color: "#1a1306", fontWeight: 900, boxShadow: "0 0 16px rgba(255,215,106,.35)" }}>
+                      MVP
+                    </div>
+                    <div style={{ lineHeight: 1.2 }}>
+                      <div style={{ fontWeight: 900, color: "#ffe6b3" }}>
+                        {mvp.player_name}{mvp.team_name ? ` (${mvp.team_name})` : ""}
+                      </div>
+                      <div style={{ fontSize: 12, color: "#f5e9c9" }}>
+                        All-round impact score {Math.round(mvp.score * 100)}/100
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="h2h-row h2h-selects" style={{ marginTop: 12 }}>
+                <select value={lbType} onChange={(e) => setLbType(e.target.value)} className="sel">
+                  <option value="ALL">All</option><option value="ODI">ODI</option>
+                  <option value="T20">T20</option><option value="TEST">Test</option>
+                </select>
+                <select value={lbTournament} onChange={(e) => setLbTournament(e.target.value)} className="sel">
+                  {arr(tournaments).map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <select value={lbYear} onChange={(e) => setLbYear(e.target.value)} className="sel">
+                  {arr(years).map((y) => <option key={y} value={y}>{y}</option>)}
+                </select>
+                <select value={lbTeam} onChange={(e) => setLbTeam(e.target.value)} className="sel">
+                  <option value="ALL">All Teams</option>
+                  {teams.map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+
+              <div className="charts-grid two">
+                <HBarFiveW rows={arr(leaderboards?.leaders?.most_five_wicket_hauls)} />
+                <HBar title="Best Run Scored" rows={arr(leaderboards?.leaders?.most_runs)} dataKey="total_runs" theme="orange" />
+                <HBar title="Highest Wicket Taker" rows={arr(leaderboards?.leaders?.highest_wickets)} dataKey="total_wickets" theme="green" />
+                <HBar title="Best Batting Average" rows={arr(leaderboards?.leaders?.best_batting_avg)} dataKey="batting_avg" theme="blue" />
+                <HBar title="Best Strike Rate" rows={arr(leaderboards?.leaders?.best_strike_rate)} dataKey="strike_rate" theme="purple" />
+                <HBar title="Most Centuries" rows={arr(leaderboards?.leaders?.most_centuries)} dataKey="total_hundreds" theme="pink" />
+                <HBar title="Most Half-Centuries" rows={arr(leaderboards?.leaders?.most_fifties)} dataKey="total_fifties" theme="slate" />
+                <HBar title="Most Successful (25+ runs and 2+ wkts in a match)" rows={arr(leaderboards?.leaders?.most_successful)} dataKey="success_matches" theme="gold" />
+              </div>
+            </div>
+
+            {/* Player Comparison */}
+            <div className="player-sec">
+              <h3 className="h3">Player Comparison</h3>
+              <div className="h2h-row h2h-selects">
+                <select value={player1} onChange={(e) => setPlayer1(e.target.value)} className="sel">
+                  <option value="">Select Player 1</option>
+                  {players.map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+                <select value={player2} onChange={(e) => setPlayer2(e.target.value)} className="sel">
+                  <option value="">Select Player 2</option>
+                  {players.map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+              {playerError && <div className="alert warn">{playerError}</div>}
+
+              {playerStats && playerStats[player1] && playerStats[player2] && !playerError && (
+                <div className="player-card">
+                  <div className="legend-row">
+                    <div className="legend-chip" style={{ background: COLORS.t1 }} /><span>{player1}</span>
+                    <div className="legend-chip" style={{ background: COLORS.t2 }} /><span>{player2}</span>
+                    <span className="legend-note">Mirror chart (0 center). <b>Bowling Avg</b> lower is better.</span>
+                  </div>
+
+                  <div className="player-chart">
+                    <ResponsiveContainer width="100%" height={420}>
+                      <BarChart data={playerMirrorData} layout="vertical" margin={{ top: 8, right: 40, left: 40, bottom: 8 }}>
+                        <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
+                        <XAxis type="number" domain={[-100, 100]} tickFormatter={(v) => Math.abs(v)} tick={{ fill: "#93a4c3", fontSize: 12 }} />
+                        <YAxis type="category" dataKey="metric" tick={{ fill: "#cfd9ee", fontSize: 12 }} width={160} />
+                        <Tooltip {...tooltipProps} formatter={(v, k) => [Math.abs(v), k]} />
+                        <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
+                        <ReferenceLine x={0} stroke="#6b7280" />
+                        <Bar dataKey={player1} fill={COLORS.t1} barSize={18} radius={[0,6,6,0]} isAnimationActive={false}>
+                          <LabelList content={(props) => <MirrorLabel {...props} />} />
+                        </Bar>
+                        <Bar dataKey={player2} fill={COLORS.t2} barSize={18} radius={[0,6,6,0]} isAnimationActive={false}>
+                          <LabelList content={(props) => <MirrorLabel {...props} />} />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>
