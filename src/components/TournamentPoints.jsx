@@ -212,7 +212,7 @@ export default function TournamentPoints() {
         super6: [],
         semifinal: [],
         summary: "No data for the chosen filters.",
-        suggestions: [],
+        cutoff: null,
         cut: 0,
       };
     }
@@ -231,8 +231,7 @@ export default function TournamentPoints() {
       semifinal = withProb.filter((t) => s8Names.has(t.team_name)).slice(0, 4);
     } else if (stage.mode === "S6") {
       super6 = withProb.slice(0, 6);
-      // Semi rule: Top 3 from Super6 by points (tie → NRR) + 1 wildcard (best of the rest by points then NRR)
-      const s6Names = new Set(super6.map((t) => t.team_name));
+      // Semis: Top 3 from Super6 by points (tie → NRR) + 1 wildcard from the rest by points, then NRR
       const top3 = rankByStandings(super6).slice(0, 3);
       const top3Names = new Set(top3.map((t) => t.team_name));
       const rest = rankedAll.filter((t) => !top3Names.has(t.team_name));
@@ -242,34 +241,19 @@ export default function TournamentPoints() {
       semifinal = withProb.slice(0, 4);
     }
 
-    // Suggestions for teams below the cut (how to qualify)
+    // Cutoff snapshot (doesn't assume matches left)
     const cut = stage.cut;
-    const cutoffTeam = rankedAll[cut - 1]; // may be undefined if fewer than cut teams
-    const maxMatches = Math.max(...list.map((t) => safeNum(t.matches_played, 0)), 0);
-    const notQualified = rankedAll.slice(cut);
-
-    const suggestions = cutoffTeam
-      ? notQualified.slice(0, 6).map((t) => {
-          const remaining = Math.max(0, maxMatches - safeNum(t.matches_played));
-          const diff = safeNum(cutoffTeam.points) - safeNum(t.points);
-          // wins to equal & to surpass cutoff (2 pts/win)
-          const winsToEqual = diff <= 0 ? 0 : Math.ceil(diff / 2);
-          const winsToPass = diff <= -1 ? 0 : Math.ceil((diff + 1) / 2);
-          const nrrTarget = (safeNum(cutoffTeam.nrr) + 0.01).toFixed(2); // small buffer
-          const nrrGap = Math.max(0, safeNum(cutoffTeam.nrr) + 0.01 - safeNum(t.nrr)).toFixed(2);
-
-          return {
-            team_name: t.team_name,
-            remaining,
-            winsToEqual,
-            winsToPass,
-            currentPoints: safeNum(t.points),
-            cutoffPoints: safeNum(cutoffTeam.points),
-            nrrGap,
-            nrrTarget,
-          };
-        })
-      : [];
+    let cutoff = null;
+    if (rankedAll.length >= cut && cut > 0) {
+      const cutoffTeam = rankedAll[cut - 1];
+      const above = rankedAll[cut - 2] || null;
+      const bubble = rankedAll.slice(cut, cut + 3).map((t) => ({
+        ...t,
+        ptsBehind: safeNum(cutoffTeam.points) - safeNum(t.points),
+        nrrBehind: +(safeNum(cutoffTeam.nrr) - safeNum(t.nrr)).toFixed(2),
+      }));
+      cutoff = { cutoffTeam, above, bubble };
+    }
 
     let summary = "";
     if (stage.mode === "S8") summary = `With ${stage.teams} teams in this tournament, the format is Super 8 → Semi-finals.`;
@@ -282,7 +266,7 @@ export default function TournamentPoints() {
       super8,
       super6,
       semifinal,
-      suggestions,
+      cutoff,
       summary,
     };
   }
@@ -493,7 +477,7 @@ export default function TournamentPoints() {
                 ))}
               </ol>
             ) : (
-              <div className="empty small">Super 8 appears only when the tournament has **more than 9** teams.</div>
+              <div className="empty small">Super 8 appears only when the tournament has <strong>more than 9</strong> teams.</div>
             )}
           </div>
 
@@ -518,7 +502,7 @@ export default function TournamentPoints() {
               </ol>
             ) : (
               <div className="empty small">
-                Super 6 appears only when the tournament has **exactly 9** teams.
+                Super 6 appears only when the tournament has <strong>exactly 9</strong> teams.
               </div>
             )}
           </div>
@@ -548,29 +532,54 @@ export default function TournamentPoints() {
           </div>
         </div>
 
-        {/* Trailing teams: what they need */}
-        {predictions.suggestions?.length ? (
-          <div className="improve-card">
-            <div className="improve-title">What trailing teams need to qualify</div>
-            <ul className="needs-list">
-              {predictions.suggestions.map((s) => (
-                <li key={`need-${s.team_name}`}>
-                  <strong>{s.team_name}</strong> — {s.remaining} left. To be safe: win
+        {/* Cutoff snapshot (static, no assumptions about remaining matches) */}
+        <div className="snapshot-card">
+          <div className="snapshot-title">Qualification cutoff snapshot (Top {predictions.cut})</div>
+          {predictions.cut > 0 && predictions.cutoff ? (
+            <ul className="snapshot-list">
+              {predictions.cutoff.above && (
+                <li>
+                  <span className="snap-label">Just above</span>
+                  <strong>{predictions.cutoff.above.team_name}</strong>
+                  {" • "}
+                  {safeNum(predictions.cutoff.above.points)} pts, NRR {safeNum(predictions.cutoff.above.nrr).toFixed(2)}
                   {" "}
-                  <b>{s.winsToPass}</b> more (equaling needs {s.winsToEqual}).
-                  If tied on points, target NRR ≥ <b>{s.nrrTarget}</b> (needs +{s.nrrGap}).
+                  <span className="delta pos">(+{safeNum(predictions.cutoff.above.points) - safeNum(predictions.cutoff.cutoffTeam.points)} pts vs cutoff)</span>
                 </li>
-              ))}
+              )}
+              <li>
+                <span className="snap-label">On cutoff (#{predictions.cut})</span>
+                <strong>{predictions.cutoff.cutoffTeam.team_name}</strong>
+                {" • "}
+                {safeNum(predictions.cutoff.cutoffTeam.points)} pts, NRR {safeNum(predictions.cutoff.cutoffTeam.nrr).toFixed(2)}
+              </li>
+              {predictions.cutoff.bubble?.length ? (
+                <>
+                  <li className="snap-sub">Bubble teams (outside looking in):</li>
+                  {predictions.cutoff.bubble.map((b) => (
+                    <li key={`bubble-${b.team_name}`} className="bubble">
+                      <strong>{b.team_name}</strong>
+                      {" • "}
+                      {safeNum(b.points)} pts
+                      {" "}
+                      <span className={`delta ${b.ptsBehind > 0 ? "neg" : "pos"}`}>
+                        ({b.ptsBehind > 0 ? `-${b.ptsBehind}` : "+0"} pts vs cutoff)
+                      </span>
+                      , NRR {safeNum(b.nrr).toFixed(2)}
+                      {" "}
+                      <span className={`delta ${b.nrrBehind > 0 ? "neg" : "pos"}`}>
+                        ({b.nrrBehind > 0 ? `-${Math.abs(b.nrrBehind).toFixed(2)}` : "+0.00"} NRR vs cutoff)
+                      </span>
+                    </li>
+                  ))}
+                </>
+              ) : null}
             </ul>
-            <div className="disclaimer">
-              Tips are indicative. NRR target is a guideline; actual NRR depends on runs/overs in upcoming matches.
-            </div>
-          </div>
-        ) : (
-          <div className="empty small">
-            All teams currently inside the qualifying cut (Top {predictions.cut}). Keep winning to hold position.
-          </div>
-        )}
+          ) : (
+            <div className="empty small">Cutoff will appear once there are at least {predictions.cut || 4} teams.</div>
+          )}
+          <div className="tie-note">Tie-breaks in this view: Points → NRR → Wins → Team name.</div>
+        </div>
 
         {/* minimal CSS scoped to this card */}
         <style>{`
@@ -588,11 +597,16 @@ export default function TournamentPoints() {
           .stage-badge{margin-left:8px;font-size:.85rem;color:#d9e8ff;background:rgba(88,230,217,.08);border:1px solid rgba(88,230,217,.25);padding:4px 8px;border-radius:8px}
           .wild-tag{margin-left:8px;font-size:.72rem;color:#ffe59a;background:rgba(245,210,107,.08);border:1px solid rgba(245,210,107,.25);padding:2px 6px;border-radius:6px}
           .empty.small{padding:12px;color:#a9bdd9}
-          .improve-card{margin-top:14px;padding:12px;border-top:1px dashed rgba(255,255,255,.08)}
-          .improve-title{font-weight:900;color:#e8caa4;margin-bottom:8px}
-          .needs-list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
-          .needs-list li{color:#eaf2ff}
-          .disclaimer{margin-top:8px;color:#a9bdd9;font-size:.9rem}
+
+          .snapshot-card{margin-top:16px;padding:12px;border-top:1px dashed rgba(255,255,255,.08)}
+          .snapshot-title{font-weight:900;color:#e8caa4;margin-bottom:8px}
+          .snapshot-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+          .snap-label{display:inline-block;font-size:.82rem;color:#b9cdee;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;margin-right:6px}
+          .snap-sub{color:#a9bdd9;margin-top:6px}
+          .delta{font-size:.85rem;margin-left:6px}
+          .delta.pos{color:#79e39a}
+          .delta.neg{color:#ff6b7a}
+          .tie-note{margin-top:8px;color:#a9bdd9;font-size:.9rem}
         `}</style>
       </div>
 
