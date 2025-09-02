@@ -158,6 +158,30 @@ export default function TournamentPoints() {
     <line x1={x} y1={y} x2={x2} y2={y2} stroke="rgba(255,255,255,.12)" strokeWidth="1" opacity={opacity} />
   );
 
+  // ---------- NEW: plain-English explainer helpers ----------
+  const modeLabel = (m) => (m === "S8" ? "Super 8" : m === "S6" ? "Super 6" : "Semi-finals");
+  const fmtNrr = (n) => {
+    const v = safeNum(n, 0);
+    return (v >= 0 ? "+" : "") + v.toFixed(2);
+  };
+  function cutoffNarrative(p) {
+    if (!p || !p.cutoff || !p.cut) return "";
+    const last = p.cutoff.cutoffTeam;
+    const out = p.cutoff.bubble?.[0];
+    const parts = [
+      `Top ${p.cut} teams qualify for ${modeLabel(p.mode)}.`,
+      `${last.team_name} currently holds the last qualifying spot with ${safeNum(last.points)} pts and NRR ${fmtNrr(last.nrr)}.`,
+    ];
+    if (out) {
+      parts.push(
+        `${out.team_name} is next in line (${safeNum(out.points)} pts, NRR ${fmtNrr(out.nrr)}). ` +
+          `To enter the Top ${p.cut}, they must finish with more points than ${last.team_name}, ` +
+          `or tie on points and have a better NRR.`
+      );
+    }
+    return parts.join(" ");
+  }
+
   // ---------- Ranking / Prediction helpers ----------
   const rankByStandings = (list) =>
     [...list].sort(
@@ -200,7 +224,7 @@ export default function TournamentPoints() {
     if (teams > 9) return { mode: "S8", label: "Super 8", cut: 8, teams };
     if (teams === 9) return { mode: "S6", label: "Super 6", cut: 6, teams };
     if (teams < 5) return { mode: "DIRECT_SEMIS", label: "Direct Semi-finals", cut: 4, teams };
-    // 5..8: not enough for S8 and your rule makes S6 only if exactly 9
+    // 5..8: not enough for S8 and S6 is only for exactly 9
     return { mode: "DIRECT_SEMIS", label: "Direct Semi-finals", cut: 4, teams };
   }
 
@@ -256,8 +280,10 @@ export default function TournamentPoints() {
     }
 
     let summary = "";
-    if (stage.mode === "S8") summary = `With ${stage.teams} teams in this tournament, the format is Super 8 → Semi-finals.`;
-    else if (stage.mode === "S6") summary = `Exactly 9 teams detected: the format is Super 6 → Semi-finals (Top 3 + 1 wildcard by Points, then NRR tiebreak).`;
+    if (stage.mode === "S8")
+      summary = `With ${stage.teams} teams in this tournament, the format is Super 8 → Semi-finals.`;
+    else if (stage.mode === "S6")
+      summary = `Exactly 9 teams detected: the format is Super 6 → Semi-finals (Top 3 + 1 wildcard by Points, then NRR tiebreak).`;
     else summary = `Not enough teams for Super 8 or Super 6; going straight to Semi-finals.`;
 
     return {
@@ -535,6 +561,12 @@ export default function TournamentPoints() {
         {/* Cutoff snapshot (static, no assumptions about remaining matches) */}
         <div className="snapshot-card">
           <div className="snapshot-title">Qualification cutoff snapshot (Top {predictions.cut})</div>
+
+          {/* NEW: one-line plain-English explainer */}
+          {predictions.cut > 0 && predictions.cutoff && (
+            <p className="snapshot-help">{cutoffNarrative(predictions)}</p>
+          )}
+
           {predictions.cut > 0 && predictions.cutoff ? (
             <ul className="snapshot-list">
               {predictions.cutoff.above && (
@@ -560,13 +592,11 @@ export default function TournamentPoints() {
                     <li key={`bubble-${b.team_name}`} className="bubble">
                       <strong>{b.team_name}</strong>
                       {" • "}
-                      {safeNum(b.points)} pts
-                      {" "}
+                      {safeNum(b.points)} pts{" "}
                       <span className={`delta ${b.ptsBehind > 0 ? "neg" : "pos"}`}>
                         ({b.ptsBehind > 0 ? `-${b.ptsBehind}` : "+0"} pts vs cutoff)
                       </span>
-                      , NRR {safeNum(b.nrr).toFixed(2)}
-                      {" "}
+                      , NRR {safeNum(b.nrr).toFixed(2)}{" "}
                       <span className={`delta ${b.nrrBehind > 0 ? "neg" : "pos"}`}>
                         ({b.nrrBehind > 0 ? `-${Math.abs(b.nrrBehind).toFixed(2)}` : "+0.00"} NRR vs cutoff)
                       </span>
@@ -600,6 +630,7 @@ export default function TournamentPoints() {
 
           .snapshot-card{margin-top:16px;padding:12px;border-top:1px dashed rgba(255,255,255,.08)}
           .snapshot-title{font-weight:900;color:#e8caa4;margin-bottom:8px}
+          .snapshot-help{margin:6px 0 10px;color:#cfe0ff} /* NEW */
           .snapshot-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
           .snap-label{display:inline-block;font-size:.82rem;color:#b9cdee;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;margin-right:6px}
           .snap-sub{color:#a9bdd9;margin-top:6px}
