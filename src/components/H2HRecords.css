@@ -5,6 +5,8 @@
   --bg:#09121a; --panel:#0c1724; --panel2:#0a1320; --line:#20324b;
   --ink:#eaf2ff; --ink-d:#cbd7ea; --grid:#334155;
   --t1:#22d3ee; --t2:#f87171; --draw:#94a3b8; --gold:#e8caa4; --gold-strong:#ffd889;
+  /* extras for 5W accents */
+  --teal:#4de2ff; --amber:#ffdd87;
 }
 
 *{ box-sizing:border-box; }
@@ -52,22 +54,19 @@
 .sum-title{ color:#93c5fd; font-weight:800; }
 .sum-type{ color:#99b1d8; font-size:13px; }
 
-/* ✅ More comfortable KPI layout (issues #1 & #2) */
+/* ✅ More comfortable KPI layout */
 .kpi-grid{ display:grid; gap:18px; grid-template-columns: repeat(2, minmax(0,1fr)); }
 @media(min-width:900px){ .kpi-grid{ grid-template-columns: repeat(4, minmax(0,1fr)); } }
 
 .kpi{
-  padding:10px 12px;               /* bring content away from edges */
+  padding:10px 12px;
   border-radius:12px;
 }
 .kpi .kpi-label{ color:#9fb3d6; font-weight:700; }
 .kpi .kpi-value{ font-size:22px; font-weight:900; color:#f2f7ff; }
 .kpi .kpi-pair{
-  display:flex;
-  align-items:center;
-  justify-content:flex-start;      /* move numbers left instead of hard-right */
-  gap:10px;                        /* small space between label and value */
-  color:#cfe1ff; margin-top:6px;
+  display:flex; align-items:center; justify-content:flex-start;
+  gap:10px; color:#cfe1ff; margin-top:6px;
 }
 .kpi .kpi-pill{ display:inline-block; background:#0b1a30; color:#cbe2ff; border:1px solid #39527c; padding:4px 10px; border-radius:999px; font-weight:800; margin-bottom:6px; }
 .kpi.kpi-t1{ box-shadow: inset 0 0 0 1px rgba(34,211,238,.25); }
@@ -133,6 +132,7 @@
 *::-webkit-scrollbar{ width:8px; height:8px; }
 *::-webkit-scrollbar-track{ background:#0b111a; }
 *::-webkit-scrollbar-thumb{ background:#304463; border-radius:8px; }
+
 /* Card glow + subtle glass look */
 .card-glow {
   position: relative;
@@ -184,9 +184,49 @@
   100% { transform: translateX(220%) rotate(15deg); }
 }
 
-/* Recharts tweaks */
+/* Recharts tweaks (make labels readable on dark bg) */
 .recharts-wrapper text {
   paint-order: stroke fill;
   stroke: rgba(4,12,20,0.6);
   stroke-width: 1;
+}
+
+/* --------- 5W leaderboard subtle polish --------- */
+/* slightly taller card look for 5W (affects all cards but benefits the new one most) */
+.chart-card{ padding-bottom: 14px; }
+
+/* extra glow hint for bars-heavy cards (5W uses it) */
+.chart-card.card-glow{
+  box-shadow:
+    0 8px 24px rgba(0,0,0,0.25),
+    inset 0 0 0 1px rgba(255,255,255,0.02),
+    0 0 18px rgba(232,202,164,0.12);
+}
+
+/* make chart titles pop a bit more */
+.chart-title{
+  position: relative;
+  padding-left: 2px;
+}
+.chart-title::after{
+  content:"";
+  display:block;
+  height:1px;
+  margin-top:6px;
+  background: linear-gradient(90deg, rgba(232,202,164,.45), rgba(232,202,164,0));
+  border-radius: 2px;
+}
+
+/* tooltip text readability inside Recharts (fallback if inline styles fail) */
+.recharts-default-tooltip{
+  background:#0b1420 !important;
+  border:1px solid #2a3f60 !important;
+  color:var(--ink) !important;
+}
+
+/* widen Y-axis labels area a touch on large screens (helps long player names) */
+@media (min-width: 1200px){
+  .recharts-yAxis .recharts-cartesian-axis-tick tspan{
+    font-size: 13px;
+  }
 }

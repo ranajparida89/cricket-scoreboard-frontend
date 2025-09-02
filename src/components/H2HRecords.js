@@ -83,37 +83,33 @@ export default function H2HRecords() {
   const [playerError, setPlayerError] = useState("");
   const [showInfo, setShowInfo] = useState(false);
 
-useEffect(() => {
-  fetchJSON(`${API}/api/h2h/teams`, []).then(d => setTeams(arr(d)));
-  fetchJSON(`${API}/api/players/list`, []).then(d => setPlayers(arr(d)));
-  // seed meta for leaderboards (from PP + MH)
-  fetchJSON(`${API}/api/h2h/meta/tournaments?type=${lbType}`, []).then(d => setTournaments(["ALL", ...arr(d)]));
-  fetchJSON(`${API}/api/h2h/meta/years?type=${lbType}`, []).then(d => setYears(["ALL", ...arr(d)]));
-}, []);
-
+  useEffect(() => {
+    fetchJSON(`${API}/api/h2h/teams`, []).then(d => setTeams(arr(d)));
+    fetchJSON(`${API}/api/players/list`, []).then(d => setPlayers(arr(d)));
+    // seed meta for leaderboards (from PP + MH)
+    fetchJSON(`${API}/api/h2h/meta/tournaments?type=${lbType}`, []).then(d => setTournaments(["ALL", ...arr(d)]));
+    fetchJSON(`${API}/api/h2h/meta/years?type=${lbType}`, []).then(d => setYears(["ALL", ...arr(d)]));
+  }, []);
 
   // Keep meta in sync with type
- useEffect(() => {
-  setLbTournament("ALL");
-  setLbYear("ALL");
-  fetchJSON(`${API}/api/h2h/meta/tournaments?type=${lbType}`, []).then(d => setTournaments(["ALL", ...arr(d)]));
-  fetchJSON(`${API}/api/h2h/meta/years?type=${lbType}`, []).then(d => setYears(["ALL", ...arr(d)]));
-}, [lbType]);
-
+  useEffect(() => {
+    setLbTournament("ALL");
+    setLbYear("ALL");
+    fetchJSON(`${API}/api/h2h/meta/tournaments?type=${lbType}`, []).then(d => setTournaments(["ALL", ...arr(d)]));
+    fetchJSON(`${API}/api/h2h/meta/years?type=${lbType}`, []).then(d => setYears(["ALL", ...arr(d)]));
+  }, [lbType]);
 
   // Fetch leaderboards whenever any filter changes
-useEffect(() => {
-  const qs = new URLSearchParams({
-    type: lbType,
-    tournament: lbTournament || "ALL",
-    year: lbYear === "ALL" ? "" : String(lbYear || ""),
-    team: lbTeam || "ALL",
-    limit: String(TOP_N), // Top-5 from backend
-  }).toString();
-  fetchJSON(`${API}/api/h2h/players/highlights?${qs}`, null).then(setLeaderboards);
-}, [lbType, lbTournament, lbYear, lbTeam]);
-
-
+  useEffect(() => {
+    const qs = new URLSearchParams({
+      type: lbType,
+      tournament: lbTournament || "ALL",
+      year: lbYear === "ALL" ? "" : String(lbYear || ""),
+      team: lbTeam || "ALL",
+      limit: String(TOP_N), // Top-5 from backend
+    }).toString();
+    fetchJSON(`${API}/api/h2h/players/highlights?${qs}`, null).then(setLeaderboards);
+  }, [lbType, lbTournament, lbYear, lbTeam]);
 
   // ---------- H2H summary ----------
   useEffect(() => {
@@ -247,70 +243,151 @@ useEffect(() => {
   };
 
   // simple horizontal bar list
-const HBar = ({ title, rows, dataKey = "value" }) => {
-  // filter: valid rows only, then cap to Top-5
-  const clean = arr(rows)
-    .filter(r => r && r.player_name && r[dataKey] != null && r[dataKey] !== 0)
-    .slice(0, TOP_N);
+  const HBar = ({ title, rows, dataKey = "value" }) => {
+    // filter: valid rows only, then cap to Top-5
+    const clean = arr(rows)
+      .filter(r => r && r.player_name && r[dataKey] != null && r[dataKey] !== 0)
+      .slice(0, TOP_N);
 
-  const top = clean[0];
+    const top = clean[0];
 
-  return (
-    <div className="chart-card card-glow">
-      <div className="chart-title">{title}</div>
+    return (
+      <div className="chart-card card-glow">
+        <div className="chart-title">{title}</div>
 
-      {/* Congrats ribbon for the #1 */}
-      {top && (
-        <div className="congrats-ribbon">
-          <FaTrophy className="trophy" />
-          <span>
-            Congrats <b>{top.player_name}</b>{top.team_name ? ` (${top.team_name})` : ""}! — <i>{title}</i> <b>{top[dataKey]}</b>
-          </span>
-        </div>
-      )}
+        {/* Congrats ribbon for the #1 */}
+        {top && (
+          <div className="congrats-ribbon">
+            <FaTrophy className="trophy" />
+            <span>
+              Congrats <b>{top.player_name}</b>{top.team_name ? ` (${top.team_name})` : ""}! — <i>{title}</i> <b>{top[dataKey]}</b>
+            </span>
+          </div>
+        )}
 
-      <ResponsiveContainer
-        width="100%"
-        height={clean.length ? Math.max(220, clean.length * 40) : 220}
-      >
-        <BarChart data={clean} layout="vertical" margin={{ top: 8, right: 28, left: 32, bottom: 8 }}>
-          <defs>
-            <linearGradient id="grad-gold" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#fff2c6" />
-              <stop offset="50%" stopColor="#e8caa4" />
-              <stop offset="100%" stopColor="#cda56e" />
-            </linearGradient>
-          </defs>
-          <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
-          <XAxis type="number" tick={{ fill: "#93a4c3", fontSize: 12 }} />
-          <YAxis
-            type="category"
-            dataKey="player_name"
-            tick={{ fill: "#e7efff", fontSize: 12 }}
-            width={190}
-          />
-          <Tooltip
-            {...tooltipProps}
-            formatter={(v, _k, p) => [v, p?.payload?.team_name ? `${p.payload.player_name} (${p.payload.team_name})` : p.payload.player_name]}
-          />
-          <Bar
-            dataKey={dataKey}
-            fill="url(#grad-gold)"
-            barSize={20}
-            radius={[10, 10, 10, 10]}
-            animationDuration={700}
-            animationEasing="ease-out"
-          >
-            <LabelList dataKey={dataKey} position="right" fill={COLORS.ink} fontSize={12} />
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+        <ResponsiveContainer
+          width="100%"
+          height={clean.length ? Math.max(220, clean.length * 40) : 220}
+        >
+          <BarChart data={clean} layout="vertical" margin={{ top: 8, right: 28, left: 32, bottom: 8 }}>
+            <defs>
+              <linearGradient id="grad-gold" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#fff2c6" />
+                <stop offset="50%" stopColor="#e8caa4" />
+                <stop offset="100%" stopColor="#cda56e" />
+              </linearGradient>
+            </defs>
+            <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
+            <XAxis type="number" tick={{ fill: "#93a4c3", fontSize: 12 }} />
+            <YAxis
+              type="category"
+              dataKey="player_name"
+              tick={{ fill: "#e7efff", fontSize: 12 }}
+              width={190}
+            />
+            <Tooltip
+              {...tooltipProps}
+              formatter={(v, _k, p) => [v, p?.payload?.team_name ? `${p.payload.player_name} (${p.payload.team_name})` : p.payload.player_name]}
+            />
+            <Bar
+              dataKey={dataKey}
+              fill="url(#grad-gold)"
+              barSize={20}
+              radius={[10, 10, 10, 10]}
+              animationDuration={700}
+              animationEasing="ease-out"
+            >
+              <LabelList dataKey={dataKey} position="right" fill={COLORS.ink} fontSize={12} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
 
-      {!clean.length && <div className="tr empty" style={{ padding: 12 }}>No data</div>}
-    </div>
-  );
-};
+        {!clean.length && <div className="tr empty" style={{ padding: 12 }}>No data</div>}
+      </div>
+    );
+  };
 
+  /* ========= NEW: Most 5-Wicket Hauls chart (with best figure & opponent) ========= */
+  const FiveWLabel = ({ x, y, width, height, value, payload }) => {
+    if (value == null) return null;
+    const tx = x + width + 8;
+    const ty = y + height / 2 + 4;
+    const best = payload?.best_wickets != null ? ` · Best ${payload.best_wickets}${payload.best_vs_team ? ` vs ${payload.best_vs_team}` : ""}` : "";
+    const unit = value === 1 ? "haul" : "hauls";
+    return (
+      <text x={tx} y={ty} fontSize={12} fill={COLORS.ink}>
+        {value} {unit}{best}
+      </text>
+    );
+  };
+
+  const HBarFiveW = ({ rows }) => {
+    const clean = arr(rows)
+      .filter(r => r && r.player_name && r.fivewh_count != null && r.fivewh_count !== 0)
+      .slice(0, TOP_N);
+
+    const top = clean[0];
+
+    return (
+      <div className="chart-card card-glow">
+        <div className="chart-title">Most 5-Wicket Hauls</div>
+
+        {top && (
+          <div className="congrats-ribbon">
+            <FaTrophy className="trophy" />
+            <span>
+              <b>{top.player_name}</b>{top.team_name ? ` (${top.team_name})` : ""} — {top.fivewh_count} {top.fivewh_count === 1 ? "haul" : "hauls"}
+              {top.best_wickets ? <> · Best <b>{top.best_wickets}</b>{top.best_vs_team ? <> vs <b>{top.best_vs_team}</b></> : null}</> : null}
+            </span>
+          </div>
+        )}
+
+        <ResponsiveContainer
+          width="100%"
+          height={clean.length ? Math.max(240, clean.length * 44) : 240}
+        >
+          <BarChart data={clean} layout="vertical" margin={{ top: 8, right: 28, left: 32, bottom: 8 }}>
+            <defs>
+              {/* Teal→Gold gradient to distinguish this from other bars */}
+              <linearGradient id="grad-5w" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#4de2ff" />
+                <stop offset="50%" stopColor="#e8caa4" />
+                <stop offset="100%" stopColor="#ffdd87" />
+              </linearGradient>
+            </defs>
+            <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
+            <XAxis type="number" tick={{ fill: "#93a4c3", fontSize: 12 }} />
+            <YAxis
+              type="category"
+              dataKey="player_name"
+              tick={{ fill: "#e7efff", fontSize: 12 }}
+              width={200}
+            />
+            <Tooltip
+              {...tooltipProps}
+              formatter={(v, _k, p) => {
+                const r = p?.payload || {};
+                const best = r.best_wickets != null ? `Best ${r.best_wickets}${r.best_vs_team ? ` vs ${r.best_vs_team}` : ""}` : "";
+                return [`${v} ${v === 1 ? "haul" : "hauls"}${best ? ` • ${best}` : ""}`, r.team_name ? `${r.player_name} (${r.team_name})` : r.player_name];
+              }}
+            />
+            <Bar
+              dataKey="fivewh_count"
+              fill="url(#grad-5w)"
+              barSize={22}
+              radius={[10, 10, 10, 10]}
+              animationDuration={700}
+              animationEasing="ease-out"
+            >
+              <LabelList content={(props) => <FiveWLabel {...props} />} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+
+        {!clean.length && <div className="tr empty" style={{ padding: 12 }}>No data</div>}
+      </div>
+    );
+  };
 
   return (
     <div className="h2h-wrap">
@@ -551,14 +628,17 @@ const HBar = ({ title, rows, dataKey = "value" }) => {
             </div>
 
             <div className="charts-grid two">
-  <HBar title="Best Run Scored" rows={arr(leaderboards?.leaders?.most_runs)} dataKey="total_runs" />
-  <HBar title="Highest Wicket Taker" rows={arr(leaderboards?.leaders?.highest_wickets)} dataKey="total_wickets" />
-  <HBar title="Best Batting Average" rows={arr(leaderboards?.leaders?.best_batting_avg)} dataKey="batting_avg" />
-  <HBar title="Best Strike Rate" rows={arr(leaderboards?.leaders?.best_strike_rate)} dataKey="strike_rate" />
-  <HBar title="Most Centuries" rows={arr(leaderboards?.leaders?.most_centuries)} dataKey="total_hundreds" />
-  <HBar title="Most Half-Centuries" rows={arr(leaderboards?.leaders?.most_fifties)} dataKey="total_fifties" />
-  <HBar title="Most Successful (25+ runs and 2+ wkts in a match)" rows={arr(leaderboards?.leaders?.most_successful)} dataKey="success_matches" />
-</div>
+              {/* NEW: Most 5-Wicket Hauls */}
+              <HBarFiveW rows={arr(leaderboards?.leaders?.most_five_wicket_hauls)} />
+
+              <HBar title="Best Run Scored" rows={arr(leaderboards?.leaders?.most_runs)} dataKey="total_runs" />
+              <HBar title="Highest Wicket Taker" rows={arr(leaderboards?.leaders?.highest_wickets)} dataKey="total_wickets" />
+              <HBar title="Best Batting Average" rows={arr(leaderboards?.leaders?.best_batting_avg)} dataKey="batting_avg" />
+              <HBar title="Best Strike Rate" rows={arr(leaderboards?.leaders?.best_strike_rate)} dataKey="strike_rate" />
+              <HBar title="Most Centuries" rows={arr(leaderboards?.leaders?.most_centuries)} dataKey="total_hundreds" />
+              <HBar title="Most Half-Centuries" rows={arr(leaderboards?.leaders?.most_fifties)} dataKey="total_fifties" />
+              <HBar title="Most Successful (25+ runs and 2+ wkts in a match)" rows={arr(leaderboards?.leaders?.most_successful)} dataKey="success_matches" />
+            </div>
 
           </div>
 
@@ -620,6 +700,7 @@ const HBar = ({ title, rows, dataKey = "value" }) => {
               <li>Wins & runs by format, first-innings lead, Test innings averages.</li>
               <li>Leaderboards, recent results.</li>
               <li>Best Players: global leaderboards with format/tournament/year/team filters.</li>
+              <li>Includes 5-wicket haul leaderboard with best figure & opponent.</li>
             </ul>
             <div className="modal-actions">
               <button className="btn" onClick={() => setShowInfo(false)}>Got it</button>
