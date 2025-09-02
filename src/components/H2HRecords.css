@@ -230,3 +230,11 @@
     font-size: 13px;
   }
 }
+/* Optional: ensure dark bg when printing/exporting */
+@media print {
+  .h2h-wrap { background: #0b111a !important; }
+}
+
+/* Optional: keep topbar buttons from wrapping awkwardly on narrow widths */
+.h2h-topbar { gap: 8px; flex-wrap: wrap; }
+.h2h-topbar .btn { height: 40px; border-radius: 12px; }

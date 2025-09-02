@@ -1,13 +1,13 @@
 // src/pages/H2HRecords.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./H2HRecords.css";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
   ResponsiveContainer, PieChart, Pie, Cell, LabelList, ReferenceLine,
 } from "recharts";
 import { FaInfoCircle, FaTrophy } from "react-icons/fa";
-const TOP_N = 5;
 
+const TOP_N = 5;
 const API = process.env.REACT_APP_API_BASE || "https://cricket-scoreboard-backend.onrender.com";
 
 const COLORS = {
@@ -44,8 +44,60 @@ const MirrorLabel = ({ x, y, width, height, value }) => {
   );
 };
 
-const arr = v => (Array.isArray(v) ? v : []);
-const obj = v => (v && typeof v === "object" ? v : null);
+const arr = (v) => (Array.isArray(v) ? v : []);
+const obj = (v) => (v && typeof v === "object" ? v : null);
+
+/** ---------- soft gradients for each leaderboard (same style, different hues) ---------- */
+const THEME_GRADS = {
+  gold: [
+    ["0%", "#fff2c6"],
+    ["50%", "#e8caa4"],
+    ["100%", "#cda56e"],
+  ],
+  orange: [
+    ["0%", "#ffe8c7"],
+    ["50%", "#ffd58a"],
+    ["100%", "#ffbf69"],
+  ],
+  green: [
+    ["0%", "#d1fae5"],
+    ["50%", "#86efac"],
+    ["100%", "#4ade80"],
+  ],
+  blue: [
+    ["0%", "#c7e3ff"],
+    ["50%", "#93c5fd"],
+    ["100%", "#60a5fa"],
+  ],
+  purple: [
+    ["0%", "#e9d5ff"],
+    ["50%", "#c4b5fd"],
+    ["100%", "#a78bfa"],
+  ],
+  pink: [
+    ["0%", "#ffd1dc"],
+    ["50%", "#f9a8d4"],
+    ["100%", "#f472b6"],
+  ],
+  slate: [
+    ["0%", "#e5edf9"],
+    ["50%", "#cbd5e1"],
+    ["100%", "#94a3b8"],
+  ],
+};
+
+function GradientDefs({ id, theme = "gold" }) {
+  const stops = THEME_GRADS[theme] || THEME_GRADS.gold;
+  return (
+    <defs>
+      <linearGradient id={id} x1="0" y1="0" x2="1" y2="0">
+        {stops.map(([off, color], i) => (
+          <stop key={i} offset={off} stopColor={color} />
+        ))}
+      </linearGradient>
+    </defs>
+  );
+}
 
 export default function H2HRecords() {
   const [teams, setTeams] = useState([]);
@@ -83,20 +135,32 @@ export default function H2HRecords() {
   const [playerError, setPlayerError] = useState("");
   const [showInfo, setShowInfo] = useState(false);
 
+  // PDF
+  const exportRef = useRef(null);
+  const [exporting, setExporting] = useState(false);
+
   useEffect(() => {
-    fetchJSON(`${API}/api/h2h/teams`, []).then(d => setTeams(arr(d)));
-    fetchJSON(`${API}/api/players/list`, []).then(d => setPlayers(arr(d)));
+    fetchJSON(`${API}/api/h2h/teams`, []).then((d) => setTeams(arr(d)));
+    fetchJSON(`${API}/api/players/list`, []).then((d) => setPlayers(arr(d)));
     // seed meta for leaderboards (from PP + MH)
-    fetchJSON(`${API}/api/h2h/meta/tournaments?type=${lbType}`, []).then(d => setTournaments(["ALL", ...arr(d)]));
-    fetchJSON(`${API}/api/h2h/meta/years?type=${lbType}`, []).then(d => setYears(["ALL", ...arr(d)]));
+    fetchJSON(`${API}/api/h2h/meta/tournaments?type=${lbType}`, []).then((d) =>
+      setTournaments(["ALL", ...arr(d)])
+    );
+    fetchJSON(`${API}/api/h2h/meta/years?type=${lbType}`, []).then((d) =>
+      setYears(["ALL", ...arr(d)])
+    );
   }, []);
 
   // Keep meta in sync with type
   useEffect(() => {
     setLbTournament("ALL");
     setLbYear("ALL");
-    fetchJSON(`${API}/api/h2h/meta/tournaments?type=${lbType}`, []).then(d => setTournaments(["ALL", ...arr(d)]));
-    fetchJSON(`${API}/api/h2h/meta/years?type=${lbType}`, []).then(d => setYears(["ALL", ...arr(d)]));
+    fetchJSON(`${API}/api/h2h/meta/tournaments?type=${lbType}`, []).then((d) =>
+      setTournaments(["ALL", ...arr(d)])
+    );
+    fetchJSON(`${API}/api/h2h/meta/years?type=${lbType}`, []).then((d) =>
+      setYears(["ALL", ...arr(d)])
+    );
   }, [lbType]);
 
   // Fetch leaderboards whenever any filter changes
@@ -123,35 +187,49 @@ export default function H2HRecords() {
     const t1 = encodeURIComponent(team1);
     const t2 = encodeURIComponent(team2);
 
-    fetchJSON(`${API}/api/h2h/summary?team1=${t1}&team2=${t2}&type=${matchType}`, null)
-      .then(setSummary);
+    fetchJSON(`${API}/api/h2h/summary?team1=${t1}&team2=${t2}&type=${matchType}`, null).then(
+      setSummary
+    );
 
-    fetchJSON(`${API}/api/h2h/by-format?team1=${t1}&team2=${t2}`, [])
-      .then(d => setByFormat(arr(d)));
+    fetchJSON(`${API}/api/h2h/by-format?team1=${t1}&team2=${t2}`, []).then((d) =>
+      setByFormat(arr(d))
+    );
 
-    fetchJSON(`${API}/api/h2h/points?team1=${t1}&team2=${t2}&type=${matchType}`, null)
-      .then(setPoints);
+    fetchJSON(`${API}/api/h2h/points?team1=${t1}&team2=${t2}&type=${matchType}`, null).then(
+      setPoints
+    );
 
-    fetchJSON(`${API}/api/h2h/runs-by-format?team1=${t1}&team2=${t2}&type=${matchType}`, [])
-      .then(d => setRunsByFormat(arr(d)));
+    fetchJSON(
+      `${API}/api/h2h/runs-by-format?team1=${t1}&team2=${t2}&type=${matchType}`,
+      []
+    ).then((d) => setRunsByFormat(arr(d)));
 
     if (matchType === "TEST" || matchType === "ALL") {
-      fetchJSON(`${API}/api/h2h/test-innings-lead?team1=${t1}&team2=${t2}`, null)
-        .then(setTestLead);
-      fetchJSON(`${API}/api/h2h/test-innings-averages?team1=${t1}&team2=${t2}`, [])
-        .then(d => setTestAvg(arr(d)));
+      fetchJSON(`${API}/api/h2h/test-innings-lead?team1=${t1}&team2=${t2}`, null).then(
+        setTestLead
+      );
+      fetchJSON(`${API}/api/h2h/test-innings-averages?team1=${t1}&team2=${t2}`, []).then((d) =>
+        setTestAvg(arr(d))
+      );
     } else {
-      setTestLead(null); setTestAvg([]);
+      setTestLead(null);
+      setTestAvg([]);
     }
 
-    fetchJSON(`${API}/api/h2h/top-batters?team1=${t1}&team2=${t2}&type=${matchType}`, [])
-      .then(d => setTopBatters(arr(d)));
+    fetchJSON(
+      `${API}/api/h2h/top-batters?team1=${t1}&team2=${t2}&type=${matchType}`,
+      []
+    ).then((d) => setTopBatters(arr(d)));
 
-    fetchJSON(`${API}/api/h2h/top-bowlers?team1=${t1}&team2=${t2}&type=${matchType}`, [])
-      .then(d => setTopBowlers(arr(d)));
+    fetchJSON(
+      `${API}/api/h2h/top-bowlers?team1=${t1}&team2=${t2}&type=${matchType}`,
+      []
+    ).then((d) => setTopBowlers(arr(d)));
 
-    fetchJSON(`${API}/api/h2h/recent?team1=${t1}&team2=${t2}&type=${matchType}&limit=10`, [])
-      .then(d => setRecent(arr(d)));
+    fetchJSON(
+      `${API}/api/h2h/recent?team1=${t1}&team2=${t2}&type=${matchType}&limit=10`,
+      []
+    ).then((d) => setRecent(arr(d)));
   }, [team1, team2, matchType]);
 
   // ---------- Player compare ----------
@@ -164,16 +242,20 @@ export default function H2HRecords() {
     if (player1 && player2 && player1 !== player2) {
       const p1 = encodeURIComponent(player1);
       const p2 = encodeURIComponent(player2);
-      fetchJSON(`${API}/api/players/compare?player1=${p1}&player2=${p2}`, null)
-        .then(d => setPlayerStats(obj(d?.players) ? d.players : null));
+      fetchJSON(`${API}/api/players/compare?player1=${p1}&player2=${p2}`, null).then((d) =>
+        setPlayerStats(obj(d?.players) ? d.players : null)
+      );
     }
   }, [player1, player2]);
 
   // ---------- Derived ----------
   const teamBarData = useMemo(() => {
     if (!summary || !team1 || !team2) return [];
-    const t1w = Number(summary[team1] || 0), t2w = Number(summary[team2] || 0), draws = Number(summary.draws || 0);
-    const t1l = t2w, t2l = t1w;
+    const t1w = Number(summary[team1] || 0),
+      t2w = Number(summary[team2] || 0),
+      draws = Number(summary.draws || 0);
+    const t1l = t2w,
+      t2l = t1w;
     return [
       { metric: "Wins", [team1]: t1w, [team2]: t2w },
       { metric: "Losses", [team1]: t1l, [team2]: t2l },
@@ -203,7 +285,8 @@ export default function H2HRecords() {
 
   const playerMirrorData = useMemo(() => {
     if (!playerStats || !player1 || !player2) return [];
-    const a = playerStats[player1] || {}, b = playerStats[player2] || {};
+    const a = playerStats[player1] || {},
+      b = playerStats[player2] || {};
     const num = (x) => (x == null || x === "" ? 0 : Number(x));
     const rows = [
       { metric: "Runs", a: num(a.runs), b: num(b.runs) },
@@ -214,17 +297,17 @@ export default function H2HRecords() {
       { metric: "Wickets", a: num(a.wickets), b: num(b.wickets) },
       { metric: "Bowling Avg (↓ better)", a: num(a.bowling_avg), b: num(b.bowling_avg) },
     ];
-    return rows.map(r => ({ metric: r.metric, [player1]: -r.a, [player2]: r.b }));
+    return rows.map((r) => ({ metric: r.metric, [player1]: -r.a, [player2]: r.b }));
   }, [playerStats, player1, player2]);
 
-  const formatChart = arr(byFormat).map(row => ({
+  const formatChart = arr(byFormat).map((row) => ({
     format: row.match_type,
     [team1]: Number(row.t1_wins || 0),
     [team2]: Number(row.t2_wins || 0),
     Draws: Number(row.draws || 0),
   }));
 
-  const runsFormatChartRaw = arr(runsByFormat).map(r => ({
+  const runsFormatChartRaw = arr(runsByFormat).map((r) => ({
     format: r.match_type,
     [team1]: Number(r[team1] || 0),
     [team2]: Number(r[team2] || 0),
@@ -232,7 +315,7 @@ export default function H2HRecords() {
 
   const runsFormatChart = useMemo(() => {
     if (matchType === "ALL") return runsFormatChartRaw;
-    return runsFormatChartRaw.filter(x => String(x.format).toUpperCase() === matchType);
+    return runsFormatChartRaw.filter((x) => String(x.format).toUpperCase() === matchType);
   }, [runsFormatChartRaw, matchType]);
 
   const tooltipProps = {
@@ -242,25 +325,26 @@ export default function H2HRecords() {
     labelStyle: { color: COLORS.ink },
   };
 
-  // simple horizontal bar list
-  const HBar = ({ title, rows, dataKey = "value" }) => {
-    // filter: valid rows only, then cap to Top-5
+  /** ---------- Generic HBar (with theme gradient) ---------- */
+  const HBar = ({ title, rows, dataKey = "value", theme = "gold" }) => {
     const clean = arr(rows)
-      .filter(r => r && r.player_name && r[dataKey] != null && r[dataKey] !== 0)
+      .filter((r) => r && r.player_name && r[dataKey] != null && r[dataKey] !== 0)
       .slice(0, TOP_N);
 
     const top = clean[0];
+    const gradId = `grad-${theme}-${title.replace(/[^\w]/g, "")}`;
 
     return (
       <div className="chart-card card-glow">
         <div className="chart-title">{title}</div>
 
-        {/* Congrats ribbon for the #1 */}
         {top && (
           <div className="congrats-ribbon">
             <FaTrophy className="trophy" />
             <span>
-              Congrats <b>{top.player_name}</b>{top.team_name ? ` (${top.team_name})` : ""}! — <i>{title}</i> <b>{top[dataKey]}</b>
+              Congrats <b>{top.player_name}</b>
+              {top.team_name ? ` (${top.team_name})` : ""}! — <i>{title}</i>{" "}
+              <b>{top[dataKey]}</b>
             </span>
           </div>
         )}
@@ -269,14 +353,12 @@ export default function H2HRecords() {
           width="100%"
           height={clean.length ? Math.max(220, clean.length * 40) : 220}
         >
-          <BarChart data={clean} layout="vertical" margin={{ top: 8, right: 28, left: 32, bottom: 8 }}>
-            <defs>
-              <linearGradient id="grad-gold" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#fff2c6" />
-                <stop offset="50%" stopColor="#e8caa4" />
-                <stop offset="100%" stopColor="#cda56e" />
-              </linearGradient>
-            </defs>
+          <BarChart
+            data={clean}
+            layout="vertical"
+            margin={{ top: 8, right: 120, left: 32, bottom: 8 }}
+          >
+            <GradientDefs id={gradId} theme={theme} />
             <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
             <XAxis type="number" tick={{ fill: "#93a4c3", fontSize: 12 }} />
             <YAxis
@@ -287,11 +369,16 @@ export default function H2HRecords() {
             />
             <Tooltip
               {...tooltipProps}
-              formatter={(v, _k, p) => [v, p?.payload?.team_name ? `${p.payload.player_name} (${p.payload.team_name})` : p.payload.player_name]}
+              formatter={(v, _k, p) => [
+                v,
+                p?.payload?.team_name
+                  ? `${p.payload.player_name} (${p.payload.team_name})`
+                  : p?.payload?.player_name,
+              ]}
             />
             <Bar
               dataKey={dataKey}
-              fill="url(#grad-gold)"
+              fill={`url(#${gradId})`}
               barSize={20}
               radius={[10, 10, 10, 10]}
               animationDuration={700}
@@ -307,23 +394,27 @@ export default function H2HRecords() {
     );
   };
 
-  /* ========= NEW: Most 5-Wicket Hauls chart (with best figure & opponent) ========= */
+  /* ========= Most 5-Wicket Hauls (alignment fix + best figure/opponent label) ========= */
   const FiveWLabel = ({ x, y, width, height, value, payload }) => {
     if (value == null) return null;
     const tx = x + width + 8;
     const ty = y + height / 2 + 4;
-    const best = payload?.best_wickets != null ? ` · Best ${payload.best_wickets}${payload.best_vs_team ? ` vs ${payload.best_vs_team}` : ""}` : "";
+    const best =
+      payload?.best_wickets != null
+        ? ` · Best ${payload.best_wickets}${payload.best_vs_team ? ` vs ${payload.best_vs_team}` : ""}`
+        : "";
     const unit = value === 1 ? "haul" : "hauls";
     return (
       <text x={tx} y={ty} fontSize={12} fill={COLORS.ink}>
-        {value} {unit}{best}
+        {value} {unit}
+        {best}
       </text>
     );
   };
 
   const HBarFiveW = ({ rows }) => {
     const clean = arr(rows)
-      .filter(r => r && r.player_name && r.fivewh_count != null && r.fivewh_count !== 0)
+      .filter((r) => r && r.player_name && r.fivewh_count != null && r.fivewh_count !== 0)
       .slice(0, TOP_N);
 
     const top = clean[0];
@@ -336,8 +427,21 @@ export default function H2HRecords() {
           <div className="congrats-ribbon">
             <FaTrophy className="trophy" />
             <span>
-              <b>{top.player_name}</b>{top.team_name ? ` (${top.team_name})` : ""} — {top.fivewh_count} {top.fivewh_count === 1 ? "haul" : "hauls"}
-              {top.best_wickets ? <> · Best <b>{top.best_wickets}</b>{top.best_vs_team ? <> vs <b>{top.best_vs_team}</b></> : null}</> : null}
+              <b>{top.player_name}</b>
+              {top.team_name ? ` (${top.team_name})` : ""} — {top.fivewh_count}{" "}
+              {top.fivewh_count === 1 ? "haul" : "hauls"}
+              {top.best_wickets ? (
+                <>
+                  {" "}
+                  · Best <b>{top.best_wickets}</b>
+                  {top.best_vs_team ? (
+                    <>
+                      {" "}
+                      vs <b>{top.best_vs_team}</b>
+                    </>
+                  ) : null}
+                </>
+              ) : null}
             </span>
           </div>
         )}
@@ -346,9 +450,14 @@ export default function H2HRecords() {
           width="100%"
           height={clean.length ? Math.max(240, clean.length * 44) : 240}
         >
-          <BarChart data={clean} layout="vertical" margin={{ top: 8, right: 28, left: 32, bottom: 8 }}>
+          <BarChart
+            data={clean}
+            layout="vertical"
+            // ✅ more right margin so labels never get clipped
+            margin={{ top: 8, right: 180, left: 32, bottom: 8 }}
+          >
+            {/* Teal → Gold gradient to make it distinct */}
             <defs>
-              {/* Teal→Gold gradient to distinguish this from other bars */}
               <linearGradient id="grad-5w" x1="0" y1="0" x2="1" y2="0">
                 <stop offset="0%" stopColor="#4de2ff" />
                 <stop offset="50%" stopColor="#e8caa4" />
@@ -367,8 +476,14 @@ export default function H2HRecords() {
               {...tooltipProps}
               formatter={(v, _k, p) => {
                 const r = p?.payload || {};
-                const best = r.best_wickets != null ? `Best ${r.best_wickets}${r.best_vs_team ? ` vs ${r.best_vs_team}` : ""}` : "";
-                return [`${v} ${v === 1 ? "haul" : "hauls"}${best ? ` • ${best}` : ""}`, r.team_name ? `${r.player_name} (${r.team_name})` : r.player_name];
+                const best =
+                  r.best_wickets != null
+                    ? `Best ${r.best_wickets}${r.best_vs_team ? ` vs ${r.best_vs_team}` : ""}`
+                    : "";
+                return [
+                  `${v} ${v === 1 ? "haul" : "hauls"}${best ? ` • ${best}` : ""}`,
+                  r.team_name ? `${r.player_name} (${r.team_name})` : r.player_name,
+                ];
               }}
             />
             <Bar
@@ -389,26 +504,125 @@ export default function H2HRecords() {
     );
   };
 
+  /** ---------- MVP (All-rounder) computed from the union of leaderboard lists ---------- */
+  const mvp = useMemo(() => {
+    const L = leaderboards?.leaders;
+    if (!L) return null;
+
+    const max = {
+      runs: Math.max(1, ...arr(L.most_runs).map((x) => Number(x.total_runs) || 0)),
+      wkts: Math.max(1, ...arr(L.highest_wickets).map((x) => Number(x.total_wickets) || 0)),
+      batting_avg: Math.max(1, ...arr(L.best_batting_avg).map((x) => Number(x.batting_avg) || 0)),
+      strike_rate: Math.max(1, ...arr(L.best_strike_rate).map((x) => Number(x.strike_rate) || 0)),
+      success: Math.max(1, ...arr(L.most_successful).map((x) => Number(x.success_matches) || 0)),
+    };
+
+    const scores = {}; // {name: {player_name, team_name, score, parts:{...}}}
+    const add = (name, team, type, val, m) => {
+      if (!name) return;
+      scores[name] ??= { player_name: name, team_name: team || "", score: 0, parts: {} };
+      const weight =
+        { runs: 0.35, wkts: 0.35, batting_avg: 0.12, strike_rate: 0.08, success: 0.10 }[type] || 0;
+      const norm = (Number(val) || 0) / (m || 1);
+      scores[name].score += weight * norm;
+      scores[name].parts[type] = norm;
+    };
+
+    arr(L.most_runs).forEach((x) => add(x.player_name, x.team_name, "runs", x.total_runs, max.runs));
+    arr(L.highest_wickets).forEach((x) =>
+      add(x.player_name, x.team_name, "wkts", x.total_wickets, max.wkts)
+    );
+    arr(L.best_batting_avg).forEach((x) =>
+      add(x.player_name, x.team_name, "batting_avg", x.batting_avg, max.batting_avg)
+    );
+    arr(L.best_strike_rate).forEach((x) =>
+      add(x.player_name, x.team_name, "strike_rate", x.strike_rate, max.strike_rate)
+    );
+    arr(L.most_successful).forEach((x) =>
+      add(x.player_name, x.team_name, "success", x.success_matches, max.success)
+    );
+
+    const best = Object.values(scores).sort((a, b) => b.score - a.score)[0];
+    return best || null;
+  }, [leaderboards]);
+
+  /** ---------- PDF export (Best Players section only) ---------- */
+  const handleDownloadPDF = async () => {
+    if (!exportRef.current) return;
+    try {
+      setExporting(true);
+      const [html2canvas, jsPDFmod] = await Promise.all([
+        import("html2canvas"),
+        import("jspdf"),
+      ]);
+      const element = exportRef.current;
+      const canvas = await html2canvas.default(element, {
+        backgroundColor: "#0b111a",
+        scale: 2,
+        useCORS: true,
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDFmod.jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft * -1;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save("BestPlayers.pdf");
+    } catch (e) {
+      console.error("PDF export failed:", e);
+      alert("Failed to export PDF.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="h2h-wrap">
       <div className="h2h-topbar">
         <h2 className="h2h-title">VS Head-to-Head Records</h2>
-        <button className="info-fab subtle" onClick={() => setShowInfo(true)} title="About">
-          <FaInfoCircle />
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="btn" onClick={handleDownloadPDF} title="Download Best Players as PDF">
+            {exporting ? "Exporting…" : "Download PDF"}
+          </button>
+          <button className="info-fab subtle" onClick={() => setShowInfo(true)} title="About">
+            <FaInfoCircle />
+          </button>
+        </div>
       </div>
 
       {/* Selectors */}
       <div className="h2h-row h2h-selects">
-        <select value={team1} onChange={e => setTeam1(e.target.value)} className="sel">
+        <select value={team1} onChange={(e) => setTeam1(e.target.value)} className="sel">
           <option value="">Select Team 1</option>
-          {teams.map(t => <option key={t} value={t}>{t}</option>)}
+          {teams.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
         </select>
-        <select value={team2} onChange={e => setTeam2(e.target.value)} className="sel">
+        <select value={team2} onChange={(e) => setTeam2(e.target.value)} className="sel">
           <option value="">Select Team 2</option>
-          {teams.map(t => <option key={t} value={t}>{t}</option>)}
+          {teams.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
         </select>
-        <select value={matchType} onChange={e => setMatchType(e.target.value)} className="sel sel-type">
+        <select value={matchType} onChange={(e) => setMatchType(e.target.value)} className="sel sel-type">
           <option value="ALL">All</option>
           <option value="ODI">ODI</option>
           <option value="T20">T20</option>
@@ -425,7 +639,9 @@ export default function H2HRecords() {
           <div className="summary-card wide">
             <div className="sum-head">
               <span className="sum-title">Summary</span>
-              <span className="sum-type">Format: {matchType === "ALL" ? "All Formats" : (matchType === "TEST" ? "Test" : matchType)}</span>
+              <span className="sum-type">
+                Format: {matchType === "ALL" ? "All Formats" : matchType === "TEST" ? "Test" : matchType}
+              </span>
             </div>
             <div className="kpi-grid">
               <div className="kpi">
@@ -435,16 +651,34 @@ export default function H2HRecords() {
 
               <div className="kpi kpi-t1">
                 <div className="kpi-pill">{team1 || "Team 1"}</div>
-                <div className="kpi-pair"><span>Wins</span><b>{summary?.[team1] ?? 0}</b></div>
-                <div className="kpi-pair"><span>Losses</span><b>{summary ? summary[team2] : 0}</b></div>
-                <div className="kpi-pair"><span>Win %</span><b>{summary?.win_percentage_team1 ?? 0}%</b></div>
+                <div className="kpi-pair">
+                  <span>Wins</span>
+                  <b>{summary?.[team1] ?? 0}</b>
+                </div>
+                <div className="kpi-pair">
+                  <span>Losses</span>
+                  <b>{summary ? summary[team2] : 0}</b>
+                </div>
+                <div className="kpi-pair">
+                  <span>Win %</span>
+                  <b>{summary?.win_percentage_team1 ?? 0}%</b>
+                </div>
               </div>
 
               <div className="kpi kpi-t2">
                 <div className="kpi-pill">{team2 || "Team 2"}</div>
-                <div className="kpi-pair"><span>Wins</span><b>{summary?.[team2] ?? 0}</b></div>
-                <div className="kpi-pair"><span>Losses</span><b>{summary ? summary[team1] : 0}</b></div>
-                <div className="kpi-pair"><span>Win %</span><b>{summary?.win_percentage_team2 ?? 0}%</b></div>
+                <div className="kpi-pair">
+                  <span>Wins</span>
+                  <b>{summary?.[team2] ?? 0}</b>
+                </div>
+                <div className="kpi-pair">
+                  <span>Losses</span>
+                  <b>{summary ? summary[team1] : 0}</b>
+                </div>
+                <div className="kpi-pair">
+                  <span>Win %</span>
+                  <b>{summary?.win_percentage_team2 ?? 0}%</b>
+                </div>
               </div>
 
               <div className="kpi">
@@ -464,10 +698,10 @@ export default function H2HRecords() {
                   <YAxis allowDecimals={false} tick={{ fill: "#93a4c3", fontSize: 12 }} />
                   <Tooltip {...tooltipProps} />
                   <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
-                  <Bar dataKey={team1} fill={COLORS.t1} barSize={22} radius={[6,6,0,0]} isAnimationActive={false}>
+                  <Bar dataKey={team1} fill={COLORS.t1} barSize={22} radius={[6, 6, 0, 0]} isAnimationActive={false}>
                     <LabelList dataKey={team1} position="top" fill="#cdeefa" fontSize={12} />
                   </Bar>
-                  <Bar dataKey={team2} fill={COLORS.t2} barSize={22} radius={[6,6,0,0]} isAnimationActive={false}>
+                  <Bar dataKey={team2} fill={COLORS.t2} barSize={22} radius={[6, 6, 0, 0]} isAnimationActive={false}>
                     <LabelList dataKey={team2} position="top" fill="#ffd8d8" fontSize={12} />
                   </Bar>
                 </BarChart>
@@ -478,8 +712,17 @@ export default function H2HRecords() {
               <div className="chart-title">Result Share</div>
               <ResponsiveContainer width="100%" height={320}>
                 <PieChart>
-                  <Pie data={outcomePieData} dataKey="value" innerRadius={70} outerRadius={110} paddingAngle={2} isAnimationActive={false}>
-                    {arr(outcomePieData).map((e, i) => <Cell key={i} fill={e.color} />)}
+                  <Pie
+                    data={outcomePieData}
+                    dataKey="value"
+                    innerRadius={70}
+                    outerRadius={110}
+                    paddingAngle={2}
+                    isAnimationActive={false}
+                  >
+                    {arr(outcomePieData).map((e, i) => (
+                      <Cell key={i} fill={e.color} />
+                    ))}
                     <LabelList dataKey="value" position="outside" fill={COLORS.ink} fontSize={12} />
                   </Pie>
                   <Tooltip {...tooltipProps} />
@@ -500,9 +743,15 @@ export default function H2HRecords() {
                     <YAxis allowDecimals={false} tick={{ fill: "#93a4c3", fontSize: 12 }} />
                     <Tooltip {...tooltipProps} />
                     <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
-                    <Bar dataKey={team1} fill={COLORS.t1} barSize={20} isAnimationActive={false}><LabelList position="top" fill={COLORS.ink} /></Bar>
-                    <Bar dataKey={team2} fill={COLORS.t2} barSize={20} isAnimationActive={false}><LabelList position="top" fill={COLORS.ink} /></Bar>
-                    <Bar dataKey="Draws" fill={COLORS.draw} barSize={20} isAnimationActive={false}><LabelList position="top" fill={COLORS.ink} /></Bar>
+                    <Bar dataKey={team1} fill={COLORS.t1} barSize={20} isAnimationActive={false}>
+                      <LabelList position="top" fill={COLORS.ink} />
+                    </Bar>
+                    <Bar dataKey={team2} fill={COLORS.t2} barSize={20} isAnimationActive={false}>
+                      <LabelList position="top" fill={COLORS.ink} />
+                    </Bar>
+                    <Bar dataKey="Draws" fill={COLORS.draw} barSize={20} isAnimationActive={false}>
+                      <LabelList position="top" fill={COLORS.ink} />
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -511,119 +760,114 @@ export default function H2HRecords() {
             {!!runsFormatChart.length && (
               <div className="chart-card">
                 <div className="chart-title">
-                  {matchType === "ALL" ? "Total Runs by Format" : `Total Runs — ${matchType === "TEST" ? "Test" : matchType}`}
+                  {matchType === "ALL"
+                    ? "Total Runs by Format"
+                    : `Total Runs — ${matchType === "TEST" ? "Test" : matchType}`}
                 </div>
                 <ResponsiveContainer width="100%" height={320}>
                   <BarChart data={runsFormatChart} margin={{ top: 28, right: 20, left: 14, bottom: 6 }}>
                     <CartesianGrid vertical={false} stroke={COLORS.grid} strokeDasharray="3 3" />
-                    <XAxis dataKey="format" tick={{ fill: "#93a4c3", fontSize: 12 }}
-                      label={{ value: "Format", position: "insideBottom", offset: -2, fill: "#9fb3d6", fontSize: 12 }} />
-                    <YAxis allowDecimals={false} tick={{ fill: "#93a4c3", fontSize: 12 }}
-                      label={{ value: "Runs", angle: -90, position: "insideLeft", fill: "#9fb3d6", fontSize: 12 }} />
+                    <XAxis
+                      dataKey="format"
+                      tick={{ fill: "#93a4c3", fontSize: 12 }}
+                      label={{ value: "Format", position: "insideBottom", offset: -2, fill: "#9fb3d6", fontSize: 12 }}
+                    />
+                    <YAxis
+                      allowDecimals={false}
+                      tick={{ fill: "#93a4c3", fontSize: 12 }}
+                      label={{ value: "Runs", angle: -90, position: "insideLeft", fill: "#9fb3d6", fontSize: 12 }}
+                    />
                     <Tooltip {...tooltipProps} />
                     <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
-                    <Bar dataKey={team1} fill={COLORS.gold} barSize={20} isAnimationActive={false}><LabelList position="top" fill={COLORS.ink} /></Bar>
-                    <Bar dataKey={team2} fill={COLORS.draw} barSize={20} isAnimationActive={false}><LabelList position="top" fill={COLORS.ink} /></Bar>
+                    <Bar dataKey={team1} fill={COLORS.gold} barSize={20} isAnimationActive={false}>
+                      <LabelList position="top" fill={COLORS.ink} />
+                    </Bar>
+                    <Bar dataKey={team2} fill={COLORS.draw} barSize={20} isAnimationActive={false}>
+                      <LabelList position="top" fill={COLORS.ink} />
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             )}
           </div>
 
-          {(matchType === "TEST" || matchType === "ALL") && (
-            <>
-              {(testLead || points) && (
-                <div className="insight-grid two">
-                  {testLead && (
-                    <div className="insight-card">
-                      <div className="insight-title">First-Innings Lead</div>
-                      <div className="chip-row">
-                        <div className="kpi-chip" style={{ borderColor: COLORS.t1 }}>
-                          <span className="dot" style={{ background: COLORS.t1 }} /> {team1} Leads <b>{testLead.t1_leads || 0}</b>
-                        </div>
-                        <div className="kpi-chip" style={{ borderColor: COLORS.t2 }}>
-                          <span className="dot" style={{ background: COLORS.t2 }} /> {team2} Leads <b>{testLead.t2_leads || 0}</b>
-                        </div>
-                        <div className="kpi-chip" style={{ borderColor: COLORS.draw }}>
-                          <span className="dot" style={{ background: COLORS.draw }} /> Level <b>{testLead.level || 0}</b>
-                        </div>
-                      </div>
+          {/* Leaderboards / Best Players */}
+          <div className="player-sec" ref={exportRef}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <h3 className="h3" style={{ marginBottom: 0 }}>Best Players (by filters)</h3>
+              {/* MVP badge */}
+              {mvp && (
+                <div
+                  className="card-glow"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "10px 14px",
+                    borderRadius: 12,
+                    border: "1px solid rgba(255,215,106,.45)",
+                    background:
+                      "linear-gradient(160deg, rgba(255,209,112,.18), rgba(255,240,200,.06))",
+                  }}
+                  title="Most Valuable Player (all-round impact across batting/bowling)"
+                >
+                  <div
+                    style={{
+                      background:
+                        "conic-gradient(from 0deg, #ffd76a, #fff2c6, #ffd76a 70%)",
+                      width: 42,
+                      height: 42,
+                      borderRadius: "999px",
+                      display: "grid",
+                      placeItems: "center",
+                      color: "#1a1306",
+                      fontWeight: 900,
+                      boxShadow: "0 0 16px rgba(255,215,106,.35)",
+                    }}
+                  >
+                    MVP
+                  </div>
+                  <div style={{ lineHeight: 1.2 }}>
+                    <div style={{ fontWeight: 900, color: "#ffe6b3" }}>
+                      {mvp.player_name}
+                      {mvp.team_name ? ` (${mvp.team_name})` : ""}
                     </div>
-                  )}
-
-                  {points && (
-                    <div className="insight-card">
-                      <div className="insight-title">H2H {matchType === "ALL" ? "Overall" : (matchType === "TEST" ? "Test" : matchType)} Points</div>
-                      <div className="points-row">
-                        <div className="points-box gold">
-                          <div className="label">{team1}</div>
-                          <div className="value">{points.t1_points || 0}</div>
-                        </div>
-                        <div className="points-box gold">
-                          <div className="label">{team2}</div>
-                          <div className="value">{points.t2_points || 0}</div>
-                        </div>
-                      </div>
-                      <div className="points-note">Rules: Test <b>12/6/4</b>, ODI/T20 <b>2/0/1</b> (W/L/D).</div>
+                    <div style={{ fontSize: 12, color: "#f5e9c9" }}>
+                      All-round impact score {Math.round(mvp.score * 100)}/100
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
-            </>
-          )}
-
-          {/* Leaderboards (pair) */}
-          <div className="leader-grid two">
-            <div className="chart-card">
-              <div className="chart-title">Top Batters ({matchType})</div>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={arr(topBatters)} layout="vertical" margin={{ top: 12, right: 24, left: 28, bottom: 6 }}>
-                  <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
-                  <XAxis type="number" tick={{ fill: "#93a4c3", fontSize: 12 }} />
-                  <YAxis type="category" dataKey="player_name" tick={{ fill: "#cfd9ee", fontSize: 12 }} width={160} />
-                  <Tooltip {...tooltipProps} />
-                  <Bar dataKey="runs" fill={COLORS.gold} barSize={18} isAnimationActive={false}>
-                    <LabelList dataKey="runs" position="right" fill={COLORS.ink} fontSize={12} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
             </div>
 
-            <div className="chart-card">
-              <div className="chart-title">Top Bowlers (Avg, min 3 wkts) — {matchType}</div>
-              <div className="table">
-                <div className="tr th">
-                  <div>Bowler</div><div className="num">Wkts</div><div className="num">Runs</div><div className="num">Avg</div>
-                </div>
-                {arr(topBowlers).map((r, i) => (
-                  <div key={i} className="tr">
-                    <div>{r.player_name}</div>
-                    <div className="num">{r.wkts}</div>
-                    <div className="num">{r.runs_given}</div>
-                    <div className="num">{r.bowl_avg}</div>
-                  </div>
+            <div className="h2h-row h2h-selects" style={{ marginTop: 12 }}>
+              <select value={lbType} onChange={(e) => setLbType(e.target.value)} className="sel">
+                <option value="ALL">All</option>
+                <option value="ODI">ODI</option>
+                <option value="T20">T20</option>
+                <option value="TEST">Test</option>
+              </select>
+              <select value={lbTournament} onChange={(e) => setLbTournament(e.target.value)} className="sel">
+                {arr(tournaments).map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
                 ))}
-                {arr(topBowlers).length === 0 && <div className="tr empty">No data</div>}
-              </div>
-            </div>
-          </div>
-
-          {/* Best Players (global leaderboards with filters) */}
-          <div className="player-sec">
-            <h3 className="h3">Best Players (by filters)</h3>
-            <div className="h2h-row h2h-selects">
-              <select value={lbType} onChange={e => setLbType(e.target.value)} className="sel">
-                <option value="ALL">All</option><option value="ODI">ODI</option><option value="T20">T20</option><option value="TEST">Test</option>
               </select>
-              <select value={lbTournament} onChange={e => setLbTournament(e.target.value)} className="sel">
-                {arr(tournaments).map(t => <option key={t} value={t}>{t}</option>)}
+              <select value={lbYear} onChange={(e) => setLbYear(e.target.value)} className="sel">
+                {arr(years).map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
               </select>
-              <select value={lbYear} onChange={e => setLbYear(e.target.value)} className="sel">
-                {arr(years).map(y => <option key={y} value={y}>{y}</option>)}
-              </select>
-              <select value={lbTeam} onChange={e => setLbTeam(e.target.value)} className="sel">
+              <select value={lbTeam} onChange={(e) => setLbTeam(e.target.value)} className="sel">
                 <option value="ALL">All Teams</option>
-                {teams.map(t => <option key={t} value={t}>{t}</option>)}
+                {teams.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -631,28 +875,71 @@ export default function H2HRecords() {
               {/* NEW: Most 5-Wicket Hauls */}
               <HBarFiveW rows={arr(leaderboards?.leaders?.most_five_wicket_hauls)} />
 
-              <HBar title="Best Run Scored" rows={arr(leaderboards?.leaders?.most_runs)} dataKey="total_runs" />
-              <HBar title="Highest Wicket Taker" rows={arr(leaderboards?.leaders?.highest_wickets)} dataKey="total_wickets" />
-              <HBar title="Best Batting Average" rows={arr(leaderboards?.leaders?.best_batting_avg)} dataKey="batting_avg" />
-              <HBar title="Best Strike Rate" rows={arr(leaderboards?.leaders?.best_strike_rate)} dataKey="strike_rate" />
-              <HBar title="Most Centuries" rows={arr(leaderboards?.leaders?.most_centuries)} dataKey="total_hundreds" />
-              <HBar title="Most Half-Centuries" rows={arr(leaderboards?.leaders?.most_fifties)} dataKey="total_fifties" />
-              <HBar title="Most Successful (25+ runs and 2+ wkts in a match)" rows={arr(leaderboards?.leaders?.most_successful)} dataKey="success_matches" />
+              {/* Color-variant charts (soft gradients) */}
+              <HBar
+                title="Best Run Scored"
+                rows={arr(leaderboards?.leaders?.most_runs)}
+                dataKey="total_runs"
+                theme="orange"
+              />
+              <HBar
+                title="Highest Wicket Taker"
+                rows={arr(leaderboards?.leaders?.highest_wickets)}
+                dataKey="total_wickets"
+                theme="green"
+              />
+              <HBar
+                title="Best Batting Average"
+                rows={arr(leaderboards?.leaders?.best_batting_avg)}
+                dataKey="batting_avg"
+                theme="blue"
+              />
+              <HBar
+                title="Best Strike Rate"
+                rows={arr(leaderboards?.leaders?.best_strike_rate)}
+                dataKey="strike_rate"
+                theme="purple"
+              />
+              <HBar
+                title="Most Centuries"
+                rows={arr(leaderboards?.leaders?.most_centuries)}
+                dataKey="total_hundreds"
+                theme="pink"
+              />
+              <HBar
+                title="Most Half-Centuries"
+                rows={arr(leaderboards?.leaders?.most_fifties)}
+                dataKey="total_fifties"
+                theme="slate"
+              />
+              <HBar
+                title="Most Successful (25+ runs and 2+ wkts in a match)"
+                rows={arr(leaderboards?.leaders?.most_successful)}
+                dataKey="success_matches"
+                theme="gold"
+              />
             </div>
-
           </div>
 
           {/* Player Comparison */}
           <div className="player-sec">
             <h3 className="h3">Player Comparison</h3>
             <div className="h2h-row h2h-selects">
-              <select value={player1} onChange={e => setPlayer1(e.target.value)} className="sel">
+              <select value={player1} onChange={(e) => setPlayer1(e.target.value)} className="sel">
                 <option value="">Select Player 1</option>
-                {players.map(p => <option key={p} value={p}>{p}</option>)}
+                {players.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
               </select>
-              <select value={player2} onChange={e => setPlayer2(e.target.value)} className="sel">
+              <select value={player2} onChange={(e) => setPlayer2(e.target.value)} className="sel">
                 <option value="">Select Player 2</option>
-                {players.map(p => <option key={p} value={p}>{p}</option>)}
+                {players.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
               </select>
             </div>
             {playerError && <div className="alert warn">{playerError}</div>}
@@ -664,14 +951,25 @@ export default function H2HRecords() {
                   <span>{player1}</span>
                   <div className="legend-chip" style={{ background: COLORS.t2 }} />
                   <span>{player2}</span>
-                  <span className="legend-note">Mirror chart (0 center). <b>Bowling Avg</b> lower is better.</span>
+                  <span className="legend-note">
+                    Mirror chart (0 center). <b>Bowling Avg</b> lower is better.
+                  </span>
                 </div>
 
                 <div className="player-chart">
                   <ResponsiveContainer width="100%" height={420}>
-                    <BarChart data={playerMirrorData} layout="vertical" margin={{ top: 8, right: 40, left: 40, bottom: 8 }}>
+                    <BarChart
+                      data={playerMirrorData}
+                      layout="vertical"
+                      margin={{ top: 8, right: 40, left: 40, bottom: 8 }}
+                    >
                       <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
-                      <XAxis type="number" domain={[-100, 100]} tickFormatter={(v) => Math.abs(v)} tick={{ fill: "#93a4c3", fontSize: 12 }} />
+                      <XAxis
+                        type="number"
+                        domain={[-100, 100]}
+                        tickFormatter={(v) => Math.abs(v)}
+                        tick={{ fill: "#93a4c3", fontSize: 12 }}
+                      />
                       <YAxis type="category" dataKey="metric" tick={{ fill: "#cfd9ee", fontSize: 12 }} width={160} />
                       <Tooltip {...tooltipProps} formatter={(v, k) => [Math.abs(v), k]} />
                       <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
@@ -700,10 +998,12 @@ export default function H2HRecords() {
               <li>Wins & runs by format, first-innings lead, Test innings averages.</li>
               <li>Leaderboards, recent results.</li>
               <li>Best Players: global leaderboards with format/tournament/year/team filters.</li>
-              <li>Includes 5-wicket haul leaderboard with best figure & opponent.</li>
+              <li>Includes 5-wicket haul leaderboard + MVP badge & PDF export.</li>
             </ul>
             <div className="modal-actions">
-              <button className="btn" onClick={() => setShowInfo(false)}>Got it</button>
+              <button className="btn" onClick={() => setShowInfo(false)}>
+                Got it
+              </button>
             </div>
           </div>
         </div>
