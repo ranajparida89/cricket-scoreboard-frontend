@@ -1,65 +1,283 @@
-/* ✅ PlayerPerformance.css — FORM ONLY */
+/* ✅ PlayerPerformance.css — FULL FILE (replace everything with this)
+   Theme: Dark teal/blue, subtle neon edges, gold highlights for achievements
+*/
 
+/* ---------- THEME TOKENS ---------- */
+:root {
+  --bg-1: #0f1e2c;
+  --bg-2: #132c45;
+  --bg-3: #0c1723;
+  --text-1: #eaf6ff;
+  --text-2: #dfeffc;
+  --muted: #9bb6c9;
+  --hint: #98b0c6;
+  --teal: #00e5ff;
+  --teal-weak: #00ffff55;
+  --teal-border: rgba(0,229,255,.35);
+  --gold: #f3c969;
+  --gold-strong: #ffd76a;
+  --green-fill: #d1fae5;
+  --green-text: #112e15;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --shadow: 0 0 18px rgba(232,202,164,.08), inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+/* ---------- CARD ---------- */
 .performance-card{
-  background: linear-gradient(145deg, #132c45, #0f1e2c);
+  background: linear-gradient(145deg, var(--bg-2), var(--bg-1));
   border-radius: 20px;
   padding: 30px;
   max-width: 980px;
   margin: 28px auto 24px;
-  box-shadow: 0 0 18px rgba(232,202,164,.08), inset 0 1px 0 rgba(255,255,255,.06);
-  color: #eaf6ff;
+  box-shadow: var(--shadow);
+  color: var(--text-1);
   animation: fadeIn .5s ease-in;
   border: 1px solid rgba(255,255,255,.08);
+  position: relative;
+  overflow: hidden;
 }
 .performance-card h3{
   text-align:center; margin-bottom:18px; font-size:26px; font-weight:900;
-  color:#00e5ff; letter-spacing:.3px;
+  color: var(--teal); letter-spacing:.3px;
 }
-.performance-card label{ font-weight:700; margin-bottom:6px; color:#dfeffc; }
+.performance-card label{
+  font-weight:700; margin-bottom:6px; color: var(--text-2);
+}
+
+/* ---------- FORM CONTROLS ---------- */
 .performance-card .form-control,
 .performance-card .form-select{
   border-radius:10px; padding:10px;
-  background-color:#0f1e2c; color:#ffffff;
-  border:1px solid rgba(0,229,255,.35);
+  background-color: var(--bg-1); color: #ffffff;
+  border:1px solid var(--teal-border);
+  transition: box-shadow .2s ease, border-color .2s ease, background-color .2s ease;
 }
-.performance-card .form-control::placeholder{ color:#98b0c6; }
+.performance-card .form-control::placeholder{ color: var(--hint); }
+
 .performance-card .form-select:focus,
 .performance-card .form-control:focus{
-  border-color:#00ffff; box-shadow:0 0 10px #00ffff55;
+  border-color: var(--teal);
+  box-shadow: 0 0 10px var(--teal-weak);
+  outline: none;
 }
 
-/* Highlight filled inputs */
+/* Filled inputs turn mint green for quick scanning */
 .field-filled{
-  background:#d1fae5 !important; color:#112e15 !important;
-  transition: background .3s;
+  background: var(--green-fill) !important;
+  color: var(--green-text) !important;
+  transition: background .25s ease, color .25s ease;
 }
 
-@keyframes fadeIn{
-  from{opacity:0; transform: translateY(-6px);} to{opacity:1; transform:none;}
-}
-
-/* ──────────────────────────────────────────────────────────── */
-/* Auto-calculated / disabled fields (Fifties, Hundreds) look  */
-/* greyed and uneditable — keep these at the end of the file.  */
-/* ──────────────────────────────────────────────────────────── */
-
+/* Disabled / derived fields (Fifties, Hundreds) */
 .input-locked,
 .performance-card input:disabled,
 .performance-card select:disabled{
-  opacity: 0.6;
+  opacity: 0.65;
   cursor: not-allowed;
 }
-
 .performance-card input:disabled,
 .performance-card select:disabled{
-  background-color: #0c1723;           /* slightly darker than base */
+  background-color: var(--bg-3);
   border-color: rgba(0,229,255,.18);
-  color: #9bb6c9;
+  color: var(--muted);
 }
-
-/* If a disabled field also has .field-filled, keep it grey (not green) */
+/* keep disabled look even when .field-filled is also present */
 .performance-card input:disabled.field-filled,
 .performance-card select:disabled.field-filled{
-  background-color: #0c1723 !important;
-  color: #9bb6c9 !important;
+  background-color: var(--bg-3) !important;
+  color: var(--muted) !important;
+}
+
+/* ---------- BUTTONS ---------- */
+.btn.btn-success{
+  background: linear-gradient(180deg, #29d67b, #17b262);
+  border: 1px solid rgba(0,0,0,.15);
+  font-weight: 800;
+  letter-spacing: .2px;
+  border-radius: 12px;
+  padding: 10px 16px;
+  transition: transform .08s ease, box-shadow .15s ease;
+}
+.btn.btn-success:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(34,197,94,.22);
+}
+
+/* ---------- MICRO INTERACTIONS ---------- */
+@keyframes fadeIn{
+  from{opacity:0; transform: translateY(-6px);} to{opacity:1; transform:none;}
+}
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0px rgba(243,201,105,.0), inset 0 0 0 rgba(243,201,105,0); }
+  50%{ box-shadow: 0 0 24px rgba(243,201,105,.25), inset 0 0 10px rgba(243,201,105,.15); }
+  100%{ box-shadow: 0 0 0px rgba(243,201,105,.0), inset 0 0 0 rgba(243,201,105,0); }
+}
+@keyframes shineSweep {
+  0% { transform: translateX(-120%) rotate(10deg); }
+  100%{ transform: translateX(120%) rotate(10deg); }
+}
+@keyframes sparkle {
+  0%,100% { opacity: .65; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+/* ============================================================
+   🏏 5-WICKET HAUL UI (show when wickets >= 5)
+   These classes are purely CSS — toggle them from JS/React:
+   - Add .is-fivew to .performance-card to activate global accents
+   - Show a dynamic section with .fivew-section (display: block)
+   - Optional: .fivew-chip near the "Wickets Taken" input
+   ============================================================ */
+
+/* Global accent on the card when a haul happens */
+.performance-card.is-fivew {
+  border-color: rgba(243,201,105,.55);
+  animation: pulseGlow 1.8s ease-in-out infinite;
+}
+
+/* Confetti/shine overlay line (subtle) */
+.performance-card.is-fivew::after{
+  content:"";
+  position:absolute;
+  top:0; left:-20%;
+  width: 140%; height: 100%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.06) 50%, transparent 100%);
+  animation: shineSweep 2.2s ease-in-out 0.4s forwards;
+}
+
+/* Corner ribbon (top-right) */
+.corner-ribbon{
+  position:absolute;
+  top:14px; right:-54px;
+  background: linear-gradient(135deg, #f9e1a1, var(--gold), #f1b84a);
+  color:#2a1e06; font-weight:900; letter-spacing:.3px;
+  padding:10px 70px;
+  transform: rotate(35deg);
+  box-shadow: 0 6px 18px rgba(0,0,0,.25);
+  border:1px solid rgba(255,255,255,.35);
+  text-transform: uppercase;
+  font-size: 12px;
+  display:none;
+}
+.performance-card.is-fivew .corner-ribbon{ display:block; }
+.corner-ribbon::before,
+.corner-ribbon::after{
+  content:"";
+  position:absolute;
+  bottom:-10px; width:0; height:0;
+  border-top:10px solid #8c6a1f;
+  border-left:10px solid transparent;
+  border-right:10px solid transparent;
+}
+.corner-ribbon::before{ left:0; }
+.corner-ribbon::after { right:0; }
+
+/* Small chip next to the Wickets input */
+.wickets-field-wrap{
+  position: relative;
+}
+.fivew-chip{
+  position:absolute;
+  right:10px; top: -10px;
+  background: linear-gradient(135deg, #fff1c1, var(--gold), #eab308);
+  color:#2a1e06;
+  font-weight: 900;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  display:none;
+  box-shadow: 0 6px 16px rgba(0,0,0,.25);
+  border: 1px solid rgba(0,0,0,.12);
+}
+.wickets-field-wrap.is-fivew .fivew-chip{ display:inline-flex; align-items:center; gap:6px; }
+.fivew-chip .spark{
+  display:inline-block; width:6px; height:6px; border-radius:50%;
+  background:#ffe08a; box-shadow: 0 0 8px #ffe08a;
+  animation: sparkle 1.2s ease-in-out infinite;
+}
+
+/* Dedicated dynamic section (render only when haul) */
+.fivew-section{
+  display:none; /* JS: set to flex or block when wickets >= 5 */
+  margin-top: 16px;
+  border-radius: 14px;
+  padding: 14px 14px 12px;
+  background:
+    linear-gradient(180deg, rgba(255,215,128,.08), rgba(255,215,128,.02)) padding-box,
+    linear-gradient(120deg, rgba(243,201,105,.6), rgba(0,229,255,.45)) border-box;
+  border: 1.5px solid transparent;
+  position: relative;
+}
+.fivew-section .title{
+  font-weight: 900; letter-spacing:.2px; color: var(--gold-strong);
+  text-transform: uppercase; font-size: 13px; margin-bottom: 4px;
+  display: flex; align-items: center; gap: 8px;
+}
+.fivew-section .title .medal{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:20px; height:20px; border-radius:50%;
+  background: radial-gradient(circle at 35% 35%, #fff6d1, #f0c14b);
+  color:#2a1e06; font-size: 12px; font-weight: 900; border:1px solid rgba(0,0,0,.12);
+}
+
+.fivew-body{
+  display:flex; align-items:center; justify-content:space-between;
+  gap: 12px; flex-wrap: wrap;
+}
+.fivew-msg{
+  color: var(--text-1);
+  font-size: 14px;
+}
+.fivew-highlight{
+  color:#2a1e06; background: #ffe8a3;
+  border-radius: 10px; padding: 4px 10px; font-weight: 900;
+  border: 1px solid rgba(0,0,0,.08);
+}
+
+/* Count pill (e.g., "5-wicket hauls this tournament: 2") */
+.fivew-count-pill{
+  margin-left:auto;
+  background: linear-gradient(135deg, #0fd3ff, #84fab0);
+  color: #06221b; font-weight: 900;
+  padding: 6px 12px; border-radius: 999px; font-size: 12px;
+  border: 1px solid rgba(0,0,0,.12);
+  display:flex; align-items:center; gap:8px;
+}
+.fivew-count-pill .dot{
+  width:8px; height:8px; border-radius:50%;
+  background:#06221b; opacity:.55;
+}
+
+/* Optional mini-grid for tournament/year/match-type counters */
+.fivew-stats-grid{
+  display:grid; grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 10px; margin-top: 10px;
+}
+.fivew-stat{
+  background: var(--bg-3);
+  border: 1px solid rgba(243,201,105,.28);
+  border-radius: 12px; padding: 8px 10px;
+}
+.fivew-stat .k{ color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing:.3px; }
+.fivew-stat .v{ color: var(--gold-strong); font-size: 18px; font-weight: 900; line-height: 1.1; }
+
+/* Toggle helpers (so you can just add/remove a class from JS) */
+.fivew-section.show{ display:block; }
+.fivew-section.flex{ display:flex; }
+
+/* ---------- SMALL UTILITIES ---------- */
+.text-light{ color: var(--text-1) !important; }
+.mt-3{ margin-top: 1rem !important; }
+.mt-5{ margin-top: 3rem !important; }
+.mb-2{ margin-bottom: .5rem !important; }
+.mb-3{ margin-bottom: 1rem !important; }
+.d-flex{ display:flex !important; }
+.justify-content-end{ justify-content:flex-end !important; }
+
+/* ---------- WIDE SCREENS POLISH ---------- */
+@media (min-width: 992px){
+  .fivew-section{ padding: 16px 16px 14px; }
+  .fivew-msg{ font-size: 15px; }
 }

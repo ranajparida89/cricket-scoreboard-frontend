@@ -1,8 +1,8 @@
 // ✅ src/components/PlayerPerformance.js
 // Adds Tournament dropdown (fetched from backend) + Season Year
-// Keeps: milestones derived from runs, user_id resolution, validations.
+// NEW: 5W haul auto-badge + message field (persisted)
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -51,6 +51,18 @@ function deriveMilestones(score) {
   return { fifties: 0, hundreds: 0 };
 }
 
+// Build a nice default message for 5W milestone
+function buildFiveWMessage({ wickets_taken, runs_given, against_team, match_type }) {
+  const wk = Number.isFinite(wickets_taken) ? wickets_taken : 0;
+  const rg = Number.isFinite(runs_given) ? runs_given : 0;
+  const vs = (against_team || "").trim();
+  const mt = (match_type || "").trim();
+  const ratio = rg ? ` (${wk}-${rg})` : ` (${wk})`;
+  const vsTxt = vs ? ` vs ${vs}` : "";
+  const mtTxt = mt ? ` • ${mt}` : "";
+  return `🎯 5-wicket haul${ratio}${vsTxt}${mtTxt}`;
+}
+
 const PlayerPerformance = () => {
   const [players, setPlayers] = useState([]);
   const [teams, setTeams]     = useState([]);
@@ -72,6 +84,10 @@ const PlayerPerformance = () => {
     fifties: 0,   // derived
     hundreds: 0,  // derived
     dismissed: "Out",
+
+    // NEW: five-wicket haul fields
+    is_five_wicket_haul: false,
+    bowling_milestone: ""
   });
 
   // -- fetch players + tournaments
@@ -121,7 +137,6 @@ const PlayerPerformance = () => {
     setForm({ ...form, tournament_name: name, season_year: yr });
   };
 
-  // number validation + auto-derive 50s/100s when runs change
   const handleNumberChange = (e, key) => {
     let value = e.target.value;
     if (value === "") {
@@ -135,8 +150,7 @@ const PlayerPerformance = () => {
         ["wickets_taken", "runs_given", "fifties", "hundreds", "run_scored", "season_year"].includes(
           key
         )
-      )
-        toast.error("Only full numbers allowed.");
+      ) toast.error("Only full numbers allowed.");
       return;
     }
 
@@ -147,15 +161,55 @@ const PlayerPerformance = () => {
       toast.error("Maximum 10 wickets in ODI/T20.");
       return;
     }
-
     if (key === "season_year" && (intValue < 1877 || intValue > 2100)) {
       toast.error("Season year looks invalid.");
       return;
     }
 
+    // When runs change, lock-in auto milestones
     if (key === "run_scored") {
       const { fifties, hundreds } = deriveMilestones(intValue);
       setForm({ ...form, run_scored: intValue, fifties, hundreds });
+      return;
+    }
+
+    // Handle wickets / runs_given interplay for 5W milestone
+    if (key === "wickets_taken") {
+      const next = { ...form, wickets_taken: intValue };
+      const is5W = intValue >= 5;
+      next.is_five_wicket_haul = is5W;
+
+      if (is5W) {
+        // Prefill or refresh message
+        next.bowling_milestone = buildFiveWMessage({
+          wickets_taken: intValue,
+          runs_given: form.runs_given,
+          against_team: form.against_team,
+          match_type: form.match_type,
+        });
+        // Fun: one-time toast cue
+        if (!form.is_five_wicket_haul) {
+          toast.success("🎉 Five-wicket haul detected! Milestone added.");
+        }
+      } else {
+        next.bowling_milestone = ""; // clear if they drop below 5
+      }
+      setForm(next);
+      return;
+    }
+
+    if (key === "runs_given") {
+      const next = { ...form, runs_given: intValue };
+      // If already 5W and message looks auto, refresh with latest runs_given
+      if (form.is_five_wicket_haul && /^🎯 5-?wicket haul/i.test(form.bowling_milestone || "")) {
+        next.bowling_milestone = buildFiveWMessage({
+          wickets_taken: form.wickets_taken,
+          runs_given: intValue,
+          against_team: form.against_team,
+          match_type: form.match_type,
+        });
+      }
+      setForm(next);
       return;
     }
 
@@ -171,7 +225,19 @@ const PlayerPerformance = () => {
   const handleAgainstTeamChange = (against_team) => {
     if (against_team === form.team_name) {
       toast.error("Same team names are not allowed.");
-    } else setForm({ ...form, against_team });
+    } else {
+      const next = { ...form, against_team };
+      // If 5W and message looks auto, refresh with latest opponent
+      if (form.is_five_wicket_haul && /^🎯 5-?wicket haul/i.test(form.bowling_milestone || "")) {
+        next.bowling_milestone = buildFiveWMessage({
+          wickets_taken: form.wickets_taken,
+          runs_given: form.runs_given,
+          against_team,
+          match_type: form.match_type,
+        });
+      }
+      setForm(next);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -231,14 +297,14 @@ const PlayerPerformance = () => {
       fifties: 0,
       hundreds: 0,
       dismissed: "Out",
+
+      is_five_wicket_haul: false,
+      bowling_milestone: ""
     });
   };
 
   const isFilled = (value) =>
     value !== "" && value !== null && (typeof value === "string" ? value.trim() !== "" : true);
-
-  const lockFifties  = true;
-  const lockHundreds = true;
 
   if (loading) return <div className="text-center text-light mt-5">⏳ Loading…</div>;
 
@@ -386,6 +452,28 @@ const PlayerPerformance = () => {
               </select>
             </div>
           </div>
+
+          {/* NEW: Five-wicket Haul badge + message */}
+          {form.is_five_wicket_haul && (
+            <div className="fivew-wrap">
+              <div className="fivew-badge">
+                <span className="fivew-icon">🏏</span>
+                <div className="fivew-text">
+                  <div className="fivew-title">Five-wicket Haul</div>
+                  <div className="fivew-sub">Milestone detected from wickets taken.</div>
+                </div>
+              </div>
+
+              <label className="mt-2">Milestone Message (editable)</label>
+              <input
+                type="text"
+                className={`form-control field-filled fivew-input`}
+                value={form.bowling_milestone}
+                onChange={(e) => setForm({ ...form, bowling_milestone: e.target.value })}
+                placeholder="e.g., 🎯 5-wicket haul (5-23) vs Australia • T20"
+              />
+            </div>
+          )}
 
           <div className="d-flex justify-content-end">
             <button type="submit" className="btn btn-success mt-3">➕ Submit Performance</button>
