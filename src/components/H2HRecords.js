@@ -59,6 +59,11 @@ const THEME_GRADS = {
   pink:   [["0%","#ffd1dc"],["50%","#f9a8d4"],["100%","#f472b6"]],
   slate:  [["0%","#e5edf9"],["50%","#cbd5e1"],["100%","#94a3b8"]],
 };
+/* solid fallback colors so bars are visible even if gradients fail */
+const THEME_SOLIDS = {
+  gold:"#d9b98b", orange:"#f6ad55", green:"#34d399", blue:"#60a5fa",
+  purple:"#a78bfa", pink:"#f472b6", slate:"#94a3b8"
+};
 
 function GradientDefs({ id, theme = "gold" }) {
   const stops = THEME_GRADS[theme] || THEME_GRADS.gold;
@@ -86,7 +91,7 @@ export default function H2HRecords() {
   const [testLead, setTestLead] = useState(null);
   const [testAvg, setTestAvg] = useState([]);
 
-  // ↓↓↓ these three were missing and caused the build to fail
+  // present but not used for now—kept because API calls set them
   const [topBatters, setTopBatters] = useState([]);
   const [topBowlers, setTopBowlers] = useState([]);
   const [recent, setRecent] = useState([]);
@@ -253,7 +258,7 @@ export default function H2HRecords() {
     labelStyle: { color: COLORS.ink },
   };
 
-  /** ---------- Generic HBar (single Bar: no duplicate overlays) ---------- */
+  /** ---------- Generic HBar with solid fallback + gradient overlay ---------- */
   const HBar = ({ title, rows, dataKey = "value", theme = "gold" }) => {
     const clean = arr(rows)
       .filter((r) => r && r.player_name && r[dataKey] != null && r[dataKey] !== 0)
@@ -292,6 +297,15 @@ export default function H2HRecords() {
                   : p?.payload?.player_name,
               ]}
             />
+            {/* solid fallback bar behind the gradient */}
+            <Bar
+              dataKey={dataKey}
+              fill={THEME_SOLIDS[theme] || THEME_SOLIDS.blue}
+              barSize={20}
+              radius={[10, 10, 10, 10]}
+              isAnimationActive={false}
+            />
+            {/* gradient overlay (labels here) */}
             <Bar
               dataKey={dataKey}
               fill={`url(#${gradId})`}
@@ -309,7 +323,7 @@ export default function H2HRecords() {
     );
   };
 
-  /* ========= Most 5-Wicket Hauls (single Bar; no duplicates) ========= */
+  /* ========= Most 5-Wicket Hauls (unchanged — single Bar) ========= */
   const FiveWLabel = ({ x, y, width, height, value, payload }) => {
     if (value == null) return null;
     const tx = x + width + 8;
@@ -455,12 +469,11 @@ export default function H2HRecords() {
 
       const canvas = await html2canvas(exportRef.current, {
         backgroundColor: "#0b111a",
-        scale: 1.35,        // readable text without giant file size
+        scale: 1.35,
         useCORS: true,
         windowWidth: document.documentElement.scrollWidth,
       });
 
-      // JPEG compression keeps size small (vs. PNG)
       const imgData = canvas.toDataURL("image/jpeg", 0.82);
 
       const pdf = new jsPDF("p", "mm", "a4");
