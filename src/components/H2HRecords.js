@@ -357,6 +357,7 @@ export default function H2HRecords() {
                   : p?.payload?.player_name,
               ]}
             />
+            {/* solid fallback bar behind the gradient */}
             <Bar
               dataKey={dataKey}
               fill={THEME_SOLIDS[theme] || THEME_SOLIDS.blue}
@@ -364,6 +365,7 @@ export default function H2HRecords() {
               radius={[10, 10, 10, 10]}
               isAnimationActive={false}
             />
+            {/* gradient overlay (labels here) */}
             <Bar
               dataKey={dataKey}
               fill={`url(#${gradId})`}
@@ -958,21 +960,7 @@ export default function H2HRecords() {
 
                   <div className="player-chart">
                     <ResponsiveContainer width="100%" height={420}>
-                      <BarChart data={useMemo(() => {
-                        if (!playerStats || !player1 || !player2) return [];
-                        const a = playerStats[player1] || {}, b = playerStats[player2] || {};
-                        const num = (x) => (x == null || x === "" ? 0 : Number(x));
-                        const rows = [
-                          { metric: "Runs", a: num(a.runs), b: num(b.runs) },
-                          { metric: "Centuries", a: num(a.centuries), b: num(b.centuries) },
-                          { metric: "Fifties", a: num(a.fifties), b: num(b.fifties) },
-                          { metric: "Batting Avg", a: num(a.batting_avg), b: num(b.batting_avg) },
-                          { metric: "Highest Score", a: num(a.highest), b: num(b.highest) },
-                          { metric: "Wickets", a: num(a.wickets), b: num(b.wickets) },
-                          { metric: "Bowling Avg (↓ better)", a: num(a.bowling_avg), b: num(b.bowling_avg) },
-                        ];
-                        return rows.map((r) => ({ metric: r.metric, [player1]: -r.a, [player2]: r.b }));
-                      }, [playerStats, player1, player2])} layout="vertical" margin={{ top: 8, right: 40, left: 40, bottom: 8 }}>
+                      <BarChart data={playerMirrorData} layout="vertical" margin={{ top: 8, right: 40, left: 40, bottom: 8 }}>
                         <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
                         <XAxis type="number" domain={[-100, 100]} tickFormatter={(v) => Math.abs(v)} tick={{ fill: "#93a4c3", fontSize: 12 }} />
                         <YAxis type="category" dataKey="metric" tick={{ fill: "#cfd9ee", fontSize: 12 }} width={160} />
