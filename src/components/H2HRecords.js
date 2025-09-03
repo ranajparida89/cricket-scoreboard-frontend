@@ -119,6 +119,17 @@ export default function H2HRecords() {
   const exportRef = useRef(null);
   const [exporting, setExporting] = useState(false);
 
+  /* ---------- NEW: Team Scoring Trends (single-team) ---------- */
+  const [trendTeam, setTrendTeam] = useState("");
+  const [trendType, setTrendType] = useState("ALL");
+  const [trendTournament, setTrendTournament] = useState("ALL");
+  const [trendYear, setTrendYear] = useState("ALL");
+  const [trendLimit, setTrendLimit] = useState(10);
+  const [trendTournaments, setTrendTournaments] = useState(["ALL"]);
+  const [trendYears, setTrendYears] = useState(["ALL"]);
+  const [trendSeries, setTrendSeries] = useState([]);     // selected format
+  const [trendSeriesAll, setTrendSeriesAll] = useState([]); // all formats (for totals chart)
+
   useEffect(() => {
     fetchJSON(`${API}/api/h2h/teams`, []).then((d) => setTeams(arr(d)));
     fetchJSON(`${API}/api/players/list`, []).then((d) => setPlayers(arr(d)));
@@ -128,6 +139,7 @@ export default function H2HRecords() {
       setYears(["ALL", ...arr(d)]));
   }, []);
 
+  /* meta for leaderboards */
   useEffect(() => {
     setLbTournament("ALL");
     setLbYear("ALL");
@@ -137,6 +149,17 @@ export default function H2HRecords() {
       setYears(["ALL", ...arr(d)]));
   }, [lbType]);
 
+  /* meta for scoring trends (separate from leaderboards) */
+  useEffect(() => {
+    setTrendTournament("ALL");
+    setTrendYear("ALL");
+    fetchJSON(`${API}/api/h2h/meta/tournaments?type=${trendType}`, []).then((d) =>
+      setTrendTournaments(["ALL", ...arr(d)]));
+    fetchJSON(`${API}/api/h2h/meta/years?type=${trendType}`, []).then((d) =>
+      setTrendYears(["ALL", ...arr(d)]));
+  }, [trendType]);
+
+  /* leaderboards data (always visible by default) */
   useEffect(() => {
     const qs = new URLSearchParams({
       type: lbType,
@@ -148,13 +171,13 @@ export default function H2HRecords() {
     fetchJSON(`${API}/api/h2h/players/highlights?${qs}`, null).then(setLeaderboards);
   }, [lbType, lbTournament, lbYear, lbTeam]);
 
-  // ---------- H2H summary ----------
+  // ---------- H2H summary (only when both teams chosen) ----------
   useEffect(() => {
     if (team1 && team2 && team1.toLowerCase() === team2.toLowerCase()) {
       setTeamError("⚠️ Please select two different teams."); return;
     }
     setTeamError("");
-    if (!team1 || !team2) return;
+    if (!team1 || !team2) { setSummary(null); return; }
 
     const t1 = encodeURIComponent(team1);
     const t2 = encodeURIComponent(team2);
@@ -193,6 +216,36 @@ export default function H2HRecords() {
         setPlayerStats(obj(d?.players) ? d.players : null));
     }
   }, [player1, player2]);
+
+  // ---------- NEW: Scoring trends fetch ----------
+  useEffect(() => {
+    if (!trendTeam) { setTrendSeries([]); setTrendSeriesAll([]); return; }
+
+    const t = encodeURIComponent(trendTeam);
+    const tour = encodeURIComponent(trendTournament || "ALL");
+    const y = trendYear === "ALL" ? "" : String(trendYear || "");
+
+    const qsSel = new URLSearchParams({
+      team: trendTeam,
+      type: trendType,
+      tournament: trendTournament || "ALL",
+      year: y,
+      limit: String(trendLimit),
+    }).toString();
+
+    const qsAll = new URLSearchParams({
+      team: trendTeam,
+      type: "ALL",
+      tournament: trendTournament || "ALL",
+      year: y,
+      limit: String(trendLimit),
+    }).toString();
+
+    fetchJSON(`${API}/api/h2h/scoring-trends?${qsSel}`, null).then((d) =>
+      setTrendSeries(arr(d?.series)));
+    fetchJSON(`${API}/api/h2h/scoring-trends?${qsAll}`, null).then((d) =>
+      setTrendSeriesAll(arr(d?.series)));
+  }, [trendTeam, trendType, trendTournament, trendYear, trendLimit]);
 
   // ---------- Derived ----------
   const teamBarData = useMemo(() => {
@@ -509,6 +562,51 @@ export default function H2HRecords() {
     }
   };
 
+  /* ---------- helpers for trends ---------- */
+  const round2 = (x) => Math.round(x * 100) / 100;
+  const computeTrendStats = (series = []) => {
+    const ordered = [...series].sort((a, b) => {
+      const ad = new Date(a.date || a.created_at || 0).getTime();
+      const bd = new Date(b.date || b.created_at || 0).getTime();
+      if (ad !== bd) return ad - bd;
+      return (a.id || 0) - (b.id || 0);
+    });
+    const runs = ordered.map((x) => Number(x.runs || x.total_runs || 0));
+    let incSum = 0, decSum = 0, inc = 0, dec = 0, flat = 0, bestUp = 0, bestDown = 0;
+    for (let i = 1; i < runs.length; i++) {
+      const prev = runs[i - 1];
+      const curr = runs[i];
+      if (!prev) continue;
+      const ch = ((curr - prev) / prev) * 100;
+      if (ch > 0) { incSum += ch; inc++; if (ch > bestUp) bestUp = ch; }
+      else if (ch < 0) { decSum += -ch; dec++; if (-ch > bestDown) bestDown = -ch; }
+      else flat++;
+    }
+    const avg = runs.length ? runs.reduce((s, v) => s + v, 0) / runs.length : 0;
+    const overall = runs.length > 1 && runs[0] ? ((runs[runs.length - 1] - runs[0]) / runs[0]) * 100 : 0;
+    return {
+      runs,
+      incSum: round2(incSum),
+      decSum: round2(decSum),
+      netGap: round2(incSum - decSum),
+      inc, dec, flat,
+      avg: round2(avg),
+      overall: round2(overall),
+    };
+  };
+
+  const trendStats = useMemo(() => computeTrendStats(trendSeries), [trendSeries]);
+
+  const totalsByFormat = useMemo(() => {
+    const map = {};
+    arr(trendSeriesAll).forEach((s) => {
+      const fmt = String(s.match_type || s.type || "").toUpperCase() || "ALL";
+      const r = Number(s.runs || s.total_runs || 0);
+      map[fmt] = (map[fmt] || 0) + r;
+    });
+    return Object.entries(map).map(([format, runs]) => ({ format, runs }));
+  }, [trendSeriesAll]);
+
   return (
     <div className="h2h-wrap">
       {/* Top bar with actions (not inside exportRef) */}
@@ -526,28 +624,88 @@ export default function H2HRecords() {
 
       {/* EVERYTHING below is included in the PDF */}
       <div ref={exportRef}>
-        {/* Selectors */}
-        <div className="h2h-row h2h-selects">
-          <select value={team1} onChange={(e) => setTeam1(e.target.value)} className="sel">
-            <option value="">Select Team 1</option>
-            {teams.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <select value={team2} onChange={(e) => setTeam2(e.target.value)} className="sel">
-            <option value="">Select Team 2</option>
-            {teams.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <select value={matchType} onChange={(e) => setMatchType(e.target.value)} className="sel sel-type">
-            <option value="ALL">All</option>
-            <option value="ODI">ODI</option>
-            <option value="T20">T20</option>
-            <option value="TEST">Test</option>
-          </select>
-        </div>
 
-        {/* Errors */}
+        {/* ================== NEW: Team Scoring Trends (Batting First) ================== */}
+        <div className="player-sec">
+          <h3 className="h3">Team Scoring Trends (Batting First)</h3>
+          <div className="h2h-row h2h-selects">
+            <select value={trendTeam} onChange={(e) => setTrendTeam(e.target.value)} className="sel">
+              <option value="">Select Team</option>
+              {teams.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <select value={trendType} onChange={(e) => setTrendType(e.target.value)} className="sel">
+              <option value="ALL">All</option><option value="ODI">ODI</option>
+              <option value="T20">T20</option><option value="TEST">Test</option>
+            </select>
+            <select value={trendTournament} onChange={(e) => setTrendTournament(e.target.value)} className="sel">
+              {arr(trendTournaments).map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <select value={trendYear} onChange={(e) => setTrendYear(e.target.value)} className="sel">
+              {arr(trendYears).map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
+            <select value={trendLimit} onChange={(e) => setTrendLimit(Number(e.target.value))} className="sel">
+              {[5,10,15,20].map(n => <option key={n} value={n}>Last {n}</option>)}
+            </select>
+          </div>
+
+          <div className="charts-grid two">
+            <div className="chart-card">
+              <div className="chart-title">
+                {trendTeam ? `${trendTeam} — Recent Batting-First Scores (${trendType === "ALL" ? "All Formats" : trendType})` : "Select a team to see trends"}
+              </div>
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart
+                  data={arr(trendSeries).map((r, i) => ({
+                    idx: i + 1,
+                    runs: Number(r.runs || r.total_runs || 0),
+                  }))}
+                  margin={{ top: 24, right: 20, left: 10, bottom: 6 }}>
+                  <CartesianGrid vertical={false} stroke={COLORS.grid} strokeDasharray="3 3" />
+                  <XAxis dataKey="idx" tick={{ fill: "#93a4c3", fontSize: 12 }} label={{ value: "Match #", position: "insideBottom", offset: -2, fill: "#9fb3d6", fontSize: 12 }} />
+                  <YAxis allowDecimals={false} tick={{ fill: "#93a4c3", fontSize: 12 }} label={{ value: "Runs", angle: -90, position: "insideLeft", fill: "#9fb3d6", fontSize: 12 }} />
+                  <Tooltip {...tooltipProps} />
+                  <Bar dataKey="runs" fill={THEME_SOLIDS.orange} barSize={18} isAnimationActive={false}>
+                    <LabelList dataKey="runs" position="top" fill={COLORS.ink} fontSize={12} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+
+              {trendTeam && (
+                <div className="chip-row mt8">
+                  <div className="kpi-chip"><span className="dot" style={{ background:"#16a34a" }} />↑ Improved: <b>{trendStats.inc}%</b> matches (+<b>{trendStats.incSum}%</b>)</div>
+                  <div className="kpi-chip"><span className="dot" style={{ background:"#dc2626" }} />↓ Declined: <b>{trendStats.dec}%</b> matches (−<b>{trendStats.decSum}%</b>)</div>
+                  <div className="kpi-chip"><span className="dot" style={{ background:"#eab308" }} />Net Gap: <b>{trendStats.netGap}%</b></div>
+                  <div className="kpi-chip"><span className="dot" style={{ background:"#60a5fa" }} />Avg Runs: <b>{trendStats.avg}</b></div>
+                </div>
+              )}
+              {!trendTeam && <div className="tr empty" style={{ padding: 12 }}>Choose a team to calculate improvements/declines (batting first only).</div>}
+              {trendTeam && !trendSeries.length && <div className="tr empty" style={{ padding: 12 }}>No batting-first data with the selected filters.</div>}
+            </div>
+
+            <div className="chart-card">
+              <div className="chart-title">Total Runs by Format (Batting First)</div>
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart data={totalsByFormat} margin={{ top: 28, right: 20, left: 14, bottom: 6 }}>
+                  <CartesianGrid vertical={false} stroke={COLORS.grid} strokeDasharray="3 3" />
+                  <XAxis dataKey="format" tick={{ fill: "#93a4c3", fontSize: 12 }} />
+                  <YAxis allowDecimals={false} tick={{ fill: "#93a4c3", fontSize: 12 }} />
+                  <Tooltip {...tooltipProps} />
+                  <Bar dataKey="runs" fill={THEME_SOLIDS.blue} barSize={20} isAnimationActive={false}>
+                    <LabelList dataKey="runs" position="top" fill={COLORS.ink} fontSize={12} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              {!trendTeam && <div className="tr empty" style={{ padding: 12 }}>Select a team to see totals by format.</div>}
+              {trendTeam && !totalsByFormat.length && <div className="tr empty" style={{ padding: 12 }}>No data for the chosen filters.</div>}
+            </div>
+          </div>
+        </div>
+        {/* ================== /NEW: Team Scoring Trends ================== */}
+
+        {/* Errors (for 2-team H2H) */}
         {teamError && <div className="alert warn">{teamError}</div>}
 
-        {/* Summary + charts */}
+        {/* ======= VS Head-to-Head section (only when both teams chosen) ======= */}
         {summary && !teamError && (
           <>
             <div className="summary-card wide">
@@ -659,109 +817,112 @@ export default function H2HRecords() {
                 </div>
               )}
             </div>
-
-            {/* Best Players */}
-            <div className="player-sec">
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <h3 className="h3" style={{ marginBottom: 0 }}>Best Players (by filters)</h3>
-                {mvp && (
-                  <div className="card-glow"
-                    style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
-                      borderRadius: 12, border: "1px solid rgba(255,215,106,.45)",
-                      background: "linear-gradient(160deg, rgba(255,209,112,.18), rgba(255,240,200,.06))" }}
-                    title="Most Valuable Player (all-round impact across batting/bowling)">
-                    <div style={{ background: "conic-gradient(from 0deg, #ffd76a, #fff2c6, #ffd76a 70%)",
-                      width: 42, height: 42, borderRadius: "999px", display: "grid", placeItems: "center",
-                      color: "#1a1306", fontWeight: 900, boxShadow: "0 0 16px rgba(255,215,106,.35)" }}>
-                      MVP
-                    </div>
-                    <div style={{ lineHeight: 1.2 }}>
-                      <div style={{ fontWeight: 900, color: "#ffe6b3" }}>
-                        {mvp.player_name}{mvp.team_name ? ` (${mvp.team_name})` : ""}
-                      </div>
-                      <div style={{ fontSize: 12, color: "#f5e9c9" }}>
-                        All-round impact score {Math.round(mvp.score * 100)}/100
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="h2h-row h2h-selects" style={{ marginTop: 12 }}>
-                <select value={lbType} onChange={(e) => setLbType(e.target.value)} className="sel">
-                  <option value="ALL">All</option><option value="ODI">ODI</option>
-                  <option value="T20">T20</option><option value="TEST">Test</option>
-                </select>
-                <select value={lbTournament} onChange={(e) => setLbTournament(e.target.value)} className="sel">
-                  {arr(tournaments).map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-                <select value={lbYear} onChange={(e) => setLbYear(e.target.value)} className="sel">
-                  {arr(years).map((y) => <option key={y} value={y}>{y}</option>)}
-                </select>
-                <select value={lbTeam} onChange={(e) => setLbTeam(e.target.value)} className="sel">
-                  <option value="ALL">All Teams</option>
-                  {teams.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-
-              <div className="charts-grid two">
-                <HBarFiveW rows={arr(leaderboards?.leaders?.most_five_wicket_hauls)} />
-                <HBar title="Best Run Scored" rows={arr(leaderboards?.leaders?.most_runs)} dataKey="total_runs" theme="orange" />
-                <HBar title="Highest Wicket Taker" rows={arr(leaderboards?.leaders?.highest_wickets)} dataKey="total_wickets" theme="green" />
-                <HBar title="Best Batting Average" rows={arr(leaderboards?.leaders?.best_batting_avg)} dataKey="batting_avg" theme="blue" />
-                <HBar title="Best Strike Rate" rows={arr(leaderboards?.leaders?.best_strike_rate)} dataKey="strike_rate" theme="purple" />
-                <HBar title="Most Centuries" rows={arr(leaderboards?.leaders?.most_centuries)} dataKey="total_hundreds" theme="pink" />
-                <HBar title="Most Half-Centuries" rows={arr(leaderboards?.leaders?.most_fifties)} dataKey="total_fifties" theme="slate" />
-                <HBar title="Most Successful (25+ runs and 2+ wkts in a match)" rows={arr(leaderboards?.leaders?.most_successful)} dataKey="success_matches" theme="gold" />
-              </div>
-            </div>
-
-            {/* Player Comparison */}
-            <div className="player-sec">
-              <h3 className="h3">Player Comparison</h3>
-              <div className="h2h-row h2h-selects">
-                <select value={player1} onChange={(e) => setPlayer1(e.target.value)} className="sel">
-                  <option value="">Select Player 1</option>
-                  {players.map((p) => <option key={p} value={p}>{p}</option>)}
-                </select>
-                <select value={player2} onChange={(e) => setPlayer2(e.target.value)} className="sel">
-                  <option value="">Select Player 2</option>
-                  {players.map((p) => <option key={p} value={p}>{p}</option>)}
-                </select>
-              </div>
-              {playerError && <div className="alert warn">{playerError}</div>}
-
-              {playerStats && playerStats[player1] && playerStats[player2] && !playerError && (
-                <div className="player-card">
-                  <div className="legend-row">
-                    <div className="legend-chip" style={{ background: COLORS.t1 }} /><span>{player1}</span>
-                    <div className="legend-chip" style={{ background: COLORS.t2 }} /><span>{player2}</span>
-                    <span className="legend-note">Mirror chart (0 center). <b>Bowling Avg</b> lower is better.</span>
-                  </div>
-
-                  <div className="player-chart">
-                    <ResponsiveContainer width="100%" height={420}>
-                      <BarChart data={playerMirrorData} layout="vertical" margin={{ top: 8, right: 40, left: 40, bottom: 8 }}>
-                        <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
-                        <XAxis type="number" domain={[-100, 100]} tickFormatter={(v) => Math.abs(v)} tick={{ fill: "#93a4c3", fontSize: 12 }} />
-                        <YAxis type="category" dataKey="metric" tick={{ fill: "#cfd9ee", fontSize: 12 }} width={160} />
-                        <Tooltip {...tooltipProps} formatter={(v, k) => [Math.abs(v), k]} />
-                        <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
-                        <ReferenceLine x={0} stroke="#6b7280" />
-                        <Bar dataKey={player1} fill={COLORS.t1} barSize={18} radius={[0,6,6,0]} isAnimationActive={false}>
-                          <LabelList content={(props) => <MirrorLabel {...props} />} />
-                        </Bar>
-                        <Bar dataKey={player2} fill={COLORS.t2} barSize={18} radius={[0,6,6,0]} isAnimationActive={false}>
-                          <LabelList content={(props) => <MirrorLabel {...props} />} />
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              )}
-            </div>
           </>
         )}
+        {/* ======= /H2H (2-team) ======= */}
+
+        {/* ======= Best Players (always visible) ======= */}
+        <div className="player-sec">
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <h3 className="h3" style={{ marginBottom: 0 }}>Best Players (by filters)</h3>
+            {mvp && (
+              <div className="card-glow"
+                style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
+                  borderRadius: 12, border: "1px solid rgba(255,215,106,.45)",
+                  background: "linear-gradient(160deg, rgba(255,209,112,.18), rgba(255,240,200,.06))" }}
+                title="Most Valuable Player (all-round impact across batting/bowling)">
+                <div style={{ background: "conic-gradient(from 0deg, #ffd76a, #fff2c6, #ffd76a 70%)",
+                  width: 42, height: 42, borderRadius: "999px", display: "grid", placeItems: "center",
+                  color: "#1a1306", fontWeight: 900, boxShadow: "0 0 16px rgba(255,215,106,.35)" }}>
+                  MVP
+                </div>
+                <div style={{ lineHeight: 1.2 }}>
+                  <div style={{ fontWeight: 900, color: "#ffe6b3" }}>
+                    {mvp.player_name}{mvp.team_name ? ` (${mvp.team_name})` : ""}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#f5e9c9" }}>
+                    All-round impact score {Math.round(mvp.score * 100)}/100
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="h2h-row h2h-selects" style={{ marginTop: 12 }}>
+            <select value={lbType} onChange={(e) => setLbType(e.target.value)} className="sel">
+              <option value="ALL">All</option><option value="ODI">ODI</option>
+              <option value="T20">T20</option><option value="TEST">Test</option>
+            </select>
+            <select value={lbTournament} onChange={(e) => setLbTournament(e.target.value)} className="sel">
+              {arr(tournaments).map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <select value={lbYear} onChange={(e) => setLbYear(e.target.value)} className="sel">
+              {arr(years).map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
+            <select value={lbTeam} onChange={(e) => setLbTeam(e.target.value)} className="sel">
+              <option value="ALL">All Teams</option>
+              {teams.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+
+          <div className="charts-grid two">
+            <HBarFiveW rows={arr(leaderboards?.leaders?.most_five_wicket_hauls)} />
+            <HBar title="Best Run Scored" rows={arr(leaderboards?.leaders?.most_runs)} dataKey="total_runs" theme="orange" />
+            <HBar title="Highest Wicket Taker" rows={arr(leaderboards?.leaders?.highest_wickets)} dataKey="total_wickets" theme="green" />
+            <HBar title="Best Batting Average" rows={arr(leaderboards?.leaders?.best_batting_avg)} dataKey="batting_avg" theme="blue" />
+            <HBar title="Best Strike Rate" rows={arr(leaderboards?.leaders?.best_strike_rate)} dataKey="strike_rate" theme="purple" />
+            <HBar title="Most Centuries" rows={arr(leaderboards?.leaders?.most_centuries)} dataKey="total_hundreds" theme="pink" />
+            <HBar title="Most Half-Centuries" rows={arr(leaderboards?.leaders?.most_fifties)} dataKey="total_fifties" theme="slate" />
+            <HBar title="Most Successful (25+ runs and 2+ wkts in a match)" rows={arr(leaderboards?.leaders?.most_successful)} dataKey="success_matches" theme="gold" />
+          </div>
+        </div>
+        {/* ======= /Best Players ======= */}
+
+        {/* ======= Player Comparison (always visible) ======= */}
+        <div className="player-sec">
+          <h3 className="h3">Player Comparison</h3>
+          <div className="h2h-row h2h-selects">
+            <select value={player1} onChange={(e) => setPlayer1(e.target.value)} className="sel">
+              <option value="">Select Player 1</option>
+              {players.map((p) => <option key={p} value={p}>{p}</option>)}
+            </select>
+            <select value={player2} onChange={(e) => setPlayer2(e.target.value)} className="sel">
+              <option value="">Select Player 2</option>
+              {players.map((p) => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+          {playerError && <div className="alert warn">{playerError}</div>}
+
+          {playerStats && playerStats[player1] && playerStats[player2] && !playerError && (
+            <div className="player-card">
+              <div className="legend-row">
+                <div className="legend-chip" style={{ background: COLORS.t1 }} /><span>{player1}</span>
+                <div className="legend-chip" style={{ background: COLORS.t2 }} /><span>{player2}</span>
+                <span className="legend-note">Mirror chart (0 center). <b>Bowling Avg</b> lower is better.</span>
+              </div>
+
+              <div className="player-chart">
+                <ResponsiveContainer width="100%" height={420}>
+                  <BarChart data={playerMirrorData} layout="vertical" margin={{ top: 8, right: 40, left: 40, bottom: 8 }}>
+                    <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
+                    <XAxis type="number" domain={[-100, 100]} tickFormatter={(v) => Math.abs(v)} tick={{ fill: "#93a4c3", fontSize: 12 }} />
+                    <YAxis type="category" dataKey="metric" tick={{ fill: "#cfd9ee", fontSize: 12 }} width={160} />
+                    <Tooltip {...tooltipProps} formatter={(v, k) => [Math.abs(v), k]} />
+                    <Legend wrapperStyle={{ color: "#c7d4ea", fontSize: 12 }} />
+                    <ReferenceLine x={0} stroke="#6b7280" />
+                    <Bar dataKey={player1} fill={COLORS.t1} barSize={18} radius={[0,6,6,0]} isAnimationActive={false}>
+                      <LabelList content={(props) => <MirrorLabel {...props} />} />
+                    </Bar>
+                    <Bar dataKey={player2} fill={COLORS.t2} barSize={18} radius={[0,6,6,0]} isAnimationActive={false}>
+                      <LabelList content={(props) => <MirrorLabel {...props} />} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+        </div>
+        {/* ======= /Player Comparison ======= */}
       </div>
 
       {showInfo && (
@@ -774,6 +935,7 @@ export default function H2HRecords() {
               <li>Leaderboards, recent results.</li>
               <li>Best Players: global leaderboards with filters.</li>
               <li>5-wicket haul leaderboard, MVP badge &amp; full-page PDF export.</li>
+              <li>Team Scoring Trends: batting-first runs with improvement/decline%</li>
             </ul>
             <div className="modal-actions">
               <button className="btn" onClick={() => setShowInfo(false)}>Got it</button>
