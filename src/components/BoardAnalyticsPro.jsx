@@ -1,4 +1,3 @@
-// C:\cricket-scoreboard-frontend\src\components\BoardAnalyticsPro.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import Select from "react-select";
@@ -68,6 +67,47 @@ function TopBoardBadge({ name }) {
       <span className="tb-label">Crown Holder</span>
       <span className="tb-sep">•</span>
       <span className="tb-name">{name}</span>
+    </div>
+  );
+}
+
+/* Visible chain connector between trophies (responsive SVG) */
+function ChainConnector({ className = "", tone = "#93a4b8" }) {
+  // width/height are controlled by CSS container; SVG scales via viewBox
+  return (
+    <div className={`hof-chain-connector ${className}`}>
+      <svg viewBox="0 0 160 28" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="chainMetal" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"  stopColor="#cbd5e1"/>
+            <stop offset="50%" stopColor={tone}/>
+            <stop offset="100%" stopColor="#e2e8f0"/>
+          </linearGradient>
+          <filter id="chainGlow" x="-20%" y="-40%" width="140%" height="180%">
+            <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor="#22d3ee" floodOpacity="0.25"/>
+          </filter>
+        </defs>
+
+        {/* 5 interlocking links, alternating rotation */}
+        {[
+          { x:18,  r:-18 }, { x:52,  r:18 },
+          { x:86,  r:-18 }, { x:120, r:18 }, { x:154, r:-18 }
+        ].map((p, i) => (
+          <g key={i} transform={`translate(${p.x} 14) rotate(${p.r})`}>
+            <rect
+              x="-18" y="-8" rx="8" ry="8" width="36" height="16"
+              fill="none"
+              stroke="url(#chainMetal)"
+              strokeWidth="3.5"
+              filter="url(#chainGlow)"
+            />
+          </g>
+        ))}
+
+        {/* subtle guide line under the links for continuity */}
+        <path d="M6 14 L154 14"
+              stroke={tone} strokeOpacity="0.25" strokeWidth="3" />
+      </svg>
     </div>
   );
 }
@@ -829,22 +869,27 @@ export default function BoardAnalyticsPro() {
                     const dateStr = cleanISO(item.final_date) || item.season_year;
                     const isLast = idx === hofWall.length - 1;
                     return (
-                      <div className={`hof-chain-item ${isLast ? "last" : ""}`} key={item.id}>
-                        <div className="hof-chain-trophy"><FaTrophy /></div>
-                        <div className="hof-chain-content">
-                          <div className="hof-chain-title">{item.champion_team}</div>
-                          <div className="hof-chain-meta">
-                            <FormatChip type={item.match_type} />
-                            <span className="text">{item.tournament_name}</span>
-                            <span className="dot">•</span>
-                            <span className="text">{dateStr}</span>
+                      <React.Fragment key={item.id}>
+                        <div className={`hof-chain-item ${isLast ? "last" : ""}`}>
+                          <div className="hof-chain-trophy"><FaTrophy /></div>
+                          <div className="hof-chain-content">
+                            <div className="hof-chain-title">{item.champion_team}</div>
+                            <div className="hof-chain-meta">
+                              <FormatChip type={item.match_type} />
+                              <span className="text">{item.tournament_name}</span>
+                              <span className="dot">•</span>
+                              <span className="text">{dateStr}</span>
+                            </div>
+                            {item.runner_up_team ? (
+                              <div className="hof-chain-sub">Runner-up: <b>{item.runner_up_team}</b></div>
+                            ) : null}
+                            <div className="hof-chain-board">{bName}</div>
                           </div>
-                          {item.runner_up_team ? (
-                            <div className="hof-chain-sub">Runner-up: <b>{item.runner_up_team}</b></div>
-                          ) : null}
-                          <div className="hof-chain-board">{bName}</div>
                         </div>
-                      </div>
+
+                        {/* connector between items */}
+                        {!isLast && <ChainConnector />}
+                      </React.Fragment>
                     );
                   }) : <div className="subtle">No entries match your filters.</div>)}
                 </div>
