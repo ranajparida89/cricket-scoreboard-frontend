@@ -1,4 +1,3 @@
-// src/pages/H2HRecords.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./H2HRecords.css";
 import {
@@ -61,7 +60,6 @@ const THEME_GRADS = {
   pink:   [["0%","#ffd1dc"],["50%","#f9a8d4"],["100%","#f472b6"]],
   slate:  [["0%","#e5edf9"],["50%","#cbd5e1"],["100%","#94a3b8"]],
 };
-/* solid fallback colors so bars are visible even if gradients fail */
 const THEME_SOLIDS = {
   gold:"#d9b98b", orange:"#f6ad55", green:"#34d399", blue:"#60a5fa",
   purple:"#a78bfa", pink:"#f472b6", slate:"#94a3b8"
@@ -117,7 +115,7 @@ export default function H2HRecords() {
   const [playerError, setPlayerError] = useState("");
   const [showInfo, setShowInfo] = useState(false);
 
-  // NEW: Team total runs (season-wise) filters + data
+  // --- Team total runs (season-wise) filters + data
   const [runsTeam, setRunsTeam] = useState("");
   const [runsType, setRunsType] = useState("ALL");
   const [runsTournament, setRunsTournament] = useState("ALL");
@@ -126,7 +124,10 @@ export default function H2HRecords() {
   const [runsMetaYears, setRunsMetaYears] = useState(["ALL"]);
   const [teamSeasonRuns, setTeamSeasonRuns] = useState(null);
 
-  // PDF – whole page (everything below the top bar)
+  // NEW: totals for ALL teams under the same filters
+  const [allTeamsTotals, setAllTeamsTotals] = useState({ loading: false, rows: [] });
+
+  // PDF
   const exportRef = useRef(null);
   const [exporting, setExporting] = useState(false);
 
@@ -223,7 +224,7 @@ export default function H2HRecords() {
     }
   }, [player1, player2]);
 
-  // ---------- NEW: Team total runs fetch ----------
+  // ---------- Team total runs (single team, season series) ----------
   useEffect(() => {
     if (!runsTeam) { setTeamSeasonRuns(null); return; }
     const qs = new URLSearchParams({
@@ -234,6 +235,39 @@ export default function H2HRecords() {
     }).toString();
     fetchJSON(`${API}/api/h2h/team-total-runs?${qs}`, null).then(setTeamSeasonRuns);
   }, [runsTeam, runsType, runsTournament, runsYear]);
+
+  // ---------- NEW: Total runs for ALL teams under the current filters ----------
+  useEffect(() => {
+    if (!teams.length) { setAllTeamsTotals({ loading: false, rows: [] }); return; }
+
+    let cancelled = false;
+    const load = async () => {
+      setAllTeamsTotals((s) => ({ ...s, loading: true }));
+      const qsBase = (team) =>
+        new URLSearchParams({
+          team,
+          type: runsType,
+          tournament: runsTournament || "ALL",
+          season: runsYear === "ALL" ? "" : String(runsYear || ""),
+        }).toString();
+
+      // Fetch all teams in parallel and reduce to totals
+      const promises = teams.map(async (t) => {
+        const data = await fetchJSON(`${API}/api/h2h/team-total-runs?${qsBase(t)}`, null);
+        const total = arr(data?.series).reduce((sum, r) => sum + (Number(r?.runs) || 0), 0);
+        return { team: t, runs: total };
+      });
+
+      const rows = (await Promise.all(promises))
+        .filter((r) => r && (r.runs || r.runs === 0))
+        .sort((a, b) => b.runs - a.runs);
+
+      if (!cancelled) setAllTeamsTotals({ loading: false, rows });
+    };
+
+    load();
+    return () => { cancelled = true; };
+  }, [teams, runsType, runsTournament, runsYear]);
 
   // ---------- Derived ----------
   const teamBarData = useMemo(() => {
@@ -292,7 +326,7 @@ export default function H2HRecords() {
     return runsFormatChartRaw.filter((x) => String(x.format).toUpperCase() === matchType);
   }, [runsFormatChartRaw, matchType]);
 
-  // NEW: derived stats for teamSeasonRuns
+  // Season-wise series for the selected runsTeam
   const seasonSeries = useMemo(() => {
     const s = arr(teamSeasonRuns?.series)
       .map((x) => ({ season_year: Number(x.season_year), runs: Number(x.runs || 0) }))
@@ -357,7 +391,6 @@ export default function H2HRecords() {
                   : p?.payload?.player_name,
               ]}
             />
-            {/* solid fallback bar behind the gradient */}
             <Bar
               dataKey={dataKey}
               fill={THEME_SOLIDS[theme] || THEME_SOLIDS.blue}
@@ -365,7 +398,6 @@ export default function H2HRecords() {
               radius={[10, 10, 10, 10]}
               isAnimationActive={false}
             />
-            {/* gradient overlay (labels here) */}
             <Bar
               dataKey={dataKey}
               fill={`url(#${gradId})`}
@@ -383,7 +415,7 @@ export default function H2HRecords() {
     );
   };
 
-  /* ========= Most 5-Wicket Hauls (unchanged — single Bar) ========= */
+  /* ========= Most 5-Wicket Hauls ========= */
   const FiveWLabel = ({ x, y, width, height, value, payload }) => {
     if (value == null) return null;
     const tx = x + width + 8;
@@ -493,7 +525,7 @@ export default function H2HRecords() {
     return best || null;
   }, [leaderboards]);
 
-  /** ---------- PDF (whole module, compressed) ---------- */
+  /** ---------- PDF ---------- */
   const loadScript = (src) =>
     new Promise((resolve, reject) => {
       const s = document.createElement("script");
@@ -720,7 +752,7 @@ export default function H2HRecords() {
               )}
             </div>
 
-            {/* ======================== NEW: Team Total Runs (Season-wise) ======================== */}
+            {/* ======================== Team Total Runs (Season-wise) ======================== */}
             <div className="player-sec">
               <h3 className="h3" style={{ marginBottom: 6 }}>Team Total Runs (Season-wise)</h3>
 
@@ -750,10 +782,10 @@ export default function H2HRecords() {
                     {runsTeam ? `${runsTeam} — Season Totals (${runsType === "ALL" ? "All Formats" : runsType})` : "Select a team to view chart"}
                   </div>
 
-                  {/* KPI row */}
+                  {/* KPI row: unified golden glow on all boxes */}
                   {runsTeam && (
-                    <div className="points-row" style={{ marginBottom: 6 }}>
-                      <div className="points-box gold">
+                    <div className="points-row kpi-gold-row" style={{ marginBottom: 6 }}>
+                      <div className="points-box">
                         <div className="label">Total Runs</div>
                         <div className="value">{fmtNum(seasonStats.total)}</div>
                       </div>
@@ -777,7 +809,6 @@ export default function H2HRecords() {
                       data={seasonSeries}
                       margin={{ top: 16, right: 28, left: 10, bottom: 8 }}
                     >
-                      {/* Gradients for area & line */}
                       <defs>
                         <linearGradient id="runsAreaFill" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="0%" stopColor="#60a5fa" stopOpacity={0.35} />
@@ -808,16 +839,8 @@ export default function H2HRecords() {
                         labelFormatter={(v) => `Season ${v}`}
                       />
 
-                      {/* Area under the curve */}
-                      <Area
-                        type="monotone"
-                        dataKey="runs"
-                        stroke="none"
-                        fill="url(#runsAreaFill)"
-                        isAnimationActive={false}
-                      />
+                      <Area type="monotone" dataKey="runs" stroke="none" fill="url(#runsAreaFill)" isAnimationActive={false} />
 
-                      {/* Main line */}
                       <Line
                         type="monotone"
                         dataKey="runs"
@@ -827,53 +850,72 @@ export default function H2HRecords() {
                         activeDot={{ r: 5 }}
                         isAnimationActive={false}
                       >
-                        <LabelList
-                          dataKey="runs"
-                          position="top"
-                          formatter={(v) => fmtNum(v)}
-                          fill={COLORS.ink}
-                          fontSize={12}
-                        />
+                        <LabelList dataKey="runs" position="top" formatter={(v) => fmtNum(v)} fill={COLORS.ink} fontSize={12} />
                       </Line>
 
-                      {/* Reference Levels */}
                       {seasonSeries.length > 0 && (
                         <>
-                          <ReferenceLine
-                            y={seasonStats.min}
-                            stroke="#22d3ee"
-                            strokeDasharray="3 3"
-                            label={{ value: `Min ${fmtNum(seasonStats.min)}`, position: "left", fill: "#a7f3d0", fontSize: 11 }}
-                          />
-                          <ReferenceLine
-                            y={seasonStats.avg}
-                            stroke="#e8caa4"
-                            strokeDasharray="4 4"
-                            label={{ value: `Avg ${fmtNum(seasonStats.avg)}`, position: "left", fill: "#ffe6b3", fontSize: 11 }}
-                          />
-                          <ReferenceLine
-                            y={seasonStats.max}
-                            stroke="#f87171"
-                            strokeDasharray="3 3"
-                            label={{ value: `Max ${fmtNum(seasonStats.max)}`, position: "left", fill: "#fecaca", fontSize: 11 }}
-                          />
+                          <ReferenceLine y={seasonStats.min} stroke="#22d3ee" strokeDasharray="3 3"
+                            label={{ value: `Min ${fmtNum(seasonStats.min)}`, position: "left", fill: "#a7f3d0", fontSize: 11 }} />
+                          <ReferenceLine y={seasonStats.avg} stroke="#e8caa4" strokeDasharray="4 4"
+                            label={{ value: `Avg ${fmtNum(seasonStats.avg)}`, position: "left", fill: "#ffe6b3", fontSize: 11 }} />
+                          <ReferenceLine y={seasonStats.max} stroke="#f87171" strokeDasharray="3 3"
+                            label={{ value: `Max ${fmtNum(seasonStats.max)}`, position: "left", fill: "#fecaca", fontSize: 11 }} />
                         </>
                       )}
 
-                      {/* Brush for zooming across seasons */}
                       {seasonSeries.length > 6 && (
-                        <Brush
-                          dataKey="season_year"
-                          travellerWidth={10}
-                          height={26}
-                          stroke="#e8caa4"
-                        />
+                        <Brush dataKey="season_year" travellerWidth={10} height={26} stroke="#e8caa4" />
                       )}
                     </ComposedChart>
                   </ResponsiveContainer>
 
                   {!runsTeam && <div className="tr empty" style={{ padding: 12 }}>Select a team to load data</div>}
                   {runsTeam && seasonSeries.length === 0 && <div className="tr empty" style={{ padding: 12 }}>No data for selected filters</div>}
+                </div>
+              </div>
+
+              {/* NEW: All teams totals (filtered) */}
+              <div className="charts-grid">
+                <div className="chart-card card-glow">
+                  <div className="chart-title">
+                    Total Runs by Team {runsType !== "ALL" ? `— ${runsType}` : "(All Formats)"}{runsTournament && runsTournament !== "ALL" ? ` • ${runsTournament}` : ""}{runsYear && runsYear !== "ALL" ? ` • ${runsYear}` : ""}
+                  </div>
+
+                  {allTeamsTotals.loading && <div className="tr" style={{ padding: 12, opacity: .8 }}>Loading teams…</div>}
+
+                  {!allTeamsTotals.loading && (
+                    <ResponsiveContainer width="100%" height={Math.max(360, allTeamsTotals.rows.length * 26)}>
+                      <BarChart
+                        data={allTeamsTotals.rows}
+                        layout="vertical"
+                        margin={{ top: 8, right: 24, left: 24, bottom: 8 }}
+                      >
+                        <defs>
+                          <linearGradient id="grad-all-teams" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor="#fff2c6" />
+                            <stop offset="50%" stopColor="#e8caa4" />
+                            <stop offset="100%" stopColor="#cda56e" />
+                          </linearGradient>
+                        </defs>
+
+                        <CartesianGrid horizontal={false} stroke={COLORS.grid} strokeDasharray="3 3" />
+                        <XAxis type="number" tick={{ fill: "#93a4c3", fontSize: 12 }} domain={[0, "dataMax"]} />
+                        <YAxis type="category" dataKey="team" tick={{ fill: "#e7efff", fontSize: 12 }} width={200} />
+                        <Tooltip
+                          {...tooltipProps}
+                          formatter={(v, _k, p) => [fmtNum(v), p?.payload?.team]}
+                        />
+                        <Bar dataKey="runs" fill="url(#grad-all-teams)" barSize={18} radius={[10, 10, 10, 10]} isAnimationActive={false}>
+                          <LabelList dataKey="runs" position="right" formatter={(v) => fmtNum(v)} fill={COLORS.ink} fontSize={12} />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+
+                  {!allTeamsTotals.loading && allTeamsTotals.rows.length === 0 && (
+                    <div className="tr empty" style={{ padding: 12 }}>No team totals for the selected filters</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -993,7 +1035,7 @@ export default function H2HRecords() {
               <li>Leaderboards, recent results.</li>
               <li>Best Players: global leaderboards with filters.</li>
               <li>5-wicket haul leaderboard, MVP badge &amp; full-page PDF export.</li>
-              <li><b>NEW:</b> Team Total Runs timeline with tournament/type/year filters.</li>
+              <li><b>NEW:</b> Team Total Runs timeline + all-teams totals with filters.</li>
             </ul>
             <div className="modal-actions">
               <button className="btn" onClick={() => setShowInfo(false)}>Got it</button>
