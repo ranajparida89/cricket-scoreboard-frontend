@@ -199,10 +199,14 @@
   padding:.25rem .5rem; font-weight:700; display:inline-flex; align-items:center;
 }
 
-/* --- New Visible Trophy Chain Connector --- */
+/* --- Trophy Chain (visible, centered, gold) --- */
 .hof-chain{
-  overflow-x:auto; padding:8px 4px; display:flex; gap:0; /* connectors control spacing */
+  overflow-x:auto;
+  padding:8px 4px;
+  display:flex;
+  gap:0;                     /* spacing handled by connector block */
   scroll-snap-type: x proximity;
+  align-items:center;        /* <-- center the connectors relative to cards */
 }
 .hof-chain-item{
   min-width: 280px; max-width: 320px; flex: 0 0 auto;
@@ -230,20 +234,29 @@
 /* SVG connector block */
 .hof-chain-connector{
   flex: 0 0 clamp(90px, 12vw, 160px);
-  height: 28px;
+  height: 34px;                 /* slightly taller chain */
   display: grid;
-  align-items: center;
-  margin: 0 6px;
+  align-items: center;          /* center within its own box */
+  align-self: center;           /* ensure vertical centering in flex row */
+  margin: 0 8px;
 }
 .hof-chain-connector svg{ width:100%; height:100%; display:block; }
 
-/* gentle breathing glow (respects reduced motion) */
+/* Force gold palette on the chain (overrides SVG attrs) */
+.hof-chain-connector svg rect{
+  fill:#f5cd62 !important;      /* gold link fill */
+  stroke:#ffe08a !important;    /* lighter gold edge */
+  stroke-width:2 !important;
+  rx:6 !important; ry:6 !important;
+}
+
+/* gentle breathing glow in gold (respects reduced motion) */
 @media (prefers-reduced-motion: no-preference) {
   .hof-chain-connector svg rect { animation: chain-glow 2.8s ease-in-out infinite; }
 }
 @keyframes chain-glow {
-  0%, 100% { filter: drop-shadow(0 0 2px rgba(34,211,238,0.25)); }
-  50%      { filter: drop-shadow(0 0 5px rgba(34,211,238,0.45)); }
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 208, 84, 0.25)); }
+  50%      { filter: drop-shadow(0 0 6px rgba(255, 208, 84, 0.45)); }
 }
 
 .hof-grid{ display:grid; gap:16px; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); }
