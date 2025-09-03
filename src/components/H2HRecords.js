@@ -3,7 +3,7 @@ import "./H2HRecords.css";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
   ResponsiveContainer, PieChart, Pie, Cell, LabelList, ReferenceLine,
-  ComposedChart, Area, Line, Brush,
+  Brush,
 } from "recharts";
 import { FaInfoCircle, FaTrophy } from "react-icons/fa";
 
@@ -805,70 +805,81 @@ export default function H2HRecords() {
                   )}
 
                   <ResponsiveContainer width="100%" height={380}>
-                    <ComposedChart
-                      data={seasonSeries}
-                      margin={{ top: 16, right: 28, left: 10, bottom: 8 }}
-                    >
-                      <defs>
-                        <linearGradient id="runsAreaFill" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#60a5fa" stopOpacity={0.35} />
-                          <stop offset="95%" stopColor="#0b111a" stopOpacity={0.0} />
-                        </linearGradient>
-                        <linearGradient id="runsLineStroke" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%" stopColor="#22d3ee" />
-                          <stop offset="50%" stopColor="#e8caa4" />
-                          <stop offset="100%" stopColor="#f87171" />
-                        </linearGradient>
-                      </defs>
+  <BarChart
+    data={seasonSeries}
+    margin={{ top: 16, right: 28, left: 10, bottom: 8 }}
+  >
+    <defs>
+      {/* vertical bar fill gradient */}
+      <linearGradient id="runsBarFill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#60a5fa" />
+        <stop offset="100%" stopColor="#0b111a" />
+      </linearGradient>
+    </defs>
 
-                      <CartesianGrid stroke={COLORS.grid} strokeDasharray="3 3" />
-                      <XAxis
-                        dataKey="season_year"
-                        tick={{ fill: "#93a4c3", fontSize: 12 }}
-                        label={{ value: "Season", position: "insideBottom", offset: -2, fill: "#9fb3d6", fontSize: 12 }}
-                        allowDuplicatedCategory={false}
-                      />
-                      <YAxis
-                        tick={{ fill: "#93a4c3", fontSize: 12 }}
-                        label={{ value: "Runs", angle: -90, position: "insideLeft", fill: "#9fb3d6", fontSize: 12 }}
-                        allowDecimals={false}
-                      />
-                      <Tooltip
-                        {...tooltipProps}
-                        formatter={(v) => [fmtNum(v), "Runs"]}
-                        labelFormatter={(v) => `Season ${v}`}
-                      />
+    <CartesianGrid stroke={COLORS.grid} strokeDasharray="3 3" />
+    <XAxis
+      dataKey="season_year"
+      tick={{ fill: "#93a4c3", fontSize: 12 }}
+      label={{ value: "Season", position: "insideBottom", offset: -2, fill: "#9fb3d6", fontSize: 12 }}
+      allowDuplicatedCategory={false}
+    />
+    <YAxis
+      tick={{ fill: "#93a4c3", fontSize: 12 }}
+      label={{ value: "Runs", angle: -90, position: "insideLeft", fill: "#9fb3d6", fontSize: 12 }}
+      allowDecimals={false}
+    />
+    <Tooltip
+      {...tooltipProps}
+      formatter={(v) => [fmtNum(v), "Runs"]}
+      labelFormatter={(v) => `Season ${v}`}
+    />
 
-                      <Area type="monotone" dataKey="runs" stroke="none" fill="url(#runsAreaFill)" isAnimationActive={false} />
+    <Bar
+      dataKey="runs"
+      fill="url(#runsBarFill)"
+      barSize={22}
+      radius={[6, 6, 0, 0]}
+      isAnimationActive={false}
+    >
+      <LabelList
+        dataKey="runs"
+        position="top"
+        formatter={(v) => fmtNum(v)}
+        fill={COLORS.ink}
+        fontSize={12}
+      />
+    </Bar>
 
-                      <Line
-                        type="monotone"
-                        dataKey="runs"
-                        stroke="url(#runsLineStroke)"
-                        strokeWidth={3}
-                        dot={{ r: 3, fill: "#eaf2ff" }}
-                        activeDot={{ r: 5 }}
-                        isAnimationActive={false}
-                      >
-                        <LabelList dataKey="runs" position="top" formatter={(v) => fmtNum(v)} fill={COLORS.ink} fontSize={12} />
-                      </Line>
+    {seasonSeries.length > 0 && (
+      <>
+        <ReferenceLine
+          y={seasonStats.min}
+          stroke="#22d3ee"
+          strokeDasharray="3 3"
+          label={{ value: `Min ${fmtNum(seasonStats.min)}`, position: "left", fill: "#a7f3d0", fontSize: 11 }}
+        />
+        <ReferenceLine
+          y={seasonStats.avg}
+          stroke="#e8caa4"
+          strokeDasharray="4 4"
+          label={{ value: `Avg ${fmtNum(seasonStats.avg)}`, position: "left", fill: "#ffe6b3", fontSize: 11 }}
+        />
+        <ReferenceLine
+          y={seasonStats.max}
+          stroke="#f87171"
+          strokeDasharray="3 3"
+          label={{ value: `Max ${fmtNum(seasonStats.max)}`, position: "left", fill: "#fecaca", fontSize: 11 }}
+        />
+      </>
+    )}
 
-                      {seasonSeries.length > 0 && (
-                        <>
-                          <ReferenceLine y={seasonStats.min} stroke="#22d3ee" strokeDasharray="3 3"
-                            label={{ value: `Min ${fmtNum(seasonStats.min)}`, position: "left", fill: "#a7f3d0", fontSize: 11 }} />
-                          <ReferenceLine y={seasonStats.avg} stroke="#e8caa4" strokeDasharray="4 4"
-                            label={{ value: `Avg ${fmtNum(seasonStats.avg)}`, position: "left", fill: "#ffe6b3", fontSize: 11 }} />
-                          <ReferenceLine y={seasonStats.max} stroke="#f87171" strokeDasharray="3 3"
-                            label={{ value: `Max ${fmtNum(seasonStats.max)}`, position: "left", fill: "#fecaca", fontSize: 11 }} />
-                        </>
-                      )}
+    {seasonSeries.length > 6 && (
+      <Brush dataKey="season_year" travellerWidth={10} height={26} stroke="#e8caa4" />
+    )}
+  </BarChart>
+</ResponsiveContainer>
 
-                      {seasonSeries.length > 6 && (
-                        <Brush dataKey="season_year" travellerWidth={10} height={26} stroke="#e8caa4" />
-                      )}
-                    </ComposedChart>
-                  </ResponsiveContainer>
 
                   {!runsTeam && <div className="tr empty" style={{ padding: 12 }}>Select a team to load data</div>}
                   {runsTeam && seasonSeries.length === 0 && <div className="tr empty" style={{ padding: 12 }}>No data for selected filters</div>}
