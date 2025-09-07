@@ -1,3 +1,4 @@
+// src/components/TestLeaderboard.jsx
 import React, { useEffect, useMemo, useRef, useState, forwardRef } from "react";
 import { getTestMatchLeaderboard } from "../services/api";
 import { gsap } from "gsap";
@@ -6,6 +7,47 @@ import { useSpring, animated as a } from "@react-spring/web";
 import Particles from "react-tsparticles";
 import { loadFull } from "tsparticles";
 import "./TestLeaderboard.css";
+
+/* =========================================================
+ * NEW: team abbreviation helpers (same behavior as Leaderboard)
+ * ======================================================= */
+const TEAM_ABBR = {
+  "south africa": "SA",
+  england: "ENG",
+  india: "IND",
+  kenya: "KEN",
+  scotland: "SCT",
+  "new zealand": "NZ",
+  "hong kong": "HKG",
+  australia: "AUS",
+  afghanistan: "AFG",
+  bangladesh: "BAN",
+  pakistan: "PAK",
+  ireland: "IRE",
+  netherlands: "NED",
+  namibia: "NAM",
+  zimbabwe: "ZIM",
+  nepal: "NEP",
+  oman: "OMA",
+  canada: "CAN",
+  "united arab emirates": "UAE",
+  "west indies": "WI",
+  "papua new guinea": "PNG",
+  "sri lanka": "SL",
+  "united states": "USA",
+  usa: "USA",
+};
+const norm = (s) => (s ?? "").toString().trim();
+const abbreviateTeamName = (name) => {
+  const s = norm(name);
+  if (!s) return s;
+  const key = s.toLowerCase();
+  if (TEAM_ABBR[key]) return TEAM_ABBR[key];
+  const words = s.split(/\s+/).filter(Boolean);
+  if (words.length === 1) return words[0].slice(0, 3).toUpperCase();
+  return words.map((w) => w[0]).join("").slice(0, 3).toUpperCase();
+};
+const displayTeam = (name) => abbreviateTeamName(name); // always abbreviate
 
 /* ---------- AOI (in-view) ---------- */
 const useInView = (ref, threshold = 0.2) => {
@@ -68,7 +110,11 @@ const TLRow = forwardRef(({ index, row, maxPoints }, ref) => {
         </span>
         <span className="pos">{index + 1}</span>
       </td>
-      <td className="team">{row.team_name}</td>
+
+      {/* 🔹 CHANGED: abbreviate team name */}
+      <td className="team">{displayTeam(row.team_name)}</td>
+
+      {/* 🔹 Columns remain the same, headers will be shortened in <thead> */}
       <td>{row.matches}</td>
       <td className="pos">{row.wins}</td>
       <td className="neg">{row.losses}</td>
@@ -165,21 +211,32 @@ const TestLeaderboard = () => {
       />
 
       <div ref={wrapRef} className="tlfx-glass">
-        <div className="tlfx-header">
-          <span className="tlfx-title">World Test Match Team Rankings</span>
-        </div>
+        {/* 🔹 CHANGED: single heading, renamed & color → deep green */}
+        <h2
+          className="tlfx-title"
+          style={{
+            textAlign: "center",
+            margin: "4px 0 10px",
+            fontWeight: 900,
+            color: "#00b26a",                 // deep green
+            textShadow: "0 0 10px rgba(0,178,106,.35)",
+          }}
+        >
+          Test Leaderboard
+        </h2>
 
         <div className="tlfx-table-wrap">
           <table className="tlfx-table">
             <thead>
               <tr>
-                <th>Rank</th>
-                <th>Team</th>
-                <th>Matches</th>
-                <th>Wins</th>
-                <th>Losses</th>
-                <th>Draws</th>
-                <th>Points</th>
+                {/* 🔹 CHANGED: short headers like Limited-Overs board */}
+                <th>Rnk</th>
+                <th>T</th>
+                <th>M</th>
+                <th>W</th>
+                <th>L</th>
+                <th>D</th>
+                <th>Pts</th>
               </tr>
             </thead>
 

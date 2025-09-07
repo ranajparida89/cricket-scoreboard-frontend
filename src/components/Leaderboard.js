@@ -143,7 +143,7 @@ const Leaderboard = () => {
           textShadow: "0 0 12px rgba(34,255,153,.25)",
         }}
       >
-        Limited-Overs Cricket Leaderboard (ODI/T20)
+        Leaderboard Summary (ODI/T20)
       </h2>
 
       {/* 🔹 Tiny scoped CSS for header abbreviations weight (optional, safe) */}
@@ -155,9 +155,9 @@ const Leaderboard = () => {
         <table className="table table-dark text-center mb-0 leaderboard-table">
           <thead>
             <tr>
-              {/* 🔹 CHANGED: # → Rank, and short labels across the board */}
-              <th>Rank</th>
-              <th>Team</th>
+              {/* 🔹 CHANGED: # → Rnk, and short labels across the board */}
+              <th>Rnk</th>
+              <th>T</th>
               <th>M</th>
               <th>W</th>
               <th>L</th>
