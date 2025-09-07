@@ -11,8 +11,116 @@ const safeNum = (v, def = 0) => {
 };
 const norm = (s) => (s ?? "").toString().trim();
 
+/* =========================================================
+ * 🔹 MOBILE: small helper to know if we're on a phone
+ * Uses 640px as the breakpoint (tweak if you want)
+ * =======================================================*/
+function useIsMobile(breakpoint = 640) {
+  const get = () =>
+    typeof window !== "undefined" &&
+    window.matchMedia &&
+    window.matchMedia(`(max-width:${breakpoint}px)`).matches;
+
+  const [isMobile, setIsMobile] = useState(get());
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq = window.matchMedia(`(max-width:${breakpoint}px)`);
+    const onChange = (e) => setIsMobile(e.matches);
+    // modern + legacy listeners
+    mq.addEventListener ? mq.addEventListener("change", onChange) : mq.addListener(onChange);
+    return () =>
+      mq.removeEventListener
+        ? mq.removeEventListener("change", onChange)
+        : mq.removeListener(onChange);
+  }, [breakpoint]);
+
+  return isMobile;
+}
+
+/* =========================================================
+ * 🔹 MOBILE: team abbreviation map (upper-case)
+ * Fallback logic is provided if a team isn't listed here.
+ * =======================================================*/
+const TEAM_ABBR = {
+  "south africa": "SA",
+  england: "ENG",
+  india: "IND",
+  kenya: "KEN",
+  scotland: "SCT",
+  "new zealand": "NZ",
+  "hong kong": "HKG",
+  afghanistan: "AFG",
+  bangladesh: "BAN",
+  pakistan: "PAK",
+  australia: "AUS",
+  ireland: "IRE",
+  netherlands: "NED",
+  namibia: "NAM",
+  zimbabwe: "ZIM",
+  nepal: "NEP",
+  oman: "OMA",
+  canada: "CAN",
+  "united arab emirates": "UAE",
+  "west indies": "WI",
+  "papua new guinea": "PNG",
+  "sri lanka": "SL",
+  "united states": "USA",
+  usa: "USA",
+};
+
+/* Smart fallback for unknown names:
+   - 1 word: first 3 letters
+   - 2-3+ words: take initials (max 3) */
+function abbreviateTeamName(name) {
+  const s = norm(name);
+  if (!s) return s;
+  const key = s.toLowerCase();
+  if (TEAM_ABBR[key]) return TEAM_ABBR[key];
+
+  const words = s.split(/\s+/).filter(Boolean);
+  if (words.length === 1) return words[0].slice(0, 3).toUpperCase();
+  return words.map((w) => w[0]).join("").slice(0, 3).toUpperCase();
+}
+
+// Only abbreviate on mobile
+const displayTeam = (name, isMobile) => (isMobile ? abbreviateTeamName(name) : name);
+
+/* =========================================================
+ * 🔹 MOBILE: column header labels (Rank on ALL screens)
+ * =======================================================*/
+function headerLabel(key, isMobile) {
+  switch (key) {
+    case "rank":
+      return "Rank"; // <- ALWAYS "Rank" (mobile + desktop)
+    case "team":
+      return "Team";
+    case "matches":
+      return isMobile ? "M" : "Matches";
+    case "wins":
+      return isMobile ? "W" : "Wins";
+    case "losses":
+      return isMobile ? "L" : "Losses";
+    case "draws":
+      return isMobile ? "D" : "Draws";
+    case "points":
+      return isMobile ? "Pts" : "Points";
+    case "nrr":
+      return "NRR";
+    case "tournament":
+      return isMobile ? "TN" : "Tournament";
+    case "year":
+      return isMobile ? "Yrs" : "Year";
+    default:
+      return key;
+  }
+}
+
 export default function TournamentPoints() {
   const [loading, setLoading] = useState(false);
+
+  // 🔹 MOBILE: know if we should shorten labels/names
+  const isMobile = useIsMobile(640);
 
   // Filters
   const [matchType, setMatchType] = useState("All");
@@ -108,21 +216,22 @@ export default function TournamentPoints() {
   // ---------- Chart series ----------
   const table = rows;
 
+  /* 🔹 MOBILE: use abbreviated team names for chart labels on phones */
   const pointsSeries = useMemo(
     () =>
       table.slice(0, 10).map((r) => ({
-        team: r.team_name,
+        team: displayTeam(r.team_name, isMobile),
         value: safeNum(r.points),
       })),
-    [table]
+    [table, isMobile]
   );
   const nrrSeries = useMemo(
     () =>
       table.slice(0, 10).map((r) => ({
-        team: r.team_name,
+        team: displayTeam(r.team_name, isMobile),
         value: safeNum(r.nrr),
       })),
-    [table]
+    [table, isMobile]
   );
 
   // ---------- Chart layout ----------
@@ -398,7 +507,7 @@ export default function TournamentPoints() {
                 const rVal = nrrSeries[i]?.value ?? 0;
                 const yR = yRight(rVal);
                 return (
-                  <g key={d.team}>
+                  <g key={`${d.team}-${i}`}>
                     <circle cx={x} cy={yL} r="4" className="dot gold" />
                     <circle cx={x} cy={yR} r="4" className="dot teal" />
                     <text className="val goldv" x={x} y={yL - 8}>{d.value}</text>
@@ -439,16 +548,17 @@ export default function TournamentPoints() {
           <table className="tp-table">
             <thead>
               <tr>
-                <th>#</th>
-                <th>Team</th>
-                <th>Matches</th>
-                <th>Wins</th>
-                <th>Losses</th>
-                <th>Draws</th>
-                <th>Points</th>
-                <th>NRR</th>
-                <th>Tournament</th>
-                <th>Year</th>
+                {/* 🔹 MOBILE: header labels (Rank on ALL screens) */}
+                <th>{headerLabel("rank", isMobile)}</th>
+                <th>{headerLabel("team", isMobile)}</th>
+                <th>{headerLabel("matches", isMobile)}</th>
+                <th>{headerLabel("wins", isMobile)}</th>
+                <th>{headerLabel("losses", isMobile)}</th>
+                <th>{headerLabel("draws", isMobile)}</th>
+                <th>{headerLabel("points", isMobile)}</th>
+                <th>{headerLabel("nrr", isMobile)}</th>
+                <th>{headerLabel("tournament", isMobile)}</th>
+                <th>{headerLabel("year", isMobile)}</th>
               </tr>
             </thead>
             <tbody>
@@ -458,7 +568,10 @@ export default function TournamentPoints() {
                 table.map((t, idx) => (
                   <tr key={t.team_name} className={`lb-row ${idx < 3 ? `top-${idx + 1}` : ""}`}>
                     <td><span className="rank-badge">#{idx + 1}</span></td>
-                    <td className={`tname ${idx < 3 ? "goldtxt" : ""}`}>{t.team_name}</td>
+                    {/* 🔹 MOBILE: abbreviate team name only on mobile */}
+                    <td className={`tname ${idx < 3 ? "goldtxt" : ""}`}>
+                      {displayTeam(t.team_name, isMobile)}
+                    </td>
                     <td>{safeNum(t.matches_played)}</td>
                     <td className="good">{safeNum(t.wins)}</td>
                     <td className="bad">{safeNum(t.losses)}</td>
