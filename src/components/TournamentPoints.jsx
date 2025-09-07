@@ -1,5 +1,5 @@
 // src/components/TournamentPoints.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { API_URL } from "../services/api";
 import "./TournamentPoints.css";
@@ -12,8 +12,11 @@ const safeNum = (v, def = 0) => {
 const norm = (s) => (s ?? "").toString().trim();
 
 /* =========================================================
- * 🔹 MOBILE: small helper to know if we're on a phone
- * Uses 640px as the breakpoint (tweak if you want)
+ * 🔹 MOBILE: viewport-based check (uses window.matchMedia)
+ *    NOTE: On devices without a proper <meta name="viewport">
+ *    the browser may treat the page as ~980px wide, so this
+ *    can return false even on phones. We add a container-
+ *    width fallback below to make it bulletproof.
  * =======================================================*/
 function useIsMobile(breakpoint = 640) {
   const get = () =>
@@ -27,7 +30,6 @@ function useIsMobile(breakpoint = 640) {
     if (typeof window === "undefined" || !window.matchMedia) return;
     const mq = window.matchMedia(`(max-width:${breakpoint}px)`);
     const onChange = (e) => setIsMobile(e.matches);
-    // modern + legacy listeners
     mq.addEventListener ? mq.addEventListener("change", onChange) : mq.addListener(onChange);
     return () =>
       mq.removeEventListener
@@ -39,8 +41,32 @@ function useIsMobile(breakpoint = 640) {
 }
 
 /* =========================================================
+ * 🔹 MOBILE: container-width fallback using ResizeObserver
+ *    If the actual component is narrower than the breakpoint,
+ *    we treat it as "mobile" regardless of the global viewport.
+ * =======================================================*/
+function useIsCompact(ref, breakpoint = 640) {
+  const [compact, setCompact] = useState(false);
+
+  useEffect(() => {
+    if (!ref?.current || typeof ResizeObserver === "undefined") return;
+    const el = ref.current;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const w = entry.contentRect?.width ?? el.clientWidth;
+        setCompact(w <= breakpoint);
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref, breakpoint]);
+
+  return compact;
+}
+
+/* =========================================================
  * 🔹 MOBILE: team abbreviation map (upper-case)
- * Fallback logic is provided if a team isn't listed here.
+ *    Fallback logic is provided if a team isn't listed here.
  * =======================================================*/
 const TEAM_ABBR = {
   "south africa": "SA",
@@ -83,34 +109,36 @@ function abbreviateTeamName(name) {
   return words.map((w) => w[0]).join("").slice(0, 3).toUpperCase();
 }
 
-// Only abbreviate on mobile
-const displayTeam = (name, isMobile) => (isMobile ? abbreviateTeamName(name) : name);
+// Only abbreviate on mobile/compact
+const displayTeam = (name, isNarrow) => (isNarrow ? abbreviateTeamName(name) : name);
 
 /* =========================================================
- * 🔹 MOBILE: column header labels (Rank on ALL screens)
+ * 🔹 MOBILE: column header labels
+ *    Rank is ALWAYS "Rank" (desktop + mobile).
+ *    Other headers use short labels only on narrow screens.
  * =======================================================*/
-function headerLabel(key, isMobile) {
+function headerLabel(key, isNarrow) {
   switch (key) {
     case "rank":
-      return "Rank"; // <- ALWAYS "Rank" (mobile + desktop)
+      return "Rank"; // ALWAYS Rank on both screens
     case "team":
-      return "Team";
+      return "Team"; // unchanged
     case "matches":
-      return isMobile ? "M" : "Matches";
+      return isNarrow ? "M" : "Matches";
     case "wins":
-      return isMobile ? "W" : "Wins";
+      return isNarrow ? "W" : "Wins";
     case "losses":
-      return isMobile ? "L" : "Losses";
+      return isNarrow ? "L" : "Losses";
     case "draws":
-      return isMobile ? "D" : "Draws";
+      return isNarrow ? "D" : "Draws";
     case "points":
-      return isMobile ? "Pts" : "Points";
+      return isNarrow ? "Pts" : "Points";
     case "nrr":
-      return "NRR";
+      return "NRR"; // unchanged
     case "tournament":
-      return isMobile ? "TN" : "Tournament";
+      return isNarrow ? "TN" : "Tournament";
     case "year":
-      return isMobile ? "Yrs" : "Year";
+      return isNarrow ? "Yrs" : "Year";
     default:
       return key;
   }
@@ -119,8 +147,13 @@ function headerLabel(key, isMobile) {
 export default function TournamentPoints() {
   const [loading, setLoading] = useState(false);
 
-  // 🔹 MOBILE: know if we should shorten labels/names
-  const isMobile = useIsMobile(640);
+  // 🔹 Root container ref for the compact fallback
+  const rootRef = useRef(null);
+
+  // 🔹 Determine "narrow" using EITHER viewport or container width
+  const isViewportMobile = useIsMobile(640);
+  const isContainerCompact = useIsCompact(rootRef, 640);
+  const isNarrow = isViewportMobile || isContainerCompact;
 
   // Filters
   const [matchType, setMatchType] = useState("All");
@@ -216,22 +249,22 @@ export default function TournamentPoints() {
   // ---------- Chart series ----------
   const table = rows;
 
-  /* 🔹 MOBILE: use abbreviated team names for chart labels on phones */
+  /* 🔹 MOBILE: use abbreviated team names for chart labels on narrow screens */
   const pointsSeries = useMemo(
     () =>
       table.slice(0, 10).map((r) => ({
-        team: displayTeam(r.team_name, isMobile),
+        team: displayTeam(r.team_name, isNarrow),
         value: safeNum(r.points),
       })),
-    [table, isMobile]
+    [table, isNarrow]
   );
   const nrrSeries = useMemo(
     () =>
       table.slice(0, 10).map((r) => ({
-        team: displayTeam(r.team_name, isMobile),
+        team: displayTeam(r.team_name, isNarrow),
         value: safeNum(r.nrr),
       })),
-    [table, isMobile]
+    [table, isNarrow]
   );
 
   // ---------- Chart layout ----------
@@ -409,7 +442,8 @@ export default function TournamentPoints() {
   const predictions = useMemo(() => buildPredictions(rows), [rows]);
 
   return (
-    <div className="tp-simple">
+    // 🔹 Attach ref so ResizeObserver can measure real width
+    <div className="tp-simple" ref={rootRef}>
       <div className="tp-head">
         <h2 className="tp-title">
           <span className="medal" role="img" aria-label="trophy">🏆</span>
@@ -549,16 +583,16 @@ export default function TournamentPoints() {
             <thead>
               <tr>
                 {/* 🔹 MOBILE: header labels (Rank on ALL screens) */}
-                <th>{headerLabel("rank", isMobile)}</th>
-                <th>{headerLabel("team", isMobile)}</th>
-                <th>{headerLabel("matches", isMobile)}</th>
-                <th>{headerLabel("wins", isMobile)}</th>
-                <th>{headerLabel("losses", isMobile)}</th>
-                <th>{headerLabel("draws", isMobile)}</th>
-                <th>{headerLabel("points", isMobile)}</th>
-                <th>{headerLabel("nrr", isMobile)}</th>
-                <th>{headerLabel("tournament", isMobile)}</th>
-                <th>{headerLabel("year", isMobile)}</th>
+                <th>{headerLabel("rank", isNarrow)}</th>
+                <th>{headerLabel("team", isNarrow)}</th>
+                <th>{headerLabel("matches", isNarrow)}</th>
+                <th>{headerLabel("wins", isNarrow)}</th>
+                <th>{headerLabel("losses", isNarrow)}</th>
+                <th>{headerLabel("draws", isNarrow)}</th>
+                <th>{headerLabel("points", isNarrow)}</th>
+                <th>{headerLabel("nrr", isNarrow)}</th>
+                <th>{headerLabel("tournament", isNarrow)}</th>
+                <th>{headerLabel("year", isNarrow)}</th>
               </tr>
             </thead>
             <tbody>
@@ -568,9 +602,9 @@ export default function TournamentPoints() {
                 table.map((t, idx) => (
                   <tr key={t.team_name} className={`lb-row ${idx < 3 ? `top-${idx + 1}` : ""}`}>
                     <td><span className="rank-badge">#{idx + 1}</span></td>
-                    {/* 🔹 MOBILE: abbreviate team name only on mobile */}
+                    {/* 🔹 MOBILE: abbreviate team name only on narrow screens */}
                     <td className={`tname ${idx < 3 ? "goldtxt" : ""}`}>
-                      {displayTeam(t.team_name, isMobile)}
+                      {displayTeam(t.team_name, isNarrow)}
                     </td>
                     <td>{safeNum(t.matches_played)}</td>
                     <td className="good">{safeNum(t.wins)}</td>
@@ -743,7 +777,7 @@ export default function TournamentPoints() {
 
           .snapshot-card{margin-top:16px;padding:12px;border-top:1px dashed rgba(255,255,255,.08)}
           .snapshot-title{font-weight:900;color:#e8caa4;margin-bottom:8px}
-          .snapshot-help{margin:6px 0 10px;color:#cfe0ff} /* NEW */
+          .snapshot-help{margin:6px 0 10px;color:#cfe0ff}
           .snapshot-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
           .snap-label{display:inline-block;font-size:.82rem;color:#b9cdee;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;margin-right:6px}
           .snap-sub{color:#a9bdd9;margin-top:6px}
