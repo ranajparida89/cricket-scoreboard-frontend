@@ -1,4 +1,3 @@
-// src/components/TestLeaderboard.jsx
 import React, { useEffect, useMemo, useRef, useState, forwardRef } from "react";
 import { getTestMatchLeaderboard } from "../services/api";
 import { gsap } from "gsap";
@@ -8,34 +7,23 @@ import Particles from "react-tsparticles";
 import { loadFull } from "tsparticles";
 import "./TestLeaderboard.css";
 
-/* =========================================================
- * NEW: team abbreviation helpers (same behavior as Leaderboard)
- * ======================================================= */
+/* Shared title style (exactly the same as Leaderboard) */
+const TITLE_STYLE = {
+  textAlign: "center",
+  margin: "0 0 12px",
+  fontWeight: 900,
+  fontSize: "22px",
+  color: "#22ff99",
+  textShadow: "0 0 12px rgba(34,255,153,.25)",
+};
+
+/* Abbreviation helpers (same map) */
 const TEAM_ABBR = {
-  "south africa": "SA",
-  england: "ENG",
-  india: "IND",
-  kenya: "KEN",
-  scotland: "SCT",
-  "new zealand": "NZ",
-  "hong kong": "HKG",
-  australia: "AUS",
-  afghanistan: "AFG",
-  bangladesh: "BAN",
-  pakistan: "PAK",
-  ireland: "IRE",
-  netherlands: "NED",
-  namibia: "NAM",
-  zimbabwe: "ZIM",
-  nepal: "NEP",
-  oman: "OMA",
-  canada: "CAN",
-  "united arab emirates": "UAE",
-  "west indies": "WI",
-  "papua new guinea": "PNG",
-  "sri lanka": "SL",
-  "united states": "USA",
-  usa: "USA",
+  "south africa": "SA", england: "ENG", india: "IND", kenya: "KEN", scotland: "SCT",
+  "new zealand": "NZ", "hong kong": "HKG", australia: "AUS", afghanistan: "AFG",
+  bangladesh: "BAN", pakistan: "PAK", ireland: "IRE", netherlands: "NED", namibia: "NAM",
+  zimbabwe: "ZIM", nepal: "NEP", oman: "OMA", canada: "CAN", "united arab emirates": "UAE",
+  "west indies": "WI", "papua new guinea": "PNG", "sri lanka": "SL", "united states": "USA", usa: "USA",
 };
 const norm = (s) => (s ?? "").toString().trim();
 const abbreviateTeamName = (name) => {
@@ -47,33 +35,28 @@ const abbreviateTeamName = (name) => {
   if (words.length === 1) return words[0].slice(0, 3).toUpperCase();
   return words.map((w) => w[0]).join("").slice(0, 3).toUpperCase();
 };
-const displayTeam = (name) => abbreviateTeamName(name); // always abbreviate
+const displayTeam = (name) => abbreviateTeamName(name);
 
-/* ---------- AOI (in-view) ---------- */
 const useInView = (ref, threshold = 0.2) => {
   const [seen, setSeen] = useState(false);
   useEffect(() => {
     if (!ref.current) return;
-    const o = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) setSeen(true);
-    }, { threshold });
+    const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) setSeen(true); }, { threshold });
     o.observe(ref.current);
     return () => o.disconnect();
   }, [ref, threshold]);
   return seen;
 };
 
-/* ---------- helpers ---------- */
 const medalEmoji = (i) => (i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "");
 const bucketGradient = (ratio) => {
-  if (ratio >= 0.75) return "linear-gradient(90deg,#14e29a,#00c986)";   // green
-  if (ratio >= 0.55) return "linear-gradient(90deg,#ffe76a,#ffb03a)";   // yellow
-  if (ratio >= 0.35) return "linear-gradient(90deg,#ffb03a,#ff7a3d)";   // orange
-  if (ratio > 0)     return "linear-gradient(90deg,#a57cff,#6dd6ff)";   // purple
-  return "linear-gradient(90deg,#ff6b6b,#ff2b2b)";                       // red
+  if (ratio >= 0.75) return "linear-gradient(90deg,#14e29a,#00c986)";
+  if (ratio >= 0.55) return "linear-gradient(90deg,#ffe76a,#ffb03a)";
+  if (ratio >= 0.35) return "linear-gradient(90deg,#ffb03a,#ff7a3d)";
+  if (ratio > 0)     return "linear-gradient(90deg,#a57cff,#6dd6ff)";
+  return "linear-gradient(90deg,#ff6b6b,#ff2b2b)";
 };
 
-/* ---------- Row (so hooks aren’t inside a loop) ---------- */
 const TLRow = forwardRef(({ index, row, maxPoints }, ref) => {
   const ratio = (row.points || 0) / (maxPoints || 1);
   const pct = Math.round(ratio * 100);
@@ -110,17 +93,11 @@ const TLRow = forwardRef(({ index, row, maxPoints }, ref) => {
         </span>
         <span className="pos">{index + 1}</span>
       </td>
-
-      {/* 🔹 CHANGED: abbreviate team name */}
       <td className="team">{displayTeam(row.team_name)}</td>
-
-      {/* 🔹 Columns remain the same, headers will be shortened in <thead> */}
       <td>{row.matches}</td>
       <td className="pos">{row.wins}</td>
       <td className="neg">{row.losses}</td>
       <td>{row.draws}</td>
-
-      {/* Points with special animation: fill + soft pulse for Top 3 */}
       <td className="tlfx-points">
         <div className="points-track" />
         <Animate start={{ w: 0 }} update={{ w: [pct], timing: { duration: 700 } }}>
@@ -137,7 +114,6 @@ const TLRow = forwardRef(({ index, row, maxPoints }, ref) => {
   );
 });
 
-/* ---------- Main ---------- */
 const TestLeaderboard = () => {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -147,14 +123,12 @@ const TestLeaderboard = () => {
   rowRefs.current = [];
   const addRowRef = (el) => el && !rowRefs.current.includes(el) && rowRefs.current.push(el);
 
-  // particles
   const particlesInit = async (engine) => { await loadFull(engine); };
 
   useEffect(() => {
     getTestMatchLeaderboard()
       .then((data) => {
         const arr = Array.isArray(data) ? data : [];
-        // ensure numbers and compute draws if needed
         const normalized = arr.map((t) => ({
           team_name: t.team_name,
           matches: Number(t.matches) || 0,
@@ -175,7 +149,6 @@ const TestLeaderboard = () => {
   const inView = useInView(wrapRef);
   const maxPoints = useMemo(() => Math.max(10, ...teams.map(t => t.points || 0)), [teams]);
 
-  // GSAP: row reveal + crown glow on first row
   useEffect(() => {
     if (!inView || !rowRefs.current.length) return;
     gsap.fromTo(
@@ -211,17 +184,8 @@ const TestLeaderboard = () => {
       />
 
       <div ref={wrapRef} className="tlfx-glass">
-        {/* 🔹 CHANGED: single heading, renamed & color → deep green */}
-        <h2
-          className="tlfx-title"
-          style={{
-            textAlign: "center",
-            margin: "4px 0 10px",
-            fontWeight: 900,
-            color: "#00b26a",                 // deep green
-            textShadow: "0 0 10px rgba(0,178,106,.35)",
-          }}
-        >
+        {/* Single title only (remove any external duplicate page heading) */}
+        <h2 className="tlfx-title" style={TITLE_STYLE}>
           Test Leaderboard
         </h2>
 
@@ -229,8 +193,8 @@ const TestLeaderboard = () => {
           <table className="tlfx-table">
             <thead>
               <tr>
-                {/* 🔹 CHANGED: short headers like Limited-Overs board */}
-                <th>Rnk</th>
+                {/* Short headers with “R” spelled out */}
+                <th>R</th>
                 <th>T</th>
                 <th>M</th>
                 <th>W</th>
