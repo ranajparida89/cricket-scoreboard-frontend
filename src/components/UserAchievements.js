@@ -136,7 +136,7 @@ export default function UserAchievements({ userId, matchType = "All" }) {
         {matchType !== "All" && <span className="ua-pill">({matchType})</span>}
       </div>
 
-      {/* Badges */}
+      {/* Highlight cards */}
       <div className="ua-cards">
         {cards.map((c) => (
           <div className={`ua-card ${c.key}`} key={c.key}>
@@ -185,7 +185,10 @@ export default function UserAchievements({ userId, matchType = "All" }) {
                         p.score ??
                         "-";
                       return (
-                        <li key={p.player_id || `${key}-${idx}`}>
+                        <li
+                          key={p.player_id || `${key}-${idx}`}
+                          className={`rank-${idx + 1}`}
+                        >
                           <span className="ua-rank">{idx + 1}</span>
                           <span className="ua-player">
                             <span className="ua-name" title={p.player_name}>
