@@ -91,6 +91,23 @@ function headerLabel(key) {
   }
 }
 
+/* =========================================================
+ * 🔹 NEW: label spacing constants
+ *    - Moves dot value labels away from dots and from each other
+ *    - Prevents the “6.23” overlap you highlighted
+ * =======================================================*/
+const LABEL = {
+  // vertical offsets for labels relative to the dot positions
+  P_DY: -14,       // Points label above its dot (a bit higher than before)
+  N_POS_DY: -18,   // NRR label above its dot when NRR >= 0 (move higher)
+  N_NEG_DY: 20,    // NRR label below its dot when NRR < 0 (a bit lower)
+  // horizontal separation so the two labels don't collide
+  P_DX: -8,        // Points label a little to the left
+  N_DX: 8,         // NRR label a little to the right
+  // ensure a minimum vertical gap between the two labels
+  SEP_MIN: 16,     // px minimal vertical separation between Pts/NRR labels
+};
+
 export default function TournamentPoints() {
   const [loading, setLoading] = useState(false);
 
@@ -478,14 +495,32 @@ export default function TournamentPoints() {
                 const yL = H - PAD - ((d.value - yLMin) / Math.max(1e-6, yLMax - yLMin)) * (H - PAD * 2);
                 const rVal = nrrSeries[i]?.value ?? 0;
                 const yR = yRight(rVal);
+
+                // ── NEW: compute label positions with separation rules ──
+                const pX = x + LABEL.P_DX;
+                const nX = x + LABEL.N_DX;
+
+                let pY = yL + LABEL.P_DY; // points label above dot
+                let nY = yR + (rVal >= 0 ? LABEL.N_POS_DY : LABEL.N_NEG_DY); // nrr label above/below
+
+                // If labels are too close vertically, push the NRR label further
+                const sep = Math.abs(pY - nY);
+                if (sep < LABEL.SEP_MIN) {
+                  const bump = LABEL.SEP_MIN - sep + 2; // +2px safety
+                  nY += (rVal >= 0 ? -bump : bump);
+                }
+
                 return (
                   <g key={`${d.team}-${i}`}>
+                    {/* dots */}
                     <circle cx={x} cy={yL} r="4" className="dot gold" />
                     <circle cx={x} cy={yR} r="4" className="dot teal" />
-                    <text className="val goldv" x={x} y={yL - 8}>{d.value}</text>
-                    <text className="val tealv" x={x} y={yR + (rVal >= 0 ? -8 : 16)}>
-                      {Number(rVal).toFixed(2)}
-                    </text>
+
+                    {/* value labels (now colored + spaced) */}
+                    <text className="val goldv" x={pX} y={pY}>{d.value}</text>
+                    <text className="val tealv" x={nX} y={nY}>{Number(rVal).toFixed(2)}</text>
+
+                    {/* x-axis team label */}
                     <text
                       className={`xlabel ${rotateLabels ? "small rot" : ""}`}
                       x={x}
