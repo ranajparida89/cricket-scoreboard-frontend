@@ -41,7 +41,10 @@ const WinLossTrendDashboard = ({ selectedMatchType = "All", teamName }) => {
         },
       })
       .then((res) => {
-        if (!cancelled) setTrendData(Array.isArray(res.data?.data) ? res.data.data : []);
+        if (!cancelled) {
+          const rows = Array.isArray(res.data?.data) ? res.data.data : [];
+          setTrendData(rows);
+        }
       })
       .finally(() => !cancelled && setLoading(false));
 
@@ -62,16 +65,16 @@ const WinLossTrendDashboard = ({ selectedMatchType = "All", teamName }) => {
     return { type, count };
   }, [trendData]);
 
-  // Left-to-right oldest → newest for chart
+  // Oldest → newest for the chart + compact index
   const chartData = useMemo(() => {
     return trendData
       .slice(0, 10)
       .slice() // copy
       .reverse()
-      .map((entry) => ({
+      .map((entry, i) => ({
         ...entry,
-        // small constant height so the color blocks read cleanly
-        h: 1,
+        h: 1,          // constant height so color blocks read uniformly
+        idx: i + 1,    // 1..10 (oldest → newest)
       }));
   }, [trendData]);
 
@@ -108,15 +111,21 @@ const WinLossTrendDashboard = ({ selectedMatchType = "All", teamName }) => {
         <>
           <div className="trend-chart">
             <ResponsiveContainer width="100%" height={140}>
-              <BarChart data={chartData} margin={{ top: 6, right: 6, left: 6, bottom: 4 }}>
+              <BarChart
+                data={chartData}
+                margin={{ top: 6, right: 6, left: 6, bottom: 4 }}
+                barCategoryGap={14}
+                barGap={6}
+              >
+                {/* ✅ No tick text → prevents overlap entirely */}
                 <XAxis
-                  dataKey="match_name"
-                  tickLine={false}
+                  dataKey="idx"
+                  tick={false}
                   axisLine={false}
-                  height={28}
-                  interval={0}
-                  tick={{ fontSize: 12, fill: "#eaf6ff", opacity: 0.8 }}
+                  tickLine={false}
+                  height={0}
                 />
+
                 <Tooltip
                   cursor={{ fill: "transparent" }}
                   content={({ active, payload }) => {
@@ -137,11 +146,16 @@ const WinLossTrendDashboard = ({ selectedMatchType = "All", teamName }) => {
                           <span className="tt-label">Type:</span>
                           <span className="tt-val">{d.match_type}</span>
                         </div>
+                        <div className="tt-row">
+                          <span className="tt-label">Order:</span>
+                          <span className="tt-val">#{d.idx} (oldest → newest)</span>
+                        </div>
                       </div>
                     );
                   }}
                 />
-                <Bar dataKey="h" radius={[6, 6, 0, 0]}>
+
+                <Bar dataKey="h" radius={[8, 8, 0, 0]}>
                   {chartData.map((entry, i) => (
                     <Cell key={`cell-${i}`} fill={outcomeColors[entry.result] || "#bdbdbd"} />
                   ))}
@@ -158,6 +172,8 @@ const WinLossTrendDashboard = ({ selectedMatchType = "All", teamName }) => {
               </span>
             ))}
           </div>
+
+          <div className="trend-footnote">Oldest &rarr; Newest</div>
         </>
       )}
     </div>
