@@ -1,93 +1,113 @@
-.top-performer-card {
-  background: #172335;
-  border-radius: 22px;
-  box-shadow: 0 4px 28px 0 rgba(30,50,100,0.14);
-  padding: 26px 20px 18px 20px;
-  max-width: 430px;
-  margin: 24px auto 0 auto;
-  color: #fff;
-  position: relative;
-  overflow: visible;
-  transition: box-shadow 0.2s;
-}
-.top-performer-card.mvp {
-  border: 2px solid #ffd600;
-  box-shadow: 0 0 32px 0 rgba(255,215,0,0.19);
+/* 3D + glass style for TopPerformerCard (matches dashboard aesthetic) */
+:root{
+  --tp-bg:#0f1e31;
+  --tp-stroke:#1f3a5a;
+  --tp-neon:#23e8ff;
+  --tp-gold:#ffd34d;
+  --tp-text:#eaf6ff;
+  --tp-soft:#9cc6ff;
 }
 
-.mvp-badge {
-  position: absolute;
-  right: 18px;
-  top: -15px;
-  background: linear-gradient(90deg, #FFD600, #FFAF36);
-  color: #1e2235;
-  font-weight: bold;
-  padding: 6px 16px;
-  border-radius: 14px 14px 14px 0;
-  font-size: 1rem;
-  letter-spacing: 0.05em;
-  box-shadow: 0 2px 10px 0 rgba(255,215,0,0.11);
+/* Base 3D card */
+.card-3d{
+  background: linear-gradient(180deg, #0f1e31, #0b1727);
+  border:1px solid var(--tp-stroke);
+  border-radius:18px;
+  box-shadow: 0 1px 0 #2b4b6a66 inset, 0 8px 28px rgba(0,0,0,.45), 0 20px 60px rgba(0,0,0,.35);
+  position:relative;
+}
+.glass{
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+  backdrop-filter: blur(10px) saturate(110%);
+  -webkit-backdrop-filter: blur(10px) saturate(110%);
 }
 
-.tp-row {
-  text-align: center;
-  margin-bottom: 8px;
+/* Component wrapper */
+.tp-card{
+  padding:16px;
+  color:var(--tp-text);
+  overflow:hidden;
 }
-.tp-title {
-  font-size: 1.13rem;
-  font-weight: 600;
-  color: #23e8fe;
-  letter-spacing: 0.01em;
-  margin-bottom: 3px;
-}
-.tp-player-name {
-  font-size: 1.38rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  margin-bottom: 0;
-  color: #fff;
-}
-/* ✅ 22-July-2025: Added profile image styles for MVP card */
-.tp-player-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 8px;
+.tp-card.is-mvp{
+  border-color: color-mix(in oklab, var(--tp-gold) 60%, var(--tp-stroke));
+  box-shadow: 0 0 28px #ffd34d33, 0 10px 44px #0008;
 }
 
-.tp-player-image {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #fff;
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
-  margin-bottom: 8px;
+/* MVP ribbon */
+.tp-ribbon{
+  position:absolute; right:14px; top:10px;
+  background: linear-gradient(90deg, #ffe28f, #ffb347);
+  color:#251a00; font-weight:900; font-size:.95rem;
+  padding:6px 12px; border-radius:10px;
+  box-shadow:0 0 18px #ffd34d77, 0 2px 10px #0006;
+  letter-spacing:.3px;
 }
 
-.tp-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px 7px;
-  margin-top: 18px;
+/* Header row */
+.tp-head{ display:flex; gap:14px; align-items:center; margin-bottom:10px; }
+.tp-avatar-wrap{ width:64px; height:64px; }
+.tp-avatar{
+  width:64px; height:64px; border-radius:50%;
+  object-fit:cover; border:3px solid #1d9bf088; background:#15314a;
+  box-shadow:0 6px 18px rgba(0,0,0,.35);
+  display:block;
 }
-.tp-label {
-  font-size: 0.93rem;
-  color: #91b6e4;
-  display: block;
-  text-align: center;
-  margin-bottom: 2px;
-}
-.tp-value {
-  font-size: 1.22rem;
-  font-weight: 700;
-  color: #fff;
-  text-align: center;
-  display: block;
+.tp-avatar-fallback{
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.6rem; color:#cfe8ff;
 }
 
-@media (max-width: 540px) {
-  .top-performer-card { padding: 16px 7px 14px 7px; }
-  .tp-stats-grid { gap: 9px 3px; }
-  .tp-player-name { font-size: 1.02rem; }
+.tp-head-text{ line-height:1.1; }
+.tp-title{
+  font-weight:800; color:#ffffff; letter-spacing:.2px; font-size:1rem;
+  text-shadow:0 0 10px #ffffff22, 0 1px 0 #06233b;
+}
+.tp-name{
+  font-weight:900; font-size:1.35rem; color:#fff;
+  text-shadow:0 0 14px #0af2;
+  max-width:60vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.tp-meta{ color:var(--tp-soft); font-weight:700; font-size:.92rem; }
+
+/* Stats grid */
+.tp-stats-grid{
+  display:grid; grid-template-columns: repeat(3, 1fr);
+  gap:12px; margin-top:10px;
+}
+.tp-stat{
+  background: linear-gradient(180deg, #11243a, #0c1b2c);
+  border:1px solid #1e3a58;
+  border-radius:14px; padding:10px 10px 12px 12px;
+  box-shadow: 0 1px 0 #2b4b6a66 inset, 0 8px 18px rgba(0,0,0,.25);
+  position:relative;
+  min-height:70px;
+}
+.tp-stat::after{
+  content:""; position:absolute; left:10px; right:10px; bottom:-10px; height:12px;
+  background: radial-gradient(60% 70% at 50% 0, #0008, transparent 70%);
+  filter:blur(6px);
+}
+.tp-label{ display:block; color:#a7d7ff; font-weight:700; font-size:.92rem; }
+.tp-value{
+  display:block; margin-top:6px; font-weight:900; font-size:1.25rem; color:#fff;
+  text-shadow: 0 0 8px #fff2, 0 1px 0 #06233b;
+}
+
+/* Decorative bottom glow */
+.tp-glow{
+  position:absolute; left:10%; right:10%; bottom:-18px; height:30px;
+  background: radial-gradient(60% 70% at 50% 0, var(--tp-neon), transparent 70%);
+  filter: blur(22px); opacity:.25; pointer-events:none;
+}
+
+/* Empty state */
+.tp-empty{ border-style:dashed; border-color:#2b4b6a; }
+.tp-empty .tp-title{ margin-bottom:6px; }
+.tp-empty-text{ color:#a6c9e6; font-weight:700; }
+
+/* Responsive */
+@media (max-width: 600px){
+  .tp-stats-grid{ grid-template-columns: repeat(2, 1fr); }
+  .tp-name{ font-size:1.1rem; }
+  .tp-avatar, .tp-avatar-wrap{ width:54px; height:54px; }
 }
