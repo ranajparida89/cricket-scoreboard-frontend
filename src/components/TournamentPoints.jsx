@@ -1,5 +1,5 @@
 // src/components/TournamentPoints.jsx
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { API_URL } from "../services/api";
 import "./TournamentPoints.css";
@@ -12,61 +12,8 @@ const safeNum = (v, def = 0) => {
 const norm = (s) => (s ?? "").toString().trim();
 
 /* =========================================================
- * 🔹 MOBILE: viewport-based check (uses window.matchMedia)
- *    NOTE: On devices without a proper <meta name="viewport">
- *    the browser may treat the page as ~980px wide, so this
- *    can return false even on phones. We add a container-
- *    width fallback below to make it bulletproof.
- * =======================================================*/
-function useIsMobile(breakpoint = 640) {
-  const get = () =>
-    typeof window !== "undefined" &&
-    window.matchMedia &&
-    window.matchMedia(`(max-width:${breakpoint}px)`).matches;
-
-  const [isMobile, setIsMobile] = useState(get());
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    const mq = window.matchMedia(`(max-width:${breakpoint}px)`);
-    const onChange = (e) => setIsMobile(e.matches);
-    mq.addEventListener ? mq.addEventListener("change", onChange) : mq.addListener(onChange);
-    return () =>
-      mq.removeEventListener
-        ? mq.removeEventListener("change", onChange)
-        : mq.removeListener(onChange);
-  }, [breakpoint]);
-
-  return isMobile;
-}
-
-/* =========================================================
- * 🔹 MOBILE: container-width fallback using ResizeObserver
- *    If the actual component is narrower than the breakpoint,
- *    we treat it as "mobile" regardless of the global viewport.
- * =======================================================*/
-function useIsCompact(ref, breakpoint = 640) {
-  const [compact, setCompact] = useState(false);
-
-  useEffect(() => {
-    if (!ref?.current || typeof ResizeObserver === "undefined") return;
-    const el = ref.current;
-    const ro = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const w = entry.contentRect?.width ?? el.clientWidth;
-        setCompact(w <= breakpoint);
-      }
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [ref, breakpoint]);
-
-  return compact;
-}
-
-/* =========================================================
- * 🔹 MOBILE: team abbreviation map (upper-case)
- *    Fallback logic is provided if a team isn't listed here.
+ * 🔹 GLOBAL: team abbreviation map (upper-case)
+ *    We apply abbreviations on BOTH desktop and mobile now.
  * =======================================================*/
 const TEAM_ABBR = {
   "south africa": "SA",
@@ -109,36 +56,36 @@ function abbreviateTeamName(name) {
   return words.map((w) => w[0]).join("").slice(0, 3).toUpperCase();
 }
 
-// Only abbreviate on mobile/compact
-const displayTeam = (name, isNarrow) => (isNarrow ? abbreviateTeamName(name) : name);
+// 🔹 GLOBAL: always abbreviate team names (desktop + mobile)
+const displayTeam = (name) => abbreviateTeamName(name);
 
 /* =========================================================
- * 🔹 MOBILE: column header labels
- *    Rank is ALWAYS "Rank" (desktop + mobile).
- *    Other headers use short labels only on narrow screens.
+ * 🔹 GLOBAL: column header labels (desktop + mobile)
+ *    Rank is ALWAYS "Rank".
+ *    Per your spec: use short labels everywhere now.
  * =======================================================*/
-function headerLabel(key, isNarrow) {
+function headerLabel(key) {
   switch (key) {
     case "rank":
-      return "Rank"; // ALWAYS Rank on both screens
+      return "Rank"; // Always "Rank" on both screens
     case "team":
-      return "Team"; // unchanged
+      return "Team"; // unchanged (title), values are abbreviated
     case "matches":
-      return isNarrow ? "M" : "Matches";
+      return "M";
     case "wins":
-      return isNarrow ? "W" : "Wins";
+      return "W";
     case "losses":
-      return isNarrow ? "L" : "Losses";
+      return "L";
     case "draws":
-      return isNarrow ? "D" : "Draws";
+      return "D";
     case "points":
-      return isNarrow ? "Pts" : "Points";
+      return "Pts";
     case "nrr":
       return "NRR"; // unchanged
     case "tournament":
-      return isNarrow ? "TN" : "Tournament";
+      return "TN";
     case "year":
-      return isNarrow ? "Yrs" : "Year";
+      return "Yrs";
     default:
       return key;
   }
@@ -146,14 +93,6 @@ function headerLabel(key, isNarrow) {
 
 export default function TournamentPoints() {
   const [loading, setLoading] = useState(false);
-
-  // 🔹 Root container ref for the compact fallback
-  const rootRef = useRef(null);
-
-  // 🔹 Determine "narrow" using EITHER viewport or container width
-  const isViewportMobile = useIsMobile(640);
-  const isContainerCompact = useIsCompact(rootRef, 640);
-  const isNarrow = isViewportMobile || isContainerCompact;
 
   // Filters
   const [matchType, setMatchType] = useState("All");
@@ -249,22 +188,22 @@ export default function TournamentPoints() {
   // ---------- Chart series ----------
   const table = rows;
 
-  /* 🔹 MOBILE: use abbreviated team names for chart labels on narrow screens */
+  /* 🔹 GLOBAL: use abbreviated team names for chart labels (desktop + mobile) */
   const pointsSeries = useMemo(
     () =>
       table.slice(0, 10).map((r) => ({
-        team: displayTeam(r.team_name, isNarrow),
+        team: displayTeam(r.team_name),
         value: safeNum(r.points),
       })),
-    [table, isNarrow]
+    [table]
   );
   const nrrSeries = useMemo(
     () =>
       table.slice(0, 10).map((r) => ({
-        team: displayTeam(r.team_name, isNarrow),
+        team: displayTeam(r.team_name),
         value: safeNum(r.nrr),
       })),
-    [table, isNarrow]
+    [table]
   );
 
   // ---------- Chart layout ----------
@@ -300,7 +239,7 @@ export default function TournamentPoints() {
     <line x1={x} y1={y} x2={x2} y2={y2} stroke="rgba(255,255,255,.12)" strokeWidth="1" opacity={opacity} />
   );
 
-  // ---------- NEW: plain-English explainer helpers ----------
+  // ---------- plain-English explainer helpers ----------
   const modeLabel = (m) => (m === "S8" ? "Super 8" : m === "S6" ? "Super 6" : "Semi-finals");
   const fmtNrr = (n) => {
     const v = safeNum(n, 0);
@@ -442,8 +381,7 @@ export default function TournamentPoints() {
   const predictions = useMemo(() => buildPredictions(rows), [rows]);
 
   return (
-    // 🔹 Attach ref so ResizeObserver can measure real width
-    <div className="tp-simple" ref={rootRef}>
+    <div className="tp-simple">
       <div className="tp-head">
         <h2 className="tp-title">
           <span className="medal" role="img" aria-label="trophy">🏆</span>
@@ -582,17 +520,17 @@ export default function TournamentPoints() {
           <table className="tp-table">
             <thead>
               <tr>
-                {/* 🔹 MOBILE: header labels (Rank on ALL screens) */}
-                <th>{headerLabel("rank", isNarrow)}</th>
-                <th>{headerLabel("team", isNarrow)}</th>
-                <th>{headerLabel("matches", isNarrow)}</th>
-                <th>{headerLabel("wins", isNarrow)}</th>
-                <th>{headerLabel("losses", isNarrow)}</th>
-                <th>{headerLabel("draws", isNarrow)}</th>
-                <th>{headerLabel("points", isNarrow)}</th>
-                <th>{headerLabel("nrr", isNarrow)}</th>
-                <th>{headerLabel("tournament", isNarrow)}</th>
-                <th>{headerLabel("year", isNarrow)}</th>
+                {/* 🔹 GLOBAL: header labels (short on desktop + mobile) */}
+                <th>{headerLabel("rank")}</th>
+                <th>{headerLabel("team")}</th>
+                <th>{headerLabel("matches")}</th>
+                <th>{headerLabel("wins")}</th>
+                <th>{headerLabel("losses")}</th>
+                <th>{headerLabel("draws")}</th>
+                <th>{headerLabel("points")}</th>
+                <th>{headerLabel("nrr")}</th>
+                <th>{headerLabel("tournament")}</th>
+                <th>{headerLabel("year")}</th>
               </tr>
             </thead>
             <tbody>
@@ -602,9 +540,9 @@ export default function TournamentPoints() {
                 table.map((t, idx) => (
                   <tr key={t.team_name} className={`lb-row ${idx < 3 ? `top-${idx + 1}` : ""}`}>
                     <td><span className="rank-badge">#{idx + 1}</span></td>
-                    {/* 🔹 MOBILE: abbreviate team name only on narrow screens */}
+                    {/* 🔹 GLOBAL: team names abbreviated in table */}
                     <td className={`tname ${idx < 3 ? "goldtxt" : ""}`}>
-                      {displayTeam(t.team_name, isNarrow)}
+                      {displayTeam(t.team_name)}
                     </td>
                     <td>{safeNum(t.matches_played)}</td>
                     <td className="good">{safeNum(t.wins)}</td>
@@ -709,7 +647,7 @@ export default function TournamentPoints() {
         <div className="snapshot-card">
           <div className="snapshot-title">Qualification cutoff snapshot (Top {predictions.cut})</div>
 
-          {/* NEW: one-line plain-English explainer */}
+          {/* plain-English explainer */}
           {predictions.cut > 0 && predictions.cutoff && (
             <p className="snapshot-help">{cutoffNarrative(predictions)}</p>
           )}
