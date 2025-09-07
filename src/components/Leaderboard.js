@@ -1,7 +1,48 @@
+// src/components/Leaderboard.jsx
 import React, { useEffect, useState } from "react";
 import { getTeams } from "../services/api";
 import { io } from "socket.io-client";
 import "./Leaderboard.css";
+
+// 🔹 NEW: Team abbreviations (same scheme used on TournamentPoints)
+const TEAM_ABBR = {
+  "south africa": "SA",
+  england: "ENG",
+  india: "IND",
+  kenya: "KEN",
+  scotland: "SCT",
+  "new zealand": "NZ",
+  "hong kong": "HKG",
+  afghanistan: "AFG",
+  bangladesh: "BAN",
+  pakistan: "PAK",
+  australia: "AUS",
+  ireland: "IRE",
+  netherlands: "NED",
+  namibia: "NAM",
+  zimbabwe: "ZIM",
+  nepal: "NEP",
+  oman: "OMA",
+  canada: "CAN",
+  "united arab emirates": "UAE",
+  "west indies": "WI",
+  "papua new guinea": "PNG",
+  "sri lanka": "SL",
+  "united states": "USA",
+  usa: "USA",
+};
+// 🔹 Helper: fallback abbreviation (1 word → first 3; multiword → initials up to 3)
+const abbreviateTeamName = (name) => {
+  const s = (name ?? "").toString().trim();
+  if (!s) return s;
+  const key = s.toLowerCase();
+  if (TEAM_ABBR[key]) return TEAM_ABBR[key];
+  const words = s.split(/\s+/).filter(Boolean);
+  if (words.length === 1) return words[0].slice(0, 3).toUpperCase();
+  return words.map((w) => w[0]).join("").slice(0, 3).toUpperCase();
+};
+// 🔹 ALWAYS abbreviate (as requested for “same as TournamentPoints”)
+const displayTeam = (name) => abbreviateTeamName(name);
 
 // Connect to backend socket
 const socket = io("https://cricket-scoreboard-backend.onrender.com");
@@ -91,17 +132,37 @@ const Leaderboard = () => {
 
   return (
     <div className="leaderboard-glass">
+      {/* 🔹 NEW: Title text updated + bright green styling */}
+      <h2
+        className="lb-title"
+        style={{
+          textAlign: "center",
+          margin: "0 0 12px",
+          fontWeight: 900,
+          color: "#22ff99",              // bright green
+          textShadow: "0 0 12px rgba(34,255,153,.25)",
+        }}
+      >
+        Limited-Overs Cricket Leaderboard (ODI/T20)
+      </h2>
+
+      {/* 🔹 Tiny scoped CSS for header abbreviations weight (optional, safe) */}
+      <style>{`
+        .leaderboard-table thead th { font-weight: 900; }
+      `}</style>
+
       <div className="table-responsive leaderboard-table-wrapper">
         <table className="table table-dark text-center mb-0 leaderboard-table">
           <thead>
             <tr>
-              <th>#</th>
+              {/* 🔹 CHANGED: # → Rank, and short labels across the board */}
+              <th>Rank</th>
               <th>Team</th>
-              <th>Matches</th>
-              <th>Wins</th>
-              <th>Losses</th>
-              <th>Draws</th>
-              <th>Points</th>
+              <th>M</th>
+              <th>W</th>
+              <th>L</th>
+              <th>D</th>
+              <th>Pts</th>
               <th>NRR</th>
             </tr>
           </thead>
@@ -117,8 +178,13 @@ const Leaderboard = () => {
                   className="lb-row"
                   data-bucket={bucket}
                 >
+                  {/* 🔹 CHANGED: header says Rank; content remains medal + number */}
                   <td>{getMedal(index)} {index + 1}</td>
-                  <td className="team-name">{team.team_name}</td>
+
+                  {/* 🔹 CHANGED: abbreviate team label (same behavior as TournamentPoints) */}
+                  <td className="team-name">{displayTeam(team.team_name)}</td>
+
+                  {/* 🔹 CHANGED: columns already numeric; headers shortened above */}
                   <td>{team.matches_played}</td>
                   <td className="pos">{team.wins}</td>
                   <td className="neg">{team.losses}</td>
