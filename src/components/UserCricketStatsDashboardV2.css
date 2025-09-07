@@ -167,3 +167,31 @@
     padding: 7px 2px;
   }
 }
+/* Make the team select dark + readable, including the popup list (most browsers) */
+.cricket-dashboard-outer { color-scheme: dark; }
+
+.team-select{
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+  background-color:#0f2236;
+  color:#eaf6ff;
+  border:1px solid #2a4b6a;
+  border-radius:10px;
+  padding:6px 36px 6px 12px;
+  font-weight:700;
+  box-shadow: inset 0 1px 0 #3c5f86;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a7d7ff'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat:no-repeat;
+  background-position:right 10px center;
+  background-size:16px;
+}
+
+/* Style the popup list colors (supported by most modern browsers) */
+.team-select option{
+  background:#0f2236;
+  color:#eaf6ff;
+}
+
+/* Hide old IE arrow if ever rendered */
+select.team-select::-ms-expand { display:none; }

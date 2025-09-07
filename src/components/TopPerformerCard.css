@@ -7,6 +7,9 @@
   --tp-soft:#9cc6ff;
 }
 
+/* Help native controls (select) prefer dark UI */
+html, body { color-scheme: dark; }
+
 /* Base 3D card */
 .card-3d{
   background: linear-gradient(180deg, #0f1e31, #0b1727);
@@ -30,16 +33,15 @@
 .tp-card.is-mvp{
   border-color: color-mix(in oklab, var(--tp-gold) 60%, var(--tp-stroke));
   box-shadow: 0 0 28px #ffd34d33, 0 10px 44px #0008;
-  /* add a bit of top space so badge never collides visually */
-  padding-top: 28px;
+  /* extra top padding so ribbon never collides with text */
+  padding-top: 52px;
 }
 
-/* MVP ribbon — now on the LEFT and slightly above the card */
+/* MVP ribbon — left, INSIDE the card (no overlap) */
 .tp-ribbon{
   position:absolute;
-  left:14px;               /* ⬅️ moved left */
-  right:auto;
-  top:-14px;               /* float above border so it doesn't overlap content */
+  left:14px;
+  top:10px;
   z-index: 2;
   background: linear-gradient(90deg, #ffe28f, #ffb347);
   color:#251a00;
@@ -49,7 +51,7 @@
   border-radius:10px;
   box-shadow:0 0 18px #ffd34d77, 0 2px 10px #0006;
   letter-spacing:.3px;
-  pointer-events: none;    /* purely decorative */
+  pointer-events: none;
 }
 
 /* Header row */
@@ -119,5 +121,5 @@
   .tp-stats-grid{ grid-template-columns: repeat(2, 1fr); }
   .tp-name{ font-size:1.1rem; }
   .tp-avatar, .tp-avatar-wrap{ width:54px; height:54px; }
-  .tp-ribbon{ top:-12px; left:10px; }
+  .tp-ribbon{ top:8px; left:10px; }
 }
