@@ -1,4 +1,3 @@
-/* 3D + glass style for TopPerformerCard (matches dashboard aesthetic) */
 :root{
   --tp-bg:#0f1e31;
   --tp-stroke:#1f3a5a;
@@ -22,25 +21,35 @@
   -webkit-backdrop-filter: blur(10px) saturate(110%);
 }
 
-/* Component wrapper */
+/* Wrapper */
 .tp-card{
-  padding:16px;
+  padding:20px 16px 16px;
   color:var(--tp-text);
   overflow:hidden;
 }
 .tp-card.is-mvp{
   border-color: color-mix(in oklab, var(--tp-gold) 60%, var(--tp-stroke));
   box-shadow: 0 0 28px #ffd34d33, 0 10px 44px #0008;
+  /* add a bit of top space so badge never collides visually */
+  padding-top: 28px;
 }
 
-/* MVP ribbon */
+/* MVP ribbon — now on the LEFT and slightly above the card */
 .tp-ribbon{
-  position:absolute; right:14px; top:10px;
+  position:absolute;
+  left:14px;               /* ⬅️ moved left */
+  right:auto;
+  top:-14px;               /* float above border so it doesn't overlap content */
+  z-index: 2;
   background: linear-gradient(90deg, #ffe28f, #ffb347);
-  color:#251a00; font-weight:900; font-size:.95rem;
-  padding:6px 12px; border-radius:10px;
+  color:#251a00;
+  font-weight:900;
+  font-size:.95rem;
+  padding:6px 12px;
+  border-radius:10px;
   box-shadow:0 0 18px #ffd34d77, 0 2px 10px #0006;
   letter-spacing:.3px;
+  pointer-events: none;    /* purely decorative */
 }
 
 /* Header row */
@@ -110,4 +119,5 @@
   .tp-stats-grid{ grid-template-columns: repeat(2, 1fr); }
   .tp-name{ font-size:1.1rem; }
   .tp-avatar, .tp-avatar-wrap{ width:54px; height:54px; }
+  .tp-ribbon{ top:-12px; left:10px; }
 }

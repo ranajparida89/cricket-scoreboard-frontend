@@ -3,10 +3,8 @@ import "./TopPerformerCard.css";
 
 const TopPerformerCard = ({ performer, period, matchType }) => {
   const periodLabel = period === "month" ? " (This Month)" : "";
-  const typeLabel =
-    matchType && matchType !== "All" ? ` (${matchType})` : "";
+  const typeLabel = matchType && matchType !== "All" ? ` (${matchType})` : "";
 
-  // Empty state (no data)
   if (!performer) {
     return (
       <div className="tp-card card-3d glass tp-empty">
@@ -20,13 +18,11 @@ const TopPerformerCard = ({ performer, period, matchType }) => {
   }
 
   const avatar =
-    performer.player_avatar ||
-    performer.photo_url ||
-    performer.image_url ||
-    "";
+    performer.player_avatar || performer.photo_url || performer.image_url || "";
 
   return (
     <div className={`tp-card card-3d glass ${performer.mvp_badge ? "is-mvp" : ""}`}>
+      {/* 🔧 Moved to left and floated above the card so it never overlaps */}
       {performer.mvp_badge && (
         <div className="tp-ribbon" title="MVP of the Month">
           🏆 MVP of the Month
