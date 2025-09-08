@@ -7,6 +7,7 @@ import Confetti from "react-confetti";
 import useWindowSize from "react-use/lib/useWindowSize";
 import "./MatchForm.css";
 import { useAuth } from "../services/auth";
+import "./TestMatchForm.css";
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
 
@@ -258,12 +259,12 @@ export default function TestMatchForm() {
     normalizeTeamName(team1).toLowerCase() === normalizeTeamName(team2).toLowerCase();
 
   return (
-    <div className="container mt-4">
-      {showFireworks && <Confetti width={width} height={height} numberOfPieces={300} recycle={false} />}
-      {celebrationText && <div className="celebration-banner">{celebrationText}</div>}
+  <div className="container mt-4">
+    {showFireworks && <Confetti width={width} height={height} numberOfPieces={300} recycle={false} />}
+    {celebrationText && <div className="celebration-banner">{celebrationText}</div>}
 
-      <div className="card shadow p-4">
-        <h3 className="text-center mb-4 text-success">🏏 Test Match Form</h3>
+    <div className="card shadow p-4 test-card">
+      <h3 className="text-center mb-4 text-success">🏏 Test Match Form</h3>
 
         <form onSubmit={handleSubmit}>
           {/* Read-only, auto-filled name */}
