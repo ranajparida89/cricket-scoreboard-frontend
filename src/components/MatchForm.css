@@ -1,18 +1,25 @@
-/* ===== MatchForm.css — Aqua Nova theme (ODI/T20) ===== */
+/* ===== MatchForm.css — Aqua Nova theme (ODI/T20) =====
+   - Sleek dark card with aqua accents
+   - Read-only "Match Name" styling (+ subtle helper look)
+   - Soft glow on fields/buttons
+   - Lightweight "+ Add Tournament" modal
+*/
 
+/* Palette + shadows */
 :root{
   --mf-bg-900:#0b1220;
   --mf-bg-850:#0d1828;
   --mf-bg-800:#0f1d2e;
+
   --mf-ink:#e9f4ff;
   --mf-muted:#a2c6e8;
-  --mf-accent:#23e8ff;
-  --mf-accent-2:#6feaff;
+
+  --mf-accent:#23e8ff;           /* aqua */
   --mf-ring:0 0 0 2px rgba(35,232,255,.35);
   --mf-glow:0 18px 48px -22px rgba(35,232,255,.45);
 }
 
-/* Card */
+/* Card shell */
 .card.shadow.p-4:has(h3.text-center.text-primary){
   background:
     radial-gradient(1200px 600px at 15% -18%, rgba(35,232,255,.08), transparent 38%),
@@ -52,10 +59,20 @@
   border-color: var(--mf-accent) !important;
   box-shadow: var(--mf-ring), var(--mf-glow) !important;
 }
-
-/* Match type select dropdown options (dark) */
 .card:has(h3.text-center.text-primary) .form-select option{
   background:#0c1828; color:var(--mf-ink);
+}
+
+/* Read-only "Match Name" look */
+.card:has(h3.text-center.text-primary) .form-control[readonly]{
+  background: #0c1828 !important;
+  border-style: dashed !important;
+  border-color: rgba(35,232,255,.35) !important;
+  color: #cdeafd !important;
+  font-style: italic;
+}
+.card:has(h3.text-center.text-primary) .form-control[readonly]::placeholder{
+  color:#9fdcf0; opacity:.9;
 }
 
 /* Primary button */
@@ -79,7 +96,7 @@
   color:#c9f8ff;
 }
 
-/* Add (+) button next to tournament dropdown */
+/* "+" button beside tournament dropdown */
 .card:has(h3.text-center.text-primary) .btn-add-gold{
   width:40px; height:40px; border-radius:10px;
   display:inline-flex; align-items:center; justify-content:center;
@@ -95,7 +112,7 @@
   background: linear-gradient(180deg, rgba(35,232,255,.28), rgba(35,232,255,.16));
 }
 
-/* Lightweight “Add tournament” modal */
+/* Lightweight “Add Tournament” modal */
 .addtour-backdrop{
   position:fixed; inset:0; backdrop-filter: blur(6px) saturate(120%);
   background: radial-gradient(80% 100% at 50% 0, rgba(0,10,20,.65), rgba(0,0,0,.6));
@@ -103,7 +120,7 @@
 }
 .addtour-modal{
   width:min(520px, 92vw);
-  margin: 10vh auto 0 auto;
+  margin: 10vh auto 0;
   background: linear-gradient(180deg, rgba(15,29,46,.96), rgba(10,18,32,.96));
   border:1px solid rgba(35,232,255,.35);
   border-radius:16px;
@@ -116,7 +133,7 @@
   color: var(--mf-accent);
 }
 
-/* Celebration banner (kept) */
+/* Celebration banner */
 .celebration-banner{
   position: fixed; top: 18%; left: 50%; transform: translateX(-50%);
   background: #0c1c2c; color: var(--mf-accent);
@@ -129,13 +146,11 @@
 @keyframes mfIn{from{opacity:0; transform:translateX(-50%) scale(.92);}to{opacity:1; transform:translateX(-50%) scale(1);}}
 @keyframes mfOut{to{opacity:0; transform:translateX(-50%) scale(.88);}}
 
-/* Disabled read-only look used in info rows if any */
+/* Utility (used on disabled info rows if any) */
 .form-control-static{
   background: #0c1828 !important;
   color: #cdeafd !important;
   border: 1px dashed rgba(255,255,255,.12) !important;
   box-shadow: none !important;
 }
-
-/* Small helpers */
 .muted-label{ color: var(--mf-muted); font-weight: 800; }
