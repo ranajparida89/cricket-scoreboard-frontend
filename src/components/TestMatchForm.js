@@ -1,17 +1,14 @@
 // ✅ src/components/TestMatchForm.js
-// ✅ [Ranaj Parida - 2025-04-19 | Final Enhanced Celebration: Sound + Confetti + Banner]
-// ✅ [2025-08-21 | Tournament fields] Add tournament_name, season_year, match_date to payload
-
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createMatch, submitTestMatchResult } from "../services/api";
 import { playSound } from "../utils/playSound";
 import Confetti from "react-confetti";
 import useWindowSize from "react-use/lib/useWindowSize";
-import "./MatchForm.css"; // ✅ reuse celebration styles
-import { useAuth } from "../services/auth"; // add to fetch user_id 13th June 2025
+import "./MatchForm.css";
+import { useAuth } from "../services/auth";
 
 const normalizeTeamName = (name) => {
-  const mapping = {
+  const m = {
     IND: "India", INDIA: "India",
     AUS: "Australia", AUSTRALIA: "Australia",
     ENG: "England", ENGLAND: "England",
@@ -27,13 +24,13 @@ const normalizeTeamName = (name) => {
     UAE: "United Arab Emirates", NEP: "Nepal"
   };
   const upper = name?.trim().toUpperCase();
-  return mapping[upper] || name.trim();
+  return m[upper] || name.trim();
 };
 
 const isValidOver = (over) => {
   const parts = over.toString().split(".");
-  const balls = parts[1] ? parseInt(parts[1].padEnd(1, "0")) : 0;
-  return balls <= 5;
+  const balls = parts[1] ? parseInt(parts[1][0]) : 0;
+  return !isNaN(balls) && balls <= 5;
 };
 
 function todayISO() {
@@ -43,10 +40,13 @@ function todayISO() {
   return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
-const TestMatchForm = () => {
-  const [matchName, setMatchName] = useState("");
+export default function TestMatchForm() {
+  const { width, height } = useWindowSize();
+  const { currentUser } = useAuth();
 
-  // ✅ Tournament fields
+  const [matchName, setMatchName] = useState("");
+  const [isMatchNameDirty, setIsMatchNameDirty] = useState(false);
+
   const [tournamentName, setTournamentName] = useState("");
   const [matchDate, setMatchDate] = useState(todayISO());
   const seasonDefault = useMemo(() => new Date(matchDate).getFullYear(), [matchDate]);
@@ -54,12 +54,34 @@ const TestMatchForm = () => {
 
   const [team1, setTeam1] = useState("");
   const [team2, setTeam2] = useState("");
+
   const [resultMsg, setResultMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showFireworks, setShowFireworks] = useState(false);
   const [celebrationText, setCelebrationText] = useState("");
-  const { width, height } = useWindowSize();
 
+  // tournaments state (scope=test)
+  const [tournaments, setTournaments] = useState([]);
+  const [tournamentsLoading, setTournamentsLoading] = useState(true);
+  const [addOpen, setAddOpen] = useState(false);
+  const [newTourName, setNewTourName] = useState("");
+  const [newTourYear, setNewTourYear] = useState(seasonDefault);
+
+  useEffect(() => {
+    let cancelled = false;
+    setTournamentsLoading(true);
+    fetch(`/api/match/tournaments?scope=test`)
+      .then(r => r.json())
+      .then(data => {
+        if (cancelled) return;
+        setTournaments(Array.isArray(data.tournaments) ? data.tournaments : []);
+      })
+      .catch(() => !cancelled && setTournaments([]))
+      .finally(() => !cancelled && setTournamentsLoading(false));
+    return () => { cancelled = true; };
+  }, []);
+
+  // innings
   const [innings, setInnings] = useState({
     t1i1: { runs: "", overs: "", wickets: "", error: "" },
     t2i1: { runs: "", overs: "", wickets: "", error: "" },
@@ -74,68 +96,71 @@ const TestMatchForm = () => {
       const updated = { ...prev[key], [field]: value };
       let error = "";
 
-      const parsedOvers = parseFloat(field === "overs" ? value : updated.overs || 0);
       const total = Object.entries(prev).reduce((acc, [k, inn]) => {
-        if (k === key) return acc;
-        return acc + parseFloat(inn.overs || 0);
-      }, 0) + parseFloat(field === "overs" ? value : prev[key].overs || 0);
+        const v = parseFloat(k === key ? value : inn.overs || 0);
+        return acc + (field === "overs" && k === key ? v : parseFloat(inn.overs || 0));
+      }, 0);
 
       if (field === "overs") {
-        if (!isValidOver(value)) {
-          error = "Overs must have balls between 0 and 5";
-        } else if (total > maxOvers) {
-          error = `Input overs (${total}) exceed remaining (${maxOvers})`;
-        }
+        if (!isValidOver(value)) error = "Overs must have balls between 0 and 5";
+        else if (total > maxOvers) error = `Input overs exceed remaining (${maxOvers})`;
       }
-
-      if (field === "wickets" && (parseInt(value) > 10 || parseInt(value) < 0)) {
-        error = "Wickets must be between 0 and 10";
+      if (field === "wickets") {
+        const w = parseInt(value, 10);
+        if (isNaN(w) || w < 0 || w > 10) error = "Wickets must be 0–10";
       }
-
       return { ...prev, [key]: { ...updated, error } };
     });
   };
 
-  const totalUsedOvers = () => {
-    return Object.values(innings).reduce((acc, inn) => {
+  const totalUsedOvers = () =>
+    Object.values(innings).reduce((acc, inn) => {
       const o = parseFloat(inn.overs || 0);
       return acc + (isValidOver(o) ? o : 0);
     }, 0);
-  };
 
-  const remainingOvers = () => {
-    return Math.max(0, (maxOvers - totalUsedOvers()).toFixed(1));
-  };
+  const remainingOvers = () =>
+    Math.max(0, (maxOvers - totalUsedOvers()).toFixed(1));
+
+  // auto build match name unless edited
+  useEffect(() => {
+    if (isMatchNameDirty) return;
+    const t1 = normalizeTeamName(team1);
+    const t2 = normalizeTeamName(team2);
+    const tnm = tournamentName?.trim();
+    if (tnm && seasonYear && t1 && t2) {
+      setMatchName(`${tnm} ${seasonYear} : ${t1} vs ${t2}`);
+    }
+  }, [tournamentName, seasonYear, team1, team2, isMatchNameDirty]);
 
   const calculateResult = () => {
-    const t1Runs = parseInt(innings.t1i1.runs || 0) + parseInt(innings.t1i2.runs || 0);
-    const t2Runs = parseInt(innings.t2i1.runs || 0) + parseInt(innings.t2i2.runs || 0);
-    const t2Wickets2 = parseInt(innings.t2i2.wickets || 0);
-    const usedOvers = totalUsedOvers();
+    const t1Runs = parseInt(innings.t1i1.runs || 0, 10) + parseInt(innings.t1i2.runs || 0, 10);
+    const t2Runs = parseInt(innings.t2i1.runs || 0, 10) + parseInt(innings.t2i2.runs || 0, 10);
+    const t2W2 = parseInt(innings.t2i2.wickets || 0, 10);
+    const used = totalUsedOvers();
 
     if (t2Runs > t1Runs) return { winner: normalizeTeamName(team2), points: 12 };
-    if (t1Runs > t2Runs && t2Wickets2 === 10) return { winner: normalizeTeamName(team1), points: 12 };
-    if (usedOvers >= maxOvers) return { winner: "Draw", points: 4 };
-
+    if (t1Runs > t2Runs && t2W2 === 10) return { winner: normalizeTeamName(team1), points: 12 };
+    if (used >= maxOvers) return { winner: "Draw", points: 4 };
     return { winner: "Draw", points: 4 };
   };
 
-  const { currentUser } = useAuth(); // for user_id 13th June 2025
+  const addNewTournament = (e) => {
+    e.preventDefault();
+    const nm = newTourName.trim();
+    if (!nm) return;
+    if (!tournaments.includes(nm)) setTournaments(prev => [...prev, nm].sort());
+    setTournamentName(nm);
+    setSeasonYear(Number(newTourYear) || seasonDefault);
+    setAddOpen(false);
+    setNewTourName("");
+  };
 
   const validateTournament = () => {
     const y = Number(seasonYear);
-    if (!tournamentName.trim()) {
-      alert("❌ Tournament Name is required.");
-      return false;
-    }
-    if (!Number.isInteger(y) || y < 1860 || y > 2100) {
-      alert("❌ Season Year must be between 1860 and 2100.");
-      return false;
-    }
-    if (!matchDate) {
-      alert("❌ Match Date is required.");
-      return false;
-    }
+    if (!tournamentName.trim()) { alert("❌ Tournament Name is required."); return false; }
+    if (!Number.isInteger(y) || y < 1860 || y > 2100) { alert("❌ Season Year must be between 1860 and 2100."); return false; }
+    if (!matchDate) { alert("❌ Match Date is required."); return false; }
     return true;
   };
 
@@ -147,8 +172,8 @@ const TestMatchForm = () => {
     if (!matchName || !t1 || !t2) return alert("❌ Fill all required fields.");
     if (t1.toLowerCase() === t2.toLowerCase()) return alert("❌ Team names must be different.");
 
-    const hasError = Object.values(innings).some((inn) => inn.error !== "");
-    if (hasError) return alert("❌ Please fix validation errors before submitting.");
+    const hasError = Object.values(innings).some((inn) => inn.error);
+    if (hasError) return alert("❌ Please fix validation errors.");
     if (!validateTournament()) return;
 
     try {
@@ -159,44 +184,37 @@ const TestMatchForm = () => {
       const payload = {
         match_id: match.match_id,
         match_type: "Test",
-        team1: t1,
-        team2: t2,
-        winner,
-        points,
-        runs1: parseInt(innings.t1i1.runs),
-        overs1: parseFloat(innings.t1i1.overs),
-        wickets1: parseInt(innings.t1i1.wickets),
-        runs2: parseInt(innings.t2i1.runs),
-        overs2: parseFloat(innings.t2i1.overs),
-        wickets2: parseInt(innings.t2i1.wickets),
-        runs1_2: parseInt(innings.t1i2.runs),
-        overs1_2: parseFloat(innings.t1i2.overs),
-        wickets1_2: parseInt(innings.t1i2.wickets),
-        runs2_2: parseInt(innings.t2i2.runs),
-        overs2_2: parseFloat(innings.t2i2.overs),
-        wickets2_2: parseInt(innings.t2i2.wickets),
+        team1: t1, team2: t2,
+        winner, points,
+        runs1: parseInt(innings.t1i1.runs || 0, 10),
+        overs1: parseFloat(innings.t1i1.overs || 0),
+        wickets1: parseInt(innings.t1i1.wickets || 0, 10),
+        runs2: parseInt(innings.t2i1.runs || 0, 10),
+        overs2: parseFloat(innings.t2i1.overs || 0),
+        wickets2: parseInt(innings.t2i1.wickets || 0, 10),
+        runs1_2: parseInt(innings.t1i2.runs || 0, 10),
+        overs1_2: parseFloat(innings.t1i2.overs || 0),
+        wickets1_2: parseInt(innings.t1i2.wickets || 0, 10),
+        runs2_2: parseInt(innings.t2i2.runs || 0, 10),
+        overs2_2: parseFloat(innings.t2i2.overs || 0),
+        wickets2_2: parseInt(innings.t2i2.wickets || 0, 10),
         total_overs_used: totalUsedOvers(),
-        user_id: currentUser.id,
-        // NEW:
+        user_id: currentUser?.id,
         tournament_name: tournamentName.trim(),
         season_year: Number(seasonYear),
-        match_date: matchDate
+        match_date: matchDate,
+        match_name: matchName
       };
 
       const result = await submitTestMatchResult(payload);
 
-      // ✅ Trigger celebration
-      if (result.message && result.message.includes("won")) {
+      if ((result.message || "").includes("won")) {
         const winnerTeam = result.message.split(" won")[0];
         playSound("celebration");
         setCelebrationText(`🎉 Congratulations! ${winnerTeam} won the match!`);
         setShowFireworks(true);
-        setTimeout(() => {
-          setShowFireworks(false);
-          setCelebrationText("");
-        }, 4000); // ✅ show for 4 sec
+        setTimeout(() => { setShowFireworks(false); setCelebrationText(""); }, 4000);
       }
-
       setResultMsg(result.message);
     } catch (err) {
       alert("❌ Error: " + (err?.response?.data?.error || err.message));
@@ -205,19 +223,9 @@ const TestMatchForm = () => {
     }
   };
 
-  const renderInning = (label, key) => (
-    <div className="mb-2">
-      <label><strong>{label}</strong></label>
-      <div className="row">
-        <div className="col"><input type="number" className="form-control" placeholder="Runs" value={innings[key].runs} onChange={(e) => updateInning(key, "runs", e.target.value)} /></div>
-        <div className="col"><input type="text" className="form-control" placeholder="Overs" value={innings[key].overs} onChange={(e) => updateInning(key, "overs", e.target.value)} /></div>
-        <div className="col"><input type="number" className="form-control" placeholder="Wickets" value={innings[key].wickets} onChange={(e) => updateInning(key, "wickets", e.target.value)} /></div>
-      </div>
-      {innings[key].error && <small className="text-danger">{innings[key].error}</small>}
-    </div>
-  );
-
-  const isDuplicateTeam = normalizeTeamName(team1).toLowerCase() === normalizeTeamName(team2).toLowerCase();
+  const isDuplicateTeam =
+    team1.trim() && team2.trim() &&
+    normalizeTeamName(team1).toLowerCase() === normalizeTeamName(team2).toLowerCase();
 
   return (
     <div className="container mt-4">
@@ -226,21 +234,40 @@ const TestMatchForm = () => {
 
       <div className="card shadow p-4">
         <h3 className="text-center mb-4 text-success">🏏 Test Match Form</h3>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-2"><label>Match Name:</label><input type="text" className="form-control" value={matchName} onChange={(e) => setMatchName(e.target.value)} required /></div>
 
-          {/* ✅ Tournament block */}
-          <div className="row g-3 mb-2">
+        <form onSubmit={handleSubmit}>
+          <div className="mb-2">
+            <label>Match Name:</label>
+            <input
+              type="text"
+              className="form-control"
+              value={matchName}
+              onChange={(e) => { setMatchName(e.target.value); setIsMatchNameDirty(true); }}
+              required
+            />
+          </div>
+
+          <div className="row g-3 mb-2 align-items-end">
             <div className="col-md-6">
               <label>Tournament Name:</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="e.g., World Test Championship"
-                value={tournamentName}
-                onChange={(e) => setTournamentName(e.target.value)}
-                required
-              />
+              <div className="d-flex gap-2">
+                <select
+                  className="form-select"
+                  value={tournamentName}
+                  onChange={(e) => setTournamentName(e.target.value)}
+                >
+                  <option value="">{tournamentsLoading ? "Loading…" : "Select tournament…"}</option>
+                  {tournaments.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="btn btn-add-gold"
+                  title="Add new tournament"
+                  onClick={() => setAddOpen(true)}
+                >+</button>
+              </div>
             </div>
             <div className="col-md-3">
               <label>Season Year:</label>
@@ -266,6 +293,31 @@ const TestMatchForm = () => {
             </div>
           </div>
 
+          {addOpen && (
+            <div className="addtour-backdrop" onClick={() => setAddOpen(false)}>
+              <div className="addtour-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="addtour-header">➕ Add Tournament</div>
+                <div className="mb-2">
+                  <label className="form-label">Tournament Name</label>
+                  <input className="form-control"
+                         placeholder="e.g., World Test Championship"
+                         value={newTourName}
+                         onChange={(e) => setNewTourName(e.target.value)} />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Season Year</label>
+                  <input type="number" className="form-control"
+                         value={newTourYear} min={1860} max={2100}
+                         onChange={(e) => setNewTourYear(e.target.value)} />
+                </div>
+                <div className="d-flex gap-2">
+                  <button className="btn btn-primary flex-fill" onClick={addNewTournament}>Add</button>
+                  <button className="btn btn-secondary flex-fill" onClick={() => setAddOpen(false)}>Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="row mb-3">
             <div className="col">
               <label>Team 1:</label>
@@ -276,21 +328,51 @@ const TestMatchForm = () => {
               <input type="text" className="form-control" value={team2} onChange={(e) => setTeam2(e.target.value)} required />
             </div>
           </div>
+
           {isDuplicateTeam && (
             <div className="alert alert-danger text-center py-2">❌ Team names must be different!</div>
           )}
 
+          {/* Greyed info row (still disabled inputs) */}
           <div className="mb-3 row">
-            <div className="col"><label>🗓️ Total Days</label><input className="form-control" value="5" disabled /></div>
-            <div className="col"><label>🎯 Overs/Day</label><input className="form-control" value="90" disabled /></div>
-            <div className="col"><label>🧮 Total Overs</label><input className="form-control" value={maxOvers} disabled /></div>
-            <div className="col"><label>⏳ Overs Remaining</label><input className="form-control" value={remainingOvers()} disabled /></div>
+            <div className="col">
+              <label className="muted-label">🗓️ Total Days</label>
+              <input className="form-control form-control-static" value="5" disabled />
+            </div>
+            <div className="col">
+              <label className="muted-label">🎯 Overs/Day</label>
+              <input className="form-control form-control-static" value="90" disabled />
+            </div>
+            <div className="col">
+              <label className="muted-label">🧮 Total Overs</label>
+              <input className="form-control form-control-static" value={maxOvers} disabled />
+            </div>
+            <div className="col">
+              <label className="muted-label">⏳ Overs Remaining</label>
+              <input className="form-control form-control-static" value={remainingOvers()} disabled />
+            </div>
           </div>
 
-          {renderInning(`${team1 || "Team 1"} - 1st Innings`, "t1i1")}
-          {renderInning(`${team2 || "Team 2"} - 1st Innings`, "t2i1")}
-          {renderInning(`${team1 || "Team 1"} - 2nd Innings`, "t1i2")}
-          {renderInning(`${team2 || "Team 2"} - 2nd Innings`, "t2i2")}
+          {/* Innings */}
+          {[
+            [`${team1 || "Team 1"} - 1st Innings`, "t1i1"],
+            [`${team2 || "Team 2"} - 1st Innings`, "t2i1"],
+            [`${team1 || "Team 1"} - 2nd Innings`, "t1i2"],
+            [`${team2 || "Team 2"} - 2nd Innings`, "t2i2"]
+          ].map(([label, key]) => (
+            <div className="mb-2" key={key}>
+              <label><strong>{label}</strong></label>
+              <div className="row">
+                <div className="col"><input type="number" className="form-control" placeholder="Runs"
+                      value={innings[key].runs} onChange={(e) => updateInning(key, "runs", e.target.value)} /></div>
+                <div className="col"><input type="text" className="form-control" placeholder="Overs"
+                      value={innings[key].overs} onChange={(e) => updateInning(key, "overs", e.target.value)} /></div>
+                <div className="col"><input type="number" className="form-control" placeholder="Wickets"
+                      value={innings[key].wickets} onChange={(e) => updateInning(key, "wickets", e.target.value)} /></div>
+              </div>
+              {innings[key].error && <small className="text-danger">{innings[key].error}</small>}
+            </div>
+          ))}
 
           <div className="d-grid mt-4">
             <button className="btn btn-success" disabled={isSubmitting || isDuplicateTeam}>
@@ -303,6 +385,4 @@ const TestMatchForm = () => {
       </div>
     </div>
   );
-};
-
-export default TestMatchForm;
+}

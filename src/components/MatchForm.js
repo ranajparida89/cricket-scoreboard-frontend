@@ -1,14 +1,12 @@
 // ✅ src/components/MatchForm.js
-// ✅ [Ranaj Parida | 2025-04-19] Celebration Enhanced: 4-sec Confetti, Popup, and Sound
-// ✅ [ChatGPT | 2024-06-18] Pass user_id when creating a match
-// ✅ [2025-08-21 | Tournament fields] Add tournament_name, season_year, match_date to payload
+// (keeps your celebration, sounds, and submit logic)
 
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createMatch, submitMatchResult } from "../services/api";
-import { playSound } from "../utils/playSound"; // ✅ Sound utility
-import Confetti from "react-confetti"; // ✅ Confetti effect
-import useWindowSize from "react-use/lib/useWindowSize"; // ✅ Full screen sizing
-import "./MatchForm.css"; // ✅ Celebration banner CSS
+import { playSound } from "../utils/playSound";
+import Confetti from "react-confetti";
+import useWindowSize from "react-use/lib/useWindowSize";
+import "./MatchForm.css";
 
 const TEAM_MAP = {
   IND: "India", AUS: "Australia", ENG: "England", PAK: "Pakistan", SA: "South Africa",
@@ -40,10 +38,13 @@ function todayISO() {
   return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
-const MatchForm = () => {
-  const [matchName, setMatchName] = useState("");
+export default function MatchForm() {
+  const { width, height } = useWindowSize();
 
-  // ✅ Tournament fields
+  // ===== core form =====
+  const [matchName, setMatchName] = useState("");
+  const [isMatchNameDirty, setIsMatchNameDirty] = useState(false);
+
   const [tournamentName, setTournamentName] = useState("");
   const [matchDate, setMatchDate] = useState(todayISO());
   const seasonDefault = useMemo(() => new Date(matchDate).getFullYear(), [matchDate]);
@@ -52,16 +53,57 @@ const MatchForm = () => {
   const [matchType, setMatchType] = useState("T20");
   const [team1, setTeam1] = useState("");
   const [team2, setTeam2] = useState("");
-  const [runs1, setRuns1] = useState(""); const [overs1, setOvers1] = useState(""); const [wickets1, setWickets1] = useState("");
-  const [runs2, setRuns2] = useState(""); const [overs2, setOvers2] = useState(""); const [wickets2, setWickets2] = useState("");
-  const [overs1Error, setOvers1Error] = useState(""); const [overs2Error, setOvers2Error] = useState("");
-  const [wickets1Error, setWickets1Error] = useState(""); const [wickets2Error, setWickets2Error] = useState("");
-  const [resultMsg, setResultMsg] = useState(""); const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [runs1, setRuns1] = useState("");
+  const [overs1, setOvers1] = useState("");
+  const [wickets1, setWickets1] = useState("");
+  const [runs2, setRuns2] = useState("");
+  const [overs2, setOvers2] = useState("");
+  const [wickets2, setWickets2] = useState("");
+
+  const [overs1Error, setOvers1Error] = useState("");
+  const [overs2Error, setOvers2Error] = useState("");
+  const [wickets1Error, setWickets1Error] = useState("");
+  const [wickets2Error, setWickets2Error] = useState("");
+
+  const [resultMsg, setResultMsg] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [winnerTeam, setWinnerTeam] = useState("");
 
-  const { width, height } = useWindowSize(); // ✅ Detect screen size for full-screen confetti
   const maxOvers = matchType === "T20" ? 20 : 50;
+
+  // ===== tournaments dropdown state =====
+  const [tournaments, setTournaments] = useState([]);
+  const [tournamentsLoading, setTournamentsLoading] = useState(true);
+  const [addOpen, setAddOpen] = useState(false);
+  const [newTourName, setNewTourName] = useState("");
+  const [newTourYear, setNewTourYear] = useState(seasonDefault);
+
+  useEffect(() => {
+    let cancelled = false;
+    setTournamentsLoading(true);
+    fetch(`/api/match/tournaments?scope=limited`)
+      .then(r => r.json())
+      .then(data => {
+        if (cancelled) return;
+        setTournaments(Array.isArray(data.tournaments) ? data.tournaments : []);
+      })
+      .catch(() => !cancelled && setTournaments([]))
+      .finally(() => !cancelled && setTournamentsLoading(false));
+    return () => { cancelled = true; };
+  }, []);
+
+  // auto build match name unless user typed it
+  useEffect(() => {
+    if (isMatchNameDirty) return;
+    const t1 = normalizeTeamName(team1);
+    const t2 = normalizeTeamName(team2);
+    const tnm = tournamentName?.trim();
+    if (tnm && seasonYear && t1 && t2) {
+      setMatchName(`${tnm} ${seasonYear} : ${t1} vs ${t2}`);
+    }
+  }, [tournamentName, seasonYear, team1, team2, isMatchNameDirty]);
 
   const handleOversChange = (val, setOvers, setError, teamName) => {
     setOvers(val);
@@ -70,7 +112,7 @@ const MatchForm = () => {
   };
 
   const handleWicketsChange = (val, setWickets, setError) => {
-    const w = parseInt(val);
+    const w = parseInt(val, 10);
     setWickets(val);
     const valid = !isNaN(w) && w >= 0 && w <= 10;
     setError(valid ? "" : "❌ Wickets must be between 0 and 10");
@@ -93,6 +135,19 @@ const MatchForm = () => {
     return true;
   };
 
+  const addNewTournament = (e) => {
+    e.preventDefault();
+    const nm = newTourName.trim();
+    if (!nm) return;
+    if (!tournaments.includes(nm)) {
+      setTournaments(prev => [...prev, nm].sort());
+    }
+    setTournamentName(nm);
+    setSeasonYear(Number(newTourYear) || seasonDefault);
+    setAddOpen(false);
+    setNewTourName("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -103,58 +158,48 @@ const MatchForm = () => {
       alert("❌ Both teams cannot be the same.");
       return;
     }
-
     if (overs1Error || overs2Error || wickets1Error || wickets2Error) {
       alert("❌ Please fix all validation errors before submitting.");
       return;
     }
-
     if (!validateTournament()) return;
 
     try {
       setIsSubmitting(true);
-
-      // ✅ Get user_id from localStorage ONCE and use everywhere needed
       const storedUser = JSON.parse(localStorage.getItem("user"));
       const userId = storedUser?.id;
 
-      // ✅ Create match (unchanged table, no tournament columns there)
       const match = await createMatch({
         match_name: matchName,
         match_type: matchType,
         user_id: userId
       });
 
-      // ✅ Submit result with tournament fields
       const payload = {
         match_id: match.match_id,
         match_type: matchType,
         team1: t1,
         team2: t2,
-        runs1: parseInt(runs1),
+        runs1: parseInt(runs1, 10),
         overs1: parseFloat(overs1),
-        wickets1: parseInt(wickets1),
-        runs2: parseInt(runs2),
+        wickets1: parseInt(wickets1, 10),
+        runs2: parseInt(runs2, 10),
         overs2: parseFloat(overs2),
-        wickets2: parseInt(wickets2),
+        wickets2: parseInt(wickets2, 10),
         user_id: userId,
-        // NEW:
         tournament_name: tournamentName.trim(),
         season_year: Number(seasonYear),
         match_date: matchDate
       };
-      const result = await submitMatchResult(payload);
-      setResultMsg(result.message);
 
-      // ✅ Celebration trigger
-      const winner = result.message.split(" ")[0];
+      const result = await submitMatchResult(payload);
+      setResultMsg(result.message || "Match submitted.");
+
+      const winner = (result.message || "").split(" ")[0];
       setWinnerTeam(winner);
       playSound("celebration");
       setShowPopup(true);
-
-      // ✅ 4 seconds
       setTimeout(() => setShowPopup(false), 4000);
-
     } catch (err) {
       alert("❌ Error: " + (err?.response?.data?.error || err.message));
     } finally {
@@ -164,38 +209,49 @@ const MatchForm = () => {
 
   return (
     <div className="container mt-4">
-      {/* ✅ Confetti firework */}
       {showPopup && <Confetti width={width} height={height} numberOfPieces={300} recycle={false} />}
-
-      {/* ✅ Celebration floating banner */}
-      {showPopup && (
-        <div className="celebration-banner">
-          🎉 Congratulations {winnerTeam}!
-        </div>
-      )}
+      {showPopup && <div className="celebration-banner">🎉 Congratulations {winnerTeam}!</div>}
 
       <div className="card shadow p-4">
         <h3 className="text-center mb-4 text-primary">🏏 Enter Match Details</h3>
 
         <form onSubmit={handleSubmit}>
+          {/* Match name (auto until edited) */}
           <div className="mb-3">
             <label>Match Name:</label>
-            <input type="text" className="form-control" value={matchName} onChange={(e) => setMatchName(e.target.value)} required />
+            <input
+              type="text"
+              className="form-control"
+              value={matchName}
+              onChange={(e) => { setMatchName(e.target.value); setIsMatchNameDirty(true); }}
+              required
+            />
           </div>
 
-          {/* ✅ Tournament block */}
-          <div className="row g-3">
+          {/* Tournament picker */}
+          <div className="row g-3 align-items-end">
             <div className="col-md-6">
               <label>Tournament Name:</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="e.g., Asia Cup"
-                value={tournamentName}
-                onChange={(e) => setTournamentName(e.target.value)}
-                required
-              />
+              <div className="d-flex gap-2">
+                <select
+                  className="form-select"
+                  value={tournamentName}
+                  onChange={(e) => setTournamentName(e.target.value)}
+                >
+                  <option value="">{tournamentsLoading ? "Loading…" : "Select tournament…"}</option>
+                  {tournaments.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="btn btn-add-gold"
+                  title="Add new tournament"
+                  onClick={() => setAddOpen(true)}
+                >+</button>
+              </div>
             </div>
+
             <div className="col-md-3">
               <label>Season Year:</label>
               <input
@@ -208,6 +264,7 @@ const MatchForm = () => {
                 required
               />
             </div>
+
             <div className="col-md-3">
               <label>Match Date:</label>
               <input
@@ -220,6 +277,40 @@ const MatchForm = () => {
             </div>
           </div>
 
+          {/* Add-new modal (inline lightweight) */}
+          {addOpen && (
+            <div className="addtour-backdrop" onClick={() => setAddOpen(false)}>
+              <div className="addtour-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="addtour-header">➕ Add Tournament</div>
+                <div className="mb-2">
+                  <label className="form-label">Tournament Name</label>
+                  <input
+                    className="form-control"
+                    placeholder="e.g., Champions Trophy"
+                    value={newTourName}
+                    onChange={(e) => setNewTourName(e.target.value)}
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Season Year</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={newTourYear}
+                    min={1860}
+                    max={2100}
+                    onChange={(e) => setNewTourYear(e.target.value)}
+                  />
+                </div>
+                <div className="d-flex gap-2">
+                  <button className="btn btn-primary flex-fill" onClick={addNewTournament}>Add</button>
+                  <button className="btn btn-secondary flex-fill" onClick={() => setAddOpen(false)}>Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Match Type */}
           <div className="mb-3 mt-3">
             <label>Match Type:</label>
             <select className="form-select" value={matchType} onChange={(e) => setMatchType(e.target.value)}>
@@ -228,36 +319,46 @@ const MatchForm = () => {
             </select>
           </div>
 
-          {/* 🏏 Team 1 Inputs */}
+          {/* Team 1 */}
           <h5 className="mt-4">Team 1 (Bat First)</h5>
-          <input type="text" className="form-control mb-2" placeholder="Team 1 Name" value={team1} onChange={(e) => setTeam1(e.target.value)} required />
+          <input type="text" className="form-control mb-2" placeholder="Team 1 Name"
+            value={team1} onChange={(e) => setTeam1(e.target.value)} required />
           <div className="row">
             <div className="col">
-              <input type="number" className="form-control mb-2" placeholder={`Runs by ${normalizeTeamName(team1) || "Team 1"}`} value={runs1} onChange={(e) => setRuns1(e.target.value)} />
+              <input type="number" className="form-control mb-2"
+                placeholder={`Runs by ${normalizeTeamName(team1) || "Team 1"}`}
+                value={runs1} onChange={(e) => setRuns1(e.target.value)} />
             </div>
             <div className="col">
-              <input type="text" className="form-control mb-2" placeholder="Overs" value={overs1} onChange={(e) => handleOversChange(e.target.value, setOvers1, setOvers1Error, team1)} />
+              <input type="text" className="form-control mb-2" placeholder="Overs"
+                value={overs1} onChange={(e) => handleOversChange(e.target.value, setOvers1, setOvers1Error, team1)} />
               {overs1Error && <small className="text-danger">{overs1Error}</small>}
             </div>
             <div className="col">
-              <input type="number" className="form-control mb-2" placeholder="Wickets" value={wickets1} onChange={(e) => handleWicketsChange(e.target.value, setWickets1, setWickets1Error)} />
+              <input type="number" className="form-control mb-2" placeholder="Wickets"
+                value={wickets1} onChange={(e) => handleWicketsChange(e.target.value, setWickets1, setWickets1Error)} />
               {wickets1Error && <small className="text-danger">{wickets1Error}</small>}
             </div>
           </div>
 
-          {/* 🏏 Team 2 Inputs */}
+          {/* Team 2 */}
           <h5 className="mt-4">Team 2</h5>
-          <input type="text" className="form-control mb-2" placeholder="Team 2 Name" value={team2} onChange={(e) => setTeam2(e.target.value)} required />
+          <input type="text" className="form-control mb-2" placeholder="Team 2 Name"
+            value={team2} onChange={(e) => setTeam2(e.target.value)} required />
           <div className="row">
             <div className="col">
-              <input type="number" className="form-control mb-2" placeholder={`Runs by ${normalizeTeamName(team2) || "Team 2"}`} value={runs2} onChange={(e) => setRuns2(e.target.value)} />
+              <input type="number" className="form-control mb-2"
+                placeholder={`Runs by ${normalizeTeamName(team2) || "Team 2"}`}
+                value={runs2} onChange={(e) => setRuns2(e.target.value)} />
             </div>
             <div className="col">
-              <input type="text" className="form-control mb-2" placeholder="Overs" value={overs2} onChange={(e) => handleOversChange(e.target.value, setOvers2, setOvers2Error, team2)} />
+              <input type="text" className="form-control mb-2" placeholder="Overs"
+                value={overs2} onChange={(e) => handleOversChange(e.target.value, setOvers2, setOvers2Error, team2)} />
               {overs2Error && <small className="text-danger">{overs2Error}</small>}
             </div>
             <div className="col">
-              <input type="number" className="form-control mb-2" placeholder="Wickets" value={wickets2} onChange={(e) => handleWicketsChange(e.target.value, setWickets2, setWickets2Error)} />
+              <input type="number" className="form-control mb-2" placeholder="Wickets"
+                value={wickets2} onChange={(e) => handleWicketsChange(e.target.value, setWickets2, setWickets2Error)} />
               {wickets2Error && <small className="text-danger">{wickets2Error}</small>}
             </div>
           </div>
@@ -269,12 +370,8 @@ const MatchForm = () => {
           </div>
         </form>
 
-        {resultMsg && (
-          <div className="alert alert-success mt-3 text-center">{resultMsg}</div>
-        )}
+        {resultMsg && <div className="alert alert-success mt-3 text-center">{resultMsg}</div>}
       </div>
     </div>
   );
-};
-
-export default MatchForm;
+}

@@ -1,54 +1,173 @@
-/* Dark + gold theme refresh for the Test form card */
+/* =========================
+   TestMatchForm.css — Dark + Gold
+   Single-accent design with soft golden glow
+   ========================= */
 
-.container .card.p-4 {
+:root{
+  --tf-bg-900:#0b0f18;
+  --tf-bg-850:#0d1320;
+  --tf-bg-800:#0e1522;
+  --tf-ink:#e8f0ff;
+  --tf-muted:#9fb2d3;
+  --tf-gold:#f7c948;
+  --tf-gold-amb:rgba(247,201,72,.22);
+}
+
+/* =============== CARD + LAYOUT =============== */
+.container .card.p-4{
   background:
-    radial-gradient(1200px 600px at 20% -10%, rgba(247,201,72,.06), transparent 40%),
-    linear-gradient(180deg, rgba(14,21,34,.85), rgba(10,16,28,.8));
+    radial-gradient(1200px 600px at 18% -12%, rgba(247,201,72,.06), transparent 40%),
+    linear-gradient(180deg, rgba(14,21,34,.88), rgba(10,16,28,.82));
   border: 1px solid rgba(255,255,255,.06);
-  box-shadow: 0 10px 38px -20px rgba(0,0,0,.8), 0 0 0 1px rgba(247,201,72,.15) inset;
   border-radius: 18px;
+  box-shadow: 0 10px 38px -20px rgba(0,0,0,.85), 0 0 0 1px rgba(247,201,72,.12) inset;
+  color: var(--tf-ink);
 }
 
-h3.text-center {
-  color: #f7c948 !important;
-  text-shadow: 0 1px 0 rgba(0,0,0,.4);
+h3.text-center{
+  color: var(--tf-gold) !important;
+  text-shadow: 0 1px 0 rgba(0,0,0,.45);
+  letter-spacing: .2px;
 }
 
-/* Inputs */
-.form-control, .form-select {
-  background: #0e1522 !important;
-  color: #e8f0ff !important;
+/* =============== LABELS =============== */
+label{
+  color: var(--tf-ink);
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+/* =============== FORM CONTROLS =============== */
+.form-control,
+.form-select{
+  background: var(--tf-bg-800) !important;
+  color: var(--tf-ink) !important;
   border: 1px solid rgba(255,255,255,.08) !important;
   border-radius: 12px !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
 }
-.form-control:focus, .form-select:focus {
-  border-color: #f7c948 !important;
+.form-control::placeholder{ color: var(--tf-muted); opacity: .8; }
+
+.form-control:focus,
+.form-select:focus{
+  border-color: var(--tf-gold) !important;
   box-shadow: 0 0 0 2px rgba(247,201,72,.28) !important;
 }
 
-/* Buttons */
-.btn-success, .btn-primary {
-  background: rgba(247,201,72,.18) !important;
-  color: #f7c948 !important;
-  border: 1px solid rgba(247,201,72,.4) !important;
-  border-radius: 12px !important;
-  font-weight: 700; letter-spacing: .2px;
+/* =============== DISABLED “DIMMED” BLOCK =============== */
+/* Makes computed Test info (Total Days, Overs/Day, etc.) appear grayed,
+   while keeping the inputs enabled/disabled as your JS decides. */
+.dimmed-block{
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
+  border:1px dashed rgba(247,201,72,.16);
+  border-radius: 12px;
+  padding: 10px;
+  margin: 4px 0 8px;
 }
-.btn-success:hover, .btn-primary:hover {
+.dimmed-block .form-control[disabled]{
+  background: #0f1624 !important;
+  color: #b9c7e4 !important;
+  border-color: rgba(255,255,255,.06) !important;
+  opacity: .85;
+}
+
+/* Inline note (if you show remaining overs hint) */
+.hint{
+  margin-top:6px;
+  color: var(--tf-muted);
+  font-weight:700;
+  font-size:.95rem;
+}
+
+/* =============== BUTTONS =============== */
+.btn-success, .btn-primary{
+  background: rgba(247,201,72,.18) !important;
+  color: var(--tf-gold) !important;
+  border: 1px solid rgba(247,201,72,.40) !important;
+  border-radius: 12px !important;
+  font-weight: 800;
+  letter-spacing: .2px;
+  box-shadow: 0 10px 28px -20px rgba(247,201,72,.55);
+}
+.btn-success:hover, .btn-primary:hover{
   background: rgba(247,201,72,.24) !important;
 }
 
-/* Alerts */
-.alert-success {
-  background: rgba(20, 226, 154, .1);
+button[disabled]{ opacity:.7; filter: grayscale(.2); }
+
+/* =============== ALERTS =============== */
+.alert-success{
+  background: rgba(20,226,154,.1);
   border-color: rgba(20,226,154,.4);
   color: #b7ffea;
+  border-radius: 12px;
+  font-weight: 700;
+}
+.alert-danger{
+  background: rgba(255,138,128,.08);
+  border-color: rgba(255,138,128,.35);
+  color: #ffb3ad;
+  border-radius: 12px;
+  font-weight: 800;
 }
 
-/* Celebration banner (re-uses existing class name) */
-.celebration-banner {
+/* =============== CELEBRATION BANNER =============== */
+.celebration-banner{
+  position: fixed;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
   background: #0c1c2c;
-  color: #f7c948;
+  color: var(--tf-gold);
   border: 1px solid rgba(247,201,72,.25);
   box-shadow: 0 12px 50px -20px rgba(247,201,72,.35);
+  font-size: 26px;
+  font-weight: 900;
+  padding: 16px 26px;
+  border-radius: 12px;
+  z-index: 9999;
+  animation: tfIn .9s ease, tfOut .9s ease 4s forwards;
+}
+@keyframes tfIn { from{opacity:0; transform: translateX(-50%) scale(.94);} to{opacity:1; transform: translateX(-50%) scale(1);} }
+@keyframes tfOut{ to{opacity:0; transform: translateX(-50%) scale(.94);} }
+
+/* =============== INNINGS LIST =============== */
+.innings-group{ margin-top: 6px; }
+.innings-group .row{ row-gap: 6px; }
+.small-error{ color:#ff8a80; font-weight:800; }
+
+/* =============== TOURNAMENT PICKER (optional, same look) =============== */
+.tourney-row{
+  display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;
+}
+.tourney-col{
+  flex:1 1 260px; min-width:240px;
+}
+.btn-add-tournament{
+  background: rgba(247,201,72,.16);
+  color: var(--tf-gold);
+  border:1px solid rgba(247,201,72,.42);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight:800;
+  letter-spacing:.2px;
+}
+.btn-add-tournament:hover{
+  background: rgba(247,201,72,.24);
+}
+.tourney-pop{
+  background: linear-gradient(180deg, rgba(16,24,37,.98), rgba(9,15,26,.96));
+  border:1px solid rgba(247,201,72,.22);
+  box-shadow: 0 24px 60px -24px rgba(247,201,72,.28), 0 0 0 1px rgba(247,201,72,.12) inset;
+  border-radius:14px;
+  padding:12px;
+  margin-top:10px;
+}
+.tourney-pop .actions{
+  display:flex; gap:10px; justify-content:flex-end; margin-top:10px;
+}
+
+/* =============== RESPONSIVE =============== */
+@media (max-width: 992px){
+  .tourney-row{ flex-direction:column; align-items:stretch; }
 }
