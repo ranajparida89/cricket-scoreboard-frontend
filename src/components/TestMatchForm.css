@@ -1,18 +1,25 @@
-/* ===== TestMatchForm.css — Royal Gold theme (Test) ===== */
+/* ===== TestMatchForm.css — Royal Gold theme (Test) =====
+   - Sleek dark card with soft gold accents
+   - Read-only "Match Name" styling (matches ODI/T20)
+   - Greyed informational row with dashed gold borders
+   - Lightweight "+ Add Tournament" modal
+*/
 
+/* Palette + shadows */
 :root{
   --tm-bg-900:#0b0f18;
   --tm-bg-850:#0d1320;
   --tm-bg-800:#0e1522;
+
   --tm-ink:#eef3ff;
   --tm-muted:#a9b7d6;
+
   --tm-accent:#f7c948;               /* gold */
-  --tm-accent-2:#ffe082;
   --tm-ring:0 0 0 2px rgba(247,201,72,.35);
   --tm-glow:0 18px 48px -22px rgba(247,201,72,.45);
 }
 
-/* Card */
+/* Card shell */
 .card.shadow.p-4:has(h3.text-center.text-success){
   background:
     radial-gradient(1000px 520px at 85% -12%, rgba(247,201,72,.08), transparent 40%),
@@ -25,9 +32,9 @@
 
 /* Title */
 .card:has(h3.text-center.text-success) h3.text-center{
-  margin-top: 4px;
-  font-weight: 800;
-  letter-spacing: .3px;
+  margin-top:4px;
+  font-weight:800;
+  letter-spacing:.3px;
   background: linear-gradient(90deg, var(--tm-accent), #fff2cc);
   -webkit-background-clip: text;
   background-clip: text;
@@ -56,7 +63,19 @@
   background:#0d1424; color: var(--tm-ink);
 }
 
-/* Buttons */
+/* Read-only "Match Name" look */
+.card:has(h3.text-center.text-success) .form-control[readonly]{
+  background:#0f192a !important;
+  border-style:dashed !important;
+  border-color:rgba(247,201,72,.35) !important;
+  color:#fff4c2 !important;
+  font-style:italic;
+}
+.card:has(h3.text-center.text-success) .form-control[readonly]::placeholder{
+  color:#ffe6a6; opacity:.95;
+}
+
+/* Success button */
 .card:has(h3.text-center.text-success) .btn.btn-success{
   background: linear-gradient(180deg, rgba(247,201,72,.22), rgba(247,201,72,.16)) !important;
   color:#fff7d6 !important;
@@ -69,7 +88,7 @@
   background: linear-gradient(180deg, rgba(247,201,72,.28), rgba(247,201,72,.2)) !important;
 }
 
-/* Add (+) next to tournament dropdown */
+/* "+" beside tournament dropdown */
 .card:has(h3.text-center.text-success) .btn-add-gold{
   width:40px; height:40px; border-radius:10px;
   display:inline-flex; align-items:center; justify-content:center;
@@ -85,9 +104,9 @@
   background: linear-gradient(180deg, rgba(247,201,72,.28), rgba(247,201,72,.16));
 }
 
-/* Test form: “info row” greyed fields */
+/* “Info row” greyed fields (Total Days / Overs etc.) */
 .card:has(h3.text-center.text-success) .form-control-static{
-  background: #0f192a !important;
+  background:#0f192a !important;
   color:#fff4c2 !important;
   border:1px dashed rgba(247,201,72,.28) !important;
   box-shadow:none !important;
@@ -96,9 +115,9 @@
   color:#ffe082; font-weight:800;
 }
 
-/* Success + danger alerts */
+/* Alerts */
 .card:has(h3.text-center.text-success) .alert-success{
-  background: rgba(98, 255, 205, .08);
+  background: rgba(98,255,205,.08);
   border-color: rgba(98,255,205,.4);
   color:#c9ffe9;
 }
@@ -108,7 +127,7 @@
   color:#ffd6d6;
 }
 
-/* Add-tournament modal (neutral but with gold edge) */
+/* Add-tournament modal */
 .addtour-backdrop{
   position:fixed; inset:0; backdrop-filter: blur(6px) saturate(120%);
   background: radial-gradient(80% 100% at 50% 0, rgba(10,12,16,.65), rgba(0,0,0,.6));
@@ -116,7 +135,7 @@
 }
 .addtour-modal{
   width:min(520px, 92vw);
-  margin: 10vh auto 0 auto;
+  margin: 10vh auto 0;
   background: linear-gradient(180deg, rgba(14,21,34,.96), rgba(10,16,28,.96));
   border:1px solid rgba(247,201,72,.35);
   border-radius:16px;
@@ -129,14 +148,14 @@
   color: var(--tm-accent);
 }
 
-/* Celebration banner colorized for Test */
+/* Celebration banner (gold) */
 .celebration-banner{
   position: fixed; top: 18%; left: 50%; transform: translateX(-50%);
   background:#0c1c2c; color: var(--tm-accent);
   border:1px solid rgba(247,201,72,.35);
   box-shadow: var(--tm-glow);
   font-size:1.65rem; font-weight:800;
-  padding: 14px 22px; border-radius: 12px; z-index: 1200;
+  padding:14px 22px; border-radius:12px; z-index:1200;
   animation: tmIn .6s ease, tmOut .8s ease 3.6s forwards;
 }
 @keyframes tmIn{from{opacity:0; transform:translateX(-50%) scale(.92);}to{opacity:1; transform:translateX(-50%) scale(1);}}
