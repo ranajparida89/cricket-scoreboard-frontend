@@ -1,173 +1,143 @@
-/* =========================
-   TestMatchForm.css — Dark + Gold
-   Single-accent design with soft golden glow
-   ========================= */
+/* ===== TestMatchForm.css — Royal Gold theme (Test) ===== */
 
 :root{
-  --tf-bg-900:#0b0f18;
-  --tf-bg-850:#0d1320;
-  --tf-bg-800:#0e1522;
-  --tf-ink:#e8f0ff;
-  --tf-muted:#9fb2d3;
-  --tf-gold:#f7c948;
-  --tf-gold-amb:rgba(247,201,72,.22);
+  --tm-bg-900:#0b0f18;
+  --tm-bg-850:#0d1320;
+  --tm-bg-800:#0e1522;
+  --tm-ink:#eef3ff;
+  --tm-muted:#a9b7d6;
+  --tm-accent:#f7c948;               /* gold */
+  --tm-accent-2:#ffe082;
+  --tm-ring:0 0 0 2px rgba(247,201,72,.35);
+  --tm-glow:0 18px 48px -22px rgba(247,201,72,.45);
 }
 
-/* =============== CARD + LAYOUT =============== */
-.container .card.p-4{
+/* Card */
+.card.shadow.p-4:has(h3.text-center.text-success){
   background:
-    radial-gradient(1200px 600px at 18% -12%, rgba(247,201,72,.06), transparent 40%),
-    linear-gradient(180deg, rgba(14,21,34,.88), rgba(10,16,28,.82));
-  border: 1px solid rgba(255,255,255,.06);
-  border-radius: 18px;
-  box-shadow: 0 10px 38px -20px rgba(0,0,0,.85), 0 0 0 1px rgba(247,201,72,.12) inset;
-  color: var(--tf-ink);
+    radial-gradient(1000px 520px at 85% -12%, rgba(247,201,72,.08), transparent 40%),
+    linear-gradient(180deg, rgba(14,21,34,.9), rgba(9,14,24,.92));
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:18px;
+  box-shadow: 0 10px 38px -20px rgba(0,0,0,.85), 0 0 0 1px rgba(247,201,72,.14) inset;
+  color: var(--tm-ink);
 }
 
-h3.text-center{
-  color: var(--tf-gold) !important;
-  text-shadow: 0 1px 0 rgba(0,0,0,.45);
-  letter-spacing: .2px;
-}
-
-/* =============== LABELS =============== */
-label{
-  color: var(--tf-ink);
-  font-weight: 700;
-  letter-spacing: .2px;
-}
-
-/* =============== FORM CONTROLS =============== */
-.form-control,
-.form-select{
-  background: var(--tf-bg-800) !important;
-  color: var(--tf-ink) !important;
-  border: 1px solid rgba(255,255,255,.08) !important;
-  border-radius: 12px !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
-}
-.form-control::placeholder{ color: var(--tf-muted); opacity: .8; }
-
-.form-control:focus,
-.form-select:focus{
-  border-color: var(--tf-gold) !important;
-  box-shadow: 0 0 0 2px rgba(247,201,72,.28) !important;
-}
-
-/* =============== DISABLED “DIMMED” BLOCK =============== */
-/* Makes computed Test info (Total Days, Overs/Day, etc.) appear grayed,
-   while keeping the inputs enabled/disabled as your JS decides. */
-.dimmed-block{
-  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
-  border:1px dashed rgba(247,201,72,.16);
-  border-radius: 12px;
-  padding: 10px;
-  margin: 4px 0 8px;
-}
-.dimmed-block .form-control[disabled]{
-  background: #0f1624 !important;
-  color: #b9c7e4 !important;
-  border-color: rgba(255,255,255,.06) !important;
-  opacity: .85;
-}
-
-/* Inline note (if you show remaining overs hint) */
-.hint{
-  margin-top:6px;
-  color: var(--tf-muted);
-  font-weight:700;
-  font-size:.95rem;
-}
-
-/* =============== BUTTONS =============== */
-.btn-success, .btn-primary{
-  background: rgba(247,201,72,.18) !important;
-  color: var(--tf-gold) !important;
-  border: 1px solid rgba(247,201,72,.40) !important;
-  border-radius: 12px !important;
+/* Title */
+.card:has(h3.text-center.text-success) h3.text-center{
+  margin-top: 4px;
   font-weight: 800;
-  letter-spacing: .2px;
-  box-shadow: 0 10px 28px -20px rgba(247,201,72,.55);
-}
-.btn-success:hover, .btn-primary:hover{
-  background: rgba(247,201,72,.24) !important;
-}
-
-button[disabled]{ opacity:.7; filter: grayscale(.2); }
-
-/* =============== ALERTS =============== */
-.alert-success{
-  background: rgba(20,226,154,.1);
-  border-color: rgba(20,226,154,.4);
-  color: #b7ffea;
-  border-radius: 12px;
-  font-weight: 700;
-}
-.alert-danger{
-  background: rgba(255,138,128,.08);
-  border-color: rgba(255,138,128,.35);
-  color: #ffb3ad;
-  border-radius: 12px;
-  font-weight: 800;
+  letter-spacing: .3px;
+  background: linear-gradient(90deg, var(--tm-accent), #fff2cc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  text-shadow: 0 1px 0 rgba(0,0,0,.4);
 }
 
-/* =============== CELEBRATION BANNER =============== */
+/* Inputs / selects */
+.card:has(h3.text-center.text-success) .form-control,
+.card:has(h3.text-center.text-success) .form-select{
+  background: var(--tm-bg-800) !important;
+  color: var(--tm-ink) !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  border-radius:12px !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+.card:has(h3.text-center.text-success) .form-control::placeholder{
+  color: var(--tm-muted); opacity:.82;
+}
+.card:has(h3.text-center.text-success) .form-control:focus,
+.card:has(h3.text-center.text-success) .form-select:focus{
+  border-color: var(--tm-accent) !important;
+  box-shadow: var(--tm-ring), var(--tm-glow) !important;
+}
+.card:has(h3.text-center.text-success) .form-select option{
+  background:#0d1424; color: var(--tm-ink);
+}
+
+/* Buttons */
+.card:has(h3.text-center.text-success) .btn.btn-success{
+  background: linear-gradient(180deg, rgba(247,201,72,.22), rgba(247,201,72,.16)) !important;
+  color:#fff7d6 !important;
+  border:1px solid rgba(247,201,72,.55) !important;
+  border-radius:12px !important;
+  font-weight:800; letter-spacing:.2px;
+  box-shadow: 0 10px 28px -18px rgba(247,201,72,.6);
+}
+.card:has(h3.text-center.text-success) .btn.btn-success:hover{
+  background: linear-gradient(180deg, rgba(247,201,72,.28), rgba(247,201,72,.2)) !important;
+}
+
+/* Add (+) next to tournament dropdown */
+.card:has(h3.text-center.text-success) .btn-add-gold{
+  width:40px; height:40px; border-radius:10px;
+  display:inline-flex; align-items:center; justify-content:center;
+  background: linear-gradient(180deg, rgba(247,201,72,.22), rgba(247,201,72,.12));
+  border:1px solid rgba(247,201,72,.5);
+  color: var(--tm-accent);
+  font-weight:900; font-size:1.2rem;
+  box-shadow: 0 8px 24px -18px rgba(247,201,72,.55);
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.card:has(h3.text-center.text-success) .btn-add-gold:hover{
+  transform: translateY(-1px) scale(1.02);
+  background: linear-gradient(180deg, rgba(247,201,72,.28), rgba(247,201,72,.16));
+}
+
+/* Test form: “info row” greyed fields */
+.card:has(h3.text-center.text-success) .form-control-static{
+  background: #0f192a !important;
+  color:#fff4c2 !important;
+  border:1px dashed rgba(247,201,72,.28) !important;
+  box-shadow:none !important;
+}
+.card:has(h3.text-center.text-success) .muted-label{
+  color:#ffe082; font-weight:800;
+}
+
+/* Success + danger alerts */
+.card:has(h3.text-center.text-success) .alert-success{
+  background: rgba(98, 255, 205, .08);
+  border-color: rgba(98,255,205,.4);
+  color:#c9ffe9;
+}
+.card:has(h3.text-center.text-success) .alert-danger{
+  background: rgba(255,85,85,.08);
+  border-color: rgba(255,85,85,.35);
+  color:#ffd6d6;
+}
+
+/* Add-tournament modal (neutral but with gold edge) */
+.addtour-backdrop{
+  position:fixed; inset:0; backdrop-filter: blur(6px) saturate(120%);
+  background: radial-gradient(80% 100% at 50% 0, rgba(10,12,16,.65), rgba(0,0,0,.6));
+  z-index: 1050;
+}
+.addtour-modal{
+  width:min(520px, 92vw);
+  margin: 10vh auto 0 auto;
+  background: linear-gradient(180deg, rgba(14,21,34,.96), rgba(10,16,28,.96));
+  border:1px solid rgba(247,201,72,.35);
+  border-radius:16px;
+  box-shadow: var(--tm-glow);
+  padding:16px 16px 14px;
+  color: var(--tm-ink);
+}
+.addtour-header{
+  font-weight:900; letter-spacing:.2px; margin-bottom:10px;
+  color: var(--tm-accent);
+}
+
+/* Celebration banner colorized for Test */
 .celebration-banner{
-  position: fixed;
-  top: 18%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #0c1c2c;
-  color: var(--tf-gold);
-  border: 1px solid rgba(247,201,72,.25);
-  box-shadow: 0 12px 50px -20px rgba(247,201,72,.35);
-  font-size: 26px;
-  font-weight: 900;
-  padding: 16px 26px;
-  border-radius: 12px;
-  z-index: 9999;
-  animation: tfIn .9s ease, tfOut .9s ease 4s forwards;
+  position: fixed; top: 18%; left: 50%; transform: translateX(-50%);
+  background:#0c1c2c; color: var(--tm-accent);
+  border:1px solid rgba(247,201,72,.35);
+  box-shadow: var(--tm-glow);
+  font-size:1.65rem; font-weight:800;
+  padding: 14px 22px; border-radius: 12px; z-index: 1200;
+  animation: tmIn .6s ease, tmOut .8s ease 3.6s forwards;
 }
-@keyframes tfIn { from{opacity:0; transform: translateX(-50%) scale(.94);} to{opacity:1; transform: translateX(-50%) scale(1);} }
-@keyframes tfOut{ to{opacity:0; transform: translateX(-50%) scale(.94);} }
-
-/* =============== INNINGS LIST =============== */
-.innings-group{ margin-top: 6px; }
-.innings-group .row{ row-gap: 6px; }
-.small-error{ color:#ff8a80; font-weight:800; }
-
-/* =============== TOURNAMENT PICKER (optional, same look) =============== */
-.tourney-row{
-  display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;
-}
-.tourney-col{
-  flex:1 1 260px; min-width:240px;
-}
-.btn-add-tournament{
-  background: rgba(247,201,72,.16);
-  color: var(--tf-gold);
-  border:1px solid rgba(247,201,72,.42);
-  border-radius: 10px;
-  padding: 8px 12px;
-  font-weight:800;
-  letter-spacing:.2px;
-}
-.btn-add-tournament:hover{
-  background: rgba(247,201,72,.24);
-}
-.tourney-pop{
-  background: linear-gradient(180deg, rgba(16,24,37,.98), rgba(9,15,26,.96));
-  border:1px solid rgba(247,201,72,.22);
-  box-shadow: 0 24px 60px -24px rgba(247,201,72,.28), 0 0 0 1px rgba(247,201,72,.12) inset;
-  border-radius:14px;
-  padding:12px;
-  margin-top:10px;
-}
-.tourney-pop .actions{
-  display:flex; gap:10px; justify-content:flex-end; margin-top:10px;
-}
-
-/* =============== RESPONSIVE =============== */
-@media (max-width: 992px){
-  .tourney-row{ flex-direction:column; align-items:stretch; }
-}
+@keyframes tmIn{from{opacity:0; transform:translateX(-50%) scale(.92);}to{opacity:1; transform:translateX(-50%) scale(1);}}
+@keyframes tmOut{to{opacity:0; transform:translateX(-50%) scale(.88);}}

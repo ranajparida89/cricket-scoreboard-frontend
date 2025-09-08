@@ -1,11 +1,14 @@
 // ✅ src/components/TestMatchForm.js
 import React, { useEffect, useMemo, useState } from "react";
+import axios from "axios";
 import { createMatch, submitTestMatchResult } from "../services/api";
 import { playSound } from "../utils/playSound";
 import Confetti from "react-confetti";
 import useWindowSize from "react-use/lib/useWindowSize";
 import "./MatchForm.css";
 import { useAuth } from "../services/auth";
+
+const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
 
 const normalizeTeamName = (name) => {
   const m = {
@@ -29,7 +32,7 @@ const normalizeTeamName = (name) => {
 
 const isValidOver = (over) => {
   const parts = over.toString().split(".");
-  const balls = parts[1] ? parseInt(parts[1][0]) : 0;
+  const balls = parts[1] ? parseInt(parts[1][0], 10) : 0;
   return !isNaN(balls) && balls <= 5;
 };
 
@@ -60,9 +63,12 @@ export default function TestMatchForm() {
   const [showFireworks, setShowFireworks] = useState(false);
   const [celebrationText, setCelebrationText] = useState("");
 
-  // tournaments state (scope=test)
+  // tournaments (scope=test) + years
   const [tournaments, setTournaments] = useState([]);
   const [tournamentsLoading, setTournamentsLoading] = useState(true);
+  const [yearOptions, setYearOptions] = useState([]);
+
+  // Add-new modal
   const [addOpen, setAddOpen] = useState(false);
   const [newTourName, setNewTourName] = useState("");
   const [newTourYear, setNewTourYear] = useState(seasonDefault);
@@ -70,18 +76,34 @@ export default function TestMatchForm() {
   useEffect(() => {
     let cancelled = false;
     setTournamentsLoading(true);
-    fetch(`/api/match/tournaments?scope=test`)
-      .then(r => r.json())
-      .then(data => {
+    axios
+      .get(`${API_BASE}/match/tournaments`, { params: { scope: "test" } })
+      .then(({ data }) => {
         if (cancelled) return;
-        setTournaments(Array.isArray(data.tournaments) ? data.tournaments : []);
+        setTournaments(Array.isArray(data?.tournaments) ? data.tournaments : []);
       })
       .catch(() => !cancelled && setTournaments([]))
       .finally(() => !cancelled && setTournamentsLoading(false));
     return () => { cancelled = true; };
   }, []);
 
-  // innings
+  useEffect(() => {
+    let cancelled = false;
+    if (!tournamentName) { setYearOptions([]); return; }
+    axios
+      .get(`${API_BASE}/match/tournaments/years`, {
+        params: { scope: "test", tournament_name: tournamentName }
+      })
+      .then(({ data }) => {
+        if (cancelled) return;
+        const yrs = Array.isArray(data?.years) ? data.years : [];
+        setYearOptions(yrs);
+        if (yrs.length) setSeasonYear(yrs[0]);
+      })
+      .catch(() => !cancelled && setYearOptions([]));
+    return () => { cancelled = true; };
+  }, [tournamentName]);
+
   const [innings, setInnings] = useState({
     t1i1: { runs: "", overs: "", wickets: "", error: "" },
     t2i1: { runs: "", overs: "", wickets: "", error: "" },
@@ -96,15 +118,19 @@ export default function TestMatchForm() {
       const updated = { ...prev[key], [field]: value };
       let error = "";
 
-      const total = Object.entries(prev).reduce((acc, [k, inn]) => {
-        const v = parseFloat(k === key ? value : inn.overs || 0);
-        return acc + (field === "overs" && k === key ? v : parseFloat(inn.overs || 0));
-      }, 0);
-
+      // recompute total overs if editing 'overs'
       if (field === "overs") {
-        if (!isValidOver(value)) error = "Overs must have balls between 0 and 5";
-        else if (total > maxOvers) error = `Input overs exceed remaining (${maxOvers})`;
+        if (!isValidOver(value)) {
+          error = "Overs must have balls between 0 and 5";
+        } else {
+          const total = Object.entries(prev).reduce((acc, [k, inn]) => {
+            const v = parseFloat(k === key ? value || 0 : inn.overs || 0);
+            return acc + (isNaN(v) ? 0 : v);
+          }, 0);
+          if (total > maxOvers) error = `Input overs exceed remaining (${maxOvers})`;
+        }
       }
+
       if (field === "wickets") {
         const w = parseInt(value, 10);
         if (isNaN(w) || w < 0 || w > 10) error = "Wickets must be 0–10";
@@ -122,7 +148,7 @@ export default function TestMatchForm() {
   const remainingOvers = () =>
     Math.max(0, (maxOvers - totalUsedOvers()).toFixed(1));
 
-  // auto build match name unless edited
+  // Auto compose name
   useEffect(() => {
     if (isMatchNameDirty) return;
     const t1 = normalizeTeamName(team1);
@@ -136,8 +162,8 @@ export default function TestMatchForm() {
   const calculateResult = () => {
     const t1Runs = parseInt(innings.t1i1.runs || 0, 10) + parseInt(innings.t1i2.runs || 0, 10);
     const t2Runs = parseInt(innings.t2i1.runs || 0, 10) + parseInt(innings.t2i2.runs || 0, 10);
-    const t2W2 = parseInt(innings.t2i2.wickets || 0, 10);
-    const used = totalUsedOvers();
+    const t2W2  = parseInt(innings.t2i2.wickets || 0, 10);
+    const used  = totalUsedOvers();
 
     if (t2Runs > t1Runs) return { winner: normalizeTeamName(team2), points: 12 };
     if (t1Runs > t2Runs && t2W2 === 10) return { winner: normalizeTeamName(team1), points: 12 };
@@ -257,39 +283,34 @@ export default function TestMatchForm() {
                   onChange={(e) => setTournamentName(e.target.value)}
                 >
                   <option value="">{tournamentsLoading ? "Loading…" : "Select tournament…"}</option>
-                  {tournaments.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
+                  {tournaments.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
-                <button
-                  type="button"
-                  className="btn btn-add-gold"
-                  title="Add new tournament"
-                  onClick={() => setAddOpen(true)}
-                >+</button>
+                <button type="button" className="btn btn-add-gold" title="Add new tournament" onClick={() => setAddOpen(true)}>+</button>
               </div>
             </div>
+
             <div className="col-md-3">
               <label>Season Year:</label>
-              <input
-                type="number"
-                className="form-control"
-                value={seasonYear}
-                min={1860}
-                max={2100}
-                onChange={(e) => setSeasonYear(e.target.value)}
-                required
-              />
+              {yearOptions.length ? (
+                <select className="form-select" value={seasonYear} onChange={(e) => setSeasonYear(Number(e.target.value))}>
+                  {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+              ) : (
+                <input
+                  type="number"
+                  className="form-control"
+                  value={seasonYear}
+                  min={1860}
+                  max={2100}
+                  onChange={(e) => setSeasonYear(e.target.value)}
+                  required
+                />
+              )}
             </div>
+
             <div className="col-md-3">
               <label>Match Date:</label>
-              <input
-                type="date"
-                className="form-control"
-                value={matchDate}
-                onChange={(e) => setMatchDate(e.target.value)}
-                required
-              />
+              <input type="date" className="form-control" value={matchDate} onChange={(e) => setMatchDate(e.target.value)} required />
             </div>
           </div>
 
@@ -299,16 +320,11 @@ export default function TestMatchForm() {
                 <div className="addtour-header">➕ Add Tournament</div>
                 <div className="mb-2">
                   <label className="form-label">Tournament Name</label>
-                  <input className="form-control"
-                         placeholder="e.g., World Test Championship"
-                         value={newTourName}
-                         onChange={(e) => setNewTourName(e.target.value)} />
+                  <input className="form-control" placeholder="e.g., World Test Championship" value={newTourName} onChange={(e) => setNewTourName(e.target.value)} />
                 </div>
                 <div className="mb-3">
                   <label className="form-label">Season Year</label>
-                  <input type="number" className="form-control"
-                         value={newTourYear} min={1860} max={2100}
-                         onChange={(e) => setNewTourYear(e.target.value)} />
+                  <input type="number" className="form-control" value={newTourYear} min={1860} max={2100} onChange={(e) => setNewTourYear(e.target.value)} />
                 </div>
                 <div className="d-flex gap-2">
                   <button className="btn btn-primary flex-fill" onClick={addNewTournament}>Add</button>
@@ -333,7 +349,7 @@ export default function TestMatchForm() {
             <div className="alert alert-danger text-center py-2">❌ Team names must be different!</div>
           )}
 
-          {/* Greyed info row (still disabled inputs) */}
+          {/* Grey info row */}
           <div className="mb-3 row">
             <div className="col">
               <label className="muted-label">🗓️ Total Days</label>
@@ -363,12 +379,9 @@ export default function TestMatchForm() {
             <div className="mb-2" key={key}>
               <label><strong>{label}</strong></label>
               <div className="row">
-                <div className="col"><input type="number" className="form-control" placeholder="Runs"
-                      value={innings[key].runs} onChange={(e) => updateInning(key, "runs", e.target.value)} /></div>
-                <div className="col"><input type="text" className="form-control" placeholder="Overs"
-                      value={innings[key].overs} onChange={(e) => updateInning(key, "overs", e.target.value)} /></div>
-                <div className="col"><input type="number" className="form-control" placeholder="Wickets"
-                      value={innings[key].wickets} onChange={(e) => updateInning(key, "wickets", e.target.value)} /></div>
+                <div className="col"><input type="number" className="form-control" placeholder="Runs" value={innings[key].runs} onChange={(e) => updateInning(key, "runs", e.target.value)} /></div>
+                <div className="col"><input type="text" className="form-control" placeholder="Overs" value={innings[key].overs} onChange={(e) => updateInning(key, "overs", e.target.value)} /></div>
+                <div className="col"><input type="number" className="form-control" placeholder="Wickets" value={innings[key].wickets} onChange={(e) => updateInning(key, "wickets", e.target.value)} /></div>
               </div>
               {innings[key].error && <small className="text-danger">{innings[key].error}</small>}
             </div>
