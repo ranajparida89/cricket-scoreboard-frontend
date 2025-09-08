@@ -1,8 +1,6 @@
-/* ===== TestMatchForm.css — Royal Gold theme (Test) =====
-   - Sleek dark card with soft gold accents
-   - Read-only "Match Name" styling (matches ODI/T20)
-   - Greyed informational row with dashed gold borders
-   - Lightweight "+ Add Tournament" modal
+/* ===== TestMatchForm.css — Royal Gold theme (v2, no :has) =====
+   Scope with .test-card to avoid parent selectors and ensure compatibility.
+   Soft gold borders + glow on inputs, selects and buttons.
 */
 
 /* Palette + shadows */
@@ -14,24 +12,24 @@
   --tm-ink:#eef3ff;
   --tm-muted:#a9b7d6;
 
-  --tm-accent:#f7c948;               /* gold */
+  --tm-accent:#f7c948;                 /* gold */
   --tm-ring:0 0 0 2px rgba(247,201,72,.35);
   --tm-glow:0 18px 48px -22px rgba(247,201,72,.45);
 }
 
 /* Card shell */
-.card.shadow.p-4:has(h3.text-center.text-success){
+.test-card{
   background:
     radial-gradient(1000px 520px at 85% -12%, rgba(247,201,72,.08), transparent 40%),
     linear-gradient(180deg, rgba(14,21,34,.9), rgba(9,14,24,.92));
-  border:1px solid rgba(255,255,255,.06);
+  border:1px solid rgba(247,201,72,.14);
   border-radius:18px;
   box-shadow: 0 10px 38px -20px rgba(0,0,0,.85), 0 0 0 1px rgba(247,201,72,.14) inset;
   color: var(--tm-ink);
 }
 
 /* Title */
-.card:has(h3.text-center.text-success) h3.text-center{
+.test-card h3{
   margin-top:4px;
   font-weight:800;
   letter-spacing:.3px;
@@ -43,53 +41,54 @@
 }
 
 /* Inputs / selects */
-.card:has(h3.text-center.text-success) .form-control,
-.card:has(h3.text-center.text-success) .form-select{
+.test-card .form-control,
+.test-card .form-select{
   background: var(--tm-bg-800) !important;
   color: var(--tm-ink) !important;
-  border:1px solid rgba(255,255,255,.08) !important;
+  border:1px solid rgba(247,201,72,.25) !important;     /* soft gold border */
   border-radius:12px !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
 }
-.card:has(h3.text-center.text-success) .form-control::placeholder{
-  color: var(--tm-muted); opacity:.82;
-}
-.card:has(h3.text-center.text-success) .form-control:focus,
-.card:has(h3.text-center.text-success) .form-select:focus{
+.test-card .form-control::placeholder{ color: var(--tm-muted); opacity:.82; }
+.test-card .form-control:focus,
+.test-card .form-select:focus{
   border-color: var(--tm-accent) !important;
-  box-shadow: var(--tm-ring), var(--tm-glow) !important;
+  box-shadow: var(--tm-ring), var(--tm-glow) !important; /* soft gold glow */
+  outline: none;
 }
-.card:has(h3.text-center.text-success) .form-select option{
-  background:#0d1424; color: var(--tm-ink);
-}
+.test-card .form-select option{ background:#0d1424; color: var(--tm-ink); }
 
 /* Read-only "Match Name" look */
-.card:has(h3.text-center.text-success) .form-control[readonly]{
+.test-card .form-control[readonly]{
   background:#0f192a !important;
   border-style:dashed !important;
-  border-color:rgba(247,201,72,.35) !important;
+  border-color:rgba(247,201,72,.45) !important;
   color:#fff4c2 !important;
   font-style:italic;
 }
-.card:has(h3.text-center.text-success) .form-control[readonly]::placeholder{
-  color:#ffe6a6; opacity:.95;
-}
+.test-card .form-control[readonly]::placeholder{ color:#ffe6a6; opacity:.95; }
 
 /* Success button */
-.card:has(h3.text-center.text-success) .btn.btn-success{
-  background: linear-gradient(180deg, rgba(247,201,72,.22), rgba(247,201,72,.16)) !important;
+.test-card .btn.btn-success{
+  background: linear-gradient(180deg, rgba(247,201,72,.22), rgba(247,201,72,.14)) !important;
   color:#fff7d6 !important;
   border:1px solid rgba(247,201,72,.55) !important;
   border-radius:12px !important;
   font-weight:800; letter-spacing:.2px;
-  box-shadow: 0 10px 28px -18px rgba(247,201,72,.6);
+  box-shadow: 0 10px 28px -18px rgba(247,201,72,.6);     /* gold shadow */
+  transition: transform .08s ease, box-shadow .12s ease, background .12s ease;
 }
-.card:has(h3.text-center.text-success) .btn.btn-success:hover{
-  background: linear-gradient(180deg, rgba(247,201,72,.28), rgba(247,201,72,.2)) !important;
+.test-card .btn.btn-success:hover{
+  transform: translateY(-1px);
+  background: linear-gradient(180deg, rgba(247,201,72,.28), rgba(247,201,72,.18)) !important;
+}
+.test-card .btn.btn-success:active{
+  transform: translateY(0);
+  box-shadow: 0 6px 18px -14px rgba(247,201,72,.7);
 }
 
 /* "+" beside tournament dropdown */
-.card:has(h3.text-center.text-success) .btn-add-gold{
+.test-card .btn-add-gold{
   width:40px; height:40px; border-radius:10px;
   display:inline-flex; align-items:center; justify-content:center;
   background: linear-gradient(180deg, rgba(247,201,72,.22), rgba(247,201,72,.12));
@@ -99,29 +98,27 @@
   box-shadow: 0 8px 24px -18px rgba(247,201,72,.55);
   transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
 }
-.card:has(h3.text-center.text-success) .btn-add-gold:hover{
+.test-card .btn-add-gold:hover{
   transform: translateY(-1px) scale(1.02);
   background: linear-gradient(180deg, rgba(247,201,72,.28), rgba(247,201,72,.16));
 }
 
-/* “Info row” greyed fields (Total Days / Overs etc.) */
-.card:has(h3.text-center.text-success) .form-control-static{
+/* Info row (Total Days / Overs etc.) */
+.test-card .form-control-static{
   background:#0f192a !important;
   color:#fff4c2 !important;
   border:1px dashed rgba(247,201,72,.28) !important;
   box-shadow:none !important;
 }
-.card:has(h3.text-center.text-success) .muted-label{
-  color:#ffe082; font-weight:800;
-}
+.test-card .muted-label{ color:#ffe082; font-weight:800; }
 
 /* Alerts */
-.card:has(h3.text-center.text-success) .alert-success{
+.test-card .alert-success{
   background: rgba(98,255,205,.08);
   border-color: rgba(98,255,205,.4);
   color:#c9ffe9;
 }
-.card:has(h3.text-center.text-success) .alert-danger{
+.test-card .alert-danger{
   background: rgba(255,85,85,.08);
   border-color: rgba(255,85,85,.35);
   color:#ffd6d6;
@@ -143,10 +140,7 @@
   padding:16px 16px 14px;
   color: var(--tm-ink);
 }
-.addtour-header{
-  font-weight:900; letter-spacing:.2px; margin-bottom:10px;
-  color: var(--tm-accent);
-}
+.addtour-header{ font-weight:900; letter-spacing:.2px; margin-bottom:10px; color: var(--tm-accent); }
 
 /* Celebration banner (gold) */
 .celebration-banner{
