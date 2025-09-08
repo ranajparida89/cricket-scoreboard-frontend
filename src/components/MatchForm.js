@@ -39,12 +39,26 @@ function todayISO() {
   return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
+// ⏱️ build a clean one-liner without duplicate years
+function buildMatchName(tournamentName, seasonYear, team1, team2) {
+  const t1 = normalizeTeamName(team1);
+  const t2 = normalizeTeamName(team2);
+  if (!tournamentName || !seasonYear || !t1 || !t2) return "";
+
+  // strip any 19xx/20xx year tokens already present in the tournament text
+  const base = tournamentName
+    .replace(/\b(19|20)\d{2}\b/g, "")   // remove any year
+    .replace(/\s{2,}/g, " ")            // collapse spaces
+    .trim();
+
+  return `${base} ${seasonYear} : ${t1} vs ${t2}`;
+}
+
 export default function MatchForm() {
   const { width, height } = useWindowSize();
 
   // Core
   const [matchName, setMatchName] = useState("");
-  const [isMatchNameDirty, setIsMatchNameDirty] = useState(false);
   const [tournamentName, setTournamentName] = useState("");
   const [matchDate, setMatchDate] = useState(todayISO());
   const seasonDefault = useMemo(() => new Date(matchDate).getFullYear(), [matchDate]);
@@ -116,16 +130,10 @@ export default function MatchForm() {
     return () => { cancelled = true; };
   }, [tournamentName]);
 
-  // Auto compose match name (until edited)
+  // 🔁 Auto compose match name (read-only target)
   useEffect(() => {
-    if (isMatchNameDirty) return;
-    const t1 = normalizeTeamName(team1);
-    const t2 = normalizeTeamName(team2);
-    const tnm = tournamentName?.trim();
-    if (tnm && seasonYear && t1 && t2) {
-      setMatchName(`${tnm} ${seasonYear} : ${t1} vs ${t2}`);
-    }
-  }, [tournamentName, seasonYear, team1, team2, isMatchNameDirty]);
+    setMatchName(buildMatchName(tournamentName?.trim(), seasonYear, team1, team2));
+  }, [tournamentName, seasonYear, team1, team2]);
 
   const handleOversChange = (val, setOvers, setError, teamName) => {
     setOvers(val);
@@ -164,6 +172,7 @@ export default function MatchForm() {
     const t1 = normalizeTeamName(team1);
     const t2 = normalizeTeamName(team2);
 
+    if (!matchName) { alert("❌ Match Name will auto-generate once Tournament, Year and both teams are set."); return; }
     if (t1.toLowerCase() === t2.toLowerCase()) { alert("❌ Both teams cannot be the same."); return; }
     if (overs1Error || overs2Error || wickets1Error || wickets2Error) { alert("❌ Please fix all validation errors before submitting."); return; }
     if (!validateTournament()) return;
@@ -215,15 +224,21 @@ export default function MatchForm() {
         <h3 className="text-center mb-4 text-primary">🏏 Enter Match Details</h3>
 
         <form onSubmit={handleSubmit}>
+          {/* Read-only, auto-filled name */}
           <div className="mb-3">
             <label>Match Name:</label>
             <input
               type="text"
-              className="form-control"
+              className="form-control readonly-field"
               value={matchName}
-              onChange={(e) => { setMatchName(e.target.value); setIsMatchNameDirty(true); }}
+              readOnly
+              placeholder="Auto-generated: Champions Trophy 2025 : India vs Australia"
+              aria-describedby="matchNameHelp"
               required
             />
+            <small id="matchNameHelp" className="text-muted d-block mt-1">
+              Name will auto-populate from Tournament, Season Year and Teams.
+            </small>
           </div>
 
           {/* Tournament picker */}
