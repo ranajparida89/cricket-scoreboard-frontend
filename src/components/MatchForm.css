@@ -1,45 +1,44 @@
-/* ===== MatchForm.css — Aqua Nova theme (ODI/T20) =====
-   - Sleek dark card with aqua accents
-   - Read-only "Match Name" styling (+ subtle helper look)
-   - Soft glow on fields/buttons
-   - Lightweight "+ Add Tournament" modal
+/* ===== MatchForm.css — Royal Gold theme for ODI/ODI =====
+   Matches the Test form’s soft-gold look (glows, dashed read-only border)
+   Drop-in replacement: no component changes needed.
 */
 
 /* Palette + shadows */
 :root{
-  --mf-bg-900:#0b1220;
-  --mf-bg-850:#0d1828;
-  --mf-bg-800:#0f1d2e;
+  --mf-bg-900:#0b0f18;
+  --mf-bg-850:#0d1320;
+  --mf-bg-800:#0e1522;
 
-  --mf-ink:#e9f4ff;
-  --mf-muted:#a2c6e8;
+  --mf-ink:#eef3ff;
+  --mf-muted:#a9b7d6;
 
-  --mf-accent:#23e8ff;           /* aqua */
-  --mf-ring:0 0 0 2px rgba(35,232,255,.35);
-  --mf-glow:0 18px 48px -22px rgba(35,232,255,.45);
+  --mf-accent:#f7c948;               /* soft gold */
+  --mf-accent-2:#ffe082;
+  --mf-ring:0 0 0 2px rgba(247,201,72,.35);
+  --mf-glow:0 18px 48px -22px rgba(247,201,72,.45);
 }
 
-/* Card shell */
+/* Card shell (target your Match form card via the primary title class) */
 .card.shadow.p-4:has(h3.text-center.text-primary){
   background:
-    radial-gradient(1200px 600px at 15% -18%, rgba(35,232,255,.08), transparent 38%),
-    linear-gradient(180deg, rgba(15,29,46,.86), rgba(10,18,32,.9));
+    radial-gradient(1000px 520px at 85% -12%, rgba(247,201,72,.08), transparent 40%),
+    linear-gradient(180deg, rgba(14,21,34,.9), rgba(9,14,24,.92));
   border:1px solid rgba(255,255,255,.06);
   border-radius:18px;
-  box-shadow: 0 10px 38px -20px rgba(0,0,0,.85), 0 0 0 1px rgba(35,232,255,.14) inset;
+  box-shadow: 0 10px 38px -20px rgba(0,0,0,.85), 0 0 0 1px rgba(247,201,72,.14) inset;
   color: var(--mf-ink);
 }
 
 /* Title */
 .card:has(h3.text-center.text-primary) h3.text-center{
-  margin-top: 4px;
-  font-weight: 800;
-  letter-spacing: .3px;
-  background: linear-gradient(90deg, var(--mf-accent), #ffffff);
+  margin-top:4px;
+  font-weight:800;
+  letter-spacing:.3px;
+  background: linear-gradient(90deg, var(--mf-accent), #fff2cc);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent !important;
-  text-shadow: 0 1px 0 rgba(0,0,0,.35);
+  text-shadow: 0 1px 0 rgba(0,0,0,.4);
 }
 
 /* Inputs / selects */
@@ -52,7 +51,7 @@
   box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
 }
 .card:has(h3.text-center.text-primary) .form-control::placeholder{
-  color: var(--mf-muted); opacity:.8;
+  color: var(--mf-muted); opacity:.82;
 }
 .card:has(h3.text-center.text-primary) .form-control:focus,
 .card:has(h3.text-center.text-primary) .form-select:focus{
@@ -60,69 +59,68 @@
   box-shadow: var(--mf-ring), var(--mf-glow) !important;
 }
 .card:has(h3.text-center.text-primary) .form-select option{
-  background:#0c1828; color:var(--mf-ink);
+  background:#0d1424; color: var(--mf-ink);
 }
 
-/* Read-only "Match Name" look */
+/* Read-only “Match Name” (auto-generated) */
 .card:has(h3.text-center.text-primary) .form-control[readonly]{
-  background: #0c1828 !important;
-  border-style: dashed !important;
-  border-color: rgba(35,232,255,.35) !important;
-  color: #cdeafd !important;
-  font-style: italic;
+  background:#0f192a !important;
+  border-style:dashed !important;
+  border-color:rgba(247,201,72,.35) !important;
+  color:#fff4c2 !important;
+  font-style:italic;
 }
 .card:has(h3.text-center.text-primary) .form-control[readonly]::placeholder{
-  color:#9fdcf0; opacity:.9;
+  color:#ffe6a6; opacity:.95;
 }
 
-/* Primary button */
+/* Primary button -> gold */
 .card:has(h3.text-center.text-primary) .btn.btn-primary{
-  background: linear-gradient(180deg, rgba(35,232,255,.22), rgba(35,232,255,.16)) !important;
-  color:#e9fbff !important;
-  border:1px solid rgba(35,232,255,.55) !important;
+  background: linear-gradient(180deg, rgba(247,201,72,.22), rgba(247,201,72,.16)) !important;
+  color:#fff7d6 !important;
+  border:1px solid rgba(247,201,72,.55) !important;
   border-radius:12px !important;
-  font-weight:800;
-  letter-spacing:.2px;
-  box-shadow: 0 10px 28px -18px rgba(35,232,255,.6);
+  font-weight:800; letter-spacing:.2px;
+  box-shadow: 0 10px 28px -18px rgba(247,201,72,.6);
 }
 .card:has(h3.text-center.text-primary) .btn.btn-primary:hover{
-  background: linear-gradient(180deg, rgba(35,232,255,.3), rgba(35,232,255,.2)) !important;
+  background: linear-gradient(180deg, rgba(247,201,72,.28), rgba(247,201,72,.2)) !important;
 }
 
-/* Success alert */
+/* Success alert (subtle) */
 .card:has(h3.text-center.text-primary) .alert-success{
-  background: rgba(35,232,255,.08);
-  border-color: rgba(35,232,255,.35);
-  color:#c9f8ff;
+  background: rgba(247,201,72,.08);
+  border-color: rgba(247,201,72,.35);
+  color:#fff2c0;
 }
 
-/* "+" button beside tournament dropdown */
+/* “+ Add tournament” button beside dropdown */
 .card:has(h3.text-center.text-primary) .btn-add-gold{
   width:40px; height:40px; border-radius:10px;
   display:inline-flex; align-items:center; justify-content:center;
-  background: linear-gradient(180deg, rgba(35,232,255,.2), rgba(35,232,255,.12));
-  border:1px solid rgba(35,232,255,.5);
+  background: linear-gradient(180deg, rgba(247,201,72,.22), rgba(247,201,72,.12));
+  border:1px solid rgba(247,201,72,.5);
   color: var(--mf-accent);
   font-weight:900; font-size:1.2rem;
-  box-shadow: 0 8px 24px -18px rgba(35,232,255,.6);
+  box-shadow: 0 8px 24px -18px rgba(247,201,72,.55);
   transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
 }
 .card:has(h3.text-center.text-primary) .btn-add-gold:hover{
   transform: translateY(-1px) scale(1.02);
-  background: linear-gradient(180deg, rgba(35,232,255,.28), rgba(35,232,255,.16));
+  background: linear-gradient(180deg, rgba(247,201,72,.28), rgba(247,201,72,.16));
 }
 
-/* Lightweight “Add Tournament” modal */
+/* Lightweight “Add Tournament” modal (gold edge) */
 .addtour-backdrop{
   position:fixed; inset:0; backdrop-filter: blur(6px) saturate(120%);
-  background: radial-gradient(80% 100% at 50% 0, rgba(0,10,20,.65), rgba(0,0,0,.6));
+  background: radial-gradient(80% 100% at 50% 0, rgba(10,12,16,.65), rgba(0,0,0,.6));
   z-index: 1050;
 }
 .addtour-modal{
   width:min(520px, 92vw);
   margin: 10vh auto 0;
-  background: linear-gradient(180deg, rgba(15,29,46,.96), rgba(10,18,32,.96));
-  border:1px solid rgba(35,232,255,.35);
+  background: linear-gradient(180deg, rgba(14,21,34,.96), rgba(10,16,28,.96));
+  border:1px solid rgba(247,201,72,.35);
   border-radius:16px;
   box-shadow: var(--mf-glow);
   padding:16px 16px 14px;
@@ -133,24 +131,24 @@
   color: var(--mf-accent);
 }
 
-/* Celebration banner */
+/* Celebration banner — gold */
 .celebration-banner{
   position: fixed; top: 18%; left: 50%; transform: translateX(-50%);
-  background: #0c1c2c; color: var(--mf-accent);
-  border:1px solid rgba(35,232,255,.35);
+  background:#0c1c2c; color: var(--mf-accent);
+  border:1px solid rgba(247,201,72,.35);
   box-shadow: var(--mf-glow);
-  font-size: 1.75rem; font-weight: 800;
-  padding: 14px 22px; border-radius: 12px; z-index: 1200;
+  font-size:1.65rem; font-weight:800;
+  padding:14px 22px; border-radius:12px; z-index:1200;
   animation: mfIn .6s ease, mfOut .8s ease 3.6s forwards;
 }
-@keyframes mfIn{from{opacity:0; transform:translateX(-50%) scale(.92);}to{opacity:1; transform:translateX(-50%) scale(1);}}
-@keyframes mfOut{to{opacity:0; transform:translateX(-50%) scale(.88);}}
+@keyframes mfIn{from{opacity:0; transform:translateX(-50%) scale(.92);}to{opacity:1; transform:translateX(-50%) scale(1);} }
+@keyframes mfOut{to{opacity:0; transform:translateX(-50%) scale(.88);} }
 
-/* Utility (used on disabled info rows if any) */
+/* Utility (if you use any static/disabled summary fields) */
 .form-control-static{
-  background: #0c1828 !important;
-  color: #cdeafd !important;
-  border: 1px dashed rgba(255,255,255,.12) !important;
-  box-shadow: none !important;
+  background:#0f192a !important;
+  color:#fff4c2 !important;
+  border:1px dashed rgba(247,201,72,.28) !important;
+  box-shadow:none !important;
 }
-.muted-label{ color: var(--mf-muted); font-weight: 800; }
+.muted-label{ color:#ffe082; font-weight:800; }
