@@ -1,7 +1,5 @@
 /* =========================
-   MatchHistory.css (FULL)
-   - Winner pill clipped (no overlap)
-   - Ready for extra "Tournament" filter
+   MatchHistory.css (FULL, simple Winner text)
    ========================= */
 
 /* shell + particles */
@@ -31,13 +29,10 @@
 }
 .mhfx-sub{ color:#9bb2c8; font-size:13px; }
 
-/* scopebar spacing */
-.mhfx-scope{ margin:6px 6px 6px; }
-
-/* filters — includes space for Tournament */
+/* filters (space left if you add Tournament later) */
 .mhfx-filters{
   display:grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr auto; /* room for Tournament */
+  grid-template-columns: 1fr 1fr 1fr 1fr auto;
   gap:10px; margin:8px 6px 18px;
 }
 .mhfx-filters select,
@@ -87,7 +82,7 @@
 .mhfx-table tbody td{
   padding:12px 10px; font-size:15px; color:#eaf6ff; text-align:center; border:0;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  position: relative; /* winner cell uses this for clipping context */
+  position: relative;
 }
 .mhfx-table tbody td.left{text-align:left}
 .mhfx-table tbody td.right{text-align:right}
@@ -99,65 +94,18 @@
   box-shadow:0 10px 24px rgba(0,0,0,.32);
   transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
   will-change: transform, box-shadow;
-  overflow:hidden; /* guarantees children don't spill */
+  overflow:hidden;
 }
 .mhfx-row:hover{ transform: translateY(-2px); box-shadow:0 16px 32px rgba(0,0,0,.38); }
 
 .idx{ color:#c9ffef; font-weight:700; }
 
-/* =========================
-   Winner (non-overlapping)
-   ========================= */
-.mhfx-winner{
-  position: relative;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  overflow: hidden;   /* clip inside cell */
-  contain: paint;     /* isolate painting */
-  isolation: isolate; /* new stacking context */
+/* ===== Winner as simple text ===== */
+.winner-text{
+  font-weight:800;
+  color:#e9ffd6;           /* light, readable */
+  text-align:center;
 }
-
-/* Compact pill with subtle sheen, capped width */
-.mhfx-winner .win-pill{
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  white-space: nowrap;
-  max-width: 92%;
-  padding: 6px 10px;
-  margin: 0 auto;
-  border-radius: 999px;
-  background: rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.14);
-  backdrop-filter: blur(4px);
-  box-shadow: 0 2px 8px rgba(0,0,0,.22);
-}
-.mhfx-winner .win-pill::before{
-  content:"";
-  position:absolute; inset:0; border-radius:inherit;
-  background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,.28) 50%, transparent 60%);
-  background-size: 140% 100%;
-  animation: mhfx-sheen 3s linear infinite;
-  opacity:.55;
-  pointer-events:none;
-  mix-blend-mode:screen;
-}
-@keyframes mhfx-sheen{ 0%{background-position:0 0} 100%{background-position:140% 0} }
-
-.mhfx-winner .trophy{ filter: drop-shadow(0 1px 3px rgba(0,0,0,.25)); }
-.mhfx-winner .name{ font-weight:800; }
-
-/* Kill legacy comet/sparkle layers completely */
-.mhfx-winner .win-track,
-.mhfx-winner .win-bar,
-.mhfx-winner .win-bar .win-head,
-.mhfx-winner .spark{ display:none !important; }
 
 /* skeleton loading */
 .skeleton td{
@@ -190,7 +138,7 @@
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  color-scheme: dark; /* hint browsers to use dark popup */
+  color-scheme: dark;
 }
 .mhfx-filters select:focus{
   outline: none !important;
@@ -203,7 +151,6 @@
   color: #eaf6ff !important;
 }
 .mhfx-filters select option:disabled{ color: #7f95aa !important; }
-/* If using Bootstrap's .form-select */
 .mhfx-filters .form-select{
   background-color: rgba(14,32,48,.9) !important;
   color: #eaf6ff !important;
@@ -216,6 +163,5 @@
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce){
-  .mhfx-winner .win-pill::before{ animation:none !important; }
   .skeleton td{ animation: none !important; }
 }

@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, forwardRef } from "react";
 import { getMatchHistory, getTestMatchHistory } from "../services/api";
 import { gsap } from "gsap";
-import { Animate } from "react-move";
 import { useSpring, animated as a } from "@react-spring/web";
 import Particles from "react-tsparticles";
 import { loadFull } from "tsparticles";
@@ -21,22 +20,38 @@ const useInView = (ref, threshold = 0.2) => {
 
 /* -------- Helpers -------- */
 const formatOvers = (overs) => Number(overs || 0).toFixed(1);
-const sumNum = (a, b) => (Number(a || 0) + Number(b || 0));
+const sumNum = (a, b) => Number(a || 0) + Number(b || 0);
 const sumOvers = (a, b) => (Number(a || 0) + Number(b || 0)).toFixed(1);
+
+/** Extract just the team name from backend winner string.
+ *  Examples:
+ *   "India won the match!"  -> "India"
+ *   "England won by 5 runs" -> "England"
+ *   "Match Draw"            -> "Draw"
+ *   "" / null               -> "—"
+ */
+const extractWinnerName = (w) => {
+  if (!w) return "—";
+  if (/draw/i.test(w)) return "Draw";
+  const m = w.match(/^(.+?)\s+won/i);
+  return m ? m[1].trim() : w.trim();
+};
 
 /* -------- Row (hooks live here, not inside map) -------- */
 const MHRow = forwardRef(({ i, m }, ref) => {
   const isTest = m.match_type === "Test";
 
-  // Team 1
+  // Team 1 (aggregate for Test)
   const runs1    = isTest ? sumNum(m.runs1,    m.runs1_2)    : m.runs1;
   const wickets1 = isTest ? sumNum(m.wickets1, m.wickets1_2) : m.wickets1;
   const overs1   = isTest ? sumOvers(m.overs1, m.overs1_2)   : formatOvers(m.overs1);
 
-  // Team 2
+  // Team 2 (aggregate for Test)
   const runs2    = isTest ? sumNum(m.runs2,    m.runs2_2)    : m.runs2;
   const wickets2 = isTest ? sumNum(m.wickets2, m.wickets2_2) : m.wickets2;
   const overs2   = isTest ? sumOvers(m.overs2, m.overs2_2)   : formatOvers(m.overs2);
+
+  const winnerName = extractWinnerName(m.winner);
 
   // Hover tilt
   const [spr, api] = useSpring(() => ({
@@ -56,7 +71,8 @@ const MHRow = forwardRef(({ i, m }, ref) => {
       className="mhfx-row"
       style={{
         transform: spr.scale.to(
-          (s) => `perspective(900px) rotateX(${spr.rotateX.get()}deg) rotateY(${spr.rotateY.get()}deg) scale(${s})`
+          (s) =>
+            `perspective(900px) rotateX(${spr.rotateX.get()}deg) rotateY(${spr.rotateY.get()}deg) scale(${s})`
         ),
       }}
       onMouseMove={onMove}
@@ -70,30 +86,8 @@ const MHRow = forwardRef(({ i, m }, ref) => {
       <td className="left">{m.team2}</td>
       <td>{runs2}/{wickets2} ({overs2} ov)</td>
 
-      {/* Winner: trophy + comet underline + sparkles + count-up opacity */}
-      <td className="mhfx-winner">
-        <div className="win-pill">
-          <span className="trophy" aria-hidden>🏆</span>
-          <Animate start={{ o: 0 }} update={{ o: [1], timing: { duration: 600 } }}>
-            {({ o }) => <span className="name" style={{ opacity: o }}>{m.winner || "—"}</span>}
-          </Animate>
-        </div>
-
-        {/* comet underline fill */}
-        <div className="win-track" />
-        <Animate start={{ w: 0 }} update={{ w: [100], timing: { duration: 800 } }}>
-          {({ w }) => (
-            <div className="win-bar" style={{ width: `${w}%` }}>
-              <span className="win-head" />
-            </div>
-          )}
-        </Animate>
-
-        {/* sparkles */}
-        <span className="spark s1" />
-        <span className="spark s2" />
-        <span className="spark s3" />
-      </td>
+      {/* Winner: simple text only */}
+      <td className="winner-text">{winnerName}</td>
 
       <td className="right">{new Date(m.match_time).toLocaleString()}</td>
     </a.tr>
