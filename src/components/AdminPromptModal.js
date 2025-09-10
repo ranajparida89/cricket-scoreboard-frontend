@@ -1,8 +1,9 @@
 // src/components/AdminPromptModal.jsx
-// 09-SEP-2025 — Glassmorphism + Soft-Gold theme
+// 09-SEP-2025 — Glassmorphism + Soft-Gold theme (FULL FILE)
 // • Logic preserved. UI fully refreshed.
-// • Stadium photo is used as the page backdrop.
-// • Are-you-admin choice uses elegant gold buttons (no blue/pink).
+// • Stadium photo as backdrop.
+// • Choice buttons use elegant gold styling (no blue/pink).
+// • Card is lighter/more transparent and sits lower on the page.
 
 import React, { useMemo, useState } from "react";
 import stadium from "../assets/images/Cricketstadium.jpg";
@@ -226,7 +227,12 @@ export default function AdminPromptModal({ onAdminResponse }) {
               <button className="btn gold-fill" type="submit" disabled={submitting}>
                 {submitting ? "Logging in..." : "Login"}
               </button>
-              <button className="btn gold-ghost" type="button" onClick={() => setShowCredentials(false)} disabled={submitting}>
+              <button
+                className="btn gold-ghost"
+                type="button"
+                onClick={() => setShowCredentials(false)}
+                disabled={submitting}
+              >
                 Back
               </button>
             </div>
@@ -247,17 +253,18 @@ export default function AdminPromptModal({ onAdminResponse }) {
 
         /* ===== Stadium backdrop ===== */
         .admin-modal-bg{
-          position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+          position:fixed; inset:0; display:flex; align-items:flex-start; justify-content:center;
           overflow:hidden; z-index:99999;
+          padding-top:clamp(64px, 20vh, 260px); /* push the card down to reveal the photo */
           font-family:Poppins, system-ui, -apple-system, Segoe UI, Roboto, Arial;
         }
         .admin-modal-bg.photo::before{
           content:""; position:absolute; inset:0; z-index:0;
           background:
-            linear-gradient(180deg, rgba(6,10,18,.42), rgba(6,10,18,.76)),
-            radial-gradient(1200px 600px at 80% 40%, rgba(0,0,0,.25), transparent 60%),
+            linear-gradient(180deg, rgba(6,10,18,.36), rgba(6,10,18,.64)), /* lighter overlay */
+            radial-gradient(1200px 600px at 80% 40%, rgba(0,0,0,.22), transparent 60%),
             var(--photo) center/cover no-repeat fixed;
-          filter: saturate(1.05) contrast(1.04) brightness(.96);
+          filter: saturate(1.05) contrast(1.04) brightness(.98);
           transform: scale(1.02);
         }
 
@@ -278,18 +285,19 @@ export default function AdminPromptModal({ onAdminResponse }) {
                           radial-gradient(circle at 70% 70%, #00e6b9, transparent 60%); animation-duration:22s;}
         @keyframes orb{ 0%,100%{transform:translate(0,0)} 50%{transform:translate(-30px,-22px)} }
 
-        /* ===== Glass card (lighter, golden halo) ===== */
+        /* ===== Glass card (even lighter, stronger transparency) ===== */
         .admin-modal{
           position:relative; z-index:2;
           width:min(740px,92vw);
-          background:linear-gradient(180deg, rgba(18,26,44,.48), rgba(18,26,44,.36));
+          background:linear-gradient(180deg, rgba(18,26,44,.32), rgba(18,26,44,.22)); /* lighter */
           backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-          border:1px solid var(--stroke); border-radius:22px;
+          border:1px solid rgba(247,201,72,.22); /* soft gold edge */
+          border-radius:22px;
           padding:22px 20px 20px;
           box-shadow:
-            0 26px 60px rgba(0,0,0,.34),
-            0 0 0 1px rgba(255,255,255,.05) inset,
-            0 18px 48px -22px rgba(247,201,72,.35); /* soft gold glow */
+            0 26px 60px rgba(0,0,0,.28),
+            0 0 0 1px rgba(255,255,255,.04) inset,
+            0 18px 48px -22px rgba(247,201,72,.32); /* soft gold glow */
           transform-style:preserve-3d; perspective:1000px;
           animation: float3d 9s ease-in-out infinite;
           color: var(--text);
@@ -312,7 +320,7 @@ export default function AdminPromptModal({ onAdminResponse }) {
         .subtitle.gold{ font-size:20px; margin-top:6px; }
 
         .lead{
-          text-align:center; color:#e6eadb; opacity:.9; margin:0 0 14px;
+          text-align:center; color:#e6eadb; opacity:.92; margin:0 0 14px;
           font-weight:600; letter-spacing:.15px;
         }
 
@@ -331,22 +339,22 @@ export default function AdminPromptModal({ onAdminResponse }) {
         .gold-fill{
           background: linear-gradient(180deg, rgba(247,201,72,.22), rgba(247,201,72,.16));
           color:#fff7d6;
-          border:1px solid rgba(247,201,72,.55);
-          box-shadow: 0 10px 28px -18px rgba(247,201,72,.6), inset 0 1px 0 rgba(255,255,255,.06);
+          border:1px solid rgba(247,201,72,.48);
+          box-shadow: 0 10px 28px -18px rgba(247,201,72,.55), inset 0 1px 0 rgba(255,255,255,.06);
         }
         .gold-fill:hover{ transform: translateY(-1px);
           background: linear-gradient(180deg, rgba(247,201,72,.28), rgba(247,201,72,.2));
-          box-shadow: 0 14px 34px -16px rgba(247,201,72,.66);
+          box-shadow: 0 14px 34px -16px rgba(247,201,72,.62);
         }
 
         /* Ghost (glass) with gold edge */
         .gold-ghost{
-          background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+          background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
           color:#fff5cc;
-          border:1px dashed rgba(247,201,72,.45);
-          box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 10px 26px -18px rgba(247,201,72,.45);
+          border:1px dashed rgba(247,201,72,.42);
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,.05), 0 10px 26px -18px rgba(247,201,72,.42);
         }
-        .gold-ghost:hover{ transform: translateY(-1px); background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04)); }
+        .gold-ghost:hover{ transform: translateY(-1px); background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03)); }
 
         /* Keep row (login buttons) visually aligned with choice buttons */
         .row{ display:flex; gap:12px; justify-content:center; align-items:center; margin-top:12px; }
@@ -363,12 +371,12 @@ export default function AdminPromptModal({ onAdminResponse }) {
           width:100%; color:var(--text); border:none; outline:none; border-radius:14px;
           padding:0.95rem 1rem; margin-top:10px; font-size:1rem;
           background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-          box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,.10);
           transition: box-shadow .2s var(--ease), background .25s var(--ease);
         }
-        .inp:focus{ box-shadow:0 0 0 3px rgba(247,201,72,.25), inset 0 0 0 1px rgba(247,201,72,.6) }
-        .inp.ok{   box-shadow: inset 0 0 0 1px rgba(98,255,205,.9), 0 0 0 3px rgba(98,255,205,.25) }
-        .inp.warn{ box-shadow: inset 0 0 0 1px rgba(255,200,87,.95), 0 0 0 3px rgba(255,200,87,.25) }
+        .inp:focus{ box-shadow:0 0 0 3px rgba(247,201,72,.25), inset 0 0 0 1px rgba(247,201,72,.55) }
+        .inp.ok{   box-shadow: inset 0 0 0 1px rgba(98,255,205,.9), 0 0 0 3px rgba(98,255,205,.22) }
+        .inp.warn{ box-shadow: inset 0 0 0 1px rgba(255,200,87,.95), 0 0 0 3px rgba(255,200,87,.22) }
 
         .error-bar{
           margin-top:12px; text-align:center; padding:.7rem 1rem; border-radius:10px;
