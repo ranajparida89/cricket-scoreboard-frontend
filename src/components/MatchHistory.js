@@ -33,7 +33,7 @@ const extractWinnerName = (w) => {
 
 const lc = (v) => (v ?? "").toString().toLowerCase();
 
-/** Apply client-side filters so UI works even if API doesn’t support the new params yet. */
+/** Apply client-side filters (keeps UI resilient if backend ignores new params). */
 const applyClientFilters = (rows, f) => {
   const teamQ = lc(f.team);
   const winQ = lc(f.winner);
@@ -117,6 +117,10 @@ const MatchHistory = () => {
     season_year: "",
   });
 
+  // NEW: dropdown option lists
+  const [tourOptions, setTourOptions] = useState([]);
+  const [seasonOptions, setSeasonOptions] = useState([]);
+
   const wrapRef = useRef(null);
   const rowsRef = useRef([]);
   rowsRef.current = [];
@@ -124,42 +128,64 @@ const MatchHistory = () => {
 
   const particlesInit = async (engine) => { await loadFull(engine); };
 
+  // Build distinct tournament + season options from a dataset
+  const computeOptions = (rows) => {
+    const tours = Array.from(
+      new Set(rows.map(r => r.tournament_name).filter(Boolean))
+    ).sort((a,b) => a.localeCompare(b));
+    const seasons = Array.from(
+      new Set(rows.map(r => (r.season_year != null ? String(r.season_year) : "")).filter(Boolean))
+    ).sort((a,b) => b.localeCompare(a)); // newest first
+    setTourOptions(tours);
+    setSeasonOptions(seasons);
+  };
+
   const fetchData = async (filterValues = {}) => {
     try {
       let data = [];
       if (filterValues.match_type === "Test") {
-        // Fetch all Test history, then apply client-side filters
+        // Fetch all Test history, then filter client-side
         const t = await getTestMatchHistory();
         data = (t || []).map((match) => ({
           ...match,
           match_type: "Test",
-          match_name: match.match_name,
-          match_time: match.match_time,
-          team1: match.team1, team2: match.team2,
-          winner: match.winner,
-          runs1: match.runs1, overs1: match.overs1, wickets1: match.wickets1,
-          runs1_2: match.runs1_2, overs1_2: match.overs1_2, wickets1_2: match.wickets1_2,
-          runs2: match.runs2, overs2: match.overs2, wickets2: match.wickets2,
-          runs2_2: match.runs2_2, overs2_2: match.overs2_2, wickets2_2: match.wickets2_2,
-          // Try to carry tournament fields if backend provides them
           tournament_name: match.tournament_name || match.tournament || "",
           season_year: match.season_year || match.season || "",
         }));
       } else {
-        // Normal API call (we pass new params too; backend can ignore or use them)
+        // T20/ODI – pass filters (server handles them now)
         data = await getMatchHistory(filterValues);
       }
 
-      // Always apply client-side filters to be safe
-      const filtered = applyClientFilters(Array.isArray(data) ? data : [], filterValues);
+      const arr = Array.isArray(data) ? data : [];
+      // Always compute dropdown options from the *dataset for this match_type*
+      // (don’t restrict by tournament/season here to keep the full list visible)
+      const forOptions =
+        filterValues.match_type === "Test"
+          ? arr // Test route returns all tests; good for options
+          : await getMatchHistory({ match_type: filterValues.match_type || "" }); // unfiltered by tournament/season
+
+      computeOptions(forOptions);
+
+      // Then apply client-side filters for robustness
+      const filtered = applyClientFilters(arr, filterValues);
       setMatches(filtered);
     } catch (err) {
       console.error("Error fetching match history:", err);
       setMatches([]);
+      setTourOptions([]);
+      setSeasonOptions([]);
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  // initial load
+  useEffect(() => { fetchData({}); }, []);
+
+  // auto-refresh options & rows when match type changes (T20/ODI/Test)
+  useEffect(() => {
+    fetchData({ match_type: filters.match_type });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.match_type]);
 
   const handleChange = (e) => setFilters({ ...filters, [e.target.name]: e.target.value });
   const handleSearch = (e) => { e.preventDefault(); fetchData(filters); };
@@ -224,16 +250,28 @@ const MatchHistory = () => {
             value={filters.winner} onChange={handleChange}
           />
 
-          {/* NEW: Tournament & Season filters */}
-          <input
-            type="text" name="tournament_name" placeholder="Tournament"
-            value={filters.tournament_name} onChange={handleChange}
-          />
-          <input
-            type="text" name="season_year" placeholder="Season (YYYY)"
-            value={filters.season_year} onChange={handleChange}
-            inputMode="numeric" pattern="\d{4}"
-          />
+          {/* NEW: Tournament & Season dropdowns */}
+          <select
+            name="tournament_name"
+            value={filters.tournament_name}
+            onChange={handleChange}
+          >
+            <option value="">All Tournaments</option>
+            {tourOptions.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+
+          <select
+            name="season_year"
+            value={filters.season_year}
+            onChange={handleChange}
+          >
+            <option value="">All Seasons</option>
+            {seasonOptions.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
 
           <div className="btns">
             <button type="submit" className="btn primary">Search</button>
