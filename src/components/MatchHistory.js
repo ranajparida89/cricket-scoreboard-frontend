@@ -23,13 +23,7 @@ const formatOvers = (overs) => Number(overs || 0).toFixed(1);
 const sumNum = (a, b) => Number(a || 0) + Number(b || 0);
 const sumOvers = (a, b) => (Number(a || 0) + Number(b || 0)).toFixed(1);
 
-/** Extract just the team name from backend winner string.
- *  Examples:
- *   "India won the match!"  -> "India"
- *   "England won by 5 runs" -> "England"
- *   "Match Draw"            -> "Draw"
- *   "" / null               -> "—"
- */
+/** Extract just the team name from backend winner string. */
 const extractWinnerName = (w) => {
   if (!w) return "—";
   if (/draw/i.test(w)) return "Draw";
@@ -37,7 +31,26 @@ const extractWinnerName = (w) => {
   return m ? m[1].trim() : w.trim();
 };
 
-/* -------- Row (hooks live here, not inside map) -------- */
+const lc = (v) => (v ?? "").toString().toLowerCase();
+
+/** Apply client-side filters so UI works even if API doesn’t support the new params yet. */
+const applyClientFilters = (rows, f) => {
+  const teamQ = lc(f.team);
+  const winQ = lc(f.winner);
+  const tourQ = lc(f.tournament_name);
+  const seasonQ = lc(f.season_year);
+
+  return rows.filter((r) => {
+    const okType   = f.match_type ? r.match_type === f.match_type : true;
+    const okTeam   = teamQ ? lc(r.team1).includes(teamQ) || lc(r.team2).includes(teamQ) : true;
+    const okWinner = winQ ? lc(extractWinnerName(r.winner)).includes(winQ) : true;
+    const okTour   = tourQ ? lc(r.tournament_name).includes(tourQ) : true;
+    const okSeason = seasonQ ? lc(String(r.season_year)).includes(seasonQ) : true;
+    return okType && okTeam && okWinner && okTour && okSeason;
+  });
+};
+
+/* -------- Row -------- */
 const MHRow = forwardRef(({ i, m }, ref) => {
   const isTest = m.match_type === "Test";
 
@@ -81,14 +94,13 @@ const MHRow = forwardRef(({ i, m }, ref) => {
       <td className="idx">{i + 1}</td>
       <td className="left">{m.match_name}</td>
       <td>{m.match_type}</td>
+      <td className="left">{m.tournament_name || "—"}</td>
+      <td>{m.season_year || "—"}</td>
       <td className="left">{m.team1}</td>
       <td>{runs1}/{wickets1} ({overs1} ov)</td>
       <td className="left">{m.team2}</td>
       <td>{runs2}/{wickets2} ({overs2} ov)</td>
-
-      {/* Winner: simple text only */}
       <td className="winner-text">{winnerName}</td>
-
       <td className="right">{new Date(m.match_time).toLocaleString()}</td>
     </a.tr>
   );
@@ -97,7 +109,14 @@ const MHRow = forwardRef(({ i, m }, ref) => {
 /* -------- Main component -------- */
 const MatchHistory = () => {
   const [matches, setMatches] = useState([]);
-  const [filters, setFilters] = useState({ match_type: "", team: "", winner: "" });
+  const [filters, setFilters] = useState({
+    match_type: "",
+    team: "",
+    winner: "",
+    tournament_name: "",
+    season_year: "",
+  });
+
   const wrapRef = useRef(null);
   const rowsRef = useRef([]);
   rowsRef.current = [];
@@ -109,6 +128,7 @@ const MatchHistory = () => {
     try {
       let data = [];
       if (filterValues.match_type === "Test") {
+        // Fetch all Test history, then apply client-side filters
         const t = await getTestMatchHistory();
         data = (t || []).map((match) => ({
           ...match,
@@ -121,11 +141,18 @@ const MatchHistory = () => {
           runs1_2: match.runs1_2, overs1_2: match.overs1_2, wickets1_2: match.wickets1_2,
           runs2: match.runs2, overs2: match.overs2, wickets2: match.wickets2,
           runs2_2: match.runs2_2, overs2_2: match.overs2_2, wickets2_2: match.wickets2_2,
+          // Try to carry tournament fields if backend provides them
+          tournament_name: match.tournament_name || match.tournament || "",
+          season_year: match.season_year || match.season || "",
         }));
       } else {
+        // Normal API call (we pass new params too; backend can ignore or use them)
         data = await getMatchHistory(filterValues);
       }
-      setMatches(Array.isArray(data) ? data : []);
+
+      // Always apply client-side filters to be safe
+      const filtered = applyClientFilters(Array.isArray(data) ? data : [], filterValues);
+      setMatches(filtered);
     } catch (err) {
       console.error("Error fetching match history:", err);
       setMatches([]);
@@ -136,7 +163,11 @@ const MatchHistory = () => {
 
   const handleChange = (e) => setFilters({ ...filters, [e.target.name]: e.target.value });
   const handleSearch = (e) => { e.preventDefault(); fetchData(filters); };
-  const handleReset = () => { setFilters({ match_type: "", team: "", winner: "" }); fetchData({}); };
+  const handleReset = () => {
+    const clean = { match_type: "", team: "", winner: "", tournament_name: "", season_year: "" };
+    setFilters(clean);
+    fetchData(clean);
+  };
 
   const inView = useInView(wrapRef);
 
@@ -193,6 +224,17 @@ const MatchHistory = () => {
             value={filters.winner} onChange={handleChange}
           />
 
+          {/* NEW: Tournament & Season filters */}
+          <input
+            type="text" name="tournament_name" placeholder="Tournament"
+            value={filters.tournament_name} onChange={handleChange}
+          />
+          <input
+            type="text" name="season_year" placeholder="Season (YYYY)"
+            value={filters.season_year} onChange={handleChange}
+            inputMode="numeric" pattern="\d{4}"
+          />
+
           <div className="btns">
             <button type="submit" className="btn primary">Search</button>
             <button type="button" className="btn" onClick={handleReset}>Reset</button>
@@ -207,6 +249,8 @@ const MatchHistory = () => {
                 <th>#</th>
                 <th>Match</th>
                 <th>Type</th>
+                <th>Tournament</th>
+                <th>Season</th>
                 <th>Team 1</th>
                 <th>Score</th>
                 <th>Team 2</th>
@@ -223,9 +267,9 @@ const MatchHistory = () => {
                 ))
               ) : (
                 <>
-                  <tr className="skeleton"><td colSpan="9" /></tr>
-                  <tr className="skeleton"><td colSpan="9" /></tr>
-                  <tr className="skeleton"><td colSpan="9" /></tr>
+                  <tr className="skeleton"><td colSpan="11" /></tr>
+                  <tr className="skeleton"><td colSpan="11" /></tr>
+                  <tr className="skeleton"><td colSpan="11" /></tr>
                 </>
               )}
             </tbody>
