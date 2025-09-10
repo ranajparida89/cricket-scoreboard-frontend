@@ -1,5 +1,7 @@
 /* =========================
-   MatchHistory.css (FULL, simple Winner text)
+   MatchHistory.css (FULL)
+   - Show full cell values (no ellipsis)
+   - Column sizing tuned for readability
    ========================= */
 
 /* shell + particles */
@@ -29,10 +31,13 @@
 }
 .mhfx-sub{ color:#9bb2c8; font-size:13px; }
 
-/* filters (space left if you add Tournament later) */
+/* scopebar spacing */
+.mhfx-scope{ margin:6px 6px 6px; }
+
+/* filters — includes Tournament/Season slots */
 .mhfx-filters{
   display:grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr auto;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto;
   gap:10px; margin:8px 6px 18px;
 }
 .mhfx-filters select,
@@ -64,28 +69,60 @@
 
 /* table */
 .mhfx-table-wrap{ overflow-x:auto; padding:0 6px; }
+
+/* ⬇️ Switch to auto layout so columns size to content */
 .mhfx-table{
-  width:100%; border-collapse:separate; table-layout:fixed;
-  border-spacing:0 8px; background:transparent !important; margin:0;
+  width:100%;
+  border-collapse:separate;
+  table-layout:auto;             /* was: fixed */
+  border-spacing:0 8px;
+  background:transparent !important;
+  margin:0;
 }
+
 .mhfx-table thead tr{ background:transparent !important; box-shadow:none !important; }
 .mhfx-table thead th{
   background: linear-gradient(180deg,#102437,#0d1f2f) !important;
   color:#dff2ff !important; font-weight:700; font-size:14px; letter-spacing:.2px;
   padding:12px 10px; border:1px solid rgba(255,255,255,.08) !important; border-bottom:0 !important;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  white-space:nowrap;                 /* headers stay on one line */
+  overflow:hidden; text-overflow:ellipsis;
 }
 .mhfx-table thead th:first-child{ border-top-left-radius:12px; border-bottom-left-radius:12px; }
 .mhfx-table thead th:last-child { border-top-right-radius:12px; border-bottom-right-radius:12px; }
 .mhfx-table thead th + th{ border-left-color: rgba(255,255,255,.06) !important; }
 
+/* ⬇️ Body cells now WRAP (no ellipsis) */
 .mhfx-table tbody td{
   padding:12px 10px; font-size:15px; color:#eaf6ff; text-align:center; border:0;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  position: relative;
+  white-space:normal;               /* was: nowrap */
+  overflow:visible;                 /* was: hidden */
+  text-overflow:clip;               /* was: ellipsis */
+  word-break:break-word;
+  hyphens:auto;
+  position:relative;
 }
 .mhfx-table tbody td.left{text-align:left}
 .mhfx-table tbody td.right{text-align:right}
+
+/* Keep some numeric/short fields on one line */
+.mhfx-table tbody td:nth-child(1),   /* # */
+.mhfx-table tbody td:nth-child(3),   /* Type */
+.mhfx-table tbody td:nth-child(5),   /* Season */
+.mhfx-table tbody td:nth-child(7),   /* Score team1 */
+.mhfx-table tbody td:nth-child(9),   /* Score team2 */
+.mhfx-table tbody td:nth-child(11)   /* Date */
+{ white-space:nowrap; }
+
+/* Helpful min-widths on desktop to avoid squashing */
+@media (min-width: 1100px){
+  .mhfx-table th:nth-child(2), .mhfx-table td:nth-child(2){ min-width: 220px; } /* Match */
+  .mhfx-table th:nth-child(4), .mhfx-table td:nth-child(4){ min-width: 200px; } /* Tournament */
+  .mhfx-table th:nth-child(6), .mhfx-table td:nth-child(6){ min-width: 140px; } /* Team 1 */
+  .mhfx-table th:nth-child(8), .mhfx-table td:nth-child(8){ min-width: 140px; } /* Team 2 */
+  .mhfx-table th:nth-child(10), .mhfx-table td:nth-child(10){ min-width: 160px; }/* Winner */
+  .mhfx-table th:nth-child(11), .mhfx-table td:nth-child(11){ min-width: 180px; }/* Date */
+}
 
 /* rows as floating cards */
 .mhfx-row{
@@ -100,12 +137,8 @@
 
 .idx{ color:#c9ffef; font-weight:700; }
 
-/* ===== Winner as simple text ===== */
-.winner-text{
-  font-weight:800;
-  color:#e9ffd6;           /* light, readable */
-  text-align:center;
-}
+/* Winner simple text */
+.winner-text{ font-weight:800; }
 
 /* skeleton loading */
 .skeleton td{
@@ -124,13 +157,13 @@
 @media (max-width: 680px){
   .mhfx-filters{ grid-template-columns:1fr; }
   /* compact: hide raw score columns to keep essentials visible */
-  .mhfx-table thead th:nth-child(5),
   .mhfx-table thead th:nth-child(7),
-  .mhfx-table tbody td:nth-child(5),
-  .mhfx-table tbody td:nth-child(7){ display:none; }
+  .mhfx-table thead th:nth-child(9),
+  .mhfx-table tbody td:nth-child(7),
+  .mhfx-table tbody td:nth-child(9){ display:none; }
 }
 
-/* --- Dark theme for native <select> popup + options (overrides) --- */
+/* --- Dark selects (popups) --- */
 .mhfx-filters select{
   background-color: rgba(14,32,48,.9) !important;
   color: #eaf6ff !important;
@@ -161,7 +194,7 @@
   color: #eaf6ff !important;
 }
 
-/* Reduced motion support */
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce){
   .skeleton td{ animation: none !important; }
 }
