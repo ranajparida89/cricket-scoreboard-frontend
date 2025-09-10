@@ -1,5 +1,5 @@
 /* =========================
-   MatchHistory.css (full)
+   MatchHistory.css (updated)
    ========================= */
 
 /* shell + particles */
@@ -25,9 +25,10 @@
 /* scopebar spacing (works with ScopeBar.js) */
 .mhfx-scope{ margin: 6px 6px 6px; }
 
-/* filters */
+/* filters — ready for an extra Tournament field */
 .mhfx-filters{
-  display:grid; grid-template-columns: 1fr 1fr 1fr auto;
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr auto; /* ← room for Tournament */
   gap:10px; margin:8px 6px 18px;
 }
 .mhfx-filters select,
@@ -73,98 +74,76 @@
 .mhfx-table thead th:last-child { border-top-right-radius:12px; border-bottom-right-radius:12px; }
 .mhfx-table thead th + th{ border-left-color: rgba(255,255,255,.06) !important; }
 
-.mhfx-table tbody td{ padding:12px 10px; font-size:15px; color:#eaf6ff; text-align:center; border:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mhfx-table tbody td{
+  padding:12px 10px; font-size:15px; color:#eaf6ff; text-align:center; border:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
 .mhfx-table tbody td.left{text-align:left}
 .mhfx-table tbody td.right{text-align:right}
 
 /* rows as floating cards */
 .mhfx-row{
-  background: linear-gradient(180deg, rgba(17,32,48,.65), rgba(10,23,35,.55));
+  background: linear-gradient(180deg, rgba(17,32,48,.62), rgba(10,23,35,.52));
   border:1px solid rgba(255,255,255,.07); border-radius:12px;
   box-shadow:0 12px 28px rgba(0,0,0,.35);
   transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
   will-change: transform, box-shadow;
+  overflow:hidden; /* ← guarantees children don't spill */
 }
 .mhfx-row:hover{ transform: translateY(-2px); box-shadow:0 18px 38px rgba(0,0,0,.42); }
 
 .idx{ color:#c9ffef; font-weight:700; }
 
 /* =========================
-   Winner: centered + layered
+   Winner (non-overlapping)
    ========================= */
+/* Cell acts as a clipping container */
 .mhfx-winner{
   position: relative;
   height: 38px;
-  display: flex;                 /* center the pill */
+  display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  overflow: visible;
+  overflow: hidden;            /* ← was visible; now clips perfectly */
 }
 
-/* the pill with trophy + name */
+/* Simple pill with soft shimmer (no absolute bars/sparkles) */
 .win-pill{
   position: relative;
-  z-index: 3;                    /* above track/bar/sparkles */
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   margin: 0 auto;
-  background: rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.12);
+  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+  border:1px solid rgba(255,255,255,.14);
   padding:6px 10px;
   border-radius:999px;
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.06);
 }
-.trophy{ filter: drop-shadow(0 2px 6px rgba(0,0,0,.35)); animation: wobble 2.2s ease-in-out infinite; }
-@keyframes wobble{
-  0%,100%{ transform: rotate(0deg) }
-  25%{ transform: rotate(-10deg) }
-  75%{ transform: rotate(8deg) }
+.win-pill::before{
+  content:"";
+  position:absolute; inset:-1px;
+  border-radius:inherit;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,.35) 50%, transparent 70%);
+  background-size: 220% 100%;
+  animation: mhfx-shine 2.6s linear infinite;
+  mix-blend-mode:screen;
+  pointer-events:none;
 }
+@keyframes mhfx-shine{ 0%{background-position:0 0} 100%{background-position:200% 0} }
+
+.trophy{ filter: drop-shadow(0 2px 6px rgba(0,0,0,.25)); }
 .name{ font-weight:800; }
 
-/* comet underline (beneath pill) */
+/* Kill the old comet/sparkles to avoid overlap without changing JSX */
 .win-track,
-.win-bar{
-  position:absolute;
-  left:14px;
-  right:14px;
-  bottom:6px;
-  height:6px;
-  border-radius:999px;
-  z-index:1;                     /* under pill */
-}
-.win-track{ background: rgba(255,255,255,.09); }
-.win-bar{
-  left:14px;                     /* explicit for layout engines */
-  width:0;
-  overflow: visible;
-  background-image: linear-gradient(90deg,#14e29a,#00c986);
-  filter: drop-shadow(0 0 10px rgba(255,255,255,.16));
-}
-.win-bar .win-head{
-  position:absolute; right:-6px; top:50%; transform: translateY(-50%);
-  width:10px; height:10px; border-radius:50%;
-  background:#fff; opacity:.9;
-  box-shadow:0 0 10px rgba(255,255,255,.9), 0 0 22px rgba(255,255,255,.6);
-  z-index:2;                     /* above bar */
-}
-
-/* sparkles (above bar, below pill) */
-.spark{
-  position:absolute; pointer-events:none; width:6px; height:6px; border-radius:50%;
-  background:#fff; opacity:0; z-index:2;
-}
-.s1{ left:18px;  top:4px;  animation: sparkle 1.6s ease-in-out .2s infinite; }
-.s2{ left:44px;  top:0;    animation: sparkle 1.9s ease-in-out .4s infinite; }
-.s3{ left:72px;  top:10px; animation: sparkle 1.7s ease-in-out .6s infinite; }
-@keyframes sparkle{
-  0%{ transform: scale(.6); opacity:0 }
-  40%{ transform: scale(1); opacity:.9 }
-  100%{ transform: scale(.6); opacity:0 }
-}
+.win-bar,
+.win-bar .win-head,
+.spark{ display:none !important; }
 
 /* skeleton loading */
 .skeleton td{
@@ -197,7 +176,7 @@
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  color-scheme: dark; /* hint browsers to use dark popup */
+  color-scheme: dark;
 }
 .mhfx-filters select:focus{
   outline: none !important;
@@ -210,7 +189,6 @@
   color: #eaf6ff !important;
 }
 .mhfx-filters select option:disabled{ color: #7f95aa !important; }
-/* If using Bootstrap's .form-select */
 .mhfx-filters .form-select{
   background-color: rgba(14,32,48,.9) !important;
   color: #eaf6ff !important;
@@ -223,7 +201,6 @@
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce){
-  .trophy{ animation: none !important; }
-  .spark.s1, .spark.s2, .spark.s3{ animation: none !important; opacity: .5; }
+  .win-pill::before{ animation:none !important; }
   .skeleton td{ animation: none !important; }
 }
