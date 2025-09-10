@@ -1,8 +1,12 @@
 // src/components/AdminPromptModal.jsx
-// 05-JULY-2025 RANAJ PARIDA — logic preserved
-// Proper eyelids + precise hand cover + 3D glass UI
+// 05-JUL-2025 — Glassmorphism redesign with stadium photo backdrop
+// ✅ Logic preserved exactly; only visuals/wrapper updated.
+// ✅ Uses your image at: src/assets/images/Cricketstadium.jpg
 
 import React, { useMemo, useState } from "react";
+
+// ⬇️ Import your background image from the path you provided
+import stadium from "../assets/images/Cricketstadium.jpg";
 
 export default function AdminPromptModal({ onAdminResponse }) {
   // Choose behaviour on password focus: "close" | "cover"
@@ -93,13 +97,20 @@ export default function AdminPromptModal({ onAdminResponse }) {
     : "";
 
   return (
-    <div className="admin-modal-bg" role="dialog" aria-modal="true" tabIndex={-1}>
+    // ⬇️ We pass the imported image into CSS as a variable (--photo)
+    <div
+      className="admin-modal-bg photo"
+      style={{ "--photo": `url(${stadium})` }}
+      role="dialog" aria-modal="true" tabIndex={-1}
+    >
+      {/* Decorative floating orbs above photo (kept) */}
       <div className="glass-orbs" aria-hidden>
         <span className="orb orb1" />
         <span className="orb orb2" />
         <span className="orb orb3" />
       </div>
 
+      {/* The glass card UI */}
       <div className="admin-modal tilt">
         {!showCredentials ? (
           <>
@@ -253,13 +264,26 @@ export default function AdminPromptModal({ onAdminResponse }) {
           --ease:cubic-bezier(.22,.61,.36,1);
         }
 
-        /* ===== Backdrop + floating coloured orbs ===== */
+        /* ===== Fullscreen backdrop with your stadium photo =====
+           We paint the image on ::before so we can layer darkening
+           gradients above it without extra DOM elements. */
         .admin-modal-bg{
           position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
-          background:radial-gradient(1200px 700px at 85% 50%, #12253f, #0b1220 55%);
-          z-index:99999;
+          overflow:hidden; z-index:99999;
           font-family:Poppins, system-ui, -apple-system, Segoe UI, Roboto, Arial;
         }
+        .admin-modal-bg.photo::before{
+          content:""; position:absolute; inset:0; z-index:0;
+          background:
+            linear-gradient(180deg, rgba(6,10,18,.55), rgba(6,10,18,.82)),  /* dimmer for readability */
+            radial-gradient(1400px 700px at 80% 40%, rgba(0,0,0,.30), transparent 60%), /* vignette */
+            var(--photo) center/cover no-repeat fixed;   /* <- your imported image */
+          filter: saturate(1.05) contrast(1.05) brightness(.95);
+          transform: scale(1.02); /* slight zoom to avoid edge gaps on small screens */
+        }
+
+        /* Decorative floating orbs (above photo, below card) */
+        .glass-orbs{ position:absolute; inset:0; z-index:1; pointer-events:none; }
         .glass-orbs .orb{
           position:absolute; border-radius:50%; filter:blur(44px); opacity:.55; mix-blend-mode:screen;
           animation: orb 18s ease-in-out infinite;
@@ -277,11 +301,16 @@ export default function AdminPromptModal({ onAdminResponse }) {
 
         /* ===== 3D glass card ===== */
         .admin-modal{
+          position:relative; z-index:2;
           width:min(740px,92vw);
-          background:linear-gradient(180deg, rgba(18,26,44,.6), rgba(18,26,44,.45));
+          background:linear-gradient(180deg, rgba(18,26,44,.58), rgba(18,26,44,.42));
           backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
           border:1px solid var(--stroke); border-radius:22px;
-          padding:18px; box-shadow:0 26px 60px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.08);
+          padding:18px;
+          box-shadow:
+            0 26px 60px rgba(0,0,0,.36),
+            inset 0 1px 0 rgba(255,255,255,.08),
+            0 0 0 1px rgba(255,255,255,.06);
           transform-style:preserve-3d; perspective:1000px;
           animation: float3d 9s ease-in-out infinite;
         }
