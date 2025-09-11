@@ -1,7 +1,8 @@
 /************************************************************
  * App.css — stable, mobile-friendly base
- * - Global surfaces are transparent so #site-bg is visible
- * - Footer uses soft translucency + blur for readability
+ * - No white screen (doesn't blur <body>)
+ * - No mobile flicker/tearing (GPU promotion + no heavy filters)
+ * - Leaderboard/Test tables won't “break” (nowrap + proper isolation)
  ************************************************************/
 
 /* ===== App layout ===== */
@@ -32,11 +33,19 @@ header {
   transform: translateZ(0);
   will-change: transform;
   backface-visibility: hidden;
+  /* NOTE: we do NOT use contain: paint globally (it can clip children).
+     We selectively isolate rows later, where it's safe. */
+}
+
+/* ===== App logo ===== */
+.App-logo { height: 40vmin; pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo { animation: App-logo-spin infinite 20s linear; }
 }
 
 /* ===== Header & themes ===== */
 .App-header {
-  background: transparent;            /* was #171922 */
+  background-color: #171922;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -45,17 +54,15 @@ header {
   font-size: calc(10px + 2vmin);
   color: #fff;
 }
-
-/* Make dark/light containers transparent so global bg shows */
 .dark, body.dark, #root.dark {
-  background: transparent !important; /* was #0a0a0a */
+  background: #0a0a0a !important;  /* pure black AMOLED */
   color: #fff;
-  transition: color .3s;
+  transition: background .3s, color .3s;
 }
 .light, body.light, #root.light {
-  background: transparent !important; /* was #f8f9fa */
-  color: #e9eef5;
-  transition: color .3s;
+  background: #f8f9fa !important;
+  color: #212529;
+  transition: background .3s, color .3s;
 }
 
 /* ===== Cards (base look) ===== */
@@ -79,12 +86,10 @@ a:hover { color: #ffb800; text-decoration: underline; }
 /* Text selection */
 ::selection { background: #ffd40080; }
 
-/* ===== Footer (semi-transparent over photo) ===== */
+/* ===== Footer (no 100vw to avoid horizontal scroll) ===== */
 .crickedge-footer {
   width: 100%;
-  background: rgba(10,10,10,.62);          /* translucent, lets photo show */
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: #0a0a0a;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -139,10 +144,12 @@ a:hover { color: #ffb800; text-decoration: underline; }
 /* ==========================================================
    COMPONENT-SPECIFIC STABILITY (leaderboard & match tables)
    ========================================================== */
+
+/* Always promote these surfaces to dedicated GPU layers */
 .leaderboard-glass,
-.lbfx-glass,
-.trfx-glass,
-.mhfx-glass,
+.lbfx-glass,     /* alt leaderboard wrapper */
+.trfx-glass,     /* TestRanking wrapper */
+.mhfx-glass,     /* MatchHistory wrapper */
 .nrr-track, .nrr-bar,
 .win-track, .win-bar {
   transform: translateZ(0);
@@ -152,15 +159,18 @@ a:hover { color: #ffb800; text-decoration: underline; }
 
 /* Touch devices & small screens: disable heavy effects */
 @media (max-width: 900px), (pointer: coarse) {
+  /* Kill backdrop blur on glass cards to stop last flickers */
   .leaderboard-glass,
   .lbfx-glass,
   .trfx-glass,
   .mhfx-glass {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    background: rgba(13,31,47,.96) !important;
+    background: rgba(13,31,47,.96) !important; /* solid glassy fallback */
     box-shadow: 0 10px 26px rgba(0,0,0,.35);
   }
+
+  /* Remove 3D hover/tilt transforms that thrash layers on touch */
   .lb-row,
   .mhfx-row,
   .trfx-row {
@@ -168,26 +178,38 @@ a:hover { color: #ffb800; text-decoration: underline; }
     transition: background-color .18s ease !important;
     box-shadow: none !important;
   }
+
+  /* Remove expensive filters on animated bars/icons */
   .nrr-bar,
   .win-bar,
-  .trophy { filter: none !important; }
+  .trophy {
+    filter: none !important;
+  }
+
+  /* Particles add translucent layers while scrolling—hide on mobile */
   #lbfx-particles,
   #trfx-particles,
-  #mhfx-particles { display: none !important; }
+  #mhfx-particles {
+    display: none !important;
+  }
 }
 
-/* If the page sets body.bg-dark (Bootstrap), keep it transparent now */
-body.bg-dark { background-color: transparent !important; }
+/* If the page sets body.bg-dark (Bootstrap), keep it simple */
+body.bg-dark { background-color: #0a0a0a !important; }
 
 /* ==========================================================
-   ROW/BLOCK “BREAKING” FIXES (existing)
+   ROW/BLOCK “BREAKING” FIXES (no wrapping / no clipping)
    ========================================================== */
+
+/* 1) tables use fixed layout for consistent column widths */
 .leaderboard-table,
 .trfx-table,
 .mhfx-table {
   table-layout: fixed;
   width: 100%;
 }
+
+/* 2) keep cell content in a single line; ellipsize instead of wrapping */
 .leaderboard-table thead th,
 .leaderboard-table tbody td,
 .trfx-table .th,
@@ -198,17 +220,23 @@ body.bg-dark { background-color: transparent !important; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* 3) isolate each row so effects don't bleed into neighbors */
 .leaderboard-table tbody tr,
 .mhfx-table tbody tr,
 .trfx-table .tr-row,
 .trfx-row {
-  isolation: isolate;
+  isolation: isolate;   /* new stacking context per row */
 }
+
+/* 4) NRR / Winner cells must be allowed to show glow without clipping */
 .leaderboard-table td.nrr-cell,
 .mhfx-table td.mhfx-winner {
   position: relative;
   overflow: visible;
 }
+
+/* 5) Tighter spacing on small screens for better fit */
 @media (max-width: 768px) {
   .leaderboard-table thead th,
   .leaderboard-table tbody td,
@@ -218,16 +246,20 @@ body.bg-dark { background-color: transparent !important; }
     font-size: 14px !important;
   }
 }
-
 /* =========================================================
    Samsung S23 Ultra (Chrome, high-DPR) stability overrides
+   - Remove gradients/pseudo glows
+   - Collapse table gaps
+   - Solid row backgrounds
+   - Simple shadows only
    ========================================================= */
 @media (pointer: coarse) and (-webkit-min-device-pixel-ratio: 2) {
+  /* 1) Glass wrappers: no gradients/pseudo backgrounds */
   .leaderboard-glass,
   .lbfx-glass,
   .trfx-glass,
   .mhfx-glass {
-    background: #0f1b28 !important;
+    background: #0f1b28 !important;         /* solid, dark navy */
     box-shadow: 0 6px 16px rgba(0,0,0,.28) !important;
     border: 1px solid rgba(255,255,255,.06) !important;
     backdrop-filter: none !important;
@@ -238,6 +270,7 @@ body.bg-dark { background-color: transparent !important; }
   .trfx-glass::before, .trfx-glass::after,
   .mhfx-glass::before, .mhfx-glass::after { content: none !important; }
 
+  /* 2) Collapse the tables (removes the “stepped” gaps on scroll) */
   .leaderboard-table,
   .trfx-table,
   .mhfx-table {
@@ -245,6 +278,8 @@ body.bg-dark { background-color: transparent !important; }
     border-spacing: 0 !important;
     table-layout: fixed !important;
   }
+
+  /* 3) Rows: solid background, no per-row shadow */
   .leaderboard-table tbody tr,
   .mhfx-table tbody tr {
     background: #0f1e2d !important;
@@ -255,6 +290,7 @@ body.bg-dark { background-color: transparent !important; }
   .leaderboard-table tbody td,
   .mhfx-table tbody td { position: relative; z-index: 1; }
 
+  /* 4) Never wrap inside cells → no multi-line bumps */
   .leaderboard-table thead th,
   .leaderboard-table tbody td,
   .trfx-table .th, .trfx-table .td,
@@ -263,12 +299,16 @@ body.bg-dark { background-color: transparent !important; }
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
+
+  /* 5) Bars/effects: keep them simple & non-filtered */
   .nrr-track, .win-track { background: rgba(255,255,255,.12) !important; }
   .nrr-bar, .win-bar, .trophy {
     filter: none !important;
     box-shadow: none !important;
   }
   .win-bar .win-head { box-shadow: none !important; opacity: .9; }
+
+  /* 6) Slightly tighter spacing for mobile fit */
   .leaderboard-table thead th,
   .leaderboard-table tbody td,
   .mhfx-table thead th,
@@ -277,7 +317,6 @@ body.bg-dark { background-color: transparent !important; }
     font-size: 14px !important;
   }
 }
-
 /* highlight newly imported players inside Squad list */
 .new-chip {
   background: #22c55e;
@@ -292,3 +331,4 @@ body.bg-dark { background-color: transparent !important; }
   box-shadow: 0 0 0 2px rgba(34,197,94,0.25), 0 0 20px rgba(34,197,94,0.45);
   transition: box-shadow 0.3s ease;
 }
+
