@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { getTeams } from "../services/api";
 import { io } from "socket.io-client";
+import TeamMatchExplorerDrawer from "./TeamMatchExplorerDrawer"; // NEW
 import "./Leaderboard.css";
 
 /* Simple, unified title (no glow) */
 const TITLE_STYLE = {
   textAlign: "center",
-  margin: "0 0 12px",
+  margin: "0 0 8px",
   fontWeight: 900,
   fontSize: "22px",
   color: "#22ff99",
@@ -63,6 +64,7 @@ const bucketColor = (bucket) => {
 
 const Leaderboard = () => {
   const [teams, setTeams] = useState([]);
+  const [selectedTeam, setSelectedTeam] = useState(null); // NEW
 
   const fetchTeams = async () => {
     try {
@@ -109,14 +111,26 @@ const Leaderboard = () => {
   const calculateDraws = (team) =>
     Math.max(0, team.matches_played - team.wins - team.losses);
 
+  // Open details on row click / Enter / Space
+  const openTeamDetails = (fullTeamName) => setSelectedTeam(fullTeamName);
+  const onRowKeyDown = (e, fullTeamName) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setSelectedTeam(fullTeamName);
+    }
+  };
+
   return (
     <div className="leaderboard-shell">
       <h2 className="lb-title" style={TITLE_STYLE}>
         Leaderboard Summary (ODI/T20)
       </h2>
+      {/* subtle hint so users know rows are clickable */}
+      <p className="lb-tip">Tip: Click or tap a team row to view full match details.</p>
 
       <div className="leaderboard-table-wrapper">
-        <table className="table table-dark text-center mb-0 leaderboard-table">
+        {/* removed `table-dark` so our blue header styles apply */}
+        <table className="table text-center mb-0 leaderboard-table">
           <thead>
             <tr>
               <th>R</th>
@@ -135,13 +149,20 @@ const Leaderboard = () => {
               const { bucket, neg } = nrrBucket(team.nrr);
               const width = nrrWidth(team.nrr);
               const color = bucketColor(bucket);
+              const fullName = team.team_name;
+
               return (
                 <tr
-                  key={team.team_name}
+                  key={fullName}
                   className={`lb-row ${index < 3 ? "top3" : ""}`}
+                  role="button"
+                  tabIndex={0}
+                  title={`View ${fullName} match details`}
+                  onClick={() => openTeamDetails(fullName)}
+                  onKeyDown={(e) => onRowKeyDown(e, fullName)}
                 >
                   <td>{getMedal(index)} {index + 1}</td>
-                  <td className="team-name">{displayTeam(team.team_name)}</td>
+                  <td className="team-name">{displayTeam(fullName)}</td>
                   <td>{team.matches_played}</td>
                   <td className="pos">{team.wins}</td>
                   <td className="neg">{team.losses}</td>
@@ -161,12 +182,22 @@ const Leaderboard = () => {
             })}
             {teams.length === 0 && (
               <tr>
-                <td colSpan="8" className="text-muted py-4">No match data available.</td>
+                <td colSpan="8" className="text-muted py-4">
+                  No match data available.
+                </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
+
+      {/* Glass details drawer/modal */}
+      {selectedTeam && (
+        <TeamMatchExplorerDrawer
+          team={selectedTeam}
+          onClose={() => setSelectedTeam(null)}
+        />
+      )}
     </div>
   );
 };

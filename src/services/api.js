@@ -255,6 +255,14 @@ export const saveLineup = (payload) =>
     .post(`${API_URL}/squads/lineup`, payload, { headers: { ...uidHeader() } })
     .then((r) => r.data);
 
+    // BASE already: https://cricket-scoreboard-backend.onrender.com
+export async function getTeamMatchExplorer(params){
+  const q = new URLSearchParams(params).toString();
+  const res = await fetch(`${API_URL || "https://cricket-scoreboard-backend.onrender.com"}/api/team-match-explorer/by-team?${q}`);
+  if (!res.ok) throw new Error("Failed to fetch team match explorer");
+  return res.json();
+}
+
 /* ================== USER DASHBOARD MOCK ================== */
 
 export const getUserDashboardData = async (userId) => {
@@ -287,4 +295,5 @@ export const getUserDashboardData = async (userId) => {
     notifications,
     settings,
   };
+
 };
