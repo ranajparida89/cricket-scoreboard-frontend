@@ -1,21 +1,30 @@
 /*****************************************************
- * Leaderboards.css — desktop pretty, *mobile bulletproof*
+ * Leaderboards.css — glassmorphism (desktop), hardened mobile
  *****************************************************/
+
+:root{
+  --glass-surface: rgba(14,31,47,.36);
+  --glass-border: rgba(255,255,255,.16);
+  --glass-highlight: rgba(95,208,199,.12);
+  --glass-shadow: 0 18px 48px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.06);
+  --glass-blur: 12px;
+}
 
 /* small spacing for the ScopeBar block above the table */
 .leaderboard-controls{ margin-bottom: 10px; }
 
 /* ===== Glassy wrapper (desktop) ===== */
 .leaderboard-glass{
-  background: radial-gradient(900px 380px at 8% -10%, rgba(0,255,170,.08), transparent 60%),
-              linear-gradient(180deg, rgba(13,31,47,.78), rgba(10,23,36,.68));
-  border: 1px solid rgba(255,255,255,.08);
+  background:
+    radial-gradient(900px 380px at 8% -10%, var(--glass-highlight), transparent 60%),
+    var(--glass-surface);
+  border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 14px;
-  box-shadow: 0 16px 40px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.06);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  overflow: hidden;                 /* clip any child to radius */
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  overflow: hidden;
 }
 
 /* Wrapper keeps header/body aligned (desktop only) */
@@ -24,28 +33,30 @@
 /* ===== Table base ===== */
 .leaderboard-table{
   width: 100%;
-  border-collapse: separate;      /* row gaps on desktop */
-  table-layout: fixed;            /* stable widths */
-  border-spacing: 0 8px;          /* vertical gaps only */
+  border-collapse: separate;
+  table-layout: fixed;
+  border-spacing: 0 8px;
   background: transparent;
   margin: 0;
 }
 
 /* ===== Header ===== */
 .leaderboard-table thead tr{
-  background: linear-gradient(180deg, #0f2234, #0c1b2a);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #0f2234 70%, transparent), color-mix(in srgb, #0c1b2a 70%, transparent));
   box-shadow: 0 10px 24px rgba(0,0,0,.30);
 }
 .leaderboard-table thead th{
-  font-weight: 700;
-  color: #dff2ff;
+  font-weight: 800;
+  color: #f3fbff;
   border: 0 !important;
   font-size: 14px;
   padding: 12px 10px;
   letter-spacing: .2px;
-  white-space: nowrap;            /* never wrap (prevents stepped rows) */
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-shadow: 0 1px 0 rgba(0,0,0,.35);
 }
 .leaderboard-table thead th:first-child{ border-top-left-radius: 12px; }
 .leaderboard-table thead th:last-child { border-top-right-radius: 12px; }
@@ -54,21 +65,25 @@
 .leaderboard-table tbody td{
   padding: 12px 10px;
   font-size: 15px;
-  color: #eaf6ff;
+  color: #f1fbff;
   text-align: center;
   border: 0;
-  white-space: nowrap;            /* keep one line */
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-shadow: 0 1px 0 rgba(0,0,0,.35);
 }
+.team-name{ font-weight: 900; letter-spacing: .2px; text-align: left; color:#fff; }
 
-/* ===== Rows as "cards" (desktop) ===== */
+/* ===== Rows as "glass cards" (desktop) ===== */
 .leaderboard-table tbody tr{
-  background: linear-gradient(180deg, rgba(17,32,48,.65), rgba(10,23,35,.55));
-  border: 1px solid rgba(255,255,255,.07);
+  background: linear-gradient(180deg, rgba(17,32,48,.42), rgba(10,23,35,.34));
+  border: 1px solid var(--glass-border);
   border-radius: 12px;
   box-shadow: 0 12px 28px rgba(0,0,0,.35);
   transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 .leaderboard-table tbody tr:hover{
   transform: translateY(-2px);
@@ -77,19 +92,15 @@
 
 /* Emoji medals + tint helpers */
 .medal-emoji{ font-size: 1.15rem; margin-right: 4px; }
-.pos{ color:#c9ffef; }
-.neg{ color:#ffc2c2; }
-.team-name{ font-weight: 800; letter-spacing: .2px; text-align: left; }
+.pos{ color:#c9ffef; text-shadow: 0 1px 0 #0006; }
+.neg{ color:#ffc2c2; text-shadow: 0 1px 0 #0006; }
 
 /* ===== NRR tiny bar ===== */
-.nrr-cell{
-  position: relative;
-  overflow: visible;
-  height: 34px;
-}
+.nrr-cell{ position: relative; overflow: visible; height: 34px; }
 .nrr-track{
   position: absolute; left: 8px; right: 8px; bottom: 6px; height: 6px;
-  border-radius: 999px; background: rgba(255,255,255,.09);
+  border-radius: 999px; background: rgba(255,255,255,.18);
+  backdrop-filter: blur(2px);
 }
 .nrr-bar{
   position: absolute; bottom: 6px; height: 6px; width: var(--w, 0);
@@ -102,61 +113,46 @@
 
 /* Hover tint synced to buckets */
 .lb-row{ cursor: default; }
-.lb-row[data-bucket="green"]:hover  { background-color: rgba(22,226,138,.12); }
-.lb-row[data-bucket="yellow"]:hover { background-color: rgba(255,231,106,.12); }
-.lb-row[data-bucket="orange"]:hover { background-color: rgba(255,176,58,.12); }
-.lb-row[data-bucket="purple"]:hover { background-color: rgba(165,124,255,.12); }
-.lb-row[data-bucket="red"]:hover    { background-color: rgba(255, 43, 43,.12); }
+.lb-row[data-bucket="green"]:hover  { background-color: rgba(22,226,138,.16); }
+.lb-row[data-bucket="yellow"]:hover { background-color: rgba(255,231,106,.14); }
+.lb-row[data-bucket="orange"]:hover { background-color: rgba(255,176,58,.14); }
+.lb-row[data-bucket="purple"]:hover { background-color: rgba(165,124,255,.14); }
+.lb-row[data-bucket="red"]:hover    { background-color: rgba(255,43,43,.14); }
 
 /* Bar colors */
 .lb-row[data-bucket="green"]  .nrr-bar{ background: linear-gradient(90deg,#14e29a,#00c986); }
-.lb-row[data-bucket="yellow"] .nrr-bar{ background: linear-gradient(90deg,#ffe76a,#ffb03a); }
+lb-row[data-bucket="yellow"] .nrr-bar{ background: linear-gradient(90deg,#ffe76a,#ffb03a); }
 .lb-row[data-bucket="orange"] .nrr-bar{ background: linear-gradient(90deg,#ffb03a,#ff7a3d); }
 .lb-row[data-bucket="purple"] .nrr-bar{ background: linear-gradient(90deg,#a57cff,#6dd6ff); }
 .lb-row[data-bucket="red"]    .nrr-bar{ background: linear-gradient(90deg,#ff6b6b,#ff2b2b); }
 
-
-/* =======================================================================
-   MOBILE / TOUCH HARDENING (stops rectangular tiling & flicker on Android)
-   ======================================================================= */
+/* ================= Mobile / touch hardening ================= */
 @media (max-width: 900px), (pointer: coarse){
-
-  /* 1) Remove any inner scroller. Let the page scroll. */
   .leaderboard-table-wrapper{
     max-height: none !important;
     overflow: visible !important;
     padding: 0 !important;
   }
-  .leaderboard-table-wrapper.scrollable::before,
-  .leaderboard-table-wrapper.scrollable::after{ display:none !important; }
-
-  /* 2) Disable sticky behaviors (common tiling trigger). */
   .leaderboard-table thead th,
   .sticky-col{
     position: static !important;
     z-index: auto !important;
     background: transparent !important;
   }
-
-  /* 3) Simplify the wrapper: no blur, strong clipping. */
- .leaderboard-glass{
-  /* ... */
-  overflow: hidden !important;
-  background-clip: padding-box;
-  isolation: isolate;
-
-  /* Radius clipping (no extra compositing) */
-  clip-path: inset(0 round 16px);
-
-  /* Standards first + WebKit fallback */
-  mask-image: radial-gradient(#fff, #000);
-  -webkit-mask-image: radial-gradient(#fff, #000);
-  mask-repeat: no-repeat;
-  mask-size: 100% 100%;
-}
-
-
-  /* 4) Render rows as simple blocks; no heavy shadow/radius mixing. */
+  .leaderboard-glass{
+    background:#0f1b28 !important;
+    border:1px solid rgba(255,255,255,.06) !important;
+    box-shadow:0 6px 16px rgba(0,0,0,.28) !important;
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+    overflow: hidden !important;
+    background-clip: padding-box;
+    clip-path: inset(0 round 16px);
+    mask-image: radial-gradient(#fff, #000);
+    -webkit-mask-image: radial-gradient(#fff, #000);
+    mask-repeat: no-repeat;
+    mask-size: 100% 100%;
+  }
   .leaderboard-table{
     border-collapse: collapse !important;
     border-spacing: 0 !important;
@@ -171,24 +167,11 @@
     overflow: hidden;
     background-clip: padding-box;
   }
-
-  /* 5) Bars simplified: no extra glow. */
   .nrr-track{ background: rgba(255,255,255,.12) !important; }
   .nrr-bar{ box-shadow:none !important; filter:none !important; }
-
-  /* 6) Tighter spacing */
   .leaderboard-table thead th,
   .leaderboard-table tbody td{
     padding:10px 8px !important;
     font-size:14px !important;
-  }
-}
-
-/* Slight scale down on small phones */
-@media (max-width: 768px){
-  .leaderboard-table thead th,
-  .leaderboard-table tbody td{
-    font-size: 14px;
-    padding: 10px 8px;
   }
 }
