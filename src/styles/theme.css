@@ -1,13 +1,14 @@
 /* ==== Slumber fonts (load first) ========================================== */
 @import url("https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&family=Karla:wght@400;700&display=swap");
 
-/* 🌙 Global Dark Background (UPDATED: font-family -> Karla) */
+/* 🌙 Global Dark (UPDATED to be transparent so #site-bg is visible) */
 body {
-  background-color: #0c1c2c;
+  background: transparent !important;   /* was #0c1c2c */
   color: #ffffff;
-  font-family: "Karla", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif; /* UPDATED */
+  font-family: "Karla", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
   margin: 0;
   padding: 0;
+  color-scheme: dark;
 }
 
 /* 📦 Card Containers (Forms, Leaderboard, Match Cards) */
@@ -19,11 +20,10 @@ body {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* 🧾 Match Form Headings
-   (UPDATED: headings use Josefin Sans for the screenshot vibe) */
+/* 🧾 Match Form Headings */
 h1, h2, h3, .page-title, .tcpro-title {
-  font-family: "Josefin Sans", "Karla", sans-serif; /* UPDATED */
-  letter-spacing: .02em;                             /* UPDATED */
+  font-family: "Josefin Sans", "Karla", sans-serif;
+  letter-spacing: .02em;
 }
 h2, h3, h4 {
   color: #00d2ff;
@@ -181,10 +181,9 @@ h2, h3, h4 {
   .table th, .table td { font-size: 13px; padding: 8px; }
 }
 
-/* 🌐 Navbar (SCOPED)
-   UPDATED: apply the old dark-blue navbar only to navbars that are NOT the new Slumber navbar. */
+/* 🌐 Navbar (SCOPED) */
 .navbar:not(.slumber-nav) {
-  background-color: #0c1c2c;
+  background-color: #0c1c2c; /* keep solid navbar for readability */
   border-bottom: 1px solid #00d2ff;
 }
 .navbar-brand,
@@ -194,7 +193,7 @@ h2, h3, h4 {
 }
 .nav-link:hover { color: #00d2ff !important; }
 
-/* 👉 Navbar Action Button Group (custom, for +Add Match/+Test Match) */
+/* 👉 Navbar Action Button Group */
 .navbar-actions-group {
   margin-left: auto;
   display: flex;
@@ -216,7 +215,7 @@ h2, h3, h4 {
 .text-center { text-align: center; }
 .text-light  { color: #e0e0e0 !important; }
 
-/* ✅ Medal Row Animations - [Ranaj Parida - 2025-04-13 | 11:55 PM] */
+/* ✅ Medal Row Animations */
 .gold {
   background-color: #ffd700 !important;
   color: #000 !important;
@@ -236,7 +235,7 @@ h2, h3, h4 {
   animation: pulseBronze 2s infinite;
 }
 
-/* ✨ Keyframe Animations - [Ranaj Parida - 2025-04-13 | 11:55 PM] */
+/* ✨ Keyframe Animations */
 @keyframes pulseGold {
   0%, 100% { box-shadow: 0 0 10px #ffe066, 0 0 20px #ffd700; }
   50%      { box-shadow: 0 0 20px #ffcc00, 0 0 30px #ffea00; }
@@ -250,7 +249,7 @@ h2, h3, h4 {
   50%      { box-shadow: 0 0 20px #b87333, 0 0 30px #d2691e; }
 }
 
-/* ✅ Medal Emoji Sparkle Animation - [Ranaj Parida - 2025-04-13 | 11:59 PM] */
+/* ✅ Medal Emoji Sparkle Animation */
 .medal-emoji {
   animation: glow 1.8s infinite ease-in-out;
   font-size: 1.2em;
@@ -261,7 +260,7 @@ h2, h3, h4 {
   100% { text-shadow: 0 0 5px #ffd700; transform: scale(1); }
 }
 
-/* ✅ 🏏 Navbar Emoji Slide Animation - [Ranaj Parida - 2025-04-17 | 10:20 PM] */
+/* ✅ 🏏 Navbar Emoji Slide Animation */
 .hover-slide-emoji {
   position: relative;
   display: inline-block;
@@ -279,7 +278,7 @@ h2, h3, h4 {
 }
 .hover-slide-emoji:hover::after { right: 0px; opacity: 1; }
 
-/* ✅ Dark Theme for "More" Dropdown - [Ranaj Parida - 2025-04-18 | Final Fix] */
+/* ✅ Dark Theme for "More" Dropdown */
 .more-dropdown .dropdown-menu {
   background-color: #132c45 !important;
   border: 1px solid #00bfff;
@@ -299,7 +298,7 @@ h2, h3, h4 {
   color: #00d2ff;
 }
 
-/* ✅ Prevent Navbar Collapse from Clipping Dropdowns (Mobile Fix) - [Ranaj Parida | 2025-04-18] */
+/* ✅ Prevent Navbar Collapse from Clipping Dropdowns (Mobile Fix) */
 .navbar,
 .navbar-collapse,
 .navbar-nav {
@@ -328,11 +327,11 @@ h2, h3, h4 {
 
 /* ==== Slumber theme add-on (navbar) =================================== */
 :root {
-  --slumber-deep: #081722;       /* deep space blue */
-  --slumber-deeper: #07131d;     /* slightly darker */
-  --slumber-teal: #5fd0c7;       /* menu link color */
+  --slumber-deep: #081722;
+  --slumber-deeper: #07131d;
+  --slumber-teal: #5fd0c7;
   --slumber-teal-strong: #38c7bb;
-  --slumber-gold: #e8caa4;       /* warm gold headings */
+  --slumber-gold: #e8caa4;
   --slumber-gold-strong: #f2d7b7;
   --slumber-faint: rgba(255,255,255,.06);
 }
@@ -342,7 +341,7 @@ h2, h3, h4 {
   background:
     radial-gradient(1100px 420px at 50% -20%, rgba(95,208,199,.12), transparent 60%),
     linear-gradient(180deg, var(--slumber-deep), var(--slumber-deeper));
-  border-bottom: 1px solid rgba(232,202,164,.25); /* thin gold divider */
+  border-bottom: 1px solid rgba(232,202,164,.25);
   box-shadow: 0 18px 40px rgba(0,0,0,.45);
   font-family: "Karla", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
 }
@@ -423,9 +422,8 @@ h2, h3, h4 {
   box-shadow: 0 8px 22px rgba(0,0,0,.45);
 }
 
-/* Limit font override to the Slumber navbar only (UPDATED) */
-.slumber-nav, .slumber-nav * { font-family: inherit; } /* UPDATED: was `.navbar, .navbar *` */
-/* Make 'More' dropdown items match navbar link color */
+/* Limit font override to the Slumber navbar only */
+.slumber-nav, .slumber-nav * { font-family: inherit; }
 .slumber-dropdown .dropdown-item {
   color: var(--slumber-teal) !important;
   font-weight: 700;
@@ -434,14 +432,14 @@ h2, h3, h4 {
   color: var(--slumber-teal-strong) !important;
   background: rgba(95,208,199,.12);
 }
+
 /* === Pull-to-refresh restore (global) ================================ */
-/* Paste this at the very bottom of theme.css */
 html, body {
   height: auto !important;
-  overflow-y: auto !important;          /* allow root to scroll */
-  overscroll-behavior-y: auto !important;/* enable Chrome Android pull-to-refresh */
-  touch-action: pan-y !important;        /* don't block vertical pan */
-  -webkit-overflow-scrolling: touch;     /* smooth inertial scroll on iOS */
+  overflow-y: auto !important;
+  overscroll-behavior-y: auto !important;
+  touch-action: pan-y !important;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* If any app shell wrapper was trapping scroll, release it */
