@@ -1,6 +1,4 @@
-/* =========================================================
-   MatchCards.css — cinematic glass cards (desktop) + safe mobile
-   ========================================================= */
+/* Visibly stronger cinematic style for MatchCards */
 
 /* Display/score fonts */
 @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@400;700;800&family=Inter:wght@400;600;800&display=swap');
@@ -25,49 +23,41 @@
   margin-bottom: 12px;
 }
 
-/* Sticky toggle (glass) */
+/* Sticky toggle */
 .format-toggle{
   position: sticky; top: 86px; z-index: 9;
   display:flex; flex-wrap:wrap; gap:10px;
-  background: linear-gradient(180deg, rgba(8,23,34,.58), rgba(7,19,29,.52));
+  background: linear-gradient(180deg, rgba(8,23,34,.92), rgba(7,19,29,.92));
   border-bottom: 1px solid var(--line);
   padding: 10px 14px;
   backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
 }
-
 .format-btn{
   min-width:170px; padding:10px 14px; border-radius:12px;
   font-weight:700; letter-spacing:.02em; border:1px solid var(--line);
-  color:var(--teal); background:rgba(15,27,40,.85); box-shadow:0 6px 18px rgba(232,202,164,.10);
+  color:var(--teal); background:#0f1b28; box-shadow:0 6px 18px rgba(232,202,164,.10);
   transition: transform .12s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
 }
 .format-btn:hover{ transform: translateY(-1px); box-shadow:0 10px 24px rgba(232,202,164,.16); }
-.format-btn.active{
-  color:#041014;
-  background: linear-gradient(180deg, rgba(31,77,88,.9), rgba(22,59,69,.9));
-  border-color: var(--gold);
-  box-shadow: 0 10px 26px rgba(232,202,164,.25);
-}
-.format-btn.odi{ background:rgba(16,42,63,.85); }
-.format-btn.t20{ background:rgba(42,30,47,.85); }
-.format-btn.test{ background:rgba(19,49,42,.85); }
+.format-btn.active{ color:#041014; background: linear-gradient(180deg,#1f4d58,#163b45); border-color: var(--gold); box-shadow: 0 10px 26px rgba(232,202,164,.25); }
+.format-btn.odi{ background:#102a3f; } .format-btn.t20{ background:#2a1e2f; } .format-btn.test{ background:#13312a; }
 
 /* ===== Card (GLASS) ===== */
-.match-card,
-.card.match-card{                             /* override Bootstrap .card if present */
+.match-card{
   position:relative; border-radius:16px; padding:16px;
   color:#eaf6ff; overflow:hidden;
+
+  /* was: solid dark; now translucent glass + blur */
   background:
     radial-gradient(900px 360px at 8% -20%, rgba(95,208,199,.12), transparent 55%),
     linear-gradient(180deg, rgba(15,27,40,.58), rgba(10,21,32,.46));
   border:1px solid rgba(232,202,164,.22);
-  box-shadow: 0 14px 36px rgba(7,19,29,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow: 0 12px 30px rgba(7,19,29,.45), 0 10px 28px rgba(232,202,164,.10);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
 
-/* Poster hover tilt */
+/* Poster enhancements: subtle tilt + ring */
 .match-card.poster{
   transform: perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
   transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
@@ -78,7 +68,7 @@
   box-shadow: 0 22px 48px color-mix(in srgb, var(--accent) 20%, #000), 0 10px 28px rgba(232,202,164,.12);
 }
 
-/* Neon ring (safe fallback) */
+/* --- Neon ring (safe fallback: no masks) --- */
 .match-card.poster::before{
   content:"";
   position:absolute; inset:-1px; border-radius:inherit; pointer-events:none;
@@ -88,7 +78,7 @@
   opacity:.38;
 }
 
-/* Enhanced ring when mask is supported */
+/* Enhanced ring only when mask support exists (quiet for linters/build) */
 @supports ((-webkit-mask: none) or (mask: none)) {
   .match-card.poster::before{
     background: conic-gradient(from 180deg,
@@ -114,7 +104,7 @@
   opacity:.28;
 }
 
-/* LIVE tint (glass) */
+/* LIVE tint (keep glass look) */
 .match-card.live{
   background:
     radial-gradient(900px 360px at 80% -30%, rgba(13,110,253,.22), transparent 60%),
@@ -122,18 +112,33 @@
   border-color: #2a7dff88;
 }
 
-/* Badges, titles & layout (unchanged from your version) */
+/* "Recent" ring pulse */
+.badge-recent{ background:#0f1b28; color:#fff; border-color:#ff6b6b; }
+.pulse-ring{
+  width:11px; height:11px; border-radius:50%; display:inline-block; margin-right:6px;
+  background:#ff3b30; box-shadow:0 0 0 0 rgba(255,59,48,.7);
+  animation: ring 1.6s infinite;
+}
+@keyframes ring{
+  0%{ box-shadow:0 0 0 0 rgba(255,59,48,.7); }
+  70%{ box-shadow:0 0 0 10px rgba(255,59,48,0); }
+  100%{ box-shadow:0 0 0 0 rgba(255,59,48,0); }
+}
+
+/* badges (slight glass chip so text still pops) */
 .status-badges{ position:absolute; right:10px; top:10px; display:flex; gap:8px; z-index:2; }
 .badge-chip{
   display:inline-flex; align-items:center; gap:8px; padding:4px 10px; border-radius:999px;
-  font-weight:800; letter-spacing:.02em; border:1px solid rgba(255,255,255,.14);
+  font-weight:800; letter-spacing:.02em; border:1px solid rgba(255,255,255,.12);
   box-shadow: 0 4px 10px rgba(0,0,0,.25);
-  font-size:.82rem; background: rgba(255,255,255,.06);
+  font-size:.82rem;
+  background: rgba(255,255,255,.06);
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
 }
 .badge-live{ background:#0d6efd; color:#fff; border-color:#2a7dff; }
 
+/* Title */
 .match-title{
   color: var(--gold-strong);
   font-family: "Josefin Sans","Karla",sans-serif;
@@ -141,25 +146,37 @@
   text-shadow: 0 0 10px rgba(232,202,164,.22);
 }
 
+/* Layout */
 .teams-row{
   display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr);
   gap:12px; margin-bottom:8px; align-items:start;
 }
 .teams-row > .team{ min-width:0; position:relative; }
 
-/* Big watermark */
+/* BIG watermark: team code ghost text (LOI) */
 .team::before{
   content: attr(data-code);
   position:absolute; inset:auto auto -6px -6px; z-index:0; pointer-events:none;
   font-family: "Oxanium", ui-monospace, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  font-weight:800; font-size: clamp(40px, 8vw, 74px); line-height:1;
-  color:#fff; opacity:.06; transform: rotate(-8deg);
+  font-weight:800;
+  font-size: clamp(40px, 8vw, 74px);
+  line-height:1;
+  color:#fff; opacity:.06;
+  transform: rotate(-8deg);
   text-shadow: 0 0 12px rgba(255,255,255,.15);
 }
-.team--right::before{ left:auto; right:-6px; transform: rotate(8deg); text-align:right; }
+.team--right::before{
+  left:auto; right:-6px; transform: rotate(8deg);
+  text-align:right;
+}
 
-.rowline{ position:relative; z-index:1; display:grid; grid-template-columns: minmax(0,1fr) auto; align-items: baseline; column-gap: 10px; }
-.rowline .name, .rowline .score{ min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rowline{
+  position:relative; z-index:1;
+  display:grid; grid-template-columns: minmax(0,1fr) auto; align-items: baseline; column-gap: 10px;
+}
+.rowline .name, .rowline .score{
+  min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
 
 .team .name{
   font-weight:800; color:#fff;
@@ -173,22 +190,30 @@
 }
 .team .meta{ font-size:.9rem; color:#d7e7f5; opacity:.9; font-variant-numeric:tabular-nums; }
 
+/* ===== Test cards: watermark too ===== */
 .team-block{ position: relative; }
 .team-block::before{
   content: attr(data-code);
   position:absolute; inset:auto auto -6px -6px; z-index:0; pointer-events:none;
   font-family: "Oxanium", ui-monospace, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  font-weight:800; font-size: clamp(40px, 8vw, 74px); line-height:1;
-  color:#fff; opacity:.06; transform: rotate(-8deg);
+  font-weight:800;
+  font-size: clamp(40px, 8vw, 74px);
+  line-height:1;
+  color:#fff; opacity:.06;
+  transform: rotate(-8deg);
   text-shadow: 0 0 12px rgba(255,255,255,.15);
 }
-.team-block--right::before{ left:auto; right:-6px; transform: rotate(8deg); }
-.team-block > .name, .team-block > .meta { position: relative; z-index: 1; }
+.team-block--right::before{
+  left:auto; right:-6px; transform: rotate(8deg);
+}
+.team-block > .name,
+.team-block > .meta { position: relative; z-index: 1; }
 
 .team-block{ margin-bottom:6px; }
 .team-block .name{ font-weight:800; color:#fff; text-shadow:0 0 6px rgba(255,255,255,.28), 0 0 14px rgba(232,202,164,.18); }
 .team-block .meta{ font-size:.9rem; color:#d7e7f5; opacity:.9; font-variant-numeric:tabular-nums; }
 
+/* Winner banner with accent line */
 .result-line{ margin-top:6px; border-top: 1px dashed var(--line); padding-top:8px; color:#dfeffc; position:relative; }
 .winner-banner::before{
   content:""; position:absolute; left:-12px; right:-12px; top:-2px; height:2px;
@@ -204,28 +229,75 @@
 }
 @keyframes rippleExpand{ to{ transform:translate(-50%,-50%) scale(14); opacity:0; } }
 
-/* ===== Mobile hardening ===== */
+/* ===== Mobile: swipe hint ===== */
+.mc-row-snap{ position:relative; }
+@media (max-width: 640px){
+  .mc-container .row.g-3{
+    display:flex; overflow-x:auto; -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory; gap:.75rem; padding-bottom:.25rem;
+  }
+  .mc-container .row.g-3::-webkit-scrollbar{ display:none; }
+  .mc-container .row.g-3 > [class*="col-"]{ flex: 0 0 86%; max-width: 86%; }
+  .mc-row-snap::before, .mc-row-snap::after{
+    content:""; position:absolute; top:0; bottom:0; width:24px; pointer-events:none; z-index:3;
+  }
+  .mc-row-snap::before{ left:-2px; background: linear-gradient(90deg, rgba(7,19,29,1), rgba(7,19,29,0)); }
+  .mc-row-snap::after{ right:-2px; background: linear-gradient(270deg, rgba(7,19,29,1), rgba(7,19,29,0)); }
+}
+
+/* small tweaks */
+.mc-container .row.g-3{ --bs-gutter-x: .75rem; }
+@media (max-width: 480px){ .mc-container .row.g-3{ --bs-gutter-x: .5rem; } }
+@media (max-width:520px){
+  .teams-row{ grid-template-columns: 1fr; gap:8px; }
+  .team--right{ text-align:left; border-top:1px dashed var(--line); padding-top:6px; margin-top:6px; }
+}
+@media (max-width:360px){
+  .rowline{ column-gap:6px; }
+  .match-card{ padding:14px 12px; }
+  .format-btn{ min-width: 140px; }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .match-card.poster{ transform:none !important; }
+  .match-card.poster::after{ opacity:.18; }
+}
+
+/* =========================================================
+   Mobile / coarse-pointer hardening (incl. Chrome "Desktop site")
+   ========================================================= */
 @media (pointer: coarse){
   .match-card,
   .match-card.live {
     transform: none !important;
     will-change: auto !important;
+    contain: none !important;
     isolation: isolate;
     overflow: hidden;
     background-clip: padding-box;
     box-shadow: 0 2px 8px rgba(0,0,0,.22) !important;
-    backdrop-filter:none !important;
-    -webkit-backdrop-filter:none !important;
+  }
+
+  .match-card.poster::before,
+  .match-card.poster::after{ content:none !important; }
+
+  /* keep solid fallback on touch devices for stability */
+  .match-card{
     background: #0f1b28 !important;
     border: 1px solid rgba(255,255,255,.08) !important;
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
   }
+
   .format-toggle{
     backdrop-filter:none !important;
     -webkit-backdrop-filter:none !important;
     background:#0f1b28 !important;
   }
-}
-@media (max-width:520px){
-  .teams-row{ grid-template-columns: 1fr; gap:8px; }
-  .team--right{ text-align:left; border-top:1px dashed var(--line); padding-top:6px; margin-top:6px; }
+
+  .tap-ripple{
+    mix-blend-mode: normal !important;
+    background: radial-gradient(circle, rgba(255,255,255,.25), rgba(232,202,164,.18) 60%, transparent 70%) !important;
+  }
 }
