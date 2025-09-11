@@ -3,19 +3,16 @@ import { getTeams } from "../services/api";
 import { io } from "socket.io-client";
 import "./Leaderboard.css";
 
-/* =========================================================
- * Shared title style (same green + same size as Test board)
- * ======================================================= */
+/* Simple, unified title (no glow) */
 const TITLE_STYLE = {
   textAlign: "center",
   margin: "0 0 12px",
   fontWeight: 900,
-  fontSize: "22px",              // ← unified size
-  color: "#22ff99",              // ← unified bright green
-  textShadow: "0 0 12px rgba(34,255,153,.25)",
+  fontSize: "22px",
+  color: "#22ff99",
 };
 
-// 🔹 Team abbreviations (same as TournamentPoints)
+// Team abbreviations
 const TEAM_ABBR = {
   "south africa": "SA", england: "ENG", india: "IND", kenya: "KEN", scotland: "SCT",
   "new zealand": "NZ", "hong kong": "HKG", afghanistan: "AFG", bangladesh: "BAN",
@@ -34,10 +31,10 @@ const abbreviateTeamName = (name) => {
 };
 const displayTeam = (name) => abbreviateTeamName(name);
 
-// Socket
+// Socket (kept for live data; not a visual effect)
 const socket = io("https://cricket-scoreboard-backend.onrender.com");
 
-// NRR helpers
+// NRR helpers (static, no animations)
 const nrrWidth = (nrr) => {
   if (nrr === null || Number.isNaN(nrr)) return 0;
   const max = 8;
@@ -52,14 +49,15 @@ const nrrBucket = (nrr) => {
   if (nrr < 4)     return { bucket: "yellow", neg: false };
   return { bucket: "green",  neg: false };
 };
-const bucketGradient = (bucket) => {
+// Solid (non-gradient) colors to avoid special-effects
+const bucketColor = (bucket) => {
   switch (bucket) {
-    case "green":  return "linear-gradient(90deg,#14e29a,#00c986)";
-    case "yellow": return "linear-gradient(90deg,#ffe76a,#ffb03a)";
-    case "orange": return "linear-gradient(90deg,#ffb03a,#ff7a3d)";
-    case "purple": return "linear-gradient(90deg,#a57cff,#6dd6ff)";
-    case "red":    return "linear-gradient(90deg,#ff6b6b,#ff2b2b)";
-    default:       return "linear-gradient(90deg,#93a6bd,#93a6bd)";
+    case "green":  return "#16e28a";
+    case "yellow": return "#ffd966";
+    case "orange": return "#ff9a57";
+    case "purple": return "#8fa4ff";
+    case "red":    return "#ff6b6b";
+    default:       return "#93a6bd";
   }
 };
 
@@ -92,7 +90,7 @@ const Leaderboard = () => {
     const deb = { current: null };
     socket.on("matchUpdate", () => {
       if (deb.current) clearTimeout(deb.current);
-      deb.current = setTimeout(fetchTeams, 1200);
+      deb.current = setTimeout(fetchTeams, 800);
     });
     return () => {
       socket.off("matchUpdate");
@@ -112,17 +110,15 @@ const Leaderboard = () => {
     Math.max(0, team.matches_played - team.wins - team.losses);
 
   return (
-    <div className="leaderboard-glass">
-      {/* Single title only (duplicate external headings should be removed outside) */}
+    <div className="leaderboard-shell">
       <h2 className="lb-title" style={TITLE_STYLE}>
-        Leaderboard Summary(ODI/T20)
+        Leaderboard Summary (ODI/T20)
       </h2>
 
-      <div className="table-responsive leaderboard-table-wrapper">
+      <div className="leaderboard-table-wrapper">
         <table className="table table-dark text-center mb-0 leaderboard-table">
           <thead>
             <tr>
-              {/* Short headers with “Rank” spelled out */}
               <th>R</th>
               <th>T</th>
               <th>M</th>
@@ -138,8 +134,12 @@ const Leaderboard = () => {
             {teams.map((team, index) => {
               const { bucket, neg } = nrrBucket(team.nrr);
               const width = nrrWidth(team.nrr);
+              const color = bucketColor(bucket);
               return (
-                <tr key={team.team_name} className="lb-row" data-bucket={bucket}>
+                <tr
+                  key={team.team_name}
+                  className={`lb-row ${index < 3 ? "top3" : ""}`}
+                >
                   <td>{getMedal(index)} {index + 1}</td>
                   <td className="team-name">{displayTeam(team.team_name)}</td>
                   <td>{team.matches_played}</td>
@@ -151,7 +151,7 @@ const Leaderboard = () => {
                     <div className="nrr-track" aria-hidden />
                     <div
                       className={`nrr-bar ${neg ? "from-right" : "from-left"}`}
-                      style={{ "--w": `${width}%`, backgroundImage: bucketGradient(bucket) }}
+                      style={{ width: `${width}%`, backgroundColor: color }}
                       aria-hidden
                     />
                     {renderNRR(team.nrr)}
