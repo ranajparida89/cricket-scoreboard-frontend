@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { getTestMatchLeaderboard } from "../services/api";
-import "./TestLeaderboard.css";
+import { getTeams } from "../services/api";
+import { io } from "socket.io-client";
+import "./Leaderboard.css";
 
-/* Simple, unified title (same as white-ball leaderboard) */
 const TITLE_STYLE = {
   textAlign: "center",
   margin: "0 0 12px",
@@ -11,17 +11,15 @@ const TITLE_STYLE = {
   color: "#22ff99",
 };
 
-// Abbreviations
 const TEAM_ABBR = {
   "south africa": "SA", england: "ENG", india: "IND", kenya: "KEN", scotland: "SCT",
-  "new zealand": "NZ", "hong kong": "HKG", australia: "AUS", afghanistan: "AFG",
-  bangladesh: "BAN", pakistan: "PAK", ireland: "IRE", netherlands: "NED", namibia: "NAM",
+  "new zealand": "NZ", "hong kong": "HKG", afghanistan: "AFG", bangladesh: "BAN",
+  pakistan: "PAK", australia: "AUS", ireland: "IRE", netherlands: "NED", namibia: "NAM",
   zimbabwe: "ZIM", nepal: "NEP", oman: "OMA", canada: "CAN", "united arab emirates": "UAE",
   "west indies": "WI", "papua new guinea": "PNG", "sri lanka": "SL", "united states": "USA", usa: "USA",
 };
-const norm = (s) => (s ?? "").toString().trim();
 const abbreviateTeamName = (name) => {
-  const s = norm(name);
+  const s = (name ?? "").toString().trim();
   if (!s) return s;
   const key = s.toLowerCase();
   if (TEAM_ABBR[key]) return TEAM_ABBR[key];
@@ -31,87 +29,125 @@ const abbreviateTeamName = (name) => {
 };
 const displayTeam = (name) => abbreviateTeamName(name);
 
-const medal = (i) => (i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "");
+const socket = io("https://cricket-scoreboard-backend.onrender.com");
 
-export default function TestLeaderboard() {
+const nrrWidth = (nrr) => {
+  if (nrr === null || Number.isNaN(nrr)) return 0;
+  const max = 8;
+  const mag = Math.min(max, Math.max(0, Math.abs(nrr)));
+  return Math.round((mag / max) * 100);
+};
+const nrrBucket = (nrr) => {
+  if (nrr === null) return { bucket: "none", neg: false };
+  if (nrr < 0)     return { bucket: "red",    neg: true  };
+  if (nrr < 0.5)   return { bucket: "purple", neg: false };
+  if (nrr < 2)     return { bucket: "orange", neg: false };
+  if (nrr < 4)     return { bucket: "yellow", neg: false };
+  return { bucket: "green",  neg: false };
+};
+const bucketColor = (bucket) => {
+  switch (bucket) {
+    case "green":  return "#16e28a";
+    case "yellow": return "#ffd966";
+    case "orange": return "#ff9a57";
+    case "purple": return "#8fa4ff";
+    case "red":    return "#ff6b6b";
+    default:       return "#93a6bd";
+  }
+};
+
+export default function Leaderboard() {
   const [teams, setTeams] = useState([]);
 
+  const fetchTeams = async () => {
+    try {
+      const data = await getTeams();
+      const parsed = data.map((team) => ({
+        ...team,
+        team_name: team.team_name,
+        matches_played: parseInt(team.matches_played, 10) || 0,
+        wins: parseInt(team.wins, 10) || 0,
+        losses: parseInt(team.losses, 10) || 0,
+        points: parseInt(team.points, 10) || 0,
+        nrr: isNaN(parseFloat(team.nrr)) ? null : parseFloat(team.nrr),
+      }));
+      const sorted = parsed.sort((a, b) =>
+        b.points !== a.points ? b.points - a.points : (b.nrr || 0) - (a.nrr || 0)
+      );
+      setTeams(sorted);
+    } catch (e) {
+      console.error("Error fetching leaderboard:", e);
+    }
+  };
+
   useEffect(() => {
-    getTestMatchLeaderboard()
-      .then((data) => {
-        const arr = Array.isArray(data) ? data : [];
-        const normalized = arr.map((t) => ({
-          team_name: t.team_name,
-          matches: Number(t.matches) || 0,
-          wins: Number(t.wins) || 0,
-          losses: Number(t.losses) || 0,
-          draws:
-            t.draws != null
-              ? Number(t.draws)
-              : Math.max(
-                  0,
-                  (Number(t.matches) || 0) -
-                    (Number(t.wins) || 0) -
-                    (Number(t.losses) || 0)
-                ),
-          points: Number(t.points) || 0,
-        }));
-        const sorted = normalized.sort(
-          (a, b) => b.points - a.points || b.wins - a.wins
-        );
-        setTeams(sorted);
-      })
-      .catch(() => setTeams([]));
+    fetchTeams();
+    const deb = { current: null };
+    socket.on("matchUpdate", () => {
+      if (deb.current) clearTimeout(deb.current);
+      deb.current = setTimeout(fetchTeams, 800);
+    });
+    return () => {
+      socket.off("matchUpdate");
+      clearTimeout(deb.current);
+    };
   }, []);
 
+  const getMedal = (i) =>
+    i === 0 ? <span className="medal-emoji">🥇</span> :
+    i === 1 ? <span className="medal-emoji">🥈</span> :
+    i === 2 ? <span className="medal-emoji">🥉</span> : null;
+
+  const renderNRR = (nrr) => (nrr === null ? "—" : nrr.toFixed(2));
+  const draws = (t) => Math.max(0, t.matches_played - t.wins - t.losses);
+
   return (
-    <div className="tlfx-shell">
-      <div className="tlfx-glass">
-        <h2 className="tlfx-title" style={TITLE_STYLE}>
-          Test Leaderboard
-        </h2>
+    <div className="leaderboard-shell">
+      <h2 className="lb-title" style={TITLE_STYLE}>Leaderboard Summary (ODI/T20)</h2>
 
-        <div className="tlfx-table-wrap">
-          <table className="tlfx-table">
-            <thead>
-              <tr>
-                <th>R</th>
-                <th>T</th>
-                <th>M</th>
-                <th>W</th>
-                <th>L</th>
-                <th>D</th>
-                <th>Pts</th>
-              </tr>
-            </thead>
-            <tbody>
-              {teams.length === 0 && (
-                <tr>
-                  <td className="tlfx-empty" colSpan="7">
-                    No Test match leaderboard data available.
+      {/* removed `table-dark` to avoid Bootstrap forcing white header */}
+      <div className="leaderboard-table-wrapper">
+        <table className="table text-center mb-0 leaderboard-table">
+          <thead>
+            <tr>
+              <th>R</th>
+              <th>T</th>
+              <th>M</th>
+              <th>W</th>
+              <th>L</th>
+              <th>D</th>
+              <th>Pts</th>
+              <th>NRR</th>
+            </tr>
+          </thead>
+          <tbody>
+            {teams.map((team, i) => {
+              const { bucket, neg } = nrrBucket(team.nrr);
+              const width = nrrWidth(team.nrr);
+              return (
+                <tr key={team.team_name} className={`lb-row ${i < 3 ? "top3" : ""}`}>
+                  <td>{getMedal(i)} {i + 1}</td>
+                  <td className="team-name">{displayTeam(team.team_name)}</td>
+                  <td>{team.matches_played}</td>
+                  <td className="pos">{team.wins}</td>
+                  <td className="neg">{team.losses}</td>
+                  <td>{draws(team)}</td>
+                  <td className="pos">{team.points}</td>
+                  <td className={`nrr-cell ${neg ? "neg" : "pos"}`}>
+                    <div className="nrr-track" aria-hidden />
+                    <div className={`nrr-bar ${neg ? "from-right" : "from-left"}`}
+                         style={{ width: `${width}%`, backgroundColor: bucketColor(bucket) }}
+                         aria-hidden />
+                    {renderNRR(team.nrr)}
                   </td>
                 </tr>
-              )}
-
-              {teams.map((t, i) => (
-                <tr
-                  key={`${t.team_name}-${i}`}
-                  className={`tlfx-row ${i < 3 ? "top3" : ""}`}
-                >
-                  <td>
-                    <span className="medal-emoji">{medal(i)}</span> {i + 1}
-                  </td>
-                  <td className="team">{displayTeam(t.team_name)}</td>
-                  <td>{t.matches}</td>
-                  <td className="pos">{t.wins}</td>
-                  <td className="neg">{t.losses}</td>
-                  <td>{t.draws}</td>
-                  <td className="pos">{t.points}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              );
+            })}
+            {teams.length === 0 && (
+              <tr><td colSpan="8" className="text-muted py-4">No match data available.</td></tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );

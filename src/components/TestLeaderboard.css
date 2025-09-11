@@ -1,78 +1,94 @@
 /*****************************************************
- * TestLeaderboard.css — simple, no animations/effects
+ * Leaderboard.css — simple, professional header
  *****************************************************/
 
-/* Shell */
-.tlfx-shell{ position: relative; width: 100%; padding: 14px 10px; }
-
-/* Card */
-.tlfx-glass{
-  border-radius: 16px;
-  padding: 14px 12px;
+.leaderboard-shell{
   background:#0f1b28;
   border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  padding:14px;
 }
 
-/* Title */
-.tlfx-title{ letter-spacing:.3px; }
+.leaderboard-table-wrapper{ padding: 0 6px; }
 
-/* Table wrap */
-.tlfx-table-wrap{ overflow-x:auto; padding: 0 6px; }
-
-/* Table */
-.tlfx-table{
-  width: 100%;
-  border-collapse: separate;
-  table-layout: fixed;
-  border-spacing: 0 8px;   /* row gaps as cards */
-  background: transparent;
-  margin: 0;
+/* Table base */
+.leaderboard-table{
+  width:100%;
+  border-collapse:separate;
+  table-layout:fixed;
+  border-spacing:0 8px;
+  background:transparent;
+  margin:0;
 }
 
-/* Header */
-.tlfx-table thead tr{ background:#0d1f2f; }
-.tlfx-table thead th{
-  color:#eaf6ff; font-weight:700; font-size:14px;
-  padding:12px 10px; border:0;
-  white-space: nowrap; overflow:hidden; text-overflow: ellipsis;
+/* ------- HEADER: solid blue bar with white text ------- */
+.leaderboard-table thead tr{ background: transparent; }
+.leaderboard-table thead th{
+  background: linear-gradient(180deg,#123055,#0e2236) !important; /* blue */
+  color:#f4fbff !important;
+  font-weight:800;
+  font-size:14px;
+  letter-spacing:.3px;
+  padding:12px 10px;
+  border:1px solid #1b3b5b !important;
+  border-bottom:0 !important;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
-.tlfx-table thead th:first-child{ border-top-left-radius:12px; }
-.tlfx-table thead th:last-child { border-top-right-radius:12px; }
+.leaderboard-table thead th + th{ border-left-color:#16324e !important; }
+.leaderboard-table thead th:first-child{
+  border-top-left-radius:12px; border-bottom-left-radius:12px;
+}
+.leaderboard-table thead th:last-child{
+  border-top-right-radius:12px; border-bottom-right-radius:12px;
+}
 
 /* Body cells */
-.tlfx-table tbody td{
-  padding:12px 10px; font-size:15px; color:#eaf6ff; border:0;
-  text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+.leaderboard-table tbody td{
+  padding:12px 10px;
+  font-size:15px;
+  color:#eaf6ff;
+  text-align:center;
+  border:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
-.tlfx-table tbody td.team{ text-align:left; font-weight:800; letter-spacing:.2px; }
 
-/* Rows as simple cards (no transitions/hover) */
-.tlfx-row{
+/* Rows as simple cards */
+.leaderboard-table tbody tr.lb-row{
   background:#112030;
   border:1px solid rgba(255,255,255,.10);
   border-radius:12px;
 }
 
-/* Medal + value colors */
-.medal-emoji{ font-size:1.05rem; margin-right:6px; }
+.medal-emoji{ font-size:1.05rem; margin-right:4px; }
 .pos{ color:#c9ffef; }
 .neg{ color:#ffc2c2; }
+.team-name{ font-weight:800; letter-spacing:.2px; text-align:left; }
 
-/* Empty state */
-.tlfx-empty{ text-align:center; padding:18px 0; color:#9bb2c8; }
+/* NRR bar (no motion) */
+.nrr-cell{ position:relative; overflow:visible; height:34px; }
+.nrr-track{
+  position:absolute; left:8px; right:8px; bottom:6px; height:6px;
+  border-radius:999px; background:rgba(255,255,255,.12);
+}
+.nrr-bar{
+  position:absolute; bottom:6px; height:6px; border-radius:999px;
+}
+.from-left{ left:8px; }
+.from-right{ right:8px; }
 
-/* Top 3 soft golden highlight */
-.tlfx-row.top3{
-  background-color: rgba(232, 202, 164, 0.10);
-  border-color: rgba(232, 202, 164, 0.45);
-  box-shadow: 0 0 0 1px rgba(232,202,164,0.22), 0 0 16px rgba(232,202,164,0.08);
+/* Top 3 subtle golden tint */
+.lb-row.top3{
+  background-color:rgba(232,202,164,0.10);
+  border-color:rgba(232,202,164,0.45);
+  box-shadow:0 0 0 1px rgba(232,202,164,0.22), 0 0 16px rgba(232,202,164,0.08);
 }
 
-/* Mobile tweaks */
-@media (max-width: 768px){
-  .tlfx-table thead th,
-  .tlfx-table tbody td{
-    font-size:14px;
-    padding:10px 8px;
-  }
+/* Mobile */
+@media (max-width:768px){
+  .leaderboard-table thead th,
+  .leaderboard-table tbody td{ font-size:14px; padding:10px 8px; }
 }
