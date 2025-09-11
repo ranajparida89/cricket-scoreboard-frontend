@@ -42,19 +42,15 @@
 .format-btn.active{ color:#041014; background: linear-gradient(180deg,#1f4d58,#163b45); border-color: var(--gold); box-shadow: 0 10px 26px rgba(232,202,164,.25); }
 .format-btn.odi{ background:#102a3f; } .format-btn.t20{ background:#2a1e2f; } .format-btn.test{ background:#13312a; }
 
-/* ===== Card (GLASS) ===== */
+/* ===== Card ===== */
 .match-card{
   position:relative; border-radius:16px; padding:16px;
   color:#eaf6ff; overflow:hidden;
-
-  /* was: solid dark; now translucent glass + blur */
   background:
-    radial-gradient(900px 360px at 8% -20%, rgba(95,208,199,.12), transparent 55%),
-    linear-gradient(180deg, rgba(15,27,40,.58), rgba(10,21,32,.46));
-  border:1px solid rgba(232,202,164,.22);
+    radial-gradient(900px 360px at 8% -20%, rgba(95,208,199,.10), transparent 55%),
+    linear-gradient(180deg, #0f1b28, #0a1520);
+  border:1px solid var(--line);
   box-shadow: 0 12px 30px rgba(7,19,29,.45), 0 10px 28px rgba(232,202,164,.10);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
 }
 
 /* Poster enhancements: subtle tilt + ring */
@@ -104,11 +100,11 @@
   opacity:.28;
 }
 
-/* LIVE tint (keep glass look) */
+/* LIVE tint */
 .match-card.live{
   background:
-    radial-gradient(900px 360px at 80% -30%, rgba(13,110,253,.22), transparent 60%),
-    linear-gradient(180deg, rgba(15,31,51,.56), rgba(10,22,36,.46));
+    radial-gradient(900px 360px at 80% -30%, rgba(13,110,253,.18), transparent 60%),
+    linear-gradient(180deg, #0f1f33, #0a1624);
   border-color: #2a7dff88;
 }
 
@@ -125,16 +121,12 @@
   100%{ box-shadow:0 0 0 0 rgba(255,59,48,0); }
 }
 
-/* badges (slight glass chip so text still pops) */
+/* badges */
 .status-badges{ position:absolute; right:10px; top:10px; display:flex; gap:8px; z-index:2; }
 .badge-chip{
   display:inline-flex; align-items:center; gap:8px; padding:4px 10px; border-radius:999px;
-  font-weight:800; letter-spacing:.02em; border:1px solid rgba(255,255,255,.12);
-  box-shadow: 0 4px 10px rgba(0,0,0,.25);
+  font-weight:800; letter-spacing:.02em; border:1px solid rgba(255,255,255,.12); box-shadow: 0 4px 10px rgba(0,0,0,.25);
   font-size:.82rem;
-  background: rgba(255,255,255,.06);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
 }
 .badge-live{ background:#0d6efd; color:#fff; border-color:#2a7dff; }
 
@@ -282,12 +274,9 @@
   .match-card.poster::before,
   .match-card.poster::after{ content:none !important; }
 
-  /* keep solid fallback on touch devices for stability */
   .match-card{
     background: #0f1b28 !important;
     border: 1px solid rgba(255,255,255,.08) !important;
-    backdrop-filter:none !important;
-    -webkit-backdrop-filter:none !important;
   }
 
   .format-toggle{
@@ -301,3 +290,4 @@
     background: radial-gradient(circle, rgba(255,255,255,.25), rgba(232,202,164,.18) 60%, transparent 70%) !important;
   }
 }
+
