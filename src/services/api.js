@@ -256,11 +256,24 @@ export const saveLineup = (payload) =>
     .then((r) => r.data);
 
     // BASE already: https://cricket-scoreboard-backend.onrender.com
-export async function getTeamMatchExplorer(params){
-  const q = new URLSearchParams(params).toString();
-  const res = await fetch(`${API_URL || "https://cricket-scoreboard-backend.onrender.com"}/api/team-match-explorer/by-team?${q}`);
-  if (!res.ok) throw new Error("Failed to fetch team match explorer");
-  return res.json();
+export async function getTeamMatchExplorer({
+  team,
+  format = "All",
+  result = "All",
+  season,
+  tournament,
+  page = 1,
+  pageSize = 20,
+} = {}) {
+  if (!team) throw new Error("team is required");
+
+  const params = { team, format, result, page, pageSize };
+  if (season != null && season !== "") params.season = season;
+  if (tournament != null && tournament !== "") params.tournament = tournament;
+
+  // ✅ no extra /api; ✅ no "undefined" params
+  const { data } = await axios.get(`${API_URL}/team-match-explorer/by-team`, { params });
+  return data;
 }
 
 /* ================== USER DASHBOARD MOCK ================== */
