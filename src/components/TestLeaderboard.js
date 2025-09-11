@@ -1,25 +1,33 @@
-import React, { useEffect, useState } from "react";
-import { getTeams } from "../services/api";
-import { io } from "socket.io-client";
-import "./Leaderboard.css";
+import React, { useEffect, useMemo, useRef, useState, forwardRef } from "react";
+import { getTestMatchLeaderboard } from "../services/api";
+import { gsap } from "gsap";
+import { Animate } from "react-move";
+import { useSpring, animated as a } from "@react-spring/web";
+import Particles from "react-tsparticles";
+import { loadFull } from "tsparticles";
+import "./TestLeaderboard.css";
 
+/* Shared title style (exactly the same as Leaderboard) */
 const TITLE_STYLE = {
   textAlign: "center",
   margin: "0 0 12px",
   fontWeight: 900,
   fontSize: "22px",
   color: "#22ff99",
+  textShadow: "0 0 12px rgba(34,255,153,.25)",
 };
 
+/* Abbreviation helpers (same map) */
 const TEAM_ABBR = {
   "south africa": "SA", england: "ENG", india: "IND", kenya: "KEN", scotland: "SCT",
-  "new zealand": "NZ", "hong kong": "HKG", afghanistan: "AFG", bangladesh: "BAN",
-  pakistan: "PAK", australia: "AUS", ireland: "IRE", netherlands: "NED", namibia: "NAM",
+  "new zealand": "NZ", "hong kong": "HKG", australia: "AUS", afghanistan: "AFG",
+  bangladesh: "BAN", pakistan: "PAK", ireland: "IRE", netherlands: "NED", namibia: "NAM",
   zimbabwe: "ZIM", nepal: "NEP", oman: "OMA", canada: "CAN", "united arab emirates": "UAE",
   "west indies": "WI", "papua new guinea": "PNG", "sri lanka": "SL", "united states": "USA", usa: "USA",
 };
+const norm = (s) => (s ?? "").toString().trim();
 const abbreviateTeamName = (name) => {
-  const s = (name ?? "").toString().trim();
+  const s = norm(name);
   if (!s) return s;
   const key = s.toLowerCase();
   if (TEAM_ABBR[key]) return TEAM_ABBR[key];
@@ -29,126 +37,201 @@ const abbreviateTeamName = (name) => {
 };
 const displayTeam = (name) => abbreviateTeamName(name);
 
-const socket = io("https://cricket-scoreboard-backend.onrender.com");
-
-const nrrWidth = (nrr) => {
-  if (nrr === null || Number.isNaN(nrr)) return 0;
-  const max = 8;
-  const mag = Math.min(max, Math.max(0, Math.abs(nrr)));
-  return Math.round((mag / max) * 100);
-};
-const nrrBucket = (nrr) => {
-  if (nrr === null) return { bucket: "none", neg: false };
-  if (nrr < 0)     return { bucket: "red",    neg: true  };
-  if (nrr < 0.5)   return { bucket: "purple", neg: false };
-  if (nrr < 2)     return { bucket: "orange", neg: false };
-  if (nrr < 4)     return { bucket: "yellow", neg: false };
-  return { bucket: "green",  neg: false };
-};
-const bucketColor = (bucket) => {
-  switch (bucket) {
-    case "green":  return "#16e28a";
-    case "yellow": return "#ffd966";
-    case "orange": return "#ff9a57";
-    case "purple": return "#8fa4ff";
-    case "red":    return "#ff6b6b";
-    default:       return "#93a6bd";
-  }
-};
-
-export default function Leaderboard() {
-  const [teams, setTeams] = useState([]);
-
-  const fetchTeams = async () => {
-    try {
-      const data = await getTeams();
-      const parsed = data.map((team) => ({
-        ...team,
-        team_name: team.team_name,
-        matches_played: parseInt(team.matches_played, 10) || 0,
-        wins: parseInt(team.wins, 10) || 0,
-        losses: parseInt(team.losses, 10) || 0,
-        points: parseInt(team.points, 10) || 0,
-        nrr: isNaN(parseFloat(team.nrr)) ? null : parseFloat(team.nrr),
-      }));
-      const sorted = parsed.sort((a, b) =>
-        b.points !== a.points ? b.points - a.points : (b.nrr || 0) - (a.nrr || 0)
-      );
-      setTeams(sorted);
-    } catch (e) {
-      console.error("Error fetching leaderboard:", e);
-    }
-  };
-
+const useInView = (ref, threshold = 0.2) => {
+  const [seen, setSeen] = useState(false);
   useEffect(() => {
-    fetchTeams();
-    const deb = { current: null };
-    socket.on("matchUpdate", () => {
-      if (deb.current) clearTimeout(deb.current);
-      deb.current = setTimeout(fetchTeams, 800);
-    });
-    return () => {
-      socket.off("matchUpdate");
-      clearTimeout(deb.current);
-    };
-  }, []);
+    if (!ref.current) return;
+    const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) setSeen(true); }, { threshold });
+    o.observe(ref.current);
+    return () => o.disconnect();
+  }, [ref, threshold]);
+  return seen;
+};
 
-  const getMedal = (i) =>
-    i === 0 ? <span className="medal-emoji">🥇</span> :
-    i === 1 ? <span className="medal-emoji">🥈</span> :
-    i === 2 ? <span className="medal-emoji">🥉</span> : null;
+const medalEmoji = (i) => (i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "");
+const bucketGradient = (ratio) => {
+  if (ratio >= 0.75) return "linear-gradient(90deg,#14e29a,#00c986)";
+  if (ratio >= 0.55) return "linear-gradient(90deg,#ffe76a,#ffb03a)";
+  if (ratio >= 0.35) return "linear-gradient(90deg,#ffb03a,#ff7a3d)";
+  if (ratio > 0)     return "linear-gradient(90deg,#a57cff,#6dd6ff)";
+  return "linear-gradient(90deg,#ff6b6b,#ff2b2b)";
+};
 
-  const renderNRR = (nrr) => (nrr === null ? "—" : nrr.toFixed(2));
-  const draws = (t) => Math.max(0, t.matches_played - t.wins - t.losses);
+const TLRow = forwardRef(({ index, row, maxPoints }, ref) => {
+  const ratio = (row.points || 0) / (maxPoints || 1);
+  const pct = Math.round(ratio * 100);
+
+  const [spr, api] = useSpring(() => ({
+    rotateX: 0, rotateY: 0, scale: 1,
+    config: { mass: 1, tension: 280, friction: 24 },
+  }));
+  const onMove = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    const rx = -(y / r.height - 0.5) * 6;
+    const ry =  (x / r.width  - 0.5) * 6;
+    api.start({ rotateX: rx, rotateY: ry, scale: 1.01 });
+  };
+  const onLeave = () => api.start({ rotateX: 0, rotateY: 0, scale: 1 });
 
   return (
-    <div className="leaderboard-shell">
-      <h2 className="lb-title" style={TITLE_STYLE}>Leaderboard Summary (ODI/T20)</h2>
+    <a.tr
+      ref={ref}
+      className="tlfx-row"
+      style={{
+        transform: spr.scale.to(
+          (s) => `perspective(900px) rotateX(${spr.rotateX.get()}deg) rotateY(${spr.rotateY.get()}deg) scale(${s})`
+        ),
+      }}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+    >
+      <td className="rank">
+        <span className={`medal-3d ${index===0?'gold':index===1?'silver':index===2?'bronze':''}`}>
+          {medalEmoji(index)}
+        </span>
+        <span className="pos">{index + 1}</span>
+      </td>
+      <td className="team">{displayTeam(row.team_name)}</td>
+      <td>{row.matches}</td>
+      <td className="pos">{row.wins}</td>
+      <td className="neg">{row.losses}</td>
+      <td>{row.draws}</td>
+      <td className="tlfx-points">
+        <div className="points-track" />
+        <Animate start={{ w: 0 }} update={{ w: [pct], timing: { duration: 700 } }}>
+          {({ w }) => (
+            <div
+              className={`points-bar ${index < 3 ? "pulse" : ""}`}
+              style={{ width: `${w}%`, backgroundImage: bucketGradient(ratio) }}
+            />
+          )}
+        </Animate>
+        <span className="points-num">{row.points}</span>
+      </td>
+    </a.tr>
+  );
+});
 
-      {/* removed `table-dark` to avoid Bootstrap forcing white header */}
-      <div className="leaderboard-table-wrapper">
-        <table className="table text-center mb-0 leaderboard-table">
-          <thead>
-            <tr>
-              <th>R</th>
-              <th>T</th>
-              <th>M</th>
-              <th>W</th>
-              <th>L</th>
-              <th>D</th>
-              <th>Pts</th>
-              <th>NRR</th>
-            </tr>
-          </thead>
-          <tbody>
-            {teams.map((team, i) => {
-              const { bucket, neg } = nrrBucket(team.nrr);
-              const width = nrrWidth(team.nrr);
-              return (
-                <tr key={team.team_name} className={`lb-row ${i < 3 ? "top3" : ""}`}>
-                  <td>{getMedal(i)} {i + 1}</td>
-                  <td className="team-name">{displayTeam(team.team_name)}</td>
-                  <td>{team.matches_played}</td>
-                  <td className="pos">{team.wins}</td>
-                  <td className="neg">{team.losses}</td>
-                  <td>{draws(team)}</td>
-                  <td className="pos">{team.points}</td>
-                  <td className={`nrr-cell ${neg ? "neg" : "pos"}`}>
-                    <div className="nrr-track" aria-hidden />
-                    <div className={`nrr-bar ${neg ? "from-right" : "from-left"}`}
-                         style={{ width: `${width}%`, backgroundColor: bucketColor(bucket) }}
-                         aria-hidden />
-                    {renderNRR(team.nrr)}
-                  </td>
-                </tr>
-              );
-            })}
-            {teams.length === 0 && (
-              <tr><td colSpan="8" className="text-muted py-4">No match data available.</td></tr>
-            )}
-          </tbody>
-        </table>
+const TestLeaderboard = () => {
+  const [teams, setTeams] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const wrapRef = useRef(null);
+  const rowRefs = useRef([]);
+  rowRefs.current = [];
+  const addRowRef = (el) => el && !rowRefs.current.includes(el) && rowRefs.current.push(el);
+
+  const particlesInit = async (engine) => { await loadFull(engine); };
+
+  useEffect(() => {
+    getTestMatchLeaderboard()
+      .then((data) => {
+        const arr = Array.isArray(data) ? data : [];
+        const normalized = arr.map((t) => ({
+          team_name: t.team_name,
+          matches: Number(t.matches) || 0,
+          wins: Number(t.wins) || 0,
+          losses: Number(t.losses) || 0,
+          draws: t.draws != null
+            ? Number(t.draws)
+            : Math.max(0, (Number(t.matches)||0) - (Number(t.wins)||0) - (Number(t.losses)||0)),
+          points: Number(t.points) || 0,
+        }));
+        const sorted = normalized.sort((a,b) => b.points - a.points || b.wins - a.wins);
+        setTeams(sorted);
+      })
+      .catch(() => setTeams([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const inView = useInView(wrapRef);
+  const maxPoints = useMemo(() => Math.max(10, ...teams.map(t => t.points || 0)), [teams]);
+
+  useEffect(() => {
+    if (!inView || !rowRefs.current.length) return;
+    gsap.fromTo(
+      rowRefs.current,
+      { y: 20, opacity: 0, filter: "blur(4px)" },
+      { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.55, stagger: 0.07, ease: "power2.out" }
+    );
+    if (rowRefs.current[0]) {
+      gsap.fromTo(
+        rowRefs.current[0],
+        { boxShadow: "0 0 0 rgba(0,255,170,0)" },
+        { boxShadow: "0 0 22px rgba(0,255,170,.35)", duration: 1.1, repeat: 1, yoyo: true }
+      );
+    }
+  }, [inView, teams]);
+
+  return (
+    <div className="tlfx-shell">
+      <Particles
+        id="tlfx-particles"
+        init={particlesInit}
+        options={{
+          fullScreen: { enable: false },
+          background: { color: { value: "transparent" } },
+          particles: {
+            number: { value: 18, density: { enable: true, area: 800 } },
+            links: { enable: true, distance: 120, opacity: 0.15, width: 1 },
+            move: { enable: true, speed: 1, outModes: { default: "bounce" } },
+            size: { value: { min: 1, max: 3 } },
+            opacity: { value: 0.25 },
+          },
+        }}
+      />
+
+      <div ref={wrapRef} className="tlfx-glass">
+        {/* Single title only (remove any external duplicate page heading) */}
+        <h2 className="tlfx-title" style={TITLE_STYLE}>
+          Test Leaderboard
+        </h2>
+
+        <div className="tlfx-table-wrap">
+          <table className="tlfx-table">
+            <thead>
+              <tr>
+                {/* Short headers with “R” spelled out */}
+                <th>R</th>
+                <th>T</th>
+                <th>M</th>
+                <th>W</th>
+                <th>L</th>
+                <th>D</th>
+                <th>Pts</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {loading && (
+                <>
+                  <tr className="skeleton"><td colSpan="7" /></tr>
+                  <tr className="skeleton"><td colSpan="7" /></tr>
+                  <tr className="skeleton"><td colSpan="7" /></tr>
+                </>
+              )}
+
+              {!loading && teams.length === 0 && (
+                <tr><td className="tlfx-empty" colSpan="7">No Test match leaderboard data available.</td></tr>
+              )}
+
+              {!loading && teams.map((t, i) => (
+                <TLRow
+                  key={`${t.team_name}-${i}`}
+                  ref={addRowRef}
+                  index={i}
+                  row={t}
+                  maxPoints={maxPoints}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default TestLeaderboard;
