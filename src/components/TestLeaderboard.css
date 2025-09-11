@@ -1,94 +1,168 @@
 /*****************************************************
- * Leaderboard.css — simple, professional header
+ * TestLeaderboard.css — desktop pretty, mobile stable
  *****************************************************/
 
-.leaderboard-shell{
-  background:#0f1b28;
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:16px;
-  padding:14px;
+/* shell + particles */
+.tlfx-shell{ position: relative; width: 100%; padding: 24px 10px; }
+#tlfx-particles{ position:absolute; inset:0; pointer-events:none; z-index:0; }
+
+/* glass card */
+.tlfx-glass{
+  position: relative; z-index:1;
+  border-radius: 18px;
+  padding: 18px 12px;
+  background: radial-gradient(900px 380px at 8% -10%, rgba(0,255,170,.08), transparent 60%),
+              linear-gradient(180deg, rgba(13,31,47,.78), rgba(10,23,36,.68));
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 18px 50px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
 
-.leaderboard-table-wrapper{ padding: 0 6px; }
-
-/* Table base */
-.leaderboard-table{
-  width:100%;
-  border-collapse:separate;
-  table-layout:fixed;
-  border-spacing:0 8px;
-  background:transparent;
-  margin:0;
+/* header */
+.tlfx-header{ display:flex; justify-content:center; margin-bottom: 10px; }
+.tlfx-title{
+  font-weight: 800; letter-spacing:.3px;
+  color:#bffcff; font-size: clamp(18px,2.2vw,24px);
+  text-shadow: 0 2px 12px rgba(0,255,170,.25);
 }
 
-/* ------- HEADER: solid blue bar with white text ------- */
-.leaderboard-table thead tr{ background: transparent; }
-.leaderboard-table thead th{
-  background: linear-gradient(180deg,#123055,#0e2236) !important; /* blue */
-  color:#f4fbff !important;
-  font-weight:800;
-  font-size:14px;
-  letter-spacing:.3px;
+/* ===== table ===== */
+.tlfx-table-wrap{ overflow-x:auto; padding: 0 6px; }
+.tlfx-table{
+  width: 100%;
+  border-collapse: separate;
+  table-layout: fixed;
+  border-spacing: 0 8px;             /* row gaps like cards (desktop) */
+  background: transparent !important;
+  margin: 0;
+}
+
+/* header cells */
+.tlfx-table thead tr{ background: transparent !important; box-shadow:none !important; }
+.tlfx-table thead th{
+  background: linear-gradient(180deg,#102437,#0d1f2f) !important;
+  color:#dff2ff !important;
+  font-weight:700; font-size:14px; letter-spacing:.2px;
   padding:12px 10px;
-  border:1px solid #1b3b5b !important;
+  border:1px solid rgba(255,255,255,.08) !important;
   border-bottom:0 !important;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  white-space: nowrap;                 /* keep in one line */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.leaderboard-table thead th + th{ border-left-color:#16324e !important; }
-.leaderboard-table thead th:first-child{
-  border-top-left-radius:12px; border-bottom-left-radius:12px;
-}
-.leaderboard-table thead th:last-child{
-  border-top-right-radius:12px; border-bottom-right-radius:12px;
-}
+.tlfx-table thead th:first-child{ border-top-left-radius:12px; border-bottom-left-radius:12px; }
+.tlfx-table thead th:last-child { border-top-right-radius:12px; border-bottom-right-radius:12px; }
+.tlfx-table thead th + th{ border-left-color: rgba(255,255,255,.06) !important; }
 
-/* Body cells */
-.leaderboard-table tbody td{
-  padding:12px 10px;
-  font-size:15px;
-  color:#eaf6ff;
-  text-align:center;
-  border:0;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+/* body rows as floating cards (desktop) */
+.tlfx-table tbody td{
+  padding: 12px 10px;
+  font-size: 15px; color: #eaf6ff;
+  text-align: center; border: 0;
+  white-space: nowrap;                 /* never wrap */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-
-/* Rows as simple cards */
-.leaderboard-table tbody tr.lb-row{
-  background:#112030;
-  border:1px solid rgba(255,255,255,.10);
-  border-radius:12px;
+.tlfx-table tbody td.team{ text-align:left; font-weight:800; letter-spacing:.2px; }
+.tlfx-row{
+  background: linear-gradient(180deg, rgba(17,32,48,.65), rgba(10,23,35,.55));
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(0,0,0,.35);
+  transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
 }
+.tlfx-row:hover{ transform: translateY(-2px); box-shadow: 0 18px 38px rgba(0,0,0,.42); }
 
-.medal-emoji{ font-size:1.05rem; margin-right:4px; }
 .pos{ color:#c9ffef; }
 .neg{ color:#ffc2c2; }
-.team-name{ font-weight:800; letter-spacing:.2px; text-align:left; }
 
-/* NRR bar (no motion) */
-.nrr-cell{ position:relative; overflow:visible; height:34px; }
-.nrr-track{
+/* medal (CSS spin) */
+.medal-3d{ display:inline-block; font-size:1.05rem; margin-right:6px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.35)); }
+.medal-3d.gold   { animation: spinY 2.2s linear infinite; }
+.medal-3d.silver { animation: spinY 2.4s linear infinite; }
+.medal-3d.bronze { animation: spinY 2.6s linear infinite; }
+@keyframes spinY { 0%{ transform: rotateY(0deg) } 100%{ transform: rotateY(360deg) } }
+
+/* ===== special points animation ===== */
+.tlfx-points{ position: relative; height: 34px; }
+.points-track{
   position:absolute; left:8px; right:8px; bottom:6px; height:6px;
-  border-radius:999px; background:rgba(255,255,255,.12);
+  border-radius:999px; background: rgba(255,255,255,.09);
 }
-.nrr-bar{
-  position:absolute; bottom:6px; height:6px; border-radius:999px;
+.points-bar{
+  position:absolute; bottom:6px; height:6px; border-radius:999px; width:0;
+  filter: drop-shadow(0 0 10px rgba(255,255,255,.16));
+  transition: width .35s ease;
 }
-.from-left{ left:8px; }
-.from-right{ right:8px; }
+.points-bar.pulse{ animation: pointsPulse 1.6s ease-in-out infinite alternate; }
+@keyframes pointsPulse{
+  0%  { box-shadow: 0 0 10px rgba(0,255,170,.15); }
+  100%{ box-shadow: 0 0 18px rgba(0,255,170,.35); }
+}
+.points-num{ position: relative; z-index:1; margin-left:auto; font-weight:700; }
 
-/* Top 3 subtle golden tint */
-.lb-row.top3{
-  background-color:rgba(232,202,164,0.10);
-  border-color:rgba(232,202,164,0.45);
-  box-shadow:0 0 0 1px rgba(232,202,164,0.22), 0 0 16px rgba(232,202,164,0.08);
+/* empty + skeleton */
+.tlfx-empty{ text-align:center; padding:18px 0; color:#9bb2c8; }
+.skeleton td{
+  height: 56px;
+  background: linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.08), rgba(255,255,255,.04));
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite linear;
+  border-radius: 12px;
+}
+@keyframes shimmer{ 0%{ background-position: 0 0; } 100%{ background-position: -200% 0; } }
+
+/* ===== Mobile/touch stability (S23-safe) ===== */
+@media (max-width: 900px), (pointer: coarse){
+  /* Solid wrapper, no blur */
+  .tlfx-glass{
+    background:#0f1b28 !important;
+    border:1px solid rgba(255,255,255,.06) !important;
+    box-shadow:0 6px 16px rgba(0,0,0,.28) !important;
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+  }
+
+  /* Collapse row gaps; solid row bg; no per-row shadow/hover lift */
+  .tlfx-table{
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+    table-layout: fixed !important;
+  }
+  .tlfx-row{
+    background:#0f1e2d !important;
+    border:1px solid rgba(255,255,255,.06) !important;
+    box-shadow:none !important;
+    transform:none !important;
+  }
+
+  /* Bars: simple & stable on mobile */
+  .points-track{ background: rgba(255,255,255,.12) !important; }
+  .points-bar{ box-shadow:none !important; filter:none !important; animation:none !important; }
+
+  /* Hide particles on mobile */
+  #tlfx-particles{ display:none !important; }
+
+  /* Tighter spacing */
+  .tlfx-table thead th, .tlfx-table tbody td{
+    font-size:14px !important;
+    padding:10px 8px !important;
+  }
 }
 
-/* Mobile */
-@media (max-width:768px){
-  .leaderboard-table thead th,
-  .leaderboard-table tbody td{ font-size:14px; padding:10px 8px; }
+/* Compact columns under 640px */
+@media (max-width: 640px){
+  .tlfx-table thead th:nth-child(4),
+  .tlfx-table thead th:nth-child(5),
+  .tlfx-table thead th:nth-child(6),
+  .tlfx-table tbody td:nth-child(4),
+  .tlfx-table tbody td:nth-child(5),
+  .tlfx-table tbody td:nth-child(6){ display:none; }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce){
+  .medal-3d.gold, .medal-3d.silver, .medal-3d.bronze{ animation: none !important; }
+  .points-bar.pulse{ animation: none !important; }
+  .skeleton td{ animation: none !important; }
 }
