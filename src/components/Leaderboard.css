@@ -1,36 +1,25 @@
-/*****************************************************
- * Leaderboards.css — glassmorphism (desktop), hardened mobile
- *****************************************************/
+/* =========================================================
+   Leaderboards.css — glass leaderboard (desktop) + safe mobile
+   ========================================================= */
 
-:root{
-  --glass-surface: rgba(14,31,47,.36);
-  --glass-border: rgba(255,255,255,.16);
-  --glass-highlight: rgba(95,208,199,.12);
-  --glass-shadow: 0 18px 48px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.06);
-  --glass-blur: 12px;
-}
-
-/* small spacing for the ScopeBar block above the table */
 .leaderboard-controls{ margin-bottom: 10px; }
 
-/* ===== Glassy wrapper (desktop) ===== */
-.leaderboard-glass{
+/* Glass wrapper */
+.leaderboard-glass,
+.card.leaderboard-glass{                      /* override Bootstrap .card if used */
   background:
-    radial-gradient(900px 380px at 8% -10%, var(--glass-highlight), transparent 60%),
-    var(--glass-surface);
-  border: 1px solid var(--glass-border);
+    radial-gradient(900px 380px at 8% -10%, rgba(0,255,170,.12), transparent 60%),
+    linear-gradient(180deg, rgba(13,31,47,.58), rgba(10,23,36,.46));
+  border: 1px solid rgba(255,255,255,.12);
   border-radius: 16px;
   padding: 14px;
-  box-shadow: var(--glass-shadow);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: 0 16px 40px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   overflow: hidden;
 }
 
-/* Wrapper keeps header/body aligned (desktop only) */
-.leaderboard-table-wrapper{ padding: 0 6px; }
-
-/* ===== Table base ===== */
+/* Table base */
 .leaderboard-table{
   width: 100%;
   border-collapse: separate;
@@ -40,105 +29,88 @@
   margin: 0;
 }
 
-/* ===== Header ===== */
+/* Kill opaque Bootstrap table backgrounds inside this widget */
+.leaderboard-glass .table,
+.leaderboard-table,
+.leaderboard-table thead,
+.leaderboard-table tbody,
+.leaderboard-table thead th,
+.leaderboard-table tbody td{
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Header */
 .leaderboard-table thead tr{
-  background:
-    linear-gradient(180deg, color-mix(in srgb, #0f2234 70%, transparent), color-mix(in srgb, #0c1b2a 70%, transparent));
+  background: linear-gradient(180deg, rgba(15,34,52,.85), rgba(12,27,42,.78));
   box-shadow: 0 10px 24px rgba(0,0,0,.30);
 }
 .leaderboard-table thead th{
-  font-weight: 800;
-  color: #f3fbff;
-  border: 0 !important;
-  font-size: 14px;
-  padding: 12px 10px;
-  letter-spacing: .2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-shadow: 0 1px 0 rgba(0,0,0,.35);
+  font-weight: 700; color: #dff2ff;
+  border: 0 !important; font-size: 14px;
+  padding: 12px 10px; letter-spacing: .2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: transparent; /* ensure no white bar */
 }
 .leaderboard-table thead th:first-child{ border-top-left-radius: 12px; }
 .leaderboard-table thead th:last-child { border-top-right-radius: 12px; }
 
-/* ===== Body cells ===== */
+/* Body cells */
 .leaderboard-table tbody td{
-  padding: 12px 10px;
-  font-size: 15px;
-  color: #f1fbff;
-  text-align: center;
-  border: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-shadow: 0 1px 0 rgba(0,0,0,.35);
+  padding: 12px 10px; font-size: 15px; color: #eaf6ff; text-align: center; border: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.team-name{ font-weight: 900; letter-spacing: .2px; text-align: left; color:#fff; }
 
-/* ===== Rows as "glass cards" (desktop) ===== */
+/* Rows as cards */
 .leaderboard-table tbody tr{
-  background: linear-gradient(180deg, rgba(17,32,48,.42), rgba(10,23,35,.34));
-  border: 1px solid var(--glass-border);
+  background: linear-gradient(180deg, rgba(17,32,48,.58), rgba(10,23,35,.46));
+  border: 1px solid rgba(255,255,255,.10);
   border-radius: 12px;
   box-shadow: 0 12px 28px rgba(0,0,0,.35);
   transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
 }
 .leaderboard-table tbody tr:hover{
   transform: translateY(-2px);
   box-shadow: 0 18px 38px rgba(0,0,0,.42);
 }
 
-/* Emoji medals + tint helpers */
+/* Medals & helpers */
 .medal-emoji{ font-size: 1.15rem; margin-right: 4px; }
-.pos{ color:#c9ffef; text-shadow: 0 1px 0 #0006; }
-.neg{ color:#ffc2c2; text-shadow: 0 1px 0 #0006; }
+.pos{ color:#c9ffef; }
+.neg{ color:#ffc2c2; }
+.team-name{ font-weight: 800; letter-spacing: .2px; text-align: left; }
 
-/* ===== NRR tiny bar ===== */
+/* NRR bar */
 .nrr-cell{ position: relative; overflow: visible; height: 34px; }
 .nrr-track{
   position: absolute; left: 8px; right: 8px; bottom: 6px; height: 6px;
-  border-radius: 999px; background: rgba(255,255,255,.18);
-  backdrop-filter: blur(2px);
+  border-radius: 999px; background: rgba(255,255,255,.12);
 }
 .nrr-bar{
   position: absolute; bottom: 6px; height: 6px; width: var(--w, 0);
-  border-radius: 999px;
-  box-shadow: 0 0 10px rgba(255,255,255,.16);
+  border-radius: 999px; box-shadow: 0 0 10px rgba(255,255,255,.16);
   transition: width .35s ease;
 }
 .from-left  { left: 8px;  transform-origin: left center; }
 .from-right { right: 8px; transform-origin: right center; }
 
-/* Hover tint synced to buckets */
+/* Hover tint buckets */
 .lb-row{ cursor: default; }
-.lb-row[data-bucket="green"]:hover  { background-color: rgba(22,226,138,.16); }
-.lb-row[data-bucket="yellow"]:hover { background-color: rgba(255,231,106,.14); }
-.lb-row[data-bucket="orange"]:hover { background-color: rgba(255,176,58,.14); }
-.lb-row[data-bucket="purple"]:hover { background-color: rgba(165,124,255,.14); }
-.lb-row[data-bucket="red"]:hover    { background-color: rgba(255,43,43,.14); }
+.lb-row[data-bucket="green"]:hover  { background-color: rgba(22,226,138,.12); }
+.lb-row[data-bucket="yellow"]:hover { background-color: rgba(255,231,106,.12); }
+.lb-row[data-bucket="orange"]:hover { background-color: rgba(255,176,58,.12); }
+.lb-row[data-bucket="purple"]:hover { background-color: rgba(165,124,255,.12); }
+.lb-row[data-bucket="red"]:hover    { background-color: rgba(255, 43, 43,.12); }
 
-/* Bar colors */
+/* Bar gradients */
 .lb-row[data-bucket="green"]  .nrr-bar{ background: linear-gradient(90deg,#14e29a,#00c986); }
-lb-row[data-bucket="yellow"] .nrr-bar{ background: linear-gradient(90deg,#ffe76a,#ffb03a); }
+.lb-row[data-bucket="yellow"] .nrr-bar{ background: linear-gradient(90deg,#ffe76a,#ffb03a); }
 .lb-row[data-bucket="orange"] .nrr-bar{ background: linear-gradient(90deg,#ffb03a,#ff7a3d); }
 .lb-row[data-bucket="purple"] .nrr-bar{ background: linear-gradient(90deg,#a57cff,#6dd6ff); }
 .lb-row[data-bucket="red"]    .nrr-bar{ background: linear-gradient(90deg,#ff6b6b,#ff2b2b); }
 
-/* ================= Mobile / touch hardening ================= */
+/* ===== Mobile / touch hardening ===== */
 @media (max-width: 900px), (pointer: coarse){
-  .leaderboard-table-wrapper{
-    max-height: none !important;
-    overflow: visible !important;
-    padding: 0 !important;
-  }
-  .leaderboard-table thead th,
-  .sticky-col{
-    position: static !important;
-    z-index: auto !important;
-    background: transparent !important;
-  }
   .leaderboard-glass{
     background:#0f1b28 !important;
     border:1px solid rgba(255,255,255,.06) !important;
@@ -148,11 +120,8 @@ lb-row[data-bucket="yellow"] .nrr-bar{ background: linear-gradient(90deg,#ffe76a
     overflow: hidden !important;
     background-clip: padding-box;
     clip-path: inset(0 round 16px);
-    mask-image: radial-gradient(#fff, #000);
-    -webkit-mask-image: radial-gradient(#fff, #000);
-    mask-repeat: no-repeat;
-    mask-size: 100% 100%;
   }
+
   .leaderboard-table{
     border-collapse: collapse !important;
     border-spacing: 0 !important;
@@ -160,18 +129,24 @@ lb-row[data-bucket="yellow"] .nrr-bar{ background: linear-gradient(90deg,#ffe76a
   }
   .leaderboard-table tbody tr{
     background:#0f1e2d !important;
-    border: 1px solid rgba(255,255,255,.06) !important;
-    border-radius: 0 !important;
+    border:1px solid rgba(255,255,255,.06) !important;
     box-shadow:none !important;
     transform:none !important;
-    overflow: hidden;
-    background-clip: padding-box;
   }
+
   .nrr-track{ background: rgba(255,255,255,.12) !important; }
   .nrr-bar{ box-shadow:none !important; filter:none !important; }
+
   .leaderboard-table thead th,
   .leaderboard-table tbody td{
     padding:10px 8px !important;
     font-size:14px !important;
+  }
+}
+@media (max-width: 768px){
+  .leaderboard-table thead th,
+  .leaderboard-table tbody td{
+    font-size: 14px;
+    padding: 10px 8px;
   }
 }
