@@ -96,7 +96,6 @@ export const getTournamentMatches = ({
     })
     .then((r) => r.data);
 
-
 /* ================== HISTORIES / TABLES ================== */
 
 export const getMatchHistory = async (filters = {}) => {
@@ -184,11 +183,7 @@ export const getSquadTeams = () =>
 
 export const createSquadTeam = (name) =>
   axios
-    .post(
-      `${API_URL}/squads/teams`,
-      { name },
-      { headers: { ...uidHeader() } }
-    )
+    .post(`${API_URL}/squads/teams`, { name }, { headers: { ...uidHeader() } })
     .then((r) => r.data);
 
 /* ================== SQUAD & LINEUP ================== */
@@ -235,7 +230,7 @@ export const updatePlayer = (id, payload) =>
 export const deletePlayer = (id, opts = {}) => {
   // ✅ [DEL-FORCE] now forwards "force" in addition to "all"
   const params = {};
-  if (opts.all)   params.all = true;
+  if (opts.all) params.all = true;
   if (opts.force) params.force = true;
   return axios
     .delete(`${API_URL}/squads/players/${id}`, { params, headers: { ...uidHeader() } })
@@ -255,7 +250,25 @@ export const saveLineup = (payload) =>
     .post(`${API_URL}/squads/lineup`, payload, { headers: { ...uidHeader() } })
     .then((r) => r.data);
 
-    // BASE already: https://cricket-scoreboard-backend.onrender.com
+/* ================== TEAM MATCH EXPLORER (ODI/T20) ================== */
+
+// Helper to strip UI placeholder/undefinedy values
+const cleanFilter = (v) => {
+  if (v == null) return undefined;
+  const s = String(v).trim().toLowerCase();
+  if (
+    s === "" ||
+    s === "undefined" ||
+    s === "null" ||
+    s === "all seasons" ||
+    s === "all tournaments"
+  ) {
+    return undefined;
+  }
+  return v;
+};
+
+// BASE already: https://cricket-scoreboard-backend.onrender.com
 export async function getTeamMatchExplorer({
   team,
   format = "All",
@@ -267,12 +280,23 @@ export async function getTeamMatchExplorer({
 } = {}) {
   if (!team) throw new Error("team is required");
 
-  const params = { team, format, result, page, pageSize };
-  if (season != null && season !== "") params.season = season;
-  if (tournament != null && tournament !== "") params.tournament = tournament;
+  const params = {
+    team,
+    format,
+    result,
+    page,
+    pageSize,
+  };
 
-  // ✅ no extra /api; ✅ no "undefined" params
-  const { data } = await axios.get(`${API_URL}/team-match-explorer/by-team`, { params });
+  const s = cleanFilter(season);
+  const t = cleanFilter(tournament);
+  if (s !== undefined) params.season = s;
+  if (t !== undefined) params.tournament = t;
+
+  // ✅ no extra /api; ✅ no "undefined"/placeholder params
+  const { data } = await axios.get(`${API_URL}/team-match-explorer/by-team`, {
+    params,
+  });
   return data;
 }
 
@@ -308,5 +332,4 @@ export const getUserDashboardData = async (userId) => {
     notifications,
     settings,
   };
-
 };
