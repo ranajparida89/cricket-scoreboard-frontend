@@ -67,9 +67,7 @@ const niceOvers = (v) => {
   if (!Number.isFinite(n)) return String(v);
   const whole = Math.floor(n + 1e-8);
   let balls = Math.round((n - whole) * 6);
-  if (balls === 6) { // clamp if rounding tips it over
-    return String(whole + 1);
-  }
+  if (balls === 6) return String(whole + 1);
   return balls ? `${whole}.${balls}` : String(whole);
 };
 
@@ -136,7 +134,7 @@ const Leaderboard = () => {
   const calculateDraws = (team) =>
     Math.max(0, team.matches_played - team.wins - team.losses);
 
-  // ------- Explorer fetchers -------
+  // ------- Explorer fetchers (same call shape as before) -------
   const fetchExplorer = async (overrides = {}) => {
     const f = { ...expFilters, ...overrides };
     setExpFilters(f);
@@ -153,7 +151,7 @@ const Leaderboard = () => {
         pageSize: String(f.pageSize),
       }).toString();
 
-      const res = await fetch(`/api/teams/explorer?${qs}`, { headers: { "Accept": "application/json" } });
+      const res = await fetch(`/api/teams/explorer?${qs}`);
       if (!res.ok) throw new Error(`Explorer API failed (${res.status})`);
       const json = await res.json();
       setExpData(json);
@@ -168,6 +166,7 @@ const Leaderboard = () => {
   const openExplorer = (teamName) => {
     setExpOpen(true);
     setExpData(null);
+    // keep logic identical: only change team & page
     fetchExplorer({ team: teamName, page: 1 });
   };
   const closeExplorer = () => {
@@ -204,17 +203,14 @@ const Leaderboard = () => {
   const startIdx = total ? (page - 1) * pageSize + 1 : 0;
   const endIdx = total ? Math.min(startIdx + shown - 1, total) : 0;
 
-  // table cell fragments
+  // UI fragments
   const scoreBlock = (runs, wkts, overs) => (
     <span>
       <strong>{runs}/{wkts}</strong>
       <span className="overs"> ({niceOvers(overs)})</span>
     </span>
   );
-
-  const ResultBadge = ({ r }) => (
-    <span className={`res-badge res-${r}`}>{r}</span>
-  );
+  const ResultBadge = ({ r }) => <span className={`res-badge res-${r}`}>{r}</span>;
 
   return (
     <div className="leaderboard-shell">

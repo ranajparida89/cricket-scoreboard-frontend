@@ -16,9 +16,9 @@
 /* ===== Table base ===== */
 .leaderboard-table{
   width: 100%;
-  border-collapse: separate;      /* row gaps like cards */
-  table-layout: fixed;            /* stable widths */
-  border-spacing: 0 8px;          /* vertical gaps only */
+  border-collapse: separate;
+  table-layout: fixed;
+  border-spacing: 0 8px;
   background: transparent;
   margin: 0;
 }
