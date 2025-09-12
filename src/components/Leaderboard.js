@@ -3,7 +3,7 @@ import { getTeams } from "../services/api";
 import { io } from "socket.io-client";
 import "./Leaderboard.css";
 
-/* Simple, unified title (no glow) */
+/* Title */
 const TITLE_STYLE = {
   textAlign: "center",
   margin: "0 0 12px",
@@ -12,7 +12,6 @@ const TITLE_STYLE = {
   color: "#22ff99",
 };
 
-// Team abbreviations
 const TEAM_ABBR = {
   "south africa": "SA", england: "ENG", india: "IND", kenya: "KEN", scotland: "SCT",
   "new zealand": "NZ", "hong kong": "HKG", afghanistan: "AFG", bangladesh: "BAN",
@@ -31,10 +30,8 @@ const abbreviateTeamName = (name) => {
 };
 const displayTeam = (name) => abbreviateTeamName(name);
 
-// Socket (kept for live data; not a visual effect)
 const socket = io("https://cricket-scoreboard-backend.onrender.com");
 
-// NRR helpers (static, no animations)
 const nrrWidth = (nrr) => {
   if (nrr === null || Number.isNaN(nrr)) return 0;
   const max = 8;
@@ -49,7 +46,6 @@ const nrrBucket = (nrr) => {
   if (nrr < 4)     return { bucket: "yellow", neg: false };
   return { bucket: "green",  neg: false };
 };
-// Solid (non-gradient) colors to avoid special-effects
 const bucketColor = (bucket) => {
   switch (bucket) {
     case "green":  return "#16e28a";
@@ -63,6 +59,21 @@ const bucketColor = (bucket) => {
 
 const Leaderboard = () => {
   const [teams, setTeams] = useState([]);
+
+  // Explorer modal state
+  const [expOpen, setExpOpen] = useState(false);
+  const [expLoading, setExpLoading] = useState(false);
+  const [expError, setExpError] = useState("");
+  const [expData, setExpData] = useState(null);
+  const [expFilters, setExpFilters] = useState({
+    team: "",
+    format: "All",
+    result: "All",
+    season: "",
+    tournament: "",
+    page: 1,
+    pageSize: 20,
+  });
 
   const fetchTeams = async () => {
     try {
@@ -109,6 +120,57 @@ const Leaderboard = () => {
   const calculateDraws = (team) =>
     Math.max(0, team.matches_played - team.wins - team.losses);
 
+  // ------- Explorer fetchers -------
+  const fetchExplorer = async (overrides = {}) => {
+    const f = { ...expFilters, ...overrides };
+    setExpFilters(f);
+    setExpLoading(true);
+    setExpError("");
+    try {
+      const qs = new URLSearchParams({
+        team: f.team,
+        format: f.format,
+        result: f.result,
+        ...(f.season ? { season: f.season } : {}),
+        ...(f.tournament ? { tournament: f.tournament } : {}),
+        page: String(f.page),
+        pageSize: String(f.pageSize),
+      }).toString();
+
+      const res = await fetch(`/api/teams/explorer?${qs}`);
+      if (!res.ok) throw new Error(`Explorer API failed (${res.status})`);
+      const json = await res.json();
+      setExpData(json);
+    } catch (e) {
+      console.error(e);
+      setExpError("Failed to load match list.");
+    } finally {
+      setExpLoading(false);
+    }
+  };
+
+  const openExplorer = (teamName) => {
+    setExpOpen(true);
+    setExpData(null);
+    fetchExplorer({ team: teamName, page: 1 });
+  };
+  const closeExplorer = () => {
+    setExpOpen(false);
+    setExpData(null);
+    setExpError("");
+  };
+
+  const changeFilter = (patch) => {
+    // when filters change (except pagination), reset to page 1
+    const withReset = { ...patch, page: 1 };
+    fetchExplorer(withReset);
+  };
+
+  const changePage = (delta) => {
+    const next = Math.max(1, (expFilters.page || 1) + delta);
+    fetchExplorer({ page: next });
+  };
+
   return (
     <div className="leaderboard-shell">
       <h2 className="lb-title" style={TITLE_STYLE}>
@@ -139,6 +201,9 @@ const Leaderboard = () => {
                 <tr
                   key={team.team_name}
                   className={`lb-row ${index < 3 ? "top3" : ""}`}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => openExplorer(team.team_name)}
+                  title="Click for match explorer"
                 >
                   <td>{getMedal(index)} {index + 1}</td>
                   <td className="team-name">{displayTeam(team.team_name)}</td>
@@ -167,6 +232,146 @@ const Leaderboard = () => {
           </tbody>
         </table>
       </div>
+
+      {/* --------- Explorer Modal ---------- */}
+      {expOpen && (
+        <div className="me-overlay" onClick={closeExplorer}>
+          <div className="me-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="me-head">
+              <div>
+                <div className="me-title">{expFilters.team || "Team"}</div>
+                {expData && (
+                  <div className="me-sub">
+                    Played {expData.summary.played} · W {expData.summary.wins} · L {expData.summary.losses} · D {expData.summary.draws}
+                    {expData.summary.last5?.length ? (
+                      <span className="me-last5"> · Last 5: {expData.summary.last5.join(" ")}</span>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+              <button className="me-close" onClick={closeExplorer}>✕</button>
+            </div>
+
+            {/* Filters */}
+            <div className="me-filters">
+              <div className="me-group">
+                <span className="me-label">Format</span>
+                {["All", "ODI", "T20"].map((v) => (
+                  <button
+                    key={v}
+                    className={`me-chip ${expFilters.format === v ? "act" : ""}`}
+                    onClick={() => changeFilter({ format: v })}
+                  >
+                    {v}
+                  </button>
+                ))}
+              </div>
+
+              <div className="me-group">
+                <span className="me-label">Result</span>
+                {["All", "W", "L", "D"].map((v) => (
+                  <button
+                    key={v}
+                    className={`me-chip ${expFilters.result === v ? "act" : ""}`}
+                    onClick={() => changeFilter({ result: v })}
+                  >
+                    {v}
+                  </button>
+                ))}
+              </div>
+
+              {/* Optional facets */}
+              {expData?.facets?.seasons?.length ? (
+                <div className="me-group">
+                  <span className="me-label">Season</span>
+                  <select
+                    value={expFilters.season || ""}
+                    onChange={(e) => changeFilter({ season: e.target.value || "" })}
+                    className="me-select"
+                  >
+                    <option value="">All</option>
+                    {expData.facets.seasons.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
+
+              {expData?.facets?.tournaments?.length ? (
+                <div className="me-group">
+                  <span className="me-label">Tournament</span>
+                  <select
+                    value={expFilters.tournament || ""}
+                    onChange={(e) => changeFilter({ tournament: e.target.value || "" })}
+                    className="me-select"
+                  >
+                    <option value="">All</option>
+                    {expData.facets.tournaments.map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
+            </div>
+
+            {/* Body */}
+            <div className="me-body">
+              {expLoading && <div className="me-status">Loading…</div>}
+              {expError && <div className="me-status err">{expError}</div>}
+
+              {expData?.matches?.length ? (
+                <table className="me-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Fmt</th>
+                      <th>Tournament</th>
+                      <th>Opponent</th>
+                      <th className="right">Team</th>
+                      <th className="right">Opp</th>
+                      <th>Res</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {expData.matches.map((m) => (
+                      <tr key={m.match_id}>
+                        <td>{m.date}</td>
+                        <td>{m.format}</td>
+                        <td className="clip">{m.tournament || "—"}</td>
+                        <td className="clip">{m.opponent}</td>
+                        <td className="right">{m.team_runs}/{m.team_wkts} ({m.team_overs})</td>
+                        <td className="right">{m.opp_runs}/{m.opp_wkts} ({m.opp_overs})</td>
+                        <td>{m.result}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (!expLoading && !expError) ? (
+                <div className="me-status">No matches found for the selected filters.</div>
+              ) : null}
+            </div>
+
+            {/* Footer / Pagination */}
+            <div className="me-foot">
+              <button
+                className="me-btn"
+                onClick={() => changePage(-1)}
+                disabled={expFilters.page <= 1 || expLoading}
+              >
+                Prev
+              </button>
+              <div className="me-page">Page {expFilters.page}</div>
+              <button
+                className="me-btn"
+                onClick={() => changePage(1)}
+                disabled={expLoading || (expData && expData.matches?.length < expFilters.pageSize)}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
