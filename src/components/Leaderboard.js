@@ -3,10 +3,9 @@ import { getTeams } from "../services/api";
 import { io } from "socket.io-client";
 import "./Leaderboard.css";
 
-/* Backend base (no trailing slash) */
+/* Backend base (no trailing slash). Use CRA env only. */
 const API_BASE = (
-  (typeof import !== "undefined" && import.meta?.env?.VITE_API_BASE) ||
-  (typeof process !== "undefined" && process.env?.REACT_APP_API_BASE) ||
+  process.env.REACT_APP_API_BASE ||
   "https://cricket-scoreboard-backend.onrender.com"
 ).replace(/\/$/, "");
 
@@ -37,7 +36,8 @@ const abbreviateTeamName = (name) => {
 };
 const displayTeam = (name) => abbreviateTeamName(name);
 
-const socket = io("https://cricket-scoreboard-backend.onrender.com");
+/* Socket to the same backend */
+const socket = io(API_BASE);
 
 const nrrWidth = (nrr) => {
   if (nrr === null || Number.isNaN(nrr)) return 0;
