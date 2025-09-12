@@ -261,8 +261,15 @@ const Leaderboard = () => {
                   <div className="me-sub">
                     Played {expData.summary.played} · W {expData.summary.wins} · L {expData.summary.losses} · D {expData.summary.draws}
                     {expData.summary.last5?.length ? (
-                      <span className="me-last5"> · Last 5: {expData.summary.last5.join(" ")}</span>
-                    ) : null}
+                    <span className="me-last5">
+                      {" · Last 5: "}
+                      {expData.summary.last5.map((r, i) => (
+                        <span key={i} className={`last5-badge last5-${r}`}>
+                          {r}
+                        </span>
+                      ))}
+                    </span>
+                  ) : null}
                   </div>
                 )}
               </div>
