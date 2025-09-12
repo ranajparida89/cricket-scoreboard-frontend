@@ -1,5 +1,5 @@
 /*****************************************************
- * Leaderboard.css — simple, no animations/effects
+ * Leaderboard.css — compact + polished
  *****************************************************/
 
 /* Shell */
@@ -43,7 +43,7 @@
 .leaderboard-table tbody td{
   padding: 12px 10px;
   font-size: 15px;
-  color: #eaf6ff;
+  color: #f3f9ff;                 /* brighter */
   text-align: center;
   border: 0;
   white-space: nowrap;
@@ -118,7 +118,7 @@
   border-bottom:1px solid rgba(255,255,255,.08);
 }
 .me-title{ font-weight: 800; font-size: 18px; color:#eaf6ff; }
-.me-sub{ color:#a9c3da; font-size: 13px; margin-top:2px; }
+.me-sub{ color:#d2e7ff; font-size: 13px; margin-top:2px; }
 .me-last5{ color:#cde9ff; }
 .me-close{
   border:0; background:#172838; color:#fff; width:36px; height:36px;
@@ -126,115 +126,92 @@
 }
 .me-close:hover{ background:#1b2f46; }
 
-/* ---------- Golden chips (Format + Result) ---------- */
+/* ---------- Chips (blue with thin golden outline) ---------- */
 .me-filters{
   display:flex; flex-wrap: wrap; gap:10px 14px;
   padding: 10px 14px;
   border-bottom:1px solid rgba(255,255,255,.08);
 }
 .me-group{ display:flex; align-items:center; gap:8px; }
-.me-label{ color:#e8caa4; font-size:12px; }
+.me-label{ color:#cfe0f4; font-size:12px; }
 
 .me-chip{
-  border:1px solid #e6c18b;
-  background:#e8caa4;                /* light golden */
-  color:#2b2012;                     /* dark text for contrast */
+  background:#122134;
+  color:#eaf6ff;
+  border:1px solid rgba(232,202,164,.55);        /* thin golden */
+  box-shadow: 0 0 0 1px rgba(232,202,164,.18) inset;
   padding:6px 10px;
   border-radius:999px;
   cursor:pointer;
   font-size:12px;
 }
-.me-chip:hover{ filter: brightness(0.95); }
+.me-chip:hover{ background:#15263a; }
 .me-chip.act{
-  background:#d7b27a;                /* darker when active */
-  border-color:#e0b572;
-  color:#23190d;
+  background:#183049;
+  border-color:#e8caa4;
+  box-shadow: 0 0 0 1px rgba(232,202,164,.45) inset;
+  color:#ffffff;
 }
 
-/* select to match golden theme lightly */
+/* selects match the theme */
 .me-select{
-  background:#122134; color:#eaf6ff;
-  border:1px solid rgba(255,255,255,.15);
+  background:#122134; color:#f3f9ff;
+  border:1px solid rgba(232,202,164,.35);
   border-radius:8px; padding:6px 8px; font-size:12px;
 }
 
-/* ---------- Card grid for match list (no JS change) ---------- */
-/* Turn the table into a responsive grid of card-rows */
+/* ---------- BACK TO COMPACT TABLE (no big cards) ---------- */
 .me-body{ padding: 12px 14px; overflow:auto; }
 
-/* hide header inside the modal list */
-.me-body .me-table thead{ display:none; }
+/* show header again */
+.me-body .me-table thead{ display: table-header-group !important; }
 
-/* grid container */
+/* normal table flow */
 .me-body .me-table{
   width:100%;
   border-collapse: separate;
-  border-spacing: 0;                 /* cards control their own spacing */
+  border-spacing: 0;
 }
-.me-body .me-table tbody{
-  display:grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap:12px;
-}
-
-/* each <tr> becomes a card */
-.me-body .me-table tbody tr{
-  display:grid;
-  grid-template-columns: 1fr auto;
-  grid-template-areas:
-    "date fmt"
-    "tourn tourn"
-    "opp  opp"
-    "team opps"
-    "res  res";
-  gap:6px 12px;
-  background:#112030;
-  border:1px solid rgba(255,255,255,.10);
-  border-radius:12px;
-  padding:10px 12px;
-}
-
-/* neutralize td defaults inside cards */
-.me-body .me-table tbody td{
-  background:transparent;
-  border:0;
+.me-body .me-table thead th{
+  position: sticky; top: 0; z-index: 2;
+  background:#0d1f2f;
   color:#eaf6ff;
-  padding:0;
+  padding:10px;
   font-size:13px;
+  text-align:left;
+  border-bottom:1px solid rgba(232,202,164,.18);
 }
+.me-body .me-table tbody{ display: table-row-group !important; }
+.me-body .me-table tbody tr{
+  display: table-row !important;
+  background:#0f1c2a;
+}
+.me-body .me-table tbody tr:hover td{ background:#122439; }
+.me-body .me-table tbody td{
+  display: table-cell !important;
+  padding:10px 12px;
+  color:#f3f9ff;                     /* brighter text in rows */
+  font-size:13px;
+  border-top:1px solid rgba(255,255,255,.06);
+  background:transparent;
+}
+/* remove small "labels" from the former card layout */
+.me-body .me-table tbody td::before{ content:none !important; }
 
-/* place cells in areas */
-.me-body .me-table tbody td:nth-child(1){ grid-area: date;  font-weight:700; }
-.me-body .me-table tbody td:nth-child(2){ grid-area: fmt;   justify-self:end; opacity:.85; }
-.me-body .me-table tbody td:nth-child(3){ grid-area: tourn; opacity:.95; }
-.me-body .me-table tbody td:nth-child(4){ grid-area: opp;   opacity:.95; }
-.me-body .me-table tbody td:nth-child(5){ grid-area: team;  text-align:left; }
-.me-body .me-table tbody td:nth-child(6){ grid-area: opps;  text-align:right; }
-.me-body .me-table tbody td:nth-child(7){ grid-area: res;   justify-self:end; }
-
-/* add tiny labels for readability (pure CSS) */
-.me-body .me-table tbody td:nth-child(1)::before{ content:"Date"; display:block; color:#9fbad3; font-size:11px; opacity:.9; }
-.me-body .me-table tbody td:nth-child(2)::before{ content:"Fmt";  display:block; color:#9fbad3; font-size:11px; text-align:right; opacity:.9; }
-.me-body .me-table tbody td:nth-child(3)::before{ content:"Tournament"; display:block; color:#9fbad3; font-size:11px; opacity:.9; }
-.me-body .me-table tbody td:nth-child(4)::before{ content:"Opponent";   display:block; color:#9fbad3; font-size:11px; opacity:.9; }
-.me-body .me-table tbody td:nth-child(5)::before{ content:"Team";       display:block; color:#9fbad3; font-size:11px; opacity:.9; }
-.me-body .me-table tbody td:nth-child(6)::before{ content:"Opp";        display:block; color:#9fbad3; font-size:11px; text-align:right; opacity:.9; }
-.me-body .me-table tbody td:nth-child(7)::before{ content:"Res";        display:block; color:#9fbad3; font-size:11px; text-align:right; opacity:.9; }
-
-/* score cosmetics */
+/* column helpers */
 .me-table .right{ text-align:right; }
-.me-table .clip{ max-width: 100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.overs{ opacity:.7; }
+.me-table .clip{ max-width: 260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.overs{ opacity:.8; }
 
-/* result badges reused in cards */
+/* result badges — punchier colors */
 .res-badge{
   display:inline-block; min-width: 28px; text-align:center;
   padding: 3px 8px; font-weight: 800; font-size: 12px; letter-spacing:.5px;
   border-radius: 999px; color:#061a12;
 }
-.res-W{ background:#16e28a; }
-.res-L{ background:#ff6b6b; color:#2b0b0b; }
-.res-D{ background:#ffd966; color:#2b2500; }
+.res-W{ background:#19f0a2; color:#052115; }      /* brighter green */
+.res-L{ background:#ff4d4f; color:#2b0b0b; }      /* brighter red   */
+.res-D{ background:#ffd34d; color:#2b1f00; }      /* warmer yellow  */
 
 /* footer */
 .me-foot{
@@ -244,12 +221,12 @@
 }
 .me-btn{
   border:1px solid rgba(255,255,255,.15);
-  background:#122134; color:#eaf6ff; padding:6px 12px; border-radius:8px; cursor:pointer;
+  background:#122134; color:#f3f9ff; padding:6px 12px; border-radius:8px; cursor:pointer;
 }
 .me-btn:disabled{ opacity:.5; cursor:not-allowed; }
 .me-page{ color:#cfe7ff; font-size:13px; }
 
-/* (optional) loading skeleton for consistency if you ever show it */
+/* (optional) loading skeleton */
 .skel{
   height: 34px; border-radius: 10px;
   background: linear-gradient(90deg, rgba(255,255,255,.05) 25%, rgba(255,255,255,.12) 37%, rgba(255,255,255,.05) 63%);
@@ -260,6 +237,7 @@
   0% { background-position: 100% 0; }
   100% { background-position: 0 0; }
 }
+
 /* Last 5 badges */
 .me-last5 .last5-badge{
   display:inline-block;
@@ -271,11 +249,7 @@
   font-weight: 800;
   font-size: 12px;
   letter-spacing: .3px;
-  color: #061a12; /* default text color; overridden below if needed */
 }
-
-/* Colors per result */
-.me-last5 .last5-W{ background:#16e28a; color:#062015; }   /* green */
-.me-last5 .last5-L{ background:#ff6b6b; color:#2b0b0b; }   /* red   */
-.me-last5 .last5-D{ background:#ffd966; color:#2b2500; }   /* yellow */
-
+.me-last5 .last5-W{ background:#19f0a2; color:#052115; }
+.me-last5 .last5-L{ background:#ff4d4f; color:#2b0b0b; }
+.me-last5 .last5-D{ background:#ffd34d; color:#2b1f00; }
