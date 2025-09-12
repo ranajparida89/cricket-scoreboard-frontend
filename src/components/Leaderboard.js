@@ -3,6 +3,13 @@ import { getTeams } from "../services/api";
 import { io } from "socket.io-client";
 import "./Leaderboard.css";
 
+/* Backend base (no trailing slash) */
+const API_BASE = (
+  (typeof import !== "undefined" && import.meta?.env?.VITE_API_BASE) ||
+  (typeof process !== "undefined" && process.env?.REACT_APP_API_BASE) ||
+  "https://cricket-scoreboard-backend.onrender.com"
+).replace(/\/$/, "");
+
 /* Title */
 const TITLE_STYLE = {
   textAlign: "center",
@@ -137,8 +144,19 @@ const Leaderboard = () => {
         pageSize: String(f.pageSize),
       }).toString();
 
-      const res = await fetch(`/api/teams/explorer?${qs}`);
-      if (!res.ok) throw new Error(`Explorer API failed (${res.status})`);
+      const url = `${API_BASE}/api/teams/explorer?${qs}`;
+      const res = await fetch(url, { credentials: "include" });
+
+      const ctype = res.headers.get("content-type") || "";
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        throw new Error(`Explorer API failed (${res.status}): ${body.slice(0, 200)}`);
+      }
+      if (!ctype.includes("application/json")) {
+        const body = await res.text().catch(() => "");
+        throw new Error(`Explorer API returned non-JSON (${ctype}): ${body.slice(0, 160)}`);
+      }
+
       const json = await res.json();
       setExpData(json);
     } catch (e) {
@@ -161,7 +179,6 @@ const Leaderboard = () => {
   };
 
   const changeFilter = (patch) => {
-    // when filters change (except pagination), reset to page 1
     const withReset = { ...patch, page: 1 };
     fetchExplorer(withReset);
   };
