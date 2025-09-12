@@ -3,12 +3,6 @@ import { getTeams } from "../services/api";
 import { io } from "socket.io-client";
 import "./Leaderboard.css";
 
-/* Backend base (no trailing slash). Use CRA env only. */
-const API_BASE = (
-  process.env.REACT_APP_API_BASE ||
-  "https://cricket-scoreboard-backend.onrender.com"
-).replace(/\/$/, "");
-
 /* Title */
 const TITLE_STYLE = {
   textAlign: "center",
@@ -18,6 +12,7 @@ const TITLE_STYLE = {
   color: "#22ff99",
 };
 
+// Team abbreviations
 const TEAM_ABBR = {
   "south africa": "SA", england: "ENG", india: "IND", kenya: "KEN", scotland: "SCT",
   "new zealand": "NZ", "hong kong": "HKG", afghanistan: "AFG", bangladesh: "BAN",
@@ -36,9 +31,10 @@ const abbreviateTeamName = (name) => {
 };
 const displayTeam = (name) => abbreviateTeamName(name);
 
-/* Socket to the same backend */
-const socket = io(API_BASE);
+// live updates
+const socket = io("https://cricket-scoreboard-backend.onrender.com");
 
+// NRR helpers
 const nrrWidth = (nrr) => {
   if (nrr === null || Number.isNaN(nrr)) return 0;
   const max = 8;
@@ -62,6 +58,19 @@ const bucketColor = (bucket) => {
     case "red":    return "#ff6b6b";
     default:       return "#93a6bd";
   }
+};
+
+// overs like 6.3333 -> "6.2" (6 overs, 2 balls)
+const niceOvers = (v) => {
+  if (v === null || v === undefined || v === "") return "—";
+  const n = Number(v);
+  if (!Number.isFinite(n)) return String(v);
+  const whole = Math.floor(n + 1e-8);
+  let balls = Math.round((n - whole) * 6);
+  if (balls === 6) { // clamp if rounding tips it over
+    return String(whole + 1);
+  }
+  return balls ? `${whole}.${balls}` : String(whole);
 };
 
 const Leaderboard = () => {
@@ -144,19 +153,8 @@ const Leaderboard = () => {
         pageSize: String(f.pageSize),
       }).toString();
 
-      const url = `${API_BASE}/api/teams/explorer?${qs}`;
-      const res = await fetch(url, { credentials: "include" });
-
-      const ctype = res.headers.get("content-type") || "";
-      if (!res.ok) {
-        const body = await res.text().catch(() => "");
-        throw new Error(`Explorer API failed (${res.status}): ${body.slice(0, 200)}`);
-      }
-      if (!ctype.includes("application/json")) {
-        const body = await res.text().catch(() => "");
-        throw new Error(`Explorer API returned non-JSON (${ctype}): ${body.slice(0, 160)}`);
-      }
-
+      const res = await fetch(`/api/teams/explorer?${qs}`, { headers: { "Accept": "application/json" } });
+      if (!res.ok) throw new Error(`Explorer API failed (${res.status})`);
       const json = await res.json();
       setExpData(json);
     } catch (e) {
@@ -177,16 +175,46 @@ const Leaderboard = () => {
     setExpData(null);
     setExpError("");
   };
-
   const changeFilter = (patch) => {
     const withReset = { ...patch, page: 1 };
     fetchExplorer(withReset);
   };
-
   const changePage = (delta) => {
     const next = Math.max(1, (expFilters.page || 1) + delta);
     fetchExplorer({ page: next });
   };
+  const changePageSize = (size) => {
+    fetchExplorer({ page: 1, pageSize: size });
+  };
+  const clearFilters = () => {
+    fetchExplorer({ format: "All", result: "All", season: "", tournament: "", page: 1 });
+  };
+
+  // helpers
+  const isDirty =
+    expFilters.format !== "All" ||
+    expFilters.result !== "All" ||
+    !!expFilters.season ||
+    !!expFilters.tournament;
+
+  const total = expData?.total || 0;
+  const page = expFilters.page || 1;
+  const pageSize = expFilters.pageSize || 20;
+  const shown = expData?.matches?.length || 0;
+  const startIdx = total ? (page - 1) * pageSize + 1 : 0;
+  const endIdx = total ? Math.min(startIdx + shown - 1, total) : 0;
+
+  // table cell fragments
+  const scoreBlock = (runs, wkts, overs) => (
+    <span>
+      <strong>{runs}/{wkts}</strong>
+      <span className="overs"> ({niceOvers(overs)})</span>
+    </span>
+  );
+
+  const ResultBadge = ({ r }) => (
+    <span className={`res-badge res-${r}`}>{r}</span>
+  );
 
   return (
     <div className="leaderboard-shell">
@@ -254,22 +282,35 @@ const Leaderboard = () => {
       {expOpen && (
         <div className="me-overlay" onClick={closeExplorer}>
           <div className="me-modal" onClick={(e) => e.stopPropagation()}>
+            {/* Fixed header */}
             <div className="me-head">
               <div>
                 <div className="me-title">{expFilters.team || "Team"}</div>
-                {expData && (
-                  <div className="me-sub">
-                    Played {expData.summary.played} · W {expData.summary.wins} · L {expData.summary.losses} · D {expData.summary.draws}
-                    {expData.summary.last5?.length ? (
-                      <span className="me-last5"> · Last 5: {expData.summary.last5.join(" ")}</span>
-                    ) : null}
-                  </div>
-                )}
+                <div className="me-sub">
+                  {expData ? (
+                    <>
+                      Played {expData.summary.played} · W {expData.summary.wins} · L {expData.summary.losses} · D {expData.summary.draws}
+                      {expData.summary.last5?.length ? (
+                        <span className="me-last5"> · Last 5: {expData.summary.last5.join(" ")}</span>
+                      ) : null}
+                      <span className="me-count"> · Found {total} matches</span>
+                    </>
+                  ) : (
+                    <span className="me-count">Fetching…</span>
+                  )}
+                </div>
               </div>
-              <button className="me-close" onClick={closeExplorer}>✕</button>
+              <div className="me-actions">
+                {isDirty && (
+                  <button className="me-clear" onClick={clearFilters} title="Clear all filters">
+                    Clear all
+                  </button>
+                )}
+                <button className="me-close" onClick={closeExplorer}>✕</button>
+              </div>
             </div>
 
-            {/* Filters */}
+            {/* Fixed filters */}
             <div className="me-filters">
               <div className="me-group">
                 <span className="me-label">Format</span>
@@ -331,12 +372,39 @@ const Leaderboard = () => {
               ) : null}
             </div>
 
-            {/* Body */}
+            {/* Scrollable body */}
             <div className="me-body">
-              {expLoading && <div className="me-status">Loading…</div>}
-              {expError && <div className="me-status err">{expError}</div>}
+              {/* Loading skeleton */}
+              {expLoading && (
+                <table className="me-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Fmt</th>
+                      <th>Tournament</th>
+                      <th>Opponent</th>
+                      <th className="right">Team</th>
+                      <th className="right">Opp</th>
+                      <th>Res</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <tr key={i}>
+                        <td colSpan={7}><div className="skel" /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
 
-              {expData?.matches?.length ? (
+              {/* Error */}
+              {expError && !expLoading && (
+                <div className="me-status err">{expError}</div>
+              )}
+
+              {/* Data */}
+              {expData?.matches?.length && !expLoading ? (
                 <table className="me-table">
                   <thead>
                     <tr>
@@ -356,16 +424,24 @@ const Leaderboard = () => {
                         <td>{m.format}</td>
                         <td className="clip">{m.tournament || "—"}</td>
                         <td className="clip">{m.opponent}</td>
-                        <td className="right">{m.team_runs}/{m.team_wkts} ({m.team_overs})</td>
-                        <td className="right">{m.opp_runs}/{m.opp_wkts} ({m.opp_overs})</td>
-                        <td>{m.result}</td>
+                        <td className="right">{scoreBlock(m.team_runs, m.team_wkts, m.team_overs)}</td>
+                        <td className="right">{scoreBlock(m.opp_runs, m.opp_wkts, m.opp_overs)}</td>
+                        <td><ResultBadge r={m.result} /></td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-              ) : (!expLoading && !expError) ? (
-                <div className="me-status">No matches found for the selected filters.</div>
               ) : null}
+
+              {/* Empty */}
+              {!expLoading && !expError && expData && expData.matches?.length === 0 && (
+                <div className="me-status">
+                  No matches found for the selected filters.{" "}
+                  {isDirty ? (
+                    <button className="me-btn" onClick={clearFilters}>Clear filters</button>
+                  ) : null}
+                </div>
+              )}
             </div>
 
             {/* Footer / Pagination */}
@@ -373,18 +449,33 @@ const Leaderboard = () => {
               <button
                 className="me-btn"
                 onClick={() => changePage(-1)}
-                disabled={expFilters.page <= 1 || expLoading}
+                disabled={page <= 1 || expLoading}
               >
                 Prev
               </button>
-              <div className="me-page">Page {expFilters.page}</div>
+
+              <div className="me-page">
+                {total ? `${startIdx}–${endIdx} of ${total}` : "0–0 of 0"}
+              </div>
+
               <button
                 className="me-btn"
                 onClick={() => changePage(1)}
-                disabled={expLoading || (expData && expData.matches?.length < expFilters.pageSize)}
+                disabled={expLoading || endIdx >= total}
               >
                 Next
               </button>
+
+              <div className="me-group" style={{ marginLeft: 12 }}>
+                <span className="me-label">Rows</span>
+                <select
+                  className="me-select"
+                  value={pageSize}
+                  onChange={(e) => changePageSize(Number(e.target.value))}
+                >
+                  {[20, 50, 100].map((n) => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </div>
             </div>
           </div>
         </div>
