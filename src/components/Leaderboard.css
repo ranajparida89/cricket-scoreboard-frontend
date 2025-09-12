@@ -16,9 +16,9 @@
 /* ===== Table base ===== */
 .leaderboard-table{
   width: 100%;
-  border-collapse: separate;
-  table-layout: fixed;
-  border-spacing: 0 8px;
+  border-collapse: separate;      /* row gaps like cards */
+  table-layout: fixed;            /* stable widths */
+  border-spacing: 0 8px;          /* vertical gaps only */
   background: transparent;
   margin: 0;
 }
@@ -58,6 +58,7 @@
   background: #112030;
   border: 1px solid rgba(255,255,255,.10);
   border-radius: 12px;
+  /* No transforms, shadows, transitions, or hover effects */
 }
 
 .medal-emoji{ font-size: 1.05rem; margin-right: 4px; }
@@ -78,6 +79,7 @@
 .nrr-bar{
   position: absolute; bottom: 6px; height: 6px;
   border-radius: 999px;
+  /* width set inline; no transitions/filters */
 }
 .from-left  { left: 8px; }
 .from-right { right: 8px; }
@@ -86,6 +88,7 @@
 .lb-row.top3{
   background-color: rgba(232, 202, 164, 0.10);
   border-color: rgba(232, 202, 164, 0.45);
+  /* soft, static emphasis */
   box-shadow: 0 0 0 1px rgba(232,202,164,0.22), 0 0 16px rgba(232,202,164,0.08);
 }
 
@@ -97,8 +100,7 @@
     padding: 10px 8px;
   }
 }
-
-/* ===== Match Explorer Modal ===== */
+/* ===== Match Explorer Modal (kept very light) ===== */
 .me-overlay{
   position: fixed; inset: 0;
   background: rgba(0,0,0,.55);
@@ -120,18 +122,9 @@
   background:#0d1f2f;
   border-bottom:1px solid rgba(255,255,255,.08);
 }
-.me-actions{ display:flex; gap:8px; align-items:center; }
 .me-title{ font-weight: 800; font-size: 18px; color:#eaf6ff; }
 .me-sub{ color:#a9c3da; font-size: 13px; margin-top:2px; }
 .me-last5{ color:#cde9ff; }
-.me-count{ color:#9fbad3; }
-
-.me-clear{
-  border:1px solid rgba(255,255,255,.18);
-  background:#122134; color:#eaf6ff; padding:6px 10px;
-  border-radius:999px; cursor:pointer; font-size:12px;
-}
-.me-clear:hover{ background:#1b2f46; }
 
 .me-close{
   border:0; background:#172838; color:#fff; width:36px; height:36px;
@@ -139,12 +132,10 @@
 }
 .me-close:hover{ background:#1b2f46; }
 
-/* Fixed filters bar */
 .me-filters{
   display:flex; flex-wrap: wrap; gap:10px 14px;
   padding: 10px 14px;
   border-bottom:1px solid rgba(255,255,255,.08);
-  background:#0f1b28;
 }
 .me-group{ display:flex; align-items:center; gap:8px; }
 .me-label{ color:#9fc7ff; font-size:12px; }
@@ -159,14 +150,13 @@
   border-radius:8px; padding:6px 8px; font-size:12px;
 }
 
-/* Scrollable body */
-.me-body{ padding: 12px 14px; overflow:auto; position: relative; }
+.me-body{ padding: 12px 14px; overflow:auto; }
+.me-status{ color:#cfe7ff; padding: 12px 4px; text-align:center; }
+.me-status.err{ color:#ffc2c2; }
 
-/* Sticky header inside the scroll area */
 .me-table{ width:100%; border-collapse:separate; border-spacing:0 8px; }
 .me-table thead th{
   background:#0d1f2f; color:#eaf6ff; padding:10px; font-size:13px; text-align:left;
-  position: sticky; top: 0; z-index: 2;
 }
 .me-table tbody td{
   background:#112030; color:#eaf6ff; padding:10px; font-size:13px; border:1px solid rgba(255,255,255,.10);
@@ -176,37 +166,10 @@
 .me-table .right{ text-align:right; }
 .me-table .clip{ max-width: 260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
-/* Result badges */
-.res-badge{
-  display:inline-block; min-width: 28px; text-align:center;
-  padding: 3px 8px; font-weight: 800; font-size: 12px; letter-spacing:.5px;
-  border-radius: 999px; color:#061a12;
-}
-.res-W{ background:#16e28a; }
-.res-L{ background:#ff6b6b; color:#2b0b0b; }
-.res-D{ background:#93a6bd; color:#0e1a25; }
-
-/* Lighter look for overs inside scores */
-.overs{ opacity: .7; }
-
-/* Loading skeleton */
-.skel{
-  height: 34px; border-radius: 10px;
-  background: linear-gradient(90deg, rgba(255,255,255,.05) 25%, rgba(255,255,255,.12) 37%, rgba(255,255,255,.05) 63%);
-  background-size: 400% 100%;
-  animation: skel 1.2s ease-in-out infinite;
-}
-@keyframes skel {
-  0% { background-position: 100% 0; }
-  100% { background-position: 0 0; }
-}
-
-/* Footer */
 .me-foot{
   display:flex; align-items:center; justify-content:center; gap:12px;
   padding: 10px 14px;
   border-top:1px solid rgba(255,255,255,.08);
-  background:#0f1b28;
 }
 .me-btn{
   border:1px solid rgba(255,255,255,.15);
