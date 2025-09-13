@@ -355,7 +355,7 @@ const Leaderboard = () => {
                             <th>Tournament</th>
                             <th>Opponent</th>
                             <th className="right">
-                              {`Team${expFilters.team ? ` (${displayTeam(expFilters.team)})` : ""}`}
+                              {`Team${expFilters.team ? ` (${displayTeam(expFilters.team)})` : ""} Score`}
                             </th>
                             <th className="right">Opp Score</th>
                             <th>Res</th>
