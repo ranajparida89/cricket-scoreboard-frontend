@@ -348,17 +348,19 @@ const Leaderboard = () => {
 
               {expData?.matches?.length ? (
                 <table className="me-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Fmt</th>
-                      <th>Tournament</th>
-                      <th>Opponent</th>
-                      <th className="right">Team</th>
-                      <th className="right">Opp</th>
-                      <th>Res</th>
-                    </tr>
-                  </thead>
+                 <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Fmt</th>
+                            <th>Tournament</th>
+                            <th>Opponent</th>
+                            <th className="right">
+                              {`Team${expFilters.team ? ` (${displayTeam(expFilters.team)})` : ""} Score`}
+                            </th>
+                            <th className="right">Opp Score</th>
+                            <th>Res</th>
+                          </tr>
+                        </thead>
                   <tbody>
                     {expData.matches.map((m) => (
                       <tr key={m.match_id}>

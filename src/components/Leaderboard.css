@@ -160,13 +160,13 @@
   border-radius:8px; padding:6px 8px; font-size:12px;
 }
 
-/* ---------- BACK TO COMPACT TABLE (no big cards) ---------- */
+/* ---------- Compact table (no big cards) ---------- */
 .me-body{ padding: 12px 14px; overflow:auto; }
 
-/* show header again */
+/* show header */
 .me-body .me-table thead{ display: table-header-group !important; }
 
-/* normal table flow */
+/* table styling */
 .me-body .me-table{
   width:100%;
   border-collapse: separate;
@@ -179,7 +179,7 @@
   padding:10px;
   font-size:13px;
   text-align:left;
-  border-bottom:1px solid rgba(232,202,164,.18);
+  border-bottom:1px solid rgba(232,202,164,.18); /* soft line */
 }
 .me-body .me-table tbody{ display: table-row-group !important; }
 .me-body .me-table tbody tr{
@@ -190,13 +190,18 @@
 .me-body .me-table tbody td{
   display: table-cell !important;
   padding:10px 12px;
-  color:#f3f9ff;                     /* brighter text in rows */
+  color:#f3f9ff;                     /* brighter text */
   font-size:13px;
-  border-top:1px solid rgba(255,255,255,.06);
+  border-top:1px solid rgba(255,255,255,.06);    /* soft separators */
   background:transparent;
 }
-/* remove small "labels" from the former card layout */
+/* remove any leftover labels from card layout */
 .me-body .me-table tbody td::before{ content:none !important; }
+
+/* --------- Rename headers to add “Score” (CSS-only) --------- */
+/* 5th th = Team column, 6th th = Opp column */
+.me-body .me-table thead th:nth-child(5)::after { content:" Score"; }
+.me-body .me-table thead th:nth-child(6)::after { content:" Score"; }
 
 /* column helpers */
 .me-table .right{ text-align:right; }
@@ -226,7 +231,7 @@
 .me-btn:disabled{ opacity:.5; cursor:not-allowed; }
 .me-page{ color:#cfe7ff; font-size:13px; }
 
-/* (optional) loading skeleton */
+/* loading skeleton */
 .skel{
   height: 34px; border-radius: 10px;
   background: linear-gradient(90deg, rgba(255,255,255,.05) 25%, rgba(255,255,255,.12) 37%, rgba(255,255,255,.05) 63%);
