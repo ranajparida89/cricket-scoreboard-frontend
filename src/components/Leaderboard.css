@@ -1,5 +1,5 @@
 /*****************************************************
- * Leaderboard.css — frameless + glass + compact
+ * Leaderboard.css — frameless + strong glass
  *****************************************************/
 
 /* ===== Shell (no bezel) ===== */
@@ -11,15 +11,23 @@
   margin: 0 0 12px;
 }
 
-/* ===== Glass sheet behind the table ===== */
+/* ===== GLASS SHEET behind the table ===== */
 .leaderboard-table-wrapper{
   position: relative;
-  padding: 8px 6px;                      /* small inner spacing */
-  border-radius: 14px;
-  background: rgba(13,31,47,0.35);       /* glass tint */
-  backdrop-filter: blur(10px) saturate(130%);
-  -webkit-backdrop-filter: blur(10px) saturate(130%);
-  border: 1px solid rgba(255,255,255,.10);
+  padding: 10px 8px;
+  border-radius: 16px;
+
+  /* twin-tint “frosted” glass */
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03))
+    ,rgba(10,18,28,.20);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.22),
+    0 8px 26px rgba(0,0,0,.28);
 }
 
 /* ===== Table base ===== */
@@ -27,13 +35,13 @@
   width: 100%;
   border-collapse: separate;
   table-layout: fixed;
-  border-spacing: 0 8px;                 /* gentle vertical gaps */
+  border-spacing: 0 8px;
   background: transparent;
   margin: 0;
 }
 
 /* ===== Header ===== */
-.leaderboard-table thead tr{ background: rgba(13,31,47,.66); }
+.leaderboard-table thead tr{ background: rgba(9,24,39,.44); }
 .leaderboard-table thead th{
   font-weight: 700;
   color: #eaf6ff;
@@ -62,12 +70,12 @@
 
 /* ===== Rows as translucent “cards” ===== */
 .leaderboard-table tbody tr.lb-row{
-  background: rgba(17,32,48,.42);        /* let the glass show through */
+  background: rgba(12,26,41,.32);                 /* more see-through */
   border: 1px solid rgba(255,255,255,.08);
-  border-radius: 10px;
+  border-radius: 12px;
 }
 .leaderboard-table tbody tr.lb-row:hover{
-  background: rgba(18,36,57,.54);
+  background: rgba(14,30,48,.46);
 }
 
 /* medals + numbers */
@@ -80,7 +88,7 @@
 .nrr-cell{ position: relative; overflow: visible; height: 34px; }
 .nrr-track{
   position: absolute; left: 8px; right: 8px; bottom: 6px; height: 6px;
-  border-radius: 999px; background: rgba(255,255,255,.12);
+  border-radius: 999px; background: rgba(255,255,255,.14);
 }
 .nrr-bar{
   position: absolute; bottom: 6px; height: 6px;
@@ -91,7 +99,7 @@
 
 /* ===== Top 3 soft golden highlight ===== */
 .lb-row.top3{
-  background-color: rgba(232, 202, 164, 0.12);
+  background-color: rgba(232, 202, 164, 0.14);
   border-color: rgba(232, 202, 164, 0.45);
   box-shadow: 0 0 0 1px rgba(232,202,164,0.20), 0 0 14px rgba(232,202,164,0.06);
 }
@@ -106,7 +114,7 @@
 }
 
 /* =========================
-   Match Explorer Modal (UI)
+   Match Explorer Modal (glass)
    ========================= */
 .me-overlay{
   position: fixed; inset: 0;
@@ -118,17 +126,22 @@
   width: min(1100px, 96vw);
   max-height: 88vh;
   display:flex; flex-direction: column;
-  background: rgba(15,27,40,.55);        /* more glassy */
-  backdrop-filter: blur(12px) saturate(130%);
-  -webkit-backdrop-filter: blur(12px) saturate(130%);
-  border:1px solid rgba(255,255,255,.12);
-  border-radius: 14px;
+
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02))
+    ,rgba(12,22,34,.26);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+
+  border:1px solid rgba(255,255,255,.14);
+  border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 8px 26px rgba(0,0,0,.28);
 }
 .me-head{
   display:flex; align-items: center; justify-content: space-between;
   padding: 12px 14px;
-  background: rgba(13,31,47,.66);
+  background: rgba(9,24,39,.42);
   border-bottom:1px solid rgba(255,255,255,.10);
 }
 .me-title{ font-weight: 800; font-size: 18px; color:#eaf6ff; }
@@ -140,7 +153,7 @@
 }
 .me-close:hover{ background:#1b2f46; }
 
-/* ---------- Chips (blue with thin golden outline) ---------- */
+/* ---------- Chips ---------- */
 .me-filters{
   display:flex; flex-wrap: wrap; gap:10px 14px;
   padding: 10px 14px;
@@ -167,7 +180,7 @@
   color:#ffffff;
 }
 
-/* selects match the theme */
+/* selects */
 .me-select{
   background:#122134; color:#f3f9ff;
   border:1px solid rgba(232,202,164,.35);
@@ -185,7 +198,7 @@
 }
 .me-body .me-table thead th{
   position: sticky; top: 0; z-index: 2;
-  background: rgba(13,31,47,.66);
+  background: rgba(9,24,39,.44);
   color:#eaf6ff;
   padding:10px;
   font-size:13px;
@@ -195,15 +208,15 @@
 .me-body .me-table tbody{ display: table-row-group !important; }
 .me-body .me-table tbody tr{
   display: table-row !important;
-  background: rgba(15,28,42,.42);
+  background: rgba(12,26,41,.30);
 }
-.me-body .me-table tbody tr:hover td{ background: rgba(18,36,57,.54); }
+.me-body .me-table tbody tr:hover td{ background: rgba(14,30,48,.44); }
 .me-body .me-table tbody td{
   display: table-cell !important;
   padding:10px 12px;
   color:#f3f9ff;
   font-size:13px;
-  border-top:1px solid rgba(255,255,255,.06);
+  border-top:1px solid rgba(255,255,255,.05);
   background:transparent;
 }
 .me-body .me-table tbody td::before{ content:none !important; }
@@ -213,7 +226,7 @@
 .me-table .clip{ max-width: 260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .overs{ opacity:.8; }
 
-/* result badges — punchier colors */
+/* result badges */
 .res-badge{
   display:inline-block; min-width: 28px; text-align:center;
   padding: 3px 8px; font-weight: 800; font-size: 12px; letter-spacing:.5px;
@@ -236,7 +249,7 @@
 .me-btn:disabled{ opacity:.5; cursor:not-allowed; }
 .me-page{ color:#cfe7ff; font-size:13px; }
 
-/* loading skeleton (static look) */
+/* skeleton */
 .skel{
   height: 34px; border-radius: 10px;
   background: linear-gradient(90deg, rgba(255,255,255,.05) 25%, rgba(255,255,255,.12) 37%, rgba(255,255,255,.05) 63%);
@@ -259,7 +272,7 @@
 .me-last5 .last5-L{ background:#ff4d4f; color:#2b0b0b; }
 .me-last5 .last5-D{ background:#ffd34d; color:#2b1f00; }
 
-/* ========== Host wrapper bezel overrides ========== */
+/* kill any outer card bezel */
 .card:has(> .leaderboard-shell),
 section:has(> .leaderboard-shell),
 div:has(> .leaderboard-shell){
@@ -267,4 +280,10 @@ div:has(> .leaderboard-shell){
   border: 0 !important;
   box-shadow: none !important;
   padding: 0 !important;
+}
+
+/* Fallback when backdrop-filter isn’t supported */
+@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))){
+  .leaderboard-table-wrapper{ background: rgba(15,27,40,.70); }
+  .me-modal{ background: rgba(15,27,40,.85); }
 }
