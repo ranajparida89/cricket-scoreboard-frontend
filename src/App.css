@@ -1,8 +1,8 @@
 /************************************************************
- * App.css — stable, mobile-friendly base
- * - No white screen (doesn't blur <body>)
- * - No mobile flicker/tearing (GPU promotion + no heavy filters)
- * - Leaderboard/Test tables won't “break” (nowrap + proper isolation)
+ * App.css — background image + stable, mobile-friendly base
+ * - Stadium photo renders behind the whole app
+ * - Glassmorphic surfaces stay translucent (no solid blue)
+ * - Mobile-safe fallbacks to avoid flicker/tearing
  ************************************************************/
 
 /* ===== App layout ===== */
@@ -14,15 +14,40 @@
 }
 main { flex: 1; }
 
-/* ===== Global stability for mobile & PWA ===== */
-html, body, #root {
+/* ===== Global base + background image layer ===== */
+:root, html, body, #root {
   min-height: 100%;
+  height: auto;
   overflow-x: hidden;                 /* prevents 1px horizontal jitter */
-  overscroll-behavior-y: contain;     /* stops edge-bounce/glow recomposition */
   -webkit-font-smoothing: antialiased;
   -webkit-overflow-scrolling: touch;  /* smooth iOS scroll */
 }
-* { -webkit-tap-highlight-color: transparent; }  /* removes tap flash */
+
+/* Stadium background behind everything
+   CRA/Vite path from src/App.css → src/assets/images/… */
+body { margin: 0; }
+body::before{
+  content:"";
+  position: fixed;
+  inset: 0;
+  z-index: -1;                        /* sit behind the app */
+  background:
+    radial-gradient(rgba(0,0,0,.25), rgba(0,0,0,.65)),
+    url('./assets/images/stadium123.jpg') center / cover no-repeat;
+  will-change: transform;             /* keep it smooth */
+}
+
+/* Prevent theme utilities from painting over the image */
+.dark, body.dark, #root.dark,
+.light, body.light, #root.light,
+body.bg-dark {
+  background: transparent !important;
+  color: inherit;
+  transition: color .3s;
+}
+
+/* ===== Touch polish ===== */
+* { -webkit-tap-highlight-color: transparent; }
 
 /* Promote heavy surfaces to GPU layers (NOT the body) */
 .card,
@@ -33,19 +58,11 @@ header {
   transform: translateZ(0);
   will-change: transform;
   backface-visibility: hidden;
-  /* NOTE: we do NOT use contain: paint globally (it can clip children).
-     We selectively isolate rows later, where it's safe. */
 }
 
-/* ===== App logo ===== */
-.App-logo { height: 40vmin; pointer-events: none; }
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo { animation: App-logo-spin infinite 20s linear; }
-}
-
-/* ===== Header & themes ===== */
+/* ===== App header (transparent) ===== */
 .App-header {
-  background-color: #171922;
+  background: transparent;            /* was solid #171922 */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -54,23 +71,26 @@ header {
   font-size: calc(10px + 2vmin);
   color: #fff;
 }
-.dark, body.dark, #root.dark {
-  background: #0a0a0a !important;  /* pure black AMOLED */
-  color: #fff;
-  transition: background .3s, color .3s;
-}
-.light, body.light, #root.light {
-  background: #f8f9fa !important;
-  color: #212529;
-  transition: background .3s, color .3s;
-}
 
-/* ===== Cards (base look) ===== */
+/* ===== Cards / dark blocks — translucent glass ===== */
 .card,
 .bg-dark:not(body) {
-  background: rgba(30,33,50,.94) !important;
+  /* subtle glass with blur so stadium shows through */
+  background: rgba(30,33,50,.70) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   border-radius: 1.2em;
   box-shadow: 0 2px 14px #0006;
+}
+
+/* On smaller screens, tone blur down to avoid artifacts */
+@media (max-width: 768px) {
+  .card,
+  .bg-dark:not(body) {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(17,28,43,.85) !important;   /* still translucent */
+  }
 }
 
 /* ===== Links ===== */
@@ -86,10 +106,12 @@ a:hover { color: #ffb800; text-decoration: underline; }
 /* Text selection */
 ::selection { background: #ffd40080; }
 
-/* ===== Footer (no 100vw to avoid horizontal scroll) ===== */
+/* ===== Footer ===== */
 .crickedge-footer {
   width: 100%;
-  background: #0a0a0a;
+  background: rgba(10,10,10,.75);     /* translucent over the image */
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -118,27 +140,11 @@ a:hover { color: #ffb800; text-decoration: underline; }
   .crickedge-footer { padding: 10px 0 0 0; }
 }
 
-/* ===== Glass blur (scoped, NOT on <body>) ===== */
-.card,
-.bg-dark:not(body) {
-  backdrop-filter: blur(2.5px);
-  -webkit-backdrop-filter: blur(2.5px);
-  background: rgba(30,33,50,.93) !important;
-}
-/* On mobile, disable blur to avoid GPU flicker/tearing */
-@media (max-width: 768px) {
-  .card,
-  .bg-dark:not(body) {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: rgba(30,33,50,.96) !important;
-  }
-}
-
 /* ===== Animations ===== */
-@keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+.App-logo { height: 40vmin; pointer-events: none; }
+@keyframes App-logo-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo { animation: App-logo-spin infinite 20s linear; }
 }
 
 /* ==========================================================
@@ -166,7 +172,7 @@ a:hover { color: #ffb800; text-decoration: underline; }
   .mhfx-glass {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    background: rgba(13,31,47,.96) !important; /* solid glassy fallback */
+    background: rgba(13,31,47,.86) !important; /* translucent fallback */
     box-shadow: 0 10px 26px rgba(0,0,0,.35);
   }
 
@@ -194,8 +200,8 @@ a:hover { color: #ffb800; text-decoration: underline; }
   }
 }
 
-/* If the page sets body.bg-dark (Bootstrap), keep it simple */
-body.bg-dark { background-color: #0a0a0a !important; }
+/* If some page sets body.bg-dark (Bootstrap), keep transparent */
+body.bg-dark { background: transparent !important; }
 
 /* ==========================================================
    ROW/BLOCK “BREAKING” FIXES (no wrapping / no clipping)
@@ -246,6 +252,7 @@ body.bg-dark { background-color: #0a0a0a !important; }
     font-size: 14px !important;
   }
 }
+
 /* =========================================================
    Samsung S23 Ultra (Chrome, high-DPR) stability overrides
    - Remove gradients/pseudo glows
@@ -259,7 +266,7 @@ body.bg-dark { background-color: #0a0a0a !important; }
   .lbfx-glass,
   .trfx-glass,
   .mhfx-glass {
-    background: #0f1b28 !important;         /* solid, dark navy */
+    background: rgba(15,27,40,.88) !important;         /* solid-ish, still lets bg peek */
     box-shadow: 0 6px 16px rgba(0,0,0,.28) !important;
     border: 1px solid rgba(255,255,255,.06) !important;
     backdrop-filter: none !important;
@@ -317,7 +324,8 @@ body.bg-dark { background-color: #0a0a0a !important; }
     font-size: 14px !important;
   }
 }
-/* highlight newly imported players inside Squad list */
+
+/* ===== Optional util: highlight newly imported players in Squad list ===== */
 .new-chip {
   background: #22c55e;
   color: #0b1220;
@@ -332,3 +340,13 @@ body.bg-dark { background-color: #0a0a0a !important; }
   transition: box-shadow 0.3s ease;
 }
 
+/* ===== Strong fallbacks when backdrop-filter isn’t supported ===== */
+@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))){
+  .card,
+  .bg-dark:not(body) {
+    background: rgba(15,27,40,.88) !important;
+  }
+  .crickedge-footer {
+    background: rgba(10,10,10,.86);
+  }
+}
