@@ -19,13 +19,9 @@ export default function Footer() {
 
       <style>{`
         .ce-footer{
-          /* slimmer, lighter bezel with subtle glass */
-          background:
-            linear-gradient(180deg, rgba(15,23,32,.72), rgba(11,20,32,.68));
-          backdrop-filter: blur(6px) saturate(140%);
-          -webkit-backdrop-filter: blur(6px) saturate(140%);
-          border-top: 1px solid rgba(255,255,255,.08);
-          padding: 10px 12px;                 /* was 16/18 -> slimmer */
+          background: transparent;     /* 100% transparent */
+          border: 0;
+          padding: 8px 12px;           /* slim */
           display: flex;
           justify-content: center;
         }
@@ -39,7 +35,7 @@ export default function Footer() {
           gap: 6px;
         }
         .ce-footer__logo{
-          width: 110px;                        /* slightly smaller */
+          width: 110px;
           max-width: 60vw;
           height: auto;
           filter: drop-shadow(0 0 10px rgba(255,184,0,.28));
@@ -56,7 +52,7 @@ export default function Footer() {
         @media (max-width: 640px){
           .ce-footer__logo{ width: 92px; }
           .ce-footer__copy{ font-size: .9rem; }
-          .ce-footer{ padding: 8px 10px; }     /* even slimmer on phones */
+          .ce-footer{ padding: 6px 10px; }
         }
       `}</style>
     </footer>

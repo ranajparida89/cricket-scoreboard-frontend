@@ -1,5 +1,6 @@
 /*****************************************************
  * Leaderboard.css — frameless + TRUE glass + mobile-stable
+ * Root-cause fix: nuke tbody cell backgrounds + draw a row pseudo “card”
  *****************************************************/
 
 /* ===== Shell (no bezel) ===== */
@@ -19,8 +20,8 @@
 
   /* lighter alphas = stronger transparency */
   background:
-    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02))
-    ,rgba(10,18,28,.06);
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)),
+    rgba(10,18,28,.06);
   backdrop-filter: blur(18px) saturate(150%);
   -webkit-backdrop-filter: blur(18px) saturate(150%);
   background-clip: padding-box;
@@ -36,7 +37,7 @@
   width: 100%;
   border-collapse: separate;
   table-layout: fixed;
-  border-spacing: 0 8px;
+  border-spacing: 0 8px;          /* vertical gaps to look like cards */
   background: transparent;
   margin: 0;
 }
@@ -58,28 +59,49 @@
 .leaderboard-table thead th:first-child{ border-top-left-radius: 12px; }
 .leaderboard-table thead th:last-child { border-top-right-radius: 12px; }
 
+/* ===== Root-cause reset (tbody) — strip any third-party backgrounds ===== */
+.leaderboard-table tbody tr,
+.leaderboard-table tbody td{
+  background: transparent !important;
+  background-image: none !important;
+}
+
+/* ===== Glass row “card” via pseudo layer ===== */
+.leaderboard-table tbody tr{
+  position: relative;
+  isolate: isolate;               /* new stacking context for the card layer */
+  border-radius: 12px;            /* help clipping on newer browsers */
+}
+.leaderboard-table tbody tr::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: rgba(12,26,41,.08);              /* VERY transparent glass */
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 1px 0 rgba(255,255,255,.10) inset;
+  z-index: 0;                                   /* sits behind cell content */
+  pointer-events: none;
+}
+
+/* keep cell content above the glass layer */
+.leaderboard-table tbody td{
+  position: relative;
+  z-index: 1;
+}
+
 /* ===== Body cells (crisp & bright) ===== */
 .leaderboard-table tbody td{
   padding: 12px 10px;
   font-size: 15px;
-  color: #ffffff;                    /* brighter */
-  font-weight: 600;
+  color: #ffffff;
+  font-weight: 700;                            /* stronger readability */
   text-align: center;
   border: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: 0 1px 1px rgba(0,0,0,.45); /* pop over photo */
-}
-
-/* ===== Rows as translucent “cards” ===== */
-.leaderboard-table tbody tr.lb-row{
-  background: rgba(12,26,41,.08);    /* more see-through */
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 12px;
-}
-.leaderboard-table tbody tr.lb-row:hover{
-  background: rgba(14,30,48,.14);
+  text-shadow: 0 1px 1px rgba(0,0,0,.45);
 }
 
 /* medals + numbers */
@@ -102,7 +124,7 @@
 .from-right { right: 8px; }
 
 /* ===== Top 3 soft golden highlight ===== */
-.lb-row.top3{
+.leaderboard-table tbody tr.top3::before{
   background-color: rgba(232,202,164,.14);
   border-color: rgba(232,202,164,.45);
   box-shadow: 0 0 0 1px rgba(232,202,164,.18), 0 0 14px rgba(232,202,164,.06);
@@ -132,8 +154,8 @@
   display:flex; flex-direction: column;
 
   background:
-    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02))
-    ,rgba(12,22,34,.20);
+    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)),
+    rgba(12,22,34,.20);
   backdrop-filter: blur(16px) saturate(150%);
   -webkit-backdrop-filter: blur(16px) saturate(150%);
   background-clip: padding-box;
@@ -211,22 +233,28 @@
   border-bottom:1px solid rgba(232,202,164,.18);
   text-shadow: 0 1px 1px rgba(0,0,0,.45);
 }
-.me-body .me-table tbody{ display: table-row-group !important; }
 .me-body .me-table tbody tr{
-  display: table-row !important;
-  background: rgba(12,26,41,.08);
+  position: relative;
+  isolate: isolate;
+  border-radius: 12px;
 }
-.me-body .me-table tbody tr:hover td{ background: rgba(14,30,48,.14); }
+.me-body .me-table tbody tr::before{
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: 12px;
+  background: rgba(12,26,41,.08);
+  border: 1px solid rgba(255,255,255,.08);
+  z-index: 0; pointer-events: none;
+}
 .me-body .me-table tbody td{
-  display: table-cell !important;
+  position: relative; z-index: 1;
   padding:10px 12px;
   color:#fff;
   font-size:13px;
   border-top:1px solid rgba(255,255,255,.06);
-  background:transparent;
+  background:transparent !important;
   text-shadow: 0 1px 1px rgba(0,0,0,.45);
 }
-.me-body .me-table tbody td::before{ content:none !important; }
 
 /* column helpers */
 .me-table .right{ text-align:right; }
@@ -258,11 +286,8 @@ div:has(.leaderboard-shell),
 
 /* =========================================================
    MOBILE FLICKER GUARD
-   - Disable backdrop-filter on touch screens (cheapest fix)
-   - Avoid fixed/blurred background thrash on mobile
    ========================================================= */
 @media (max-width: 900px), (pointer: coarse){
-  /* Soften glass to a simple translucent fill on mobile */
   .leaderboard-table-wrapper{
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
@@ -276,7 +301,7 @@ div:has(.leaderboard-shell),
     background: rgba(12,22,34,.88) !important;
   }
 
-  /* If your background image sits on a fixed layer, drop fixed on mobile */
+  /* If background is fixed, let it scroll on mobile to prevent shimmer */
   body::before,
   #root::before,
   .site-bg{
