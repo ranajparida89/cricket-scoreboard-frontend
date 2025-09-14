@@ -1,202 +1,170 @@
 /*****************************************************
- * Leaderboard.css — GLASS mode (full file)
- * - Headers/body aligned via fixed column map
- * - True glass rows (no thick blue containers)
- * - Modal section kept intact (with subtle glass)
+ * Leaderboard.css — TRUE Glass (seamless rows)
+ * - Header/body stay aligned (fixed column map)
+ * - Rows are one frosted card (no column seams)
+ * - Top 3: light gold glaze (subtle, classy)
  *****************************************************/
 
-/* =======================
-   Leaderboard (Glass)
-   ======================= */
+/* ---------- Vars ---------- */
+.leaderboard-table{
+  --glass-bg-1: rgba(255,255,255,.10);
+  --glass-bg-2: rgba(255,255,255,.04);
+  --glass-brd : rgba(255,255,255,.14);
+  --glass-sh  : 0 4px 18px rgba(0,0,0,.25);
 
-/* Shell: remove panel look */
+  --gold-bg   : rgba(232,202,164,.16);
+  --gold-brd  : rgba(232,202,164,.38);
+  --gold-gx   : 0 6px 20px rgba(232,202,164,.14);
+}
+
+/* ===== Shell (transparent) ===== */
 .leaderboard-shell{
   background: transparent !important;
   border: 0 !important;
   border-radius: 0;
   padding: 8px 0 12px;
 }
-
-/* Wrapper keeps header/body aligned */
 .leaderboard-table-wrapper{ padding: 0 6px; }
 
 /* ===== Table base ===== */
 .leaderboard-table{
   width: 100%;
-  border-collapse: separate;      /* row gaps like cards */
-  table-layout: fixed;            /* stable widths */
-  border-spacing: 0 10px;         /* vertical gaps only */
+  border-collapse: separate;
+  table-layout: fixed;            /* keep headers/body locked */
+  border-spacing: 0 10px;         /* row gaps only */
   background: transparent;
   margin: 0;
 }
 
-/* --- IDENTICAL column map for thead/tbody (don’t change order) ---
+/* --- fixed column map (do not change order) ---
    R | T | M | W | L | D | Pts | NRR */
 .leaderboard-table thead th:nth-child(1),
-.leaderboard-table tbody td:nth-child(1){ width: 52px;  text-align:left; } /* R */
+.leaderboard-table tbody td:nth-child(1){ width:52px;  text-align:left; }
 .leaderboard-table thead th:nth-child(2),
-.leaderboard-table tbody td:nth-child(2){ width: 140px; text-align:left; } /* Team */
+.leaderboard-table tbody td:nth-child(2){ width:140px; text-align:left; }
 .leaderboard-table thead th:nth-child(3),
-.leaderboard-table tbody td:nth-child(3){ width: 72px;  } /* M */
+.leaderboard-table tbody td:nth-child(3){ width:72px; }
 .leaderboard-table thead th:nth-child(4),
-.leaderboard-table tbody td:nth-child(4){ width: 72px;  } /* W */
+.leaderboard-table tbody td:nth-child(4){ width:72px; }
 .leaderboard-table thead th:nth-child(5),
-.leaderboard-table tbody td:nth-child(5){ width: 72px;  } /* L */
+.leaderboard-table tbody td:nth-child(5){ width:72px; }
 .leaderboard-table thead th:nth-child(6),
-.leaderboard-table tbody td:nth-child(6){ width: 72px;  } /* D */
+.leaderboard-table tbody td:nth-child(6){ width:72px; }
 .leaderboard-table thead th:nth-child(7),
-.leaderboard-table tbody td:nth-child(7){ width: 84px;  } /* Pts */
+.leaderboard-table tbody td:nth-child(7){ width:84px; }
 .leaderboard-table thead th:nth-child(8),
-.leaderboard-table tbody td:nth-child(8){ width: 120px; } /* NRR (value + bar) */
-
+.leaderboard-table tbody td:nth-child(8){ width:120px; }
 .leaderboard-table thead th,
 .leaderboard-table tbody td{ box-sizing: border-box; }
 
-/* ===== Header (frosted) ===== */
-.leaderboard-table thead tr{ background: transparent; }
-
-.leaderboard-table thead th{
-  position: relative;
-  font-weight: 700;
-  color: #eaf6ff;
-  font-size: 14px;
-  padding: 12px 10px;
-  letter-spacing: .2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-align: center;
-
-  /* glass sheet */
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
-  border: 1px solid rgba(255,255,255,.16);
+/* ===== Header (single frosted bar, no thick boxes) ===== */
+.leaderboard-table thead{ position: relative; }
+.leaderboard-table thead::before{
+  content:""; position:absolute; inset:0;
+  border-radius:12px;
+  background: linear-gradient(180deg, var(--glass-bg-1), var(--glass-bg-2));
+  border:1px solid var(--glass-brd);
   backdrop-filter: blur(14px) saturate(120%);
   -webkit-backdrop-filter: blur(14px) saturate(120%);
+  box-shadow: var(--glass-sh);
+  pointer-events:none; z-index:0;
 }
-.leaderboard-table thead th:first-child{
-  border-top-left-radius: 12px; text-align:left;
+.leaderboard-table thead th{
+  position: relative; z-index:1;     /* sit above the bar */
+  font-weight:700; color:#eaf6ff;
+  font-size:14px; padding:12px 10px;
+  letter-spacing:.2px; text-align:center;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  background: transparent; border:0;
 }
+.leaderboard-table thead th:first-child{ text-align:left; }
 .leaderboard-table thead th:nth-child(2){ text-align:left; }
-.leaderboard-table thead th:last-child{
-  border-top-right-radius: 12px;
-}
 
 /* ===== Body cells ===== */
 .leaderboard-table tbody td{
-  padding: 12px 10px;
-  font-size: 15px;
-  color: #f3f9ff;
-  text-align: center;
-  border: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  padding:12px 10px;
+  font-size:15px; color:#f3f9ff;
+  text-align:center; border:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  background: transparent;          /* no per-cell backgrounds */
 }
 .leaderboard-table tbody td:first-child,
 .leaderboard-table tbody td:nth-child(2){ text-align:left; }
 
-/* ===== GLASS card rows ===== */
-/* row container transparent; tiles applied per-cell to avoid drift */
+/* ===== Seamless GLASS rows (no column blaze) ===== */
 .leaderboard-table tbody tr.lb-row{
-  background: transparent !important;
-  border: 0 !important;
+  position: relative;               /* enable ::before card */
 }
-.leaderboard-table tbody tr.lb-row td{
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
-  border-top: 1px solid rgba(255,255,255,.14);
-  border-bottom: 1px solid rgba(255,255,255,.10);
+.leaderboard-table tbody tr.lb-row::before{
+  content:""; position:absolute; left:4px; right:4px; top:-1px; bottom:-1px;
+  border-radius:12px;
+  background: linear-gradient(180deg, var(--glass-bg-1), var(--glass-bg-2));
+  border:1px solid var(--glass-brd);
   backdrop-filter: blur(16px) saturate(125%);
   -webkit-backdrop-filter: blur(16px) saturate(125%);
+  box-shadow: var(--glass-sh);
+  pointer-events:none; z-index:0;   /* single card behind cells */
 }
-.leaderboard-table tbody tr.lb-row td:first-child{
-  border-left: 1px solid rgba(255,255,255,.12);
-  border-top-left-radius: 12px;
-  border-bottom-left-radius: 12px;
-}
-.leaderboard-table tbody tr.lb-row td:last-child{
-  border-right: 1px solid rgba(255,255,255,.12);
-  border-top-right-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-.leaderboard-table tbody tr.lb-row:hover td{
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+/* keep cell content above the glass card */
+.leaderboard-table tbody tr.lb-row > td{ position: relative; z-index:1; }
+
+/* Hover: slightly brighter glass */
+.leaderboard-table tbody tr.lb-row:hover::before{
+  background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
 }
 
-/* ranking medals + basic colors */
-.medal-emoji{ font-size: 1.05rem; margin-right: 4px; }
-.pos{ color:#c9ffef; }
-.neg{ color:#ffc2c2; }
-.team-name{ font-weight: 800; letter-spacing: .2px; text-align: left; }
+/* ===== Top 3 — light golden glass (professional) ===== */
+.leaderboard-table tbody tr.lb-row.top3::before{
+  background: linear-gradient(180deg, var(--gold-bg), rgba(255,255,255,.05));
+  border-color: var(--gold-brd);
+  box-shadow: var(--gold-gx);
+}
 
-/* ===== NRR tiny bar (soft track on glass) ===== */
-.nrr-cell{ position: relative; overflow: visible; height: 34px; }
+/* ranking/labels */
+.medal-emoji{ font-size:1.05rem; margin-right:4px; }
+.team-name{ font-weight:800; letter-spacing:.2px; text-align:left; }
+.pos{ color:#c9ffef; } .neg{ color:#ffc2c2; }
+
+/* ===== NRR micro bar ===== */
+.nrr-cell{ position:relative; overflow:visible; height:34px; }
 .nrr-track{
-  position: absolute; left: 8px; right: 8px; bottom: 6px; height: 6px;
-  border-radius: 999px; background: rgba(255,255,255,.18);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  position:absolute; left:8px; right:8px; bottom:6px; height:6px;
+  border-radius:999px; background: rgba(255,255,255,.18);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
 }
-.nrr-bar{ position: absolute; bottom: 6px; height: 6px; border-radius: 999px; }
-.from-left  { left: 8px; }
-.from-right { right: 8px; }
+.nrr-bar{ position:absolute; bottom:6px; height:6px; border-radius:999px; }
+.from-left{ left:8px; } .from-right{ right:8px; }
 
-/* ===== Top 3 soft golden glaze ===== */
-.lb-row.top3 td{
-  box-shadow:
-    0 0 0 1px rgba(232,202,164,0.28) inset,
-    0 6px 16px rgba(232,202,164,0.08);
-  background:
-    linear-gradient(180deg, rgba(232,202,164,.18), rgba(232,202,164,.08));
-}
-
-/* ===== Mobile tweaks ===== */
-@media (max-width: 768px){
+/* ===== Mobile ===== */
+@media (max-width:768px){
   .leaderboard-table thead th,
-  .leaderboard-table tbody td{
-    font-size: 14px;
-    padding: 10px 8px;
-  }
-  /* same column count, tighter widths */
+  .leaderboard-table tbody td{ font-size:14px; padding:10px 8px; }
   .leaderboard-table thead th:nth-child(2),
-  .leaderboard-table tbody td:nth-child(2){ width: 120px; }
+  .leaderboard-table tbody td:nth-child(2){ width:120px; }
   .leaderboard-table thead th:nth-child(8),
-  .leaderboard-table tbody td:nth-child(8){ width: 112px; }
+  .leaderboard-table tbody td:nth-child(8){ width:112px; }
 }
 
 /* =========================
-   Match Explorer Modal (UI)
+   Match Explorer (kept)
    ========================= */
-
 .me-overlay{
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.55);
-  display:flex; align-items: center; justify-content: center;
-  z-index: 1000;
+  position:fixed; inset:0; background:rgba(0,0,0,.55);
+  display:flex; align-items:center; justify-content:center; z-index:1000;
 }
 .me-modal{
-  width: min(1100px, 96vw);
-  max-height: 88vh;
-  display:flex; flex-direction: column;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-  border:1px solid rgba(255,255,255,.12);
-  border-radius: 14px;
-  overflow: hidden;
-  backdrop-filter: blur(14px) saturate(120%);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  width:min(1100px,96vw); max-height:88vh; display:flex; flex-direction:column;
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.12); border-radius:14px; overflow:hidden;
+  backdrop-filter: blur(14px) saturate(120%); -webkit-backdrop-filter: blur(14px) saturate(120%);
 }
 .me-head{
-  display:flex; align-items: center; justify-content: space-between;
-  padding: 12px 14px;
-  background: rgba(13,31,47,.65);
-  border-bottom:1px solid rgba(255,255,255,.08);
-  backdrop-filter: blur(10px);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 14px; background:rgba(13,31,47,.65);
+  border-bottom:1px solid rgba(255,255,255,.08); backdrop-filter: blur(10px);
 }
-.me-title{ font-weight: 800; font-size: 18px; color:#eaf6ff; }
-.me-sub{ color:#d2e7ff; font-size: 13px; margin-top:2px; }
+.me-title{ font-weight:800; font-size:18px; color:#eaf6ff; }
+.me-sub{ color:#d2e7ff; font-size:13px; margin-top:2px; }
 .me-last5{ color:#cde9ff; }
 .me-close{
   border:0; background:#172838; color:#fff; width:36px; height:36px;
@@ -204,144 +172,84 @@
 }
 .me-close:hover{ background:#1b2f46; }
 
-/* ---------- Chips ---------- */
 .me-filters{
-  display:flex; flex-wrap: wrap; gap:10px 14px;
-  padding: 10px 14px;
-  border-bottom:1px solid rgba(255,255,255,.08);
+  display:flex; flex-wrap:wrap; gap:10px 14px;
+  padding:10px 14px; border-bottom:1px solid rgba(255,255,255,.08);
 }
 .me-group{ display:flex; align-items:center; gap:8px; }
 .me-label{ color:#cfe0f4; font-size:12px; }
-
 .me-chip{
-  background: rgba(18,33,52,.75);
-  color:#eaf6ff;
+  background: rgba(18,33,52,.75); color:#eaf6ff;
   border:1px solid rgba(232,202,164,.55);
   box-shadow: 0 0 0 1px rgba(232,202,164,.18) inset;
-  padding:6px 10px;
-  border-radius:999px;
-  cursor:pointer;
-  font-size:12px;
+  padding:6px 10px; border-radius:999px; cursor:pointer; font-size:12px;
   backdrop-filter: blur(8px);
 }
 .me-chip:hover{ background: rgba(21,38,58,.85); }
 .me-chip.act{
-  background: rgba(24,48,73,.9);
-  border-color:#e8caa4;
-  box-shadow: 0 0 0 1px rgba(232,202,164,.45) inset;
-  color:#ffffff;
+  background: rgba(24,48,73,.9); border-color:#e8caa4;
+  box-shadow: 0 0 0 1px rgba(232,202,164,.45) inset; color:#fff;
 }
-
 .me-select{
   background: rgba(18,33,52,.8); color:#f3f9ff;
   border:1px solid rgba(232,202,164,.35);
   border-radius:8px; padding:6px 8px; font-size:12px;
 }
 
-/* ---------- Compact table ---------- */
-.me-body{ padding: 12px 14px; overflow:auto; }
-
-/* force header to show & stay mapped; never hide first/last cols */
+.me-body{ padding:12px 14px; overflow:auto; }
 .me-body .me-table{
-  width:100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  table-layout: fixed;
+  width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed;
 }
-.me-body .me-table thead{ display: table-header-group !important; }
+.me-body .me-table thead{ display:table-header-group!important; }
 .me-body .me-table thead th{
-  position: sticky; top: 0; z-index: 2;
-  background: rgba(13,31,47,.8);
-  color:#eaf6ff;
-  padding:10px;
-  font-size:13px;
-  text-align:left;
+  position:sticky; top:0; z-index:2; background:rgba(13,31,47,.8);
+  color:#eaf6ff; padding:10px; font-size:13px; text-align:left;
   border-bottom:1px solid rgba(232,202,164,.18);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   backdrop-filter: blur(10px);
 }
-.me-body .me-table tbody{ display: table-row-group !important; }
-.me-body .me-table tbody tr{
-  display: table-row !important;
-  background: rgba(15,28,42,.6);
-  backdrop-filter: blur(6px);
-}
-.me-body .me-table tbody tr:hover td{ background: rgba(18,36,57,.65); }
+.me-body .me-table tbody{ display:table-row-group!important; }
+.me-body .me-table tbody tr{ display:table-row!important; background:rgba(15,28,42,.6); backdrop-filter: blur(6px); }
+.me-body .me-table tbody tr:hover td{ background:rgba(18,36,57,.65); }
 .me-body .me-table tbody td{
-  display: table-cell !important;
-  padding:10px 12px;
-  color:#f3f9ff;
-  font-size:13px;
-  border-top:1px solid rgba(255,255,255,.06);
-  background:transparent;
+  display:table-cell!important; padding:10px 12px; color:#f3f9ff; font-size:13px;
+  border-top:1px solid rgba(255,255,255,.06); background:transparent;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-/* ensure first (Date) and last (Res) columns are visible */
 .me-body .me-table thead th:first-child,
 .me-body .me-table tbody td:first-child{ text-align:left; }
 .me-body .me-table thead th:last-child,
 .me-body .me-table tbody td:last-child{ text-align:left; }
-
-/* remove any leftover labels from card layout */
-.me-body .me-table tbody td::before{ content:none !important; }
-
-/* keep legacy header-rename hooks OFF */
+.me-body .me-table tbody td::before{ content:none!important; }
 .me-body .me-table thead th:nth-child(5)::after,
-.me-body .me-table thead th:nth-child(6)::after { content: none !important; }
+.me-body .me-table thead th:nth-child(6)::after{ content:none!important; }
 
-/* column helpers */
+/* small helpers */
 .me-table .right{ text-align:right; }
-.me-table .clip{ max-width: 260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.me-table .clip{ max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .overs{ opacity:.8; }
 
-/* result badges */
-.res-badge{
-  display:inline-block; min-width: 28px; text-align:center;
-  padding: 3px 8px; font-weight: 800; font-size: 12px; letter-spacing:.5px;
-  border-radius: 999px; color:#061a12;
-}
-.res-W{ background:#19f0a2; color:#052115; }
-.res-L{ background:#ff4d4f; color:#2b0b0b; }
-.res-D{ background:#ffd34d; color:#2b1f00; }
-
-/* footer */
 .me-foot{
   display:flex; align-items:center; justify-content:center; gap:12px;
-  padding: 10px 14px;
-  border-top:1px solid rgba(255,255,255,.08);
+  padding:10px 14px; border-top:1px solid rgba(255,255,255,.08);
 }
 .me-btn{
   border:1px solid rgba(255,255,255,.15);
   background: rgba(18,33,52,.8); color:#f3f9ff;
-  padding:6px 12px; border-radius:8px; cursor:pointer;
-  backdrop-filter: blur(6px);
+  padding:6px 12px; border-radius:8px; cursor:pointer; backdrop-filter: blur(6px);
 }
 .me-btn:disabled{ opacity:.5; cursor:not-allowed; }
 .me-page{ color:#cfe7ff; font-size:13px; }
 
-/* loading skeleton */
 .skel{
-  height: 34px; border-radius: 10px;
-  background: linear-gradient(90deg, rgba(255,255,255,.05) 25%, rgba(255,255,255,.12) 37%, rgba(255,255,255,.05) 63%);
-  background-size: 400% 100%;
-  animation: skel 1.2s ease-in-out infinite;
+  height:34px; border-radius:10px;
+  background:linear-gradient(90deg, rgba(255,255,255,.05) 25%, rgba(255,255,255,.12) 37%, rgba(255,255,255,.05) 63%);
+  background-size:400% 100%; animation: skel 1.2s ease-in-out infinite;
 }
-@keyframes skel {
-  0% { background-position: 100% 0; }
-  100% { background-position: 0 0; }
-}
-
-/* Last 5 badges */
+@keyframes skel{ 0%{ background-position:100% 0; } 100%{ background-position:0 0; } }
 .me-last5 .last5-badge{
-  display:inline-block;
-  min-width: 22px;
-  text-align:center;
-  padding: 2px 6px;
-  margin-left: 6px;
-  border-radius: 999px;
-  font-weight: 800;
-  font-size: 12px;
-  letter-spacing: .3px;
+  display:inline-block; min-width:22px; text-align:center; padding:2px 6px; margin-left:6px;
+  border-radius:999px; font-weight:800; font-size:12px; letter-spacing:.3px;
 }
 .me-last5 .last5-W{ background:#19f0a2; color:#052115; }
 .me-last5 .last5-L{ background:#ff4d4f; color:#2b0b0b; }
