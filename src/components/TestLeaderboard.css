@@ -1,202 +1,169 @@
+
 /*****************************************************
- * TestLeaderboard.css — frameless + strong glass (v2)
+ * TestLeaderboard.css — simple, professional, no motion
+ * - NO keyframes, NO shimmer, NO hover transforms
  *****************************************************/
 
-/* Shell / remove bezel */
-.tlfx-shell {
+/* ============================ Shell & Card ============================ */
+.tlfx-shell{
   position: relative;
   width: 100%;
-  padding: 0;
-}
-.tlfx-glass {
-  border-radius: 0;
-  padding: 0;
-  background: transparent;
-  border: 0;
-}
-.tlfx-title {
-  letter-spacing: 0.3px;
+  padding: 14px 10px;
 }
 
-/* ===== GLASS SHEET ===== */
-.tlfx-table-wrap {
-  position: relative;
-  overflow-x: auto;
-  padding: 10px 8px;
+.tlfx-glass{
   border-radius: 16px;
-
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.025)),
-    rgba(10, 18, 28, 0.12);
-  backdrop-filter: blur(18px) saturate(150%);
-  -webkit-backdrop-filter: blur(18px) saturate(150%);
-  background-clip: padding-box;
-
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 10px 28px rgba(0, 0, 0, 0.3);
+  padding: 14px 12px;
+  background: #0f1b28;                        /* solid, stable */
+  border: 1px solid rgba(255,255,255,.08);
+  /* No blur, no inner glows */
 }
 
-/* Table */
-.tlfx-table {
+/* ============================ Title ============================ */
+.tlfx-title{
+  letter-spacing: .3px;
+  /* same green via inline style */
+}
+
+/* ============================ Table Wrap ============================ */
+.tlfx-table-wrap{
+  overflow-x: auto;           /* allow horizontal scroll if needed */
+  padding: 0 6px;
+}
+
+/* ============================ Table Base ============================ */
+.tlfx-table{
   width: 100%;
-  border-collapse: separate;
-  table-layout: fixed;
-  border-spacing: 0 8px;
+  border-collapse: separate;  /* to get row gaps like cards */
+  table-layout: fixed;        /* stable column widths */
+  border-spacing: 0 8px;      /* vertical gaps */
   background: transparent;
   margin: 0;
 }
 
-/* Header */
-.tlfx-table thead tr {
-  background: rgba(9, 24, 39, 0.22) !important;
-}
-.tlfx-table thead th {
-  background: rgba(9, 24, 39, 0.22) !important;
+/* ============================ Header ============================ */
+/* solid blue header bar with white text; high specificity */
+.tlfx-table thead tr{ background: transparent; }
+.tlfx-table thead th{
+  background: linear-gradient(180deg, #123055, #0e2236) !important; /* blue */
   color: #f4fbff !important;
   font-weight: 800;
   font-size: 14px;
-  letter-spacing: 0.3px;
+  letter-spacing: .3px;
   padding: 12px 10px;
-  border: 0 !important;
-  border-bottom: 1px solid rgba(232, 202, 164, 0.18) !important;
+  border: 1px solid #1b3b5b !important;
+  border-bottom: 0 !important;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  box-sizing: border-box; /* lock widths with td */
 }
-.tlfx-table thead th:first-child {
+.tlfx-table thead th + th{ border-left-color:#16324e !important; }
+.tlfx-table thead th:first-child{
   border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
 }
-.tlfx-table thead th:last-child {
+.tlfx-table thead th:last-child{
   border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
-/* Body cells */
-.tlfx-table tbody td {
+/* ============================ Body Cells ============================ */
+.tlfx-table tbody td{
   padding: 12px 10px;
   font-size: 15px;
-  color: #f3f9ff;
+  color: #eaf6ff;
   border: 0;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  box-sizing: border-box;
 }
-.tlfx-table tbody td.team {
+.tlfx-table tbody td.team{
   text-align: left;
   font-weight: 800;
-  letter-spacing: 0.2px;
+  letter-spacing: .2px;
 }
-.rank {
-  width: 52px;
-}
+.rank{ width: 52px; } /* gives left spacing similar to badge width */
 
-/* ---------- Column sizing & alignment (locks header/body) ---------- */
-.tlfx-table thead th:nth-child(1),
-.tlfx-table tbody td:nth-child(1) {
-  width: 56px;
-  min-width: 56px;
-  max-width: 56px;
-  text-align: center;
-}
-.tlfx-table thead th:nth-child(2),
-.tlfx-table tbody td:nth-child(2) {
-  text-align: left;
-}
-
-/* Rows */
-.tlfx-row {
-  background: rgba(12, 26, 41, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+/* ============================ Rows as Cards ============================ */
+.tlfx-row{
+  background: #112030;
+  border: 1px solid rgba(255,255,255,.10);
   border-radius: 12px;
-}
-.tlfx-row:hover td {
-  background: rgba(14, 30, 48, 0.28);
+  /* No transitions / transforms / hover lifts */
 }
 
-/* Accents */
-.pos {
-  color: #c9ffef;
-}
-.neg {
-  color: #ffc2c2;
-}
+/* Emphasis colors (values only) */
+.pos{ color:#c9ffef; }
+.neg{ color:#ffc2c2; }
 
-/* Empty & skeleton */
-.tlfx-empty {
+/* ============================ Empty & Skeleton ============================ */
+.tlfx-empty{
   text-align: center;
   padding: 18px 0;
   color: #9bb2c8;
 }
-.skeleton td {
+
+/* Static skeleton (kept for layout; no animation) */
+.skeleton td{
   height: 56px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255,255,255,.05);
   border-radius: 12px;
 }
 
-/* Top 3 */
-.tlfx-row.top1 {
-  background-color: rgba(232, 202, 164, 0.14);
-  border-color: rgba(232, 202, 164, 0.45);
-  box-shadow:
-    0 0 0 1px rgba(232, 202, 164, 0.2),
-    0 0 14px rgba(232, 202, 164, 0.06);
-}
-.tlfx-row.top2 {
-  background-color: rgba(192, 192, 192, 0.14);
-  border-color: rgba(192, 192, 192, 0.45);
-  box-shadow:
-    0 0 0 1px rgba(192, 192, 192, 0.18),
-    0 0 12px rgba(192, 192, 192, 0.06);
-}
-.tlfx-row.top3 {
-  background-color: rgba(205, 127, 50, 0.14);
-  border-color: rgba(205, 127, 50, 0.45);
-  box-shadow:
-    0 0 0 1px rgba(205, 127, 50, 0.18),
-    0 0 12px rgba(205, 127, 50, 0.06);
+/* ============================ Top 3 Highlights ============================ */
+/* Gold (1) */
+.tlfx-row.top1{
+  background-color: rgba(232, 202, 164, 0.12);      /* gold tint */
+  border-color: rgba(232, 202, 164, 0.55);
+  box-shadow: 0 0 0 1px rgba(232,202,164,0.22), 0 0 16px rgba(232,202,164,0.08);
 }
 
-/* Phones: keep key cols */
-@media (max-width: 640px) {
+/* Silver (2) */
+.tlfx-row.top2{
+  background-color: rgba(192, 192, 192, 0.12);      /* silver tint */
+  border-color: rgba(192, 192, 192, 0.55);
+  box-shadow: 0 0 0 1px rgba(192,192,192,0.20), 0 0 14px rgba(192,192,192,0.07);
+}
+
+/* Bronze (3) */
+.tlfx-row.top3{
+  background-color: rgba(205, 127, 50, 0.12);       /* bronze tint */
+  border-color: rgba(205, 127, 50, 0.55);
+  box-shadow: 0 0 0 1px rgba(205,127,50,0.20), 0 0 14px rgba(205,127,50,0.07);
+}
+
+/* ============================ Compact Columns (Phones) ============================ */
+@media (max-width: 640px){
   .tlfx-table thead th:nth-child(4),
   .tlfx-table thead th:nth-child(5),
   .tlfx-table thead th:nth-child(6),
   .tlfx-table tbody td:nth-child(4),
   .tlfx-table tbody td:nth-child(5),
-  .tlfx-table tbody td:nth-child(6) {
-    display: none;
+  .tlfx-table tbody td:nth-child(6){
+    display: none; /* keep R, Team, Matches, Points visible */
   }
 }
 
-/* Mobile sizing */
-@media (max-width: 768px) {
+/* ============================ Mobile Tweaks ============================ */
+@media (max-width: 768px){
   .tlfx-table thead th,
-  .tlfx-table tbody td {
+  .tlfx-table tbody td{
     font-size: 14px;
     padding: 10px 8px;
   }
 }
 
-/* Strip any ancestor card */
-.card:has(.tlfx-shell),
-section:has(.tlfx-shell),
-div:has(.tlfx-shell),
-.container:has(.tlfx-shell),
-.panel:has(.tlfx-shell) {
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  backdrop-filter: none !important;
+/* ============================ Reduced Motion (belt & braces) ============================ */
+@media (prefers-reduced-motion: reduce){
+  /* no animations to disable here; keep placeholder for policy */
 }
 
-/* Fallback without backdrop support */
-@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
-  .tlfx-table-wrap {
-    background: rgba(15, 27, 40, 0.72);
-  }
+/* ============================ Optional Footer Summary ============================ */
+/* .tlfx-summary{
+  display:flex;
+  gap:12px;
+  padding:8px 6px 0;
+  font-size:13px;
 }
+.subtle{ color:#9bb2c8; } */
