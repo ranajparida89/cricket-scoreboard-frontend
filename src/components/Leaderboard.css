@@ -70,14 +70,14 @@
 .leaderboard-table tbody tr{
   position: relative;
   isolate: isolate;               /* new stacking context for the card layer */
-  border-radius: 12px;            /* help clipping on newer browsers */
+  border-radius: 12px;            /* helps clipping on newer browsers */
 }
 .leaderboard-table tbody tr::before{
   content: "";
   position: absolute;
   inset: 0;
   border-radius: 12px;
-  background: rgba(12,26,41,.08);              /* VERY transparent glass */
+  background: rgba(12,26,41,.08);              /* transparent glass */
   border: 1px solid rgba(255,255,255,.08);
   box-shadow: 0 1px 0 rgba(255,255,255,.10) inset;
   z-index: 0;                                   /* sits behind cell content */
@@ -123,11 +123,43 @@
 .from-left  { left: 8px; }
 .from-right { right: 8px; }
 
-/* ===== Top 3 soft golden highlight ===== */
+/* =========================================================
+   SOFT Top-3 tint (gold/silver/bronze) — no animations
+   - Kill any prior bright fills, then use subtle tinted glass on ::before
+   ========================================================= */
+.leaderboard-table tbody tr.top1,
+.leaderboard-table tbody tr.top2,
+.leaderboard-table tbody tr.top3{
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Gold #FFD66B */
+.leaderboard-table tbody tr.top1::before{
+  background: linear-gradient(180deg, rgba(255,214,107,.14), rgba(255,214,107,.10));
+  border: 1px solid rgba(255,214,107,.45);
+  box-shadow:
+    0 0 0 1px rgba(255,214,107,.22),
+    0 10px 22px rgba(255,214,107,.10);
+}
+
+/* Silver */
+.leaderboard-table tbody tr.top2::before{
+  background: linear-gradient(180deg, rgba(210,220,232,.12), rgba(210,220,232,.08));
+  border: 1px solid rgba(210,220,232,.42);
+  box-shadow:
+    0 0 0 1px rgba(210,220,232,.20),
+    0 10px 20px rgba(210,220,232,.08);
+}
+
+/* Bronze */
 .leaderboard-table tbody tr.top3::before{
-  background-color: rgba(232,202,164,.14);
-  border-color: rgba(232,202,164,.45);
-  box-shadow: 0 0 0 1px rgba(232,202,164,.18), 0 0 14px rgba(232,202,164,.06);
+  background: linear-gradient(180deg, rgba(205,127,50,.14), rgba(205,127,50,.10));
+  border: 1px solid rgba(205,127,50,.45);
+  box-shadow:
+    0 0 0 1px rgba(205,127,50,.22),
+    0 10px 20px rgba(205,127,50,.08);
 }
 
 /* ===== Mobile tweaks (font size/spacing) ===== */
@@ -285,8 +317,12 @@ div:has(.leaderboard-shell),
 }
 
 /* =========================================================
-   MOBILE FLICKER GUARD
+   FLICKER GUARD (mobile + “desktop mode” on mobile Chrome)
+   - Disable blur on coarse pointers even at large widths
+   - Also un-fix the bg if you’re using fixed-attachment
    ========================================================= */
+
+/* Normal mobile */
 @media (max-width: 900px), (pointer: coarse){
   .leaderboard-table-wrapper{
     backdrop-filter: none !important;
@@ -300,16 +336,29 @@ div:has(.leaderboard-shell),
     -webkit-backdrop-filter: none !important;
     background: rgba(12,22,34,.88) !important;
   }
-
-  /* If background is fixed, let it scroll on mobile to prevent shimmer */
-  body::before,
-  #root::before,
-  .site-bg{
+  body::before, #root::before, .site-bg{
     background-attachment: scroll !important;
     transform: none !important;
     will-change: auto !important;
     filter: none !important;
     backface-visibility: hidden;
+  }
+}
+
+/* Desktop-mode on mobile (pointer is still coarse, but width is large) */
+@media (hover: none) and (pointer: coarse) and (min-width: 900px){
+  .leaderboard-table-wrapper,
+  .me-modal{
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .leaderboard-table-wrapper{
+    background:
+      linear-gradient(180deg, rgba(12,22,34,.28), rgba(12,22,34,.20)) !important;
+  }
+  body::before, #root::before, .site-bg{
+    background-attachment: scroll !important;
+    transform: none !important;
   }
 }
 
