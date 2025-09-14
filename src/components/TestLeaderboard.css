@@ -1,76 +1,69 @@
 /*****************************************************
- * TestLeaderboard.css — simple, professional, no motion
- * - NO keyframes, NO shimmer, NO hover transforms
+ * TestLeaderboard.css — frameless + professional
+ * No animation, no transforms
  *****************************************************/
 
-/* ============================ Shell & Card ============================ */
+/* ===== Shell (frameless) ===== */
 .tlfx-shell{
   position: relative;
   width: 100%;
-  padding: 14px 10px;
+  padding: 0;                           /* remove extra spacing */
 }
 
+/* Old glass card: neutralize (no bezel) */
 .tlfx-glass{
-  border-radius: 16px;
-  padding: 14px 12px;
-  background: #0f1b28;                        /* solid, stable */
-  border: 1px solid rgba(255,255,255,.08);
-  /* No blur, no inner glows */
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
 }
 
-/* ============================ Title ============================ */
-.tlfx-title{
-  letter-spacing: .3px;
-  /* same green via inline style */
-}
+/* Title just uses inline green from component */
+.tlfx-title{ letter-spacing: .3px; }
 
-/* ============================ Table Wrap ============================ */
+/* ===== Table Wrap ===== */
 .tlfx-table-wrap{
-  overflow-x: auto;           /* allow horizontal scroll if needed */
+  overflow-x: auto;
   padding: 0 6px;
 }
 
-/* ============================ Table Base ============================ */
+/* ===== Table Base ===== */
 .tlfx-table{
   width: 100%;
-  border-collapse: separate;  /* to get row gaps like cards */
-  table-layout: fixed;        /* stable column widths */
-  border-spacing: 0 8px;      /* vertical gaps */
+  border-collapse: separate;
+  table-layout: fixed;
+  border-spacing: 0 8px;                /* subtle vertical gaps */
   background: transparent;
   margin: 0;
 }
 
-/* ============================ Header ============================ */
-/* solid blue header bar with white text; high specificity */
-.tlfx-table thead tr{ background: transparent; }
+/* ===== Header ===== */
+.tlfx-table thead tr{ background: rgba(13,31,47,.92) !important; }
 .tlfx-table thead th{
-  background: linear-gradient(180deg, #123055, #0e2236) !important; /* blue */
+  background: rgba(13,31,47,.92) !important;      /* translucent blue bar */
   color: #f4fbff !important;
   font-weight: 800;
   font-size: 14px;
   letter-spacing: .3px;
   padding: 12px 10px;
-  border: 1px solid #1b3b5b !important;
-  border-bottom: 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(232,202,164,.18) !important; /* hairline */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.tlfx-table thead th + th{ border-left-color:#16324e !important; }
 .tlfx-table thead th:first-child{
   border-top-left-radius: 12px;
-  border-bottom-left-radius: 12px;
 }
 .tlfx-table thead th:last-child{
   border-top-right-radius: 12px;
-  border-bottom-right-radius: 12px;
 }
 
-/* ============================ Body Cells ============================ */
+/* ===== Body Cells ===== */
 .tlfx-table tbody td{
   padding: 12px 10px;
   font-size: 15px;
-  color: #eaf6ff;
+  color: #f3f9ff;                         /* brighter */
   border: 0;
   text-align: center;
   white-space: nowrap;
@@ -82,57 +75,52 @@
   font-weight: 800;
   letter-spacing: .2px;
 }
-.rank{ width: 52px; } /* gives left spacing similar to badge width */
+.rank{ width: 52px; }
 
-/* ============================ Rows as Cards ============================ */
+/* ===== Rows (soft translucent) ===== */
 .tlfx-row{
-  background: #112030;
-  border: 1px solid rgba(255,255,255,.10);
-  border-radius: 12px;
-  /* No transitions / transforms / hover lifts */
+  background: rgba(17,32,48,.55);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 10px;
 }
+.tlfx-row:hover td{ background: rgba(18,36,57,.60); }
 
-/* Emphasis colors (values only) */
+/* Emphasis for values */
 .pos{ color:#c9ffef; }
 .neg{ color:#ffc2c2; }
 
-/* ============================ Empty & Skeleton ============================ */
+/* Empty state */
 .tlfx-empty{
   text-align: center;
   padding: 18px 0;
   color: #9bb2c8;
 }
 
-/* Static skeleton (kept for layout; no animation) */
+/* Skeleton row (static) */
 .skeleton td{
   height: 56px;
   background: rgba(255,255,255,.05);
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
-/* ============================ Top 3 Highlights ============================ */
-/* Gold (1) */
+/* ===== Top 3 Highlights ===== */
 .tlfx-row.top1{
-  background-color: rgba(232, 202, 164, 0.12);      /* gold tint */
-  border-color: rgba(232, 202, 164, 0.55);
-  box-shadow: 0 0 0 1px rgba(232,202,164,0.22), 0 0 16px rgba(232,202,164,0.08);
+  background-color: rgba(232, 202, 164, 0.12);
+  border-color: rgba(232, 202, 164, 0.45);
+  box-shadow: 0 0 0 1px rgba(232,202,164,0.20), 0 0 14px rgba(232,202,164,0.06);
 }
-
-/* Silver (2) */
 .tlfx-row.top2{
-  background-color: rgba(192, 192, 192, 0.12);      /* silver tint */
-  border-color: rgba(192, 192, 192, 0.55);
-  box-shadow: 0 0 0 1px rgba(192,192,192,0.20), 0 0 14px rgba(192,192,192,0.07);
+  background-color: rgba(192, 192, 192, 0.12);
+  border-color: rgba(192, 192, 192, 0.45);
+  box-shadow: 0 0 0 1px rgba(192,192,192,0.18), 0 0 12px rgba(192,192,192,0.06);
 }
-
-/* Bronze (3) */
 .tlfx-row.top3{
-  background-color: rgba(205, 127, 50, 0.12);       /* bronze tint */
-  border-color: rgba(205, 127, 50, 0.55);
-  box-shadow: 0 0 0 1px rgba(205,127,50,0.20), 0 0 14px rgba(205,127,50,0.07);
+  background-color: rgba(205, 127, 50, 0.12);
+  border-color: rgba(205, 127, 50, 0.45);
+  box-shadow: 0 0 0 1px rgba(205,127,50,0.18), 0 0 12px rgba(205,127,50,0.06);
 }
 
-/* ============================ Compact Columns (Phones) ============================ */
+/* ===== Compact columns (phones) ===== */
 @media (max-width: 640px){
   .tlfx-table thead th:nth-child(4),
   .tlfx-table thead th:nth-child(5),
@@ -140,11 +128,11 @@
   .tlfx-table tbody td:nth-child(4),
   .tlfx-table tbody td:nth-child(5),
   .tlfx-table tbody td:nth-child(6){
-    display: none; /* keep R, Team, Matches, Points visible */
+    display: none;
   }
 }
 
-/* ============================ Mobile Tweaks ============================ */
+/* ===== Mobile tweaks ===== */
 @media (max-width: 768px){
   .tlfx-table thead th,
   .tlfx-table tbody td{
@@ -153,16 +141,5 @@
   }
 }
 
-/* ============================ Reduced Motion (belt & braces) ============================ */
-@media (prefers-reduced-motion: reduce){
-  /* no animations to disable here; keep placeholder for policy */
-}
-
-/* ============================ Optional Footer Summary ============================ */
-/* .tlfx-summary{
-  display:flex;
-  gap:12px;
-  padding:8px 6px 0;
-  font-size:13px;
-}
-.subtle{ color:#9bb2c8; } */
+/* Reduced motion: nothing to disable (no animations used) */
+@media (prefers-reduced-motion: reduce){ }

@@ -1,13 +1,14 @@
 /*****************************************************
- * Leaderboard.css — compact + polished
+ * Leaderboard.css — frameless + compact + polished
  *****************************************************/
 
-/* Shell */
+/* ===== Shell (remove bezel) ===== */
 .leaderboard-shell{
-  background:#0f1b28;
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:16px;
-  padding:14px;
+  background: transparent;                 /* no card background */
+  border: 0;                               /* no outer border */
+  border-radius: 0;
+  padding: 0;                              /* no inner padding */
+  margin: 0 0 12px;                        /* small breathing room below */
 }
 
 /* Wrapper keeps header/body aligned */
@@ -16,15 +17,15 @@
 /* ===== Table base ===== */
 .leaderboard-table{
   width: 100%;
-  border-collapse: separate;      /* row gaps like cards */
-  table-layout: fixed;            /* stable widths */
-  border-spacing: 0 8px;          /* vertical gaps only */
+  border-collapse: separate;
+  table-layout: fixed;
+  border-spacing: 0 8px;                   /* gentle vertical gaps */
   background: transparent;
   margin: 0;
 }
 
 /* ===== Header ===== */
-.leaderboard-table thead tr{ background: #0d1f2f; }
+.leaderboard-table thead tr{ background: rgba(13,31,47,.92); }
 .leaderboard-table thead th{
   font-weight: 700;
   color: #eaf6ff;
@@ -43,7 +44,7 @@
 .leaderboard-table tbody td{
   padding: 12px 10px;
   font-size: 15px;
-  color: #f3f9ff;                 /* brighter */
+  color: #f3f9ff;                          /* brighter */
   text-align: center;
   border: 0;
   white-space: nowrap;
@@ -51,11 +52,14 @@
   text-overflow: ellipsis;
 }
 
-/* ===== Rows styled as card-rows ===== */
+/* ===== Rows styled as soft translucent “cards” ===== */
 .leaderboard-table tbody tr.lb-row{
-  background: #112030;
-  border: 1px solid rgba(255,255,255,.10);
-  border-radius: 12px;
+  background: rgba(17,32,48,.55);          /* translucent row fill */
+  border: 1px solid rgba(255,255,255,.07); /* softer line */
+  border-radius: 10px;
+}
+.leaderboard-table tbody tr.lb-row:hover{
+  background: rgba(18,36,57,.65);
 }
 
 /* ranking medals + basic colors */
@@ -79,9 +83,9 @@
 
 /* ===== Top 3 soft golden highlight ===== */
 .lb-row.top3{
-  background-color: rgba(232, 202, 164, 0.10);
+  background-color: rgba(232, 202, 164, 0.12);
   border-color: rgba(232, 202, 164, 0.45);
-  box-shadow: 0 0 0 1px rgba(232,202,164,0.22), 0 0 16px rgba(232,202,164,0.08);
+  box-shadow: 0 0 0 1px rgba(232,202,164,0.20), 0 0 14px rgba(232,202,164,0.06);
 }
 
 /* ===== Mobile tweaks ===== */
@@ -106,15 +110,15 @@
   width: min(1100px, 96vw);
   max-height: 88vh;
   display:flex; flex-direction: column;
-  background: #0f1b28;
-  border:1px solid rgba(255,255,255,.12);
+  background: rgba(15,27,40,.85);          /* subtle translucency */
+  border:1px solid rgba(255,255,255,.10);
   border-radius: 14px;
   overflow: hidden;
 }
 .me-head{
   display:flex; align-items: center; justify-content: space-between;
   padding: 12px 14px;
-  background:#0d1f2f;
+  background: rgba(13,31,47,.92);
   border-bottom:1px solid rgba(255,255,255,.08);
 }
 .me-title{ font-weight: 800; font-size: 18px; color:#eaf6ff; }
@@ -160,13 +164,10 @@
   border-radius:8px; padding:6px 8px; font-size:12px;
 }
 
-/* ---------- Compact table (no big cards) ---------- */
+/* ---------- Compact table inside modal ---------- */
 .me-body{ padding: 12px 14px; overflow:auto; }
-
-/* show header */
 .me-body .me-table thead{ display: table-header-group !important; }
 
-/* table styling */
 .me-body .me-table{
   width:100%;
   border-collapse: separate;
@@ -174,7 +175,7 @@
 }
 .me-body .me-table thead th{
   position: sticky; top: 0; z-index: 2;
-  background:#0d1f2f;
+  background: rgba(13,31,47,.92);
   color:#eaf6ff;
   padding:10px;
   font-size:13px;
@@ -184,7 +185,7 @@
 .me-body .me-table tbody{ display: table-row-group !important; }
 .me-body .me-table tbody tr{
   display: table-row !important;
-  background:#0f1c2a;
+  background: rgba(15,28,42,.55);
 }
 .me-body .me-table tbody tr:hover td{ background:#122439; }
 .me-body .me-table tbody td{
@@ -195,13 +196,7 @@
   border-top:1px solid rgba(255,255,255,.06);    /* soft separators */
   background:transparent;
 }
-/* remove any leftover labels from card layout */
-.me-body .me-table tbody td::before{ content:none !important; }
-
-/* --------- Rename headers to add “Score” (CSS-only) --------- */
-/* 5th th = Team column, 6th th = Opp column */
-.me-body .me-table thead th:nth-child(5)::after { content:" Score"; }
-.me-body .me-table thead th:nth-child(6)::after { content:" Score"; }
+.me-body .me-table tbody td::before{ content:none !important; } /* no pseudo labels */
 
 /* column helpers */
 .me-table .right{ text-align:right; }
@@ -231,16 +226,11 @@
 .me-btn:disabled{ opacity:.5; cursor:not-allowed; }
 .me-page{ color:#cfe7ff; font-size:13px; }
 
-/* loading skeleton */
+/* loading skeleton (static look) */
 .skel{
   height: 34px; border-radius: 10px;
   background: linear-gradient(90deg, rgba(255,255,255,.05) 25%, rgba(255,255,255,.12) 37%, rgba(255,255,255,.05) 63%);
   background-size: 400% 100%;
-  animation: skel 1.2s ease-in-out infinite;
-}
-@keyframes skel {
-  0% { background-position: 100% 0; }
-  100% { background-position: 0 0; }
 }
 
 /* Last 5 badges */
@@ -258,8 +248,5 @@
 .me-last5 .last5-W{ background:#19f0a2; color:#052115; }
 .me-last5 .last5-L{ background:#ff4d4f; color:#2b0b0b; }
 .me-last5 .last5-D{ background:#ffd34d; color:#2b1f00; }
-/* Stop auto-adding " Score" to the 5th and 6th table headers */
-.me-body .me-table thead th:nth-child(5)::after,
-.me-body .me-table thead th:nth-child(6)::after {
-  content: none !important;
-}
+
+/* (We removed the old CSS that auto-added “ Score” to headers) */
