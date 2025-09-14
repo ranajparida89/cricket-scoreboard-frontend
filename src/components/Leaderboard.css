@@ -1,5 +1,5 @@
-*****************************************************
- * Leaderboard.css — compact + polished
+/*****************************************************
+ * Leaderboard.css — compact + polished (fixed headers)
  *****************************************************/
 
 /* Shell */
@@ -23,6 +23,29 @@
   margin: 0;
 }
 
+/* --- FIX 1: identical column map for thead/tbody --- */
+/* R | T | M | W | L | D | Pts | NRR  */
+.leaderboard-table thead th:nth-child(1),
+.leaderboard-table tbody td:nth-child(1){ width: 52px;  text-align:left; } /* R */
+.leaderboard-table thead th:nth-child(2),
+.leaderboard-table tbody td:nth-child(2){ width: 140px; text-align:left; } /* Team */
+.leaderboard-table thead th:nth-child(3),
+.leaderboard-table tbody td:nth-child(3){ width: 72px;  } /* M */
+.leaderboard-table thead th:nth-child(4),
+.leaderboard-table tbody td:nth-child(4){ width: 72px;  } /* W */
+.leaderboard-table thead th:nth-child(5),
+.leaderboard-table tbody td:nth-child(5){ width: 72px;  } /* L */
+.leaderboard-table thead th:nth-child(6),
+.leaderboard-table tbody td:nth-child(6){ width: 72px;  } /* D */
+.leaderboard-table thead th:nth-child(7),
+.leaderboard-table tbody td:nth-child(7){ width: 84px;  } /* Pts */
+.leaderboard-table thead th:nth-child(8),
+.leaderboard-table tbody td:nth-child(8){ width: 120px; } /* NRR (value + bar) */
+
+/* ensure box sizing is identical so widths actually match */
+.leaderboard-table thead th,
+.leaderboard-table tbody td{ box-sizing: border-box; }
+
 /* ===== Header ===== */
 .leaderboard-table thead tr{ background: #0d1f2f; }
 .leaderboard-table thead th{
@@ -35,23 +58,29 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
 }
-.leaderboard-table thead th:first-child{ border-top-left-radius: 12px; }
+.leaderboard-table thead th:first-child{ border-top-left-radius: 12px; text-align:left; }
+.leaderboard-table thead th:nth-child(2){ text-align:left; } /* Team header left */
 .leaderboard-table thead th:last-child { border-top-right-radius: 12px; }
 
 /* ===== Body cells ===== */
 .leaderboard-table tbody td{
   padding: 12px 10px;
   font-size: 15px;
-  color: #f3f9ff;                 /* brighter */
+  color: #f3f9ff;
   text-align: center;
   border: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* keep first two columns left-aligned like header */
+.leaderboard-table tbody td:first-child,
+.leaderboard-table tbody td:nth-child(2){ text-align:left; }
 
 /* ===== Rows styled as card-rows ===== */
+/* FIX 2: do not change table display model (keeps columns aligned) */
 .leaderboard-table tbody tr.lb-row{
   background: #112030;
   border: 1px solid rgba(255,255,255,.10);
@@ -91,6 +120,11 @@
     font-size: 14px;
     padding: 10px 8px;
   }
+  /* slightly tighter map but keep SAME column count */
+  .leaderboard-table thead th:nth-child(2),
+  .leaderboard-table tbody td:nth-child(2){ width: 120px; }
+  .leaderboard-table thead th:nth-child(8),
+  .leaderboard-table tbody td:nth-child(8){ width: 112px; }
 }
 
 /* =========================
@@ -126,7 +160,7 @@
 }
 .me-close:hover{ background:#1b2f46; }
 
-/* ---------- Chips (blue with thin golden outline) ---------- */
+/* ---------- Chips ---------- */
 .me-filters{
   display:flex; flex-wrap: wrap; gap:10px 14px;
   padding: 10px 14px;
@@ -138,7 +172,7 @@
 .me-chip{
   background:#122134;
   color:#eaf6ff;
-  border:1px solid rgba(232,202,164,.55);        /* thin golden */
+  border:1px solid rgba(232,202,164,.55);
   box-shadow: 0 0 0 1px rgba(232,202,164,.18) inset;
   padding:6px 10px;
   border-radius:999px;
@@ -153,25 +187,23 @@
   color:#ffffff;
 }
 
-/* selects match the theme */
 .me-select{
   background:#122134; color:#f3f9ff;
   border:1px solid rgba(232,202,164,.35);
   border-radius:8px; padding:6px 8px; font-size:12px;
 }
 
-/* ---------- Compact table (no big cards) ---------- */
+/* ---------- Compact table ---------- */
 .me-body{ padding: 12px 14px; overflow:auto; }
 
-/* show header */
-.me-body .me-table thead{ display: table-header-group !important; }
-
-/* table styling */
+/* FIX 3: force header to show & stay mapped; never hide first/last cols */
 .me-body .me-table{
   width:100%;
   border-collapse: separate;
   border-spacing: 0;
+  table-layout: fixed;
 }
+.me-body .me-table thead{ display: table-header-group !important; }
 .me-body .me-table thead th{
   position: sticky; top: 0; z-index: 2;
   background:#0d1f2f;
@@ -179,44 +211,48 @@
   padding:10px;
   font-size:13px;
   text-align:left;
-  border-bottom:1px solid rgba(232,202,164,.18); /* soft line */
+  border-bottom:1px solid rgba(232,202,164,.18);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .me-body .me-table tbody{ display: table-row-group !important; }
-.me-body .me-table tbody tr{
-  display: table-row !important;
-  background:#0f1c2a;
-}
+.me-body .me-table tbody tr{ display: table-row !important; background:#0f1c2a; }
 .me-body .me-table tbody tr:hover td{ background:#122439; }
 .me-body .me-table tbody td{
   display: table-cell !important;
   padding:10px 12px;
-  color:#f3f9ff;                     /* brighter text */
+  color:#f3f9ff;
   font-size:13px;
-  border-top:1px solid rgba(255,255,255,.06);    /* soft separators */
+  border-top:1px solid rgba(255,255,255,.06);
   background:transparent;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
+/* FIX 4: ensure first (Date) and last (Res) columns are visible */
+.me-body .me-table thead th:first-child,
+.me-body .me-table tbody td:first-child{ text-align:left; }
+.me-body .me-table thead th:last-child,
+.me-body .me-table tbody td:last-child{ text-align:left; }
+
 /* remove any leftover labels from card layout */
 .me-body .me-table tbody td::before{ content:none !important; }
 
-/* --------- Rename headers to add “Score” (CSS-only) --------- */
-/* 5th th = Team column, 6th th = Opp column */
-.me-body .me-table thead th:nth-child(5)::after { content:" Score"; }
-.me-body .me-table thead th:nth-child(6)::after { content:" Score"; }
+/* --------- (legacy) header rename hooks kept OFF --------- */
+.me-body .me-table thead th:nth-child(5)::after,
+.me-body .me-table thead th:nth-child(6)::after { content: none !important; }
 
 /* column helpers */
 .me-table .right{ text-align:right; }
 .me-table .clip{ max-width: 260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .overs{ opacity:.8; }
 
-/* result badges — punchier colors */
+/* result badges */
 .res-badge{
   display:inline-block; min-width: 28px; text-align:center;
   padding: 3px 8px; font-weight: 800; font-size: 12px; letter-spacing:.5px;
   border-radius: 999px; color:#061a12;
 }
-.res-W{ background:#19f0a2; color:#052115; }      /* brighter green */
-.res-L{ background:#ff4d4f; color:#2b0b0b; }      /* brighter red   */
-.res-D{ background:#ffd34d; color:#2b1f00; }      /* warmer yellow  */
+.res-W{ background:#19f0a2; color:#052115; }
+.res-L{ background:#ff4d4f; color:#2b0b0b; }
+.res-D{ background:#ffd34d; color:#2b1f00; }
 
 /* footer */
 .me-foot{
@@ -258,8 +294,3 @@
 .me-last5 .last5-W{ background:#19f0a2; color:#052115; }
 .me-last5 .last5-L{ background:#ff4d4f; color:#2b0b0b; }
 .me-last5 .last5-D{ background:#ffd34d; color:#2b1f00; }
-/* Stop auto-adding " Score" to the 5th and 6th table headers */
-.me-body .me-table thead th:nth-child(5)::after,
-.me-body .me-table thead th:nth-child(6)::after {
-  content: none !important;
-}
