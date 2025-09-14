@@ -1,5 +1,5 @@
 /*****************************************************
- * Leaderboard.css — frameless + strong glass (match Test)
+ * Leaderboard.css — frameless + TRUE glass + mobile-stable
  *****************************************************/
 
 /* ===== Shell (no bezel) ===== */
@@ -17,18 +17,18 @@
   padding: 10px 8px;
   border-radius: 16px;
 
-  /* frosted twin-tint, lighter alphas (more see-through) */
+  /* lighter alphas = stronger transparency */
   background:
     linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02))
-    ,rgba(10,18,28,.10);
+    ,rgba(10,18,28,.06);
   backdrop-filter: blur(18px) saturate(150%);
   -webkit-backdrop-filter: blur(18px) saturate(150%);
   background-clip: padding-box;
 
   border: 1px solid rgba(255,255,255,.10);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.18),
-    0 10px 28px rgba(0,0,0,.28);
+    inset 0 1px 0 rgba(255,255,255,.16),
+    0 10px 26px rgba(0,0,0,.26);
 }
 
 /* ===== Table base ===== */
@@ -42,41 +42,44 @@
 }
 
 /* ===== Header ===== */
-.leaderboard-table thead tr{ background: rgba(9,24,39,.18); }
+.leaderboard-table thead tr{ background: rgba(9,24,39,.12); }
 .leaderboard-table thead th{
-  font-weight: 700;
-  color: #eaf6ff;
+  font-weight: 800;
+  color: #fff;
   border: 0 !important;
   font-size: 14px;
   padding: 12px 10px;
-  letter-spacing: .2px;
+  letter-spacing: .25px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-shadow: 0 1px 1px rgba(0,0,0,.45);
 }
 .leaderboard-table thead th:first-child{ border-top-left-radius: 12px; }
 .leaderboard-table thead th:last-child { border-top-right-radius: 12px; }
 
-/* ===== Body cells ===== */
+/* ===== Body cells (crisp & bright) ===== */
 .leaderboard-table tbody td{
   padding: 12px 10px;
   font-size: 15px;
-  color: #f3f9ff;
+  color: #ffffff;                    /* brighter */
+  font-weight: 600;
   text-align: center;
   border: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-shadow: 0 1px 1px rgba(0,0,0,.45); /* pop over photo */
 }
 
-/* ===== Rows as translucent “cards” (lighter than before) ===== */
+/* ===== Rows as translucent “cards” ===== */
 .leaderboard-table tbody tr.lb-row{
-  background: rgba(12,26,41,.12);
-  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(12,26,41,.08);    /* more see-through */
+  border: 1px solid rgba(255,255,255,.08);
   border-radius: 12px;
 }
 .leaderboard-table tbody tr.lb-row:hover{
-  background: rgba(14,30,48,.22);
+  background: rgba(14,30,48,.14);
 }
 
 /* medals + numbers */
@@ -100,12 +103,12 @@
 
 /* ===== Top 3 soft golden highlight ===== */
 .lb-row.top3{
-  background-color: rgba(232, 202, 164, 0.14);
-  border-color: rgba(232, 202, 164, 0.45);
-  box-shadow: 0 0 0 1px rgba(232,202,164,0.20), 0 0 14px rgba(232,202,164,0.06);
+  background-color: rgba(232,202,164,.14);
+  border-color: rgba(232,202,164,.45);
+  box-shadow: 0 0 0 1px rgba(232,202,164,.18), 0 0 14px rgba(232,202,164,.06);
 }
 
-/* ===== Mobile tweaks ===== */
+/* ===== Mobile tweaks (font size/spacing) ===== */
 @media (max-width: 768px){
   .leaderboard-table thead th,
   .leaderboard-table tbody td{
@@ -130,7 +133,7 @@
 
   background:
     linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02))
-    ,rgba(12,22,34,.22);
+    ,rgba(12,22,34,.20);
   backdrop-filter: blur(16px) saturate(150%);
   -webkit-backdrop-filter: blur(16px) saturate(150%);
   background-clip: padding-box;
@@ -138,17 +141,17 @@
   border:1px solid rgba(255,255,255,.14);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 10px 28px rgba(0,0,0,.30);
+  box-shadow: 0 10px 26px rgba(0,0,0,.28);
 }
 .me-head{
   display:flex; align-items: center; justify-content: space-between;
   padding: 12px 14px;
-  background: rgba(9,24,39,.22);
+  background: rgba(9,24,39,.14);
   border-bottom:1px solid rgba(255,255,255,.10);
 }
-.me-title{ font-weight: 800; font-size: 18px; color:#eaf6ff; }
-.me-sub{ color:#d2e7ff; font-size: 13px; margin-top:2px; }
-.me-last5{ color:#cde9ff; }
+.me-title{ font-weight: 800; font-size: 18px; color:#fff; text-shadow:0 1px 1px rgba(0,0,0,.45);}
+.me-sub{ color:#e9f3ff; font-size: 13px; margin-top:2px; }
+.me-last5{ color:#def3ff; }
 .me-close{
   border:0; background:#172838; color:#fff; width:36px; height:36px;
   border-radius:10px; cursor:pointer;
@@ -200,33 +203,35 @@
 }
 .me-body .me-table thead th{
   position: sticky; top: 0; z-index: 2;
-  background: rgba(9,24,39,.18);
-  color:#eaf6ff;
+  background: rgba(9,24,39,.12);
+  color:#fff;
   padding:10px;
   font-size:13px;
   text-align:left;
   border-bottom:1px solid rgba(232,202,164,.18);
+  text-shadow: 0 1px 1px rgba(0,0,0,.45);
 }
 .me-body .me-table tbody{ display: table-row-group !important; }
 .me-body .me-table tbody tr{
   display: table-row !important;
-  background: rgba(12,26,41,.12);
+  background: rgba(12,26,41,.08);
 }
-.me-body .me-table tbody tr:hover td{ background: rgba(14,30,48,.22); }
+.me-body .me-table tbody tr:hover td{ background: rgba(14,30,48,.14); }
 .me-body .me-table tbody td{
   display: table-cell !important;
   padding:10px 12px;
-  color:#f3f9ff;
+  color:#fff;
   font-size:13px;
   border-top:1px solid rgba(255,255,255,.06);
   background:transparent;
+  text-shadow: 0 1px 1px rgba(0,0,0,.45);
 }
 .me-body .me-table tbody td::before{ content:none !important; }
 
 /* column helpers */
 .me-table .right{ text-align:right; }
 .me-table .clip{ max-width: 260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.overs{ opacity:.8; }
+.overs{ opacity:.85; }
 
 /* result badges */
 .res-badge{
@@ -251,8 +256,40 @@ div:has(.leaderboard-shell),
   backdrop-filter: none !important;
 }
 
-/* Fallback when backdrop-filter isn’t supported */
+/* =========================================================
+   MOBILE FLICKER GUARD
+   - Disable backdrop-filter on touch screens (cheapest fix)
+   - Avoid fixed/blurred background thrash on mobile
+   ========================================================= */
+@media (max-width: 900px), (pointer: coarse){
+  /* Soften glass to a simple translucent fill on mobile */
+  .leaderboard-table-wrapper{
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background:
+      linear-gradient(180deg, rgba(12,22,34,.30), rgba(12,22,34,.22)) !important;
+    border: 1px solid rgba(255,255,255,.10) !important;
+  }
+  .me-modal{
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(12,22,34,.88) !important;
+  }
+
+  /* If your background image sits on a fixed layer, drop fixed on mobile */
+  body::before,
+  #root::before,
+  .site-bg{
+    background-attachment: scroll !important;
+    transform: none !important;
+    will-change: auto !important;
+    filter: none !important;
+    backface-visibility: hidden;
+  }
+}
+
+/* Fallback when backdrop-filter isn’t supported at all */
 @supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))){
-  .leaderboard-table-wrapper{ background: rgba(15,27,40,.70); }
-  .me-modal{ background: rgba(15,27,40,.84); }
+  .leaderboard-table-wrapper{ background: rgba(15,27,40,.68); }
+  .me-modal{ background: rgba(15,27,40,.86); }
 }
