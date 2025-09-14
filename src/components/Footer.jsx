@@ -1,4 +1,3 @@
-// src/components/Footer.js
 import React from "react";
 
 export default function Footer() {
@@ -13,7 +12,6 @@ export default function Footer() {
           className="ce-footer__logo"
           loading="lazy"
         />
-
         <div className="ce-footer__copy">
           © {year} <span className="ce-footer__brand">CrickEdge</span>
         </div>
@@ -21,9 +19,13 @@ export default function Footer() {
 
       <style>{`
         .ce-footer{
-          background: linear-gradient(180deg,#0f1720,#0b1420);
-          border-top: 1px solid rgba(255,255,255,.06);
-          padding: 16px 12px 18px;
+          /* slimmer, lighter bezel with subtle glass */
+          background:
+            linear-gradient(180deg, rgba(15,23,32,.72), rgba(11,20,32,.68));
+          backdrop-filter: blur(6px) saturate(140%);
+          -webkit-backdrop-filter: blur(6px) saturate(140%);
+          border-top: 1px solid rgba(255,255,255,.08);
+          padding: 10px 12px;                 /* was 16/18 -> slimmer */
           display: flex;
           justify-content: center;
         }
@@ -31,20 +33,20 @@ export default function Footer() {
           width: 100%;
           max-width: 960px;
           display: flex;
-          flex-direction: column;     /* always stacked & centered */
+          flex-direction: column;
           align-items: center;
           text-align: center;
           gap: 6px;
         }
         .ce-footer__logo{
-          width: 128px;
+          width: 110px;                        /* slightly smaller */
           max-width: 60vw;
           height: auto;
-          filter: drop-shadow(0 0 10px rgba(255,184,0,.35));
+          filter: drop-shadow(0 0 10px rgba(255,184,0,.28));
         }
         .ce-footer__copy{
-          color: #dfe7ef;
-          font-size: 0.95rem;
+          color: #e7eef6;
+          font-size: .95rem;
           letter-spacing: .2px;
         }
         .ce-footer__brand{
@@ -52,8 +54,9 @@ export default function Footer() {
           font-weight: 700;
         }
         @media (max-width: 640px){
-          .ce-footer__logo{ width: 96px; }
-          .ce-footer__copy{ font-size: 0.9rem; }
+          .ce-footer__logo{ width: 92px; }
+          .ce-footer__copy{ font-size: .9rem; }
+          .ce-footer{ padding: 8px 10px; }     /* even slimmer on phones */
         }
       `}</style>
     </footer>

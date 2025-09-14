@@ -1,5 +1,5 @@
 /*****************************************************
- * Leaderboard.css — frameless + strong glass (v2)
+ * Leaderboard.css — frameless + strong glass (match Test)
  *****************************************************/
 
 /* ===== Shell (no bezel) ===== */
@@ -17,18 +17,18 @@
   padding: 10px 8px;
   border-radius: 16px;
 
-  /* frosted twin-tint, lighter alphas */
+  /* frosted twin-tint, lighter alphas (more see-through) */
   background:
-    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025))
-    ,rgba(10,18,28,.12);
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02))
+    ,rgba(10,18,28,.10);
   backdrop-filter: blur(18px) saturate(150%);
   -webkit-backdrop-filter: blur(18px) saturate(150%);
   background-clip: padding-box;
 
-  border: 1px solid rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.10);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.20),
-    0 10px 28px rgba(0,0,0,.30);
+    inset 0 1px 0 rgba(255,255,255,.18),
+    0 10px 28px rgba(0,0,0,.28);
 }
 
 /* ===== Table base ===== */
@@ -42,7 +42,7 @@
 }
 
 /* ===== Header ===== */
-.leaderboard-table thead tr{ background: rgba(9,24,39,.22); }
+.leaderboard-table thead tr{ background: rgba(9,24,39,.18); }
 .leaderboard-table thead th{
   font-weight: 700;
   color: #eaf6ff;
@@ -69,14 +69,14 @@
   text-overflow: ellipsis;
 }
 
-/* ===== Rows as translucent “cards” ===== */
+/* ===== Rows as translucent “cards” (lighter than before) ===== */
 .leaderboard-table tbody tr.lb-row{
-  background: rgba(12,26,41,.18);
+  background: rgba(12,26,41,.12);
   border: 1px solid rgba(255,255,255,.10);
   border-radius: 12px;
 }
 .leaderboard-table tbody tr.lb-row:hover{
-  background: rgba(14,30,48,.28);
+  background: rgba(14,30,48,.22);
 }
 
 /* medals + numbers */
@@ -143,7 +143,7 @@
 .me-head{
   display:flex; align-items: center; justify-content: space-between;
   padding: 12px 14px;
-  background: rgba(9,24,39,.24);
+  background: rgba(9,24,39,.22);
   border-bottom:1px solid rgba(255,255,255,.10);
 }
 .me-title{ font-weight: 800; font-size: 18px; color:#eaf6ff; }
@@ -200,7 +200,7 @@
 }
 .me-body .me-table thead th{
   position: sticky; top: 0; z-index: 2;
-  background: rgba(9,24,39,.22);
+  background: rgba(9,24,39,.18);
   color:#eaf6ff;
   padding:10px;
   font-size:13px;
@@ -210,9 +210,9 @@
 .me-body .me-table tbody{ display: table-row-group !important; }
 .me-body .me-table tbody tr{
   display: table-row !important;
-  background: rgba(12,26,41,.18);
+  background: rgba(12,26,41,.12);
 }
-.me-body .me-table tbody tr:hover td{ background: rgba(14,30,48,.28); }
+.me-body .me-table tbody tr:hover td{ background: rgba(14,30,48,.22); }
 .me-body .me-table tbody td{
   display: table-cell !important;
   padding:10px 12px;
@@ -238,42 +238,6 @@
 .res-L{ background:#ff4d4f; color:#2b0b0b; }
 .res-D{ background:#ffd34d; color:#2b1f00; }
 
-/* footer */
-.me-foot{
-  display:flex; align-items:center; justify-content:center; gap:12px;
-  padding: 10px 14px;
-  border-top:1px solid rgba(255,255,255,.08);
-}
-.me-btn{
-  border:1px solid rgba(255,255,255,.15);
-  background:#122134; color:#f3f9ff; padding:6px 12px; border-radius:8px; cursor:pointer;
-}
-.me-btn:disabled{ opacity:.5; cursor:not-allowed; }
-.me-page{ color:#cfe7ff; font-size:13px; }
-
-/* skeleton */
-.skel{
-  height: 34px; border-radius: 10px;
-  background: linear-gradient(90deg, rgba(255,255,255,.05) 25%, rgba(255,255,255,.12) 37%, rgba(255,255,255,.05) 63%);
-  background-size: 400% 100%;
-}
-
-/* Last 5 badges */
-.me-last5 .last5-badge{
-  display:inline-block;
-  min-width: 22px;
-  text-align:center;
-  padding: 2px 6px;
-  margin-left: 6px;
-  border-radius: 999px;
-  font-weight: 800;
-  font-size: 12px;
-  letter-spacing: .3px;
-}
-.me-last5 .last5-W{ background:#19f0a2; color:#052115; }
-.me-last5 .last5-L{ background:#ff4d4f; color:#2b0b0b; }
-.me-last5 .last5-D{ background:#ffd34d; color:#2b1f00; }
-
 /* ====== Strip any ancestor card that still paints a solid slab ====== */
 .card:has(.leaderboard-shell),
 section:has(.leaderboard-shell),
@@ -289,6 +253,6 @@ div:has(.leaderboard-shell),
 
 /* Fallback when backdrop-filter isn’t supported */
 @supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))){
-  .leaderboard-table-wrapper{ background: rgba(15,27,40,.72); }
-  .me-modal{ background: rgba(15,27,40,.86); }
+  .leaderboard-table-wrapper{ background: rgba(15,27,40,.70); }
+  .me-modal{ background: rgba(15,27,40,.84); }
 }
