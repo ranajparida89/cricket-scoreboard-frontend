@@ -249,4 +249,12 @@
 .me-last5 .last5-L{ background:#ff4d4f; color:#2b0b0b; }
 .me-last5 .last5-D{ background:#ffd34d; color:#2b1f00; }
 
-/* (We removed the old CSS that auto-added “ Score” to headers) */
+/* ========== Host wrapper bezel overrides (to kill big outer card) ========== */
+.card:has(> .leaderboard-shell),
+section:has(> .leaderboard-shell),
+div:has(> .leaderboard-shell){
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}

@@ -52,12 +52,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.tlfx-table thead th:first-child{
-  border-top-left-radius: 12px;
-}
-.tlfx-table thead th:last-child{
-  border-top-right-radius: 12px;
-}
+.tlfx-table thead th:first-child{ border-top-left-radius: 12px; }
+.tlfx-table thead th:last-child{  border-top-right-radius: 12px; }
 
 /* ===== Body Cells ===== */
 .tlfx-table tbody td{
@@ -139,6 +135,16 @@
     font-size: 14px;
     padding: 10px 8px;
   }
+}
+
+/* ========== Host wrapper bezel overrides (to kill big outer card) ========== */
+.card:has(> .tlfx-shell),
+section:has(> .tlfx-shell),
+div:has(> .tlfx-shell){
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
 }
 
 /* Reduced motion: nothing to disable (no animations used) */
