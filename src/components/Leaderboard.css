@@ -1,26 +1,27 @@
 /*****************************************************
- * Leaderboard.css — TRUE Glass (seamless rows)
- * - Header/body stay aligned (fixed column map)
- * - Rows are one frosted card (no column seams)
- * - Top 3: light gold glaze (subtle, classy)
+ * Leaderboard.css — ULTRA Glass (hairline, no bezels)
+ * - Headers/body aligned (fixed column map)
+ * - Rows = seamless frosted cards (no blue blocks)
+ * - Top 3 = soft gold glaze (subtle)
  *****************************************************/
 
-/* ---------- Vars ---------- */
+/* ---------- Glass tokens ---------- */
 .leaderboard-table{
-  --glass-bg-1: rgba(255,255,255,.10);
-  --glass-bg-2: rgba(255,255,255,.04);
-  --glass-brd : rgba(255,255,255,.14);
-  --glass-sh  : 0 4px 18px rgba(0,0,0,.25);
+  --glass-bg-1: rgba(255,255,255,.06);
+  --glass-bg-2: rgba(255,255,255,.025);
+  --glass-hair: rgba(255,255,255,.10);     /* hairline stroke */
+  --glass-inset: 0 0 0 1px var(--glass-hair) inset;
 
-  --gold-bg   : rgba(232,202,164,.16);
-  --gold-brd  : rgba(232,202,164,.38);
-  --gold-gx   : 0 6px 20px rgba(232,202,164,.14);
+  --gold-bg   : rgba(232,202,164,.08);
+  --gold-hair : rgba(232,202,164,.35);
+  --gold-inset: 0 0 0 1px var(--gold-hair) inset, 0 6px 14px rgba(232,202,164,.06);
 }
 
-/* ===== Shell (transparent) ===== */
+/* ===== Shell (no outer container look) ===== */
 .leaderboard-shell{
   background: transparent !important;
   border: 0 !important;
+  box-shadow: none !important;
   border-radius: 0;
   padding: 8px 0 12px;
 }
@@ -28,7 +29,7 @@
 
 /* ===== Table base ===== */
 .leaderboard-table{
-  width: 100%;
+  width:100%;
   border-collapse: separate;
   table-layout: fixed;            /* keep headers/body locked */
   border-spacing: 0 10px;         /* row gaps only */
@@ -54,23 +55,24 @@
 .leaderboard-table tbody td:nth-child(7){ width:84px; }
 .leaderboard-table thead th:nth-child(8),
 .leaderboard-table tbody td:nth-child(8){ width:120px; }
+
 .leaderboard-table thead th,
 .leaderboard-table tbody td{ box-sizing: border-box; }
 
-/* ===== Header (single frosted bar, no thick boxes) ===== */
+/* ===== Header (single glass bar, hairline only) ===== */
 .leaderboard-table thead{ position: relative; }
 .leaderboard-table thead::before{
   content:""; position:absolute; inset:0;
   border-radius:12px;
   background: linear-gradient(180deg, var(--glass-bg-1), var(--glass-bg-2));
-  border:1px solid var(--glass-brd);
+  /* remove bezel: no border, no drop shadow */
+  box-shadow: var(--glass-inset);           /* hairline inset */
   backdrop-filter: blur(14px) saturate(120%);
   -webkit-backdrop-filter: blur(14px) saturate(120%);
-  box-shadow: var(--glass-sh);
   pointer-events:none; z-index:0;
 }
 .leaderboard-table thead th{
-  position: relative; z-index:1;     /* sit above the bar */
+  position: relative; z-index:1;
   font-weight:700; color:#eaf6ff;
   font-size:14px; padding:12px 10px;
   letter-spacing:.2px; text-align:center;
@@ -86,41 +88,42 @@
   font-size:15px; color:#f3f9ff;
   text-align:center; border:0;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  background: transparent;          /* no per-cell backgrounds */
+  background: transparent;          /* absolutely no cell fills */
 }
 .leaderboard-table tbody td:first-child,
 .leaderboard-table tbody td:nth-child(2){ text-align:left; }
 
-/* ===== Seamless GLASS rows (no column blaze) ===== */
+/* ===== Seamless GLASS rows (no bezels) ===== */
 .leaderboard-table tbody tr.lb-row{
-  position: relative;               /* enable ::before card */
+  position: relative;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;     /* nuke any legacy shadows */
 }
 .leaderboard-table tbody tr.lb-row::before{
-  content:""; position:absolute; left:4px; right:4px; top:-1px; bottom:-1px;
+  content:""; position:absolute; left:6px; right:6px; top:-1px; bottom:-1px;
   border-radius:12px;
   background: linear-gradient(180deg, var(--glass-bg-1), var(--glass-bg-2));
-  border:1px solid var(--glass-brd);
+  box-shadow: var(--glass-inset);           /* hairline only */
   backdrop-filter: blur(16px) saturate(125%);
   -webkit-backdrop-filter: blur(16px) saturate(125%);
-  box-shadow: var(--glass-sh);
-  pointer-events:none; z-index:0;   /* single card behind cells */
+  pointer-events:none; z-index:0;
 }
-/* keep cell content above the glass card */
+/* put actual content above the card */
 .leaderboard-table tbody tr.lb-row > td{ position: relative; z-index:1; }
 
-/* Hover: slightly brighter glass */
+/* Hover: slightly brighter glass, still no bezel */
 .leaderboard-table tbody tr.lb-row:hover::before{
-  background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
+  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.045));
 }
 
-/* ===== Top 3 — light golden glass (professional) ===== */
+/* ===== Top 3 — SOFT gold (no punch) ===== */
 .leaderboard-table tbody tr.lb-row.top3::before{
-  background: linear-gradient(180deg, var(--gold-bg), rgba(255,255,255,.05));
-  border-color: var(--gold-brd);
-  box-shadow: var(--gold-gx);
+  background: linear-gradient(180deg, var(--gold-bg), rgba(255,255,255,.03));
+  box-shadow: var(--gold-inset);           /* thin gold hairline + faint glow */
 }
 
-/* ranking/labels */
+/* medals / labels */
 .medal-emoji{ font-size:1.05rem; margin-right:4px; }
 .team-name{ font-weight:800; letter-spacing:.2px; text-align:left; }
 .pos{ color:#c9ffef; } .neg{ color:#ffc2c2; }
@@ -129,7 +132,8 @@
 .nrr-cell{ position:relative; overflow:visible; height:34px; }
 .nrr-track{
   position:absolute; left:8px; right:8px; bottom:6px; height:6px;
-  border-radius:999px; background: rgba(255,255,255,.18);
+  border-radius:999px; background: rgba(255,255,255,.16);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;   /* hairline */
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
 }
 .nrr-bar{ position:absolute; bottom:6px; height:6px; border-radius:999px; }
@@ -146,22 +150,26 @@
 }
 
 /* =========================
-   Match Explorer (kept)
+   Match Explorer (unchanged visuals, lighter glass)
    ========================= */
 .me-overlay{
   position:fixed; inset:0; background:rgba(0,0,0,.55);
   display:flex; align-items:center; justify-content:center; z-index:1000;
 }
 .me-modal{
-  width:min(1100px,96vw); max-height:88vh; display:flex; flex-direction:column;
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-  border:1px solid rgba(255,255,255,.12); border-radius:14px; overflow:hidden;
-  backdrop-filter: blur(14px) saturate(120%); -webkit-backdrop-filter: blur(14px) saturate(120%);
+  width:min(1100px,96vw); max-height:88vh;
+  display:flex; flex-direction:column;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  border-radius:14px; overflow:hidden;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.10) inset; /* hairline only */
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
 }
 .me-head{
   display:flex; align-items:center; justify-content:space-between;
-  padding:12px 14px; background:rgba(13,31,47,.65);
-  border-bottom:1px solid rgba(255,255,255,.08); backdrop-filter: blur(10px);
+  padding:12px 14px; background:rgba(13,31,47,.55);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
+  backdrop-filter: blur(10px);
 }
 .me-title{ font-weight:800; font-size:18px; color:#eaf6ff; }
 .me-sub{ color:#d2e7ff; font-size:13px; margin-top:2px; }
@@ -174,25 +182,25 @@
 
 .me-filters{
   display:flex; flex-wrap:wrap; gap:10px 14px;
-  padding:10px 14px; border-bottom:1px solid rgba(255,255,255,.08);
+  padding:10px 14px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
 }
 .me-group{ display:flex; align-items:center; gap:8px; }
 .me-label{ color:#cfe0f4; font-size:12px; }
 .me-chip{
-  background: rgba(18,33,52,.75); color:#eaf6ff;
-  border:1px solid rgba(232,202,164,.55);
-  box-shadow: 0 0 0 1px rgba(232,202,164,.18) inset;
+  background: rgba(18,33,52,.65); color:#eaf6ff;
+  box-shadow: 0 0 0 1px rgba(232,202,164,.30) inset;
   padding:6px 10px; border-radius:999px; cursor:pointer; font-size:12px;
   backdrop-filter: blur(8px);
 }
-.me-chip:hover{ background: rgba(21,38,58,.85); }
+.me-chip:hover{ background: rgba(21,38,58,.78); }
 .me-chip.act{
-  background: rgba(24,48,73,.9); border-color:#e8caa4;
-  box-shadow: 0 0 0 1px rgba(232,202,164,.45) inset; color:#fff;
+  background: rgba(24,48,73,.85);
+  box-shadow: 0 0 0 1px rgba(232,202,164,.55) inset; color:#fff;
 }
 .me-select{
-  background: rgba(18,33,52,.8); color:#f3f9ff;
-  border:1px solid rgba(232,202,164,.35);
+  background: rgba(18,33,52,.7); color:#f3f9ff;
+  box-shadow: 0 0 0 1px rgba(232,202,164,.35) inset;
   border-radius:8px; padding:6px 8px; font-size:12px;
 }
 
@@ -202,15 +210,18 @@
 }
 .me-body .me-table thead{ display:table-header-group!important; }
 .me-body .me-table thead th{
-  position:sticky; top:0; z-index:2; background:rgba(13,31,47,.8);
+  position:sticky; top:0; z-index:2; background:rgba(13,31,47,.7);
   color:#eaf6ff; padding:10px; font-size:13px; text-align:left;
   border-bottom:1px solid rgba(232,202,164,.18);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   backdrop-filter: blur(10px);
 }
 .me-body .me-table tbody{ display:table-row-group!important; }
-.me-body .me-table tbody tr{ display:table-row!important; background:rgba(15,28,42,.6); backdrop-filter: blur(6px); }
-.me-body .me-table tbody tr:hover td{ background:rgba(18,36,57,.65); }
+.me-body .me-table tbody tr{
+  display:table-row!important; background:rgba(15,28,42,.5);
+  backdrop-filter: blur(6px);
+}
+.me-body .me-table tbody tr:hover td{ background:rgba(18,36,57,.56); }
 .me-body .me-table tbody td{
   display:table-cell!important; padding:10px 12px; color:#f3f9ff; font-size:13px;
   border-top:1px solid rgba(255,255,255,.06); background:transparent;
@@ -224,19 +235,19 @@
 .me-body .me-table thead th:nth-child(5)::after,
 .me-body .me-table thead th:nth-child(6)::after{ content:none!important; }
 
-/* small helpers */
 .me-table .right{ text-align:right; }
 .me-table .clip{ max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .overs{ opacity:.8; }
 
 .me-foot{
   display:flex; align-items:center; justify-content:center; gap:12px;
-  padding:10px 14px; border-top:1px solid rgba(255,255,255,.08);
+  padding:10px 14px; box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
 }
 .me-btn{
-  border:1px solid rgba(255,255,255,.15);
-  background: rgba(18,33,52,.8); color:#f3f9ff;
+  background: rgba(18,33,52,.65); color:#f3f9ff;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.15) inset;
   padding:6px 12px; border-radius:8px; cursor:pointer; backdrop-filter: blur(6px);
+  border:0;
 }
 .me-btn:disabled{ opacity:.5; cursor:not-allowed; }
 .me-page{ color:#cfe7ff; font-size:13px; }
