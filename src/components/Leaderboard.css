@@ -55,6 +55,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   text-shadow: 0 1px 1px rgba(0,0,0,.45);
+  box-sizing: border-box; /* keep widths consistent with td */
 }
 .leaderboard-table thead th:first-child{ border-top-left-radius: 12px; }
 .leaderboard-table thead th:last-child { border-top-right-radius: 12px; }
@@ -102,7 +103,26 @@
   overflow: hidden;
   text-overflow: ellipsis;
   text-shadow: 0 1px 1px rgba(0,0,0,.45);
+  box-sizing: border-box; /* keep widths consistent with th */
 }
+
+/* ---------- Column sizing & alignment (locks header/body) ---------- */
+/* 1) Narrow rank/pos col */
+.leaderboard-table thead th:nth-child(1),
+.leaderboard-table tbody td:nth-child(1){
+  width: 56px;               /* same in header & body */
+  min-width: 56px;
+  max-width: 56px;
+  text-align: center;
+}
+
+/* 2) Team column always left-aligned */
+.leaderboard-table thead th:nth-child(2),
+.leaderboard-table tbody td:nth-child(2){
+  text-align: left;
+}
+
+/* 3) Everything else centered by default (already set on td/th) */
 
 /* medals + numbers */
 .medal-emoji{ font-size: 1.05rem; margin-right: 4px; }
@@ -264,6 +284,7 @@
   text-align:left;
   border-bottom:1px solid rgba(232,202,164,.18);
   text-shadow: 0 1px 1px rgba(0,0,0,.45);
+  box-sizing: border-box;
 }
 .me-body .me-table tbody tr{
   position: relative;
@@ -286,6 +307,7 @@
   border-top:1px solid rgba(255,255,255,.06);
   background:transparent !important;
   text-shadow: 0 1px 1px rgba(0,0,0,.45);
+  box-sizing: border-box;
 }
 
 /* column helpers */
@@ -318,8 +340,6 @@ div:has(.leaderboard-shell),
 
 /* =========================================================
    FLICKER GUARD (mobile + “desktop mode” on mobile Chrome)
-   - Disable blur on coarse pointers even at large widths
-   - Also un-fix the bg if you’re using fixed-attachment
    ========================================================= */
 
 /* Normal mobile */

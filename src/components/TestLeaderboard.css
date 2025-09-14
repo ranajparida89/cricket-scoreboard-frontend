@@ -51,6 +51,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  box-sizing: border-box; /* lock widths with td */
 }
 .tlfx-table thead th:first-child{ border-top-left-radius: 12px; }
 .tlfx-table thead th:last-child { border-top-right-radius: 12px; }
@@ -65,9 +66,26 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  box-sizing: border-box;
 }
 .tlfx-table tbody td.team{ text-align: left; font-weight: 800; letter-spacing: .2px; }
 .rank{ width: 52px; }
+
+/* ---------- Column sizing & alignment (locks header/body) ---------- */
+/* 1) Narrow rank/pos col */
+.tlfx-table thead th:nth-child(1),
+.tlfx-table tbody td:nth-child(1){
+  width: 56px;
+  min-width: 56px;
+  max-width: 56px;
+  text-align: center;
+}
+
+/* 2) Team column always left */
+.tlfx-table thead th:nth-child(2),
+.tlfx-table tbody td:nth-child(2){
+  text-align: left;
+}
 
 /* Rows */
 .tlfx-row{

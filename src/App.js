@@ -54,6 +54,7 @@ import SchedulerPage from "./components/SchedulerPage";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import TeamDistributor from "./components/TeamDistributor";
+import BackgroundLayer from "./components/BackgroundLayer"; // ✅ NEW
 import AllBoardsView from "./components/AllBoardsView"; // ✅ Board Registration View
 import BoardRegistrationForm from "./components/BoardRegistrationForm";
 import BoardAnalyticsPro from "./components/BoardAnalyticsPro"; // 🔥 Pro Board Analytics UI
@@ -149,6 +150,7 @@ function App() {
   
   return (
     <div className={theme}>
+      <BackgroundLayer /> {/* ✅ NEW: sits behind the whole app */}
       <Router>
         <AppNavbar 
           onAuthClick={() => setShowAuthModal(true)} 

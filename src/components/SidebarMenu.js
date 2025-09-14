@@ -33,7 +33,7 @@ const SidebarMenu = () => {
   return (
     <div className={`sidebar-menu ${isOpen ? "open" : ""}`}>
       <div className="sidebar-header">
-        <h4>📘 CrickEdge</h4>
+        <h4>CrickEdge</h4>
         <button className="close-btn" onClick={handleClose}><FaTimes /></button>
       </div>
       <ul>
