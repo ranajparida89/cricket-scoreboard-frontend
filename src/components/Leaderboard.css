@@ -1,6 +1,8 @@
 /*****************************************************
  * Leaderboard.css — frameless + TRUE glass + mobile-stable
- * Root-cause fix: nuke tbody cell backgrounds + draw a row pseudo “card”
+ * Fixes:
+ *  - MAIN: exact 8-column map so headers never shift
+ *  - MODAL: force Date (col 1) and Res (last col) to render & stay visible
  *****************************************************/
 
 /* ===== Shell (no bezel) ===== */
@@ -18,7 +20,6 @@
   padding: 10px 8px;
   border-radius: 16px;
 
-  /* lighter alphas = stronger transparency */
   background:
     linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)),
     rgba(10,18,28,.06);
@@ -36,10 +37,15 @@
 .leaderboard-table{
   width: 100%;
   border-collapse: separate;
-  table-layout: fixed;
-  border-spacing: 0 8px;          /* vertical gaps to look like cards */
+  table-layout: fixed;           /* lock widths from col map below */
+  border-spacing: 0 8px;         /* vertical gaps to look like cards */
   background: transparent;
   margin: 0;
+}
+.leaderboard-table th,
+.leaderboard-table td{
+  box-sizing: border-box;
+  vertical-align: middle;
 }
 
 /* ===== Header ===== */
@@ -59,6 +65,32 @@
 .leaderboard-table thead th:first-child{ border-top-left-radius: 12px; }
 .leaderboard-table thead th:last-child { border-top-right-radius: 12px; }
 
+/* ====== FIX #1: Explicit 8-column map (R, T, M, W, L, D, Pts, NRR) ====== */
+.leaderboard-table thead th:nth-child(1),
+.leaderboard-table tbody td:nth-child(1){ width: 54px;  text-align:center; }
+
+.leaderboard-table thead th:nth-child(2),
+.leaderboard-table tbody td:nth-child(2){ width: 240px; text-align:left;  }
+
+.leaderboard-table thead th:nth-child(3),
+.leaderboard-table tbody td:nth-child(3){ width: 72px;  text-align:center; }
+
+.leaderboard-table thead th:nth-child(4),
+.leaderboard-table tbody td:nth-child(4),
+.leaderboard-table thead th:nth-child(5),
+.leaderboard-table tbody td:nth-child(5),
+.leaderboard-table thead th:nth-child(6),
+.leaderboard-table tbody td:nth-child(6){ width: 72px; text-align:center; }
+
+.leaderboard-table thead th:nth-child(7),
+.leaderboard-table tbody td:nth-child(7){ width: 82px; text-align:center; }
+
+.leaderboard-table thead th:nth-child(8),
+.leaderboard-table tbody td:nth-child(8){ width: 140px; text-align:center; }
+
+/* Guard against accidental hidden "spacer" cells */
+.leaderboard-table tbody td:empty{ padding:0; width:0; }
+
 /* ===== Root-cause reset (tbody) — strip any third-party backgrounds ===== */
 .leaderboard-table tbody tr,
 .leaderboard-table tbody td{
@@ -69,33 +101,30 @@
 /* ===== Glass row “card” via pseudo layer ===== */
 .leaderboard-table tbody tr{
   position: relative;
-  isolate: isolate;               /* new stacking context for the card layer */
-  border-radius: 12px;            /* helps clipping on newer browsers */
+  isolate: isolate;
+  border-radius: 12px;
 }
 .leaderboard-table tbody tr::before{
   content: "";
   position: absolute;
   inset: 0;
   border-radius: 12px;
-  background: rgba(12,26,41,.08);              /* transparent glass */
+  background: rgba(12,26,41,.08);
   border: 1px solid rgba(255,255,255,.08);
   box-shadow: 0 1px 0 rgba(255,255,255,.10) inset;
-  z-index: 0;                                   /* sits behind cell content */
+  z-index: 0;
   pointer-events: none;
 }
 
 /* keep cell content above the glass layer */
-.leaderboard-table tbody td{
-  position: relative;
-  z-index: 1;
-}
+.leaderboard-table tbody td{ position: relative; z-index: 1; }
 
 /* ===== Body cells (crisp & bright) ===== */
 .leaderboard-table tbody td{
   padding: 12px 10px;
   font-size: 15px;
   color: #ffffff;
-  font-weight: 700;                            /* stronger readability */
+  font-weight: 700;
   text-align: center;
   border: 0;
   white-space: nowrap;
@@ -117,15 +146,13 @@
   border-radius: 999px; background: rgba(255,255,255,.14);
 }
 .nrr-bar{
-  position: absolute; bottom: 6px; height: 6px;
-  border-radius: 999px;
+  position: absolute; bottom: 6px; height: 6px; border-radius: 999px;
 }
 .from-left  { left: 8px; }
 .from-right { right: 8px; }
 
 /* =========================================================
-   SOFT Top-3 tint (gold/silver/bronze) — no animations
-   - Kill any prior bright fills, then use subtle tinted glass on ::before
+   SOFT Top-3 tint (gold/silver/bronze)
    ========================================================= */
 .leaderboard-table tbody tr.top1,
 .leaderboard-table tbody tr.top2,
@@ -143,7 +170,6 @@
     0 0 0 1px rgba(255,214,107,.22),
     0 10px 22px rgba(255,214,107,.10);
 }
-
 /* Silver */
 .leaderboard-table tbody tr.top2::before{
   background: linear-gradient(180deg, rgba(210,220,232,.12), rgba(210,220,232,.08));
@@ -152,7 +178,6 @@
     0 0 0 1px rgba(210,220,232,.20),
     0 10px 20px rgba(210,220,232,.08);
 }
-
 /* Bronze */
 .leaderboard-table tbody tr.top3::before{
   background: linear-gradient(180deg, rgba(205,127,50,.14), rgba(205,127,50,.10));
@@ -169,6 +194,9 @@
     font-size: 14px;
     padding: 10px 8px;
   }
+  /* tighter team width on mobile */
+  .leaderboard-table thead th:nth-child(2),
+  .leaderboard-table tbody td:nth-child(2){ width: 180px; }
 }
 
 /* =========================
@@ -248,13 +276,13 @@
 
 /* ---------- Compact table inside modal ---------- */
 .me-body{ padding: 12px 14px; overflow:auto; }
-.me-body .me-table thead{ display: table-header-group !important; }
-
 .me-body .me-table{
   width:100%;
   border-collapse: separate;
   border-spacing: 0;
+  table-layout: fixed;                 /* lock widths so first/last never vanish */
 }
+.me-body .me-table thead{ display: table-header-group !important; }
 .me-body .me-table thead th{
   position: sticky; top: 0; z-index: 2;
   background: rgba(9,24,39,.12);
@@ -263,6 +291,7 @@
   font-size:13px;
   text-align:left;
   border-bottom:1px solid rgba(232,202,164,.18);
+  white-space: nowrap;
   text-shadow: 0 1px 1px rgba(0,0,0,.45);
 }
 .me-body .me-table tbody tr{
@@ -286,6 +315,30 @@
   border-top:1px solid rgba(255,255,255,.06);
   background:transparent !important;
   text-shadow: 0 1px 1px rgba(0,0,0,.45);
+}
+
+/* ====== FIX #2: Modal 7-column map (Date, Fmt, Tournament, Opponent, Team Score, Opp Score, Res) ====== */
+.me-body .me-table thead th:nth-child(1),
+.me-body .me-table tbody td:nth-child(1){ min-width: 110px; width:110px; } /* Date */
+
+.me-body .me-table thead th:nth-child(2),
+.me-body .me-table tbody td:nth-child(2){ min-width: 64px;  width:64px;  text-align:center; } /* Fmt */
+
+.me-body .me-table thead th:nth-child(3),
+.me-body .me-table tbody td:nth-child(3){ min-width: 190px; width:190px; } /* Tournament */
+
+.me-body .me-table thead th:nth-child(4),
+.me-body .me-table tbody td:nth-child(4){ min-width: 200px; width:200px; } /* Opponent */
+
+.me-body .me-table thead th:nth-child(5),
+.me-body .me-table tbody td:nth-child(5){ min-width: 170px; width:170px; } /* Team Score */
+
+.me-body .me-table thead th:nth-child(6),
+.me-body .me-table tbody td:nth-child(6){ min-width: 170px; width:170px; } /* Opp Score */
+
+.me-body .me-table thead th:nth-child(7),
+.me-body .me-table tbody td:nth-child(7){
+  min-width: 70px; width:70px; text-align:center;  /* Res (ensure it shows) */
 }
 
 /* column helpers */
@@ -318,8 +371,6 @@ div:has(.leaderboard-shell),
 
 /* =========================================================
    FLICKER GUARD (mobile + “desktop mode” on mobile Chrome)
-   - Disable blur on coarse pointers even at large widths
-   - Also un-fix the bg if you’re using fixed-attachment
    ========================================================= */
 
 /* Normal mobile */
