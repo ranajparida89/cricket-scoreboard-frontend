@@ -1,31 +1,39 @@
 /*****************************************************
- * Leaderboard.css — frameless + compact + polished
+ * Leaderboard.css — frameless + glass + compact
  *****************************************************/
 
-/* ===== Shell (remove bezel) ===== */
+/* ===== Shell (no bezel) ===== */
 .leaderboard-shell{
-  background: transparent;                 /* no card background */
-  border: 0;                               /* no outer border */
+  background: transparent;
+  border: 0;
   border-radius: 0;
-  padding: 0;                              /* no inner padding */
-  margin: 0 0 12px;                        /* small breathing room below */
+  padding: 0;
+  margin: 0 0 12px;
 }
 
-/* Wrapper keeps header/body aligned */
-.leaderboard-table-wrapper{ padding: 0 6px; }
+/* ===== Glass sheet behind the table ===== */
+.leaderboard-table-wrapper{
+  position: relative;
+  padding: 8px 6px;                      /* small inner spacing */
+  border-radius: 14px;
+  background: rgba(13,31,47,0.35);       /* glass tint */
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
+  border: 1px solid rgba(255,255,255,.10);
+}
 
 /* ===== Table base ===== */
 .leaderboard-table{
   width: 100%;
   border-collapse: separate;
   table-layout: fixed;
-  border-spacing: 0 8px;                   /* gentle vertical gaps */
+  border-spacing: 0 8px;                 /* gentle vertical gaps */
   background: transparent;
   margin: 0;
 }
 
 /* ===== Header ===== */
-.leaderboard-table thead tr{ background: rgba(13,31,47,.92); }
+.leaderboard-table thead tr{ background: rgba(13,31,47,.66); }
 .leaderboard-table thead th{
   font-weight: 700;
   color: #eaf6ff;
@@ -44,7 +52,7 @@
 .leaderboard-table tbody td{
   padding: 12px 10px;
   font-size: 15px;
-  color: #f3f9ff;                          /* brighter */
+  color: #f3f9ff;
   text-align: center;
   border: 0;
   white-space: nowrap;
@@ -52,17 +60,17 @@
   text-overflow: ellipsis;
 }
 
-/* ===== Rows styled as soft translucent “cards” ===== */
+/* ===== Rows as translucent “cards” ===== */
 .leaderboard-table tbody tr.lb-row{
-  background: rgba(17,32,48,.55);          /* translucent row fill */
-  border: 1px solid rgba(255,255,255,.07); /* softer line */
+  background: rgba(17,32,48,.42);        /* let the glass show through */
+  border: 1px solid rgba(255,255,255,.08);
   border-radius: 10px;
 }
 .leaderboard-table tbody tr.lb-row:hover{
-  background: rgba(18,36,57,.65);
+  background: rgba(18,36,57,.54);
 }
 
-/* ranking medals + basic colors */
+/* medals + numbers */
 .medal-emoji{ font-size: 1.05rem; margin-right: 4px; }
 .pos{ color:#c9ffef; }
 .neg{ color:#ffc2c2; }
@@ -110,16 +118,18 @@
   width: min(1100px, 96vw);
   max-height: 88vh;
   display:flex; flex-direction: column;
-  background: rgba(15,27,40,.85);          /* subtle translucency */
-  border:1px solid rgba(255,255,255,.10);
+  background: rgba(15,27,40,.55);        /* more glassy */
+  backdrop-filter: blur(12px) saturate(130%);
+  -webkit-backdrop-filter: blur(12px) saturate(130%);
+  border:1px solid rgba(255,255,255,.12);
   border-radius: 14px;
   overflow: hidden;
 }
 .me-head{
   display:flex; align-items: center; justify-content: space-between;
   padding: 12px 14px;
-  background: rgba(13,31,47,.92);
-  border-bottom:1px solid rgba(255,255,255,.08);
+  background: rgba(13,31,47,.66);
+  border-bottom:1px solid rgba(255,255,255,.10);
 }
 .me-title{ font-weight: 800; font-size: 18px; color:#eaf6ff; }
 .me-sub{ color:#d2e7ff; font-size: 13px; margin-top:2px; }
@@ -142,7 +152,7 @@
 .me-chip{
   background:#122134;
   color:#eaf6ff;
-  border:1px solid rgba(232,202,164,.55);        /* thin golden */
+  border:1px solid rgba(232,202,164,.55);
   box-shadow: 0 0 0 1px rgba(232,202,164,.18) inset;
   padding:6px 10px;
   border-radius:999px;
@@ -175,28 +185,28 @@
 }
 .me-body .me-table thead th{
   position: sticky; top: 0; z-index: 2;
-  background: rgba(13,31,47,.92);
+  background: rgba(13,31,47,.66);
   color:#eaf6ff;
   padding:10px;
   font-size:13px;
   text-align:left;
-  border-bottom:1px solid rgba(232,202,164,.18); /* soft line */
+  border-bottom:1px solid rgba(232,202,164,.18);
 }
 .me-body .me-table tbody{ display: table-row-group !important; }
 .me-body .me-table tbody tr{
   display: table-row !important;
-  background: rgba(15,28,42,.55);
+  background: rgba(15,28,42,.42);
 }
-.me-body .me-table tbody tr:hover td{ background:#122439; }
+.me-body .me-table tbody tr:hover td{ background: rgba(18,36,57,.54); }
 .me-body .me-table tbody td{
   display: table-cell !important;
   padding:10px 12px;
-  color:#f3f9ff;                     /* brighter text */
+  color:#f3f9ff;
   font-size:13px;
-  border-top:1px solid rgba(255,255,255,.06);    /* soft separators */
+  border-top:1px solid rgba(255,255,255,.06);
   background:transparent;
 }
-.me-body .me-table tbody td::before{ content:none !important; } /* no pseudo labels */
+.me-body .me-table tbody td::before{ content:none !important; }
 
 /* column helpers */
 .me-table .right{ text-align:right; }
@@ -209,9 +219,9 @@
   padding: 3px 8px; font-weight: 800; font-size: 12px; letter-spacing:.5px;
   border-radius: 999px; color:#061a12;
 }
-.res-W{ background:#19f0a2; color:#052115; }      /* brighter green */
-.res-L{ background:#ff4d4f; color:#2b0b0b; }      /* brighter red   */
-.res-D{ background:#ffd34d; color:#2b1f00; }      /* warmer yellow  */
+.res-W{ background:#19f0a2; color:#052115; }
+.res-L{ background:#ff4d4f; color:#2b0b0b; }
+.res-D{ background:#ffd34d; color:#2b1f00; }
 
 /* footer */
 .me-foot{
@@ -249,7 +259,7 @@
 .me-last5 .last5-L{ background:#ff4d4f; color:#2b0b0b; }
 .me-last5 .last5-D{ background:#ffd34d; color:#2b1f00; }
 
-/* ========== Host wrapper bezel overrides (to kill big outer card) ========== */
+/* ========== Host wrapper bezel overrides ========== */
 .card:has(> .leaderboard-shell),
 section:has(> .leaderboard-shell),
 div:has(> .leaderboard-shell){

@@ -1,13 +1,12 @@
 /*****************************************************
- * TestLeaderboard.css — frameless + professional
- * No animation, no transforms
+ * TestLeaderboard.css — frameless + glass
  *****************************************************/
 
 /* ===== Shell (frameless) ===== */
 .tlfx-shell{
   position: relative;
   width: 100%;
-  padding: 0;                           /* remove extra spacing */
+  padding: 0;
 }
 
 /* Old glass card: neutralize (no bezel) */
@@ -18,13 +17,19 @@
   border: 0;
 }
 
-/* Title just uses inline green from component */
+/* Title uses inline green from component */
 .tlfx-title{ letter-spacing: .3px; }
 
-/* ===== Table Wrap ===== */
+/* ===== Glass sheet behind the table ===== */
 .tlfx-table-wrap{
+  position: relative;
   overflow-x: auto;
-  padding: 0 6px;
+  padding: 8px 6px;
+  border-radius: 14px;
+  background: rgba(13,31,47,0.35);
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
+  border: 1px solid rgba(255,255,255,.10);
 }
 
 /* ===== Table Base ===== */
@@ -38,16 +43,16 @@
 }
 
 /* ===== Header ===== */
-.tlfx-table thead tr{ background: rgba(13,31,47,.92) !important; }
+.tlfx-table thead tr{ background: rgba(13,31,47,.66) !important; }
 .tlfx-table thead th{
-  background: rgba(13,31,47,.92) !important;      /* translucent blue bar */
+  background: rgba(13,31,47,.66) !important;
   color: #f4fbff !important;
   font-weight: 800;
   font-size: 14px;
   letter-spacing: .3px;
   padding: 12px 10px;
   border: 0 !important;
-  border-bottom: 1px solid rgba(232,202,164,.18) !important; /* hairline */
+  border-bottom: 1px solid rgba(232,202,164,.18) !important;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -59,7 +64,7 @@
 .tlfx-table tbody td{
   padding: 12px 10px;
   font-size: 15px;
-  color: #f3f9ff;                         /* brighter */
+  color: #f3f9ff;
   border: 0;
   text-align: center;
   white-space: nowrap;
@@ -75,11 +80,11 @@
 
 /* ===== Rows (soft translucent) ===== */
 .tlfx-row{
-  background: rgba(17,32,48,.55);
-  border: 1px solid rgba(255,255,255,.07);
+  background: rgba(17,32,48,.42);
+  border: 1px solid rgba(255,255,255,.08);
   border-radius: 10px;
 }
-.tlfx-row:hover td{ background: rgba(18,36,57,.60); }
+.tlfx-row:hover td{ background: rgba(18,36,57,.54); }
 
 /* Emphasis for values */
 .pos{ color:#c9ffef; }
@@ -137,7 +142,7 @@
   }
 }
 
-/* ========== Host wrapper bezel overrides (to kill big outer card) ========== */
+/* ========== Host wrapper bezel overrides ========== */
 .card:has(> .tlfx-shell),
 section:has(> .tlfx-shell),
 div:has(> .tlfx-shell){
@@ -147,5 +152,5 @@ div:has(> .tlfx-shell){
   padding: 0 !important;
 }
 
-/* Reduced motion: nothing to disable (no animations used) */
+/* Reduced motion: nothing to disable */
 @media (prefers-reduced-motion: reduce){ }
