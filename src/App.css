@@ -1,9 +1,9 @@
 /************************************************************
  * App.css — CrickEdge Base + Midnight Teal Mist Background
- * - NEW: Background is drawn directly on <body> (no extra files)
- * - Mobile-safe (scroll); Desktop adds subtle fixed parallax
- * - Old BackgroundLayer classes are neutralized (display:none)
- * - Cards/panels remain translucent and professional
+ * - NEW THEME is applied to html, body and #root (hard override)
+ * - Mobile = scroll background; Desktop (pointer:fine) = fixed
+ * - Keeps existing glass cards/panels; no extra files/components
+ * - Neutralizes any old background layer that might conflict
  ************************************************************/
 
 /* ===== App layout ===== */
@@ -27,35 +27,36 @@ main { flex: 1; }
 body { margin: 0; }
 
 /* =========================================================
-   🎨 THEME: Midnight Teal Mist (applied on <body>)
-   - Mobile: background-attachment: scroll (prevents flicker)
-   - Desktop (pointer: fine): fixed attachment for subtle depth
-   - If any solid body bg exists elsewhere, this wins via !important
+   🎨 THEME: Midnight Teal Mist (HARD OVERRIDE)
+   Why this block is strong:
+   - We paint html, body *and* #root so no upstream CSS can hide it.
+   - Use background-* with !important to beat late-loaded styles.
    ========================================================= */
 html, body, #root { height: 100%; }
 
-body{
-  background-color: #070F14; /* safe fallback */
-  background:
+html, body, #root {
+  background-color: #070F14 !important; /* solid fallback */
+  background-image:
     radial-gradient(900px 520px at 18% 0%,  rgba(38,116,128,.12), transparent 55%),
     radial-gradient(900px 520px at 82% -10%, rgba(58,86,160,.10), transparent 60%),
     linear-gradient(180deg, #0A1417 0%, #070F14 100%) !important;
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-attachment: scroll; /* phones/tablets: avoid jank */
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+  background-attachment: scroll !important; /* phones/tablets: avoid jank */
 }
 
 /* Desktop/laptop only: tasteful parallax */
 @media (min-width: 1024px) and (pointer: fine){
-  body { background-attachment: fixed; }
+  html, body, #root { background-attachment: fixed !important; }
 }
 
 /* Data/low-power users: keep a solid background */
 @media (prefers-reduced-data: reduce){
-  body { background: #070F14 !important; }
+  html, body, #root { background: #070F14 !important; }
 }
 
 /* Ensure wrappers don’t paint over the theme */
+#root, .App,
 .app-shell, .container, .page, .content, .card, .panel,
 .dark, body.dark, #root.dark,
 .light, body.light, #root.light,
