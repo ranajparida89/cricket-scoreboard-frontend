@@ -47,9 +47,11 @@ body[class*="bg-"] {
   position:absolute; inset:0;
   z-index: 0;
   pointer-events:none;
+  /* Use CRA public URL token so webpack doesn't try to import it */
   background:
-    url(/* webpackIgnore: true */ "/stadium123.jpg") center / cover no-repeat;
+    url(%PUBLIC_URL%/stadium123.jpg) center / cover no-repeat;
 }
+
 
 
 /* 3) Non-filtered tint overlay on top of the image (same stable layer) */
