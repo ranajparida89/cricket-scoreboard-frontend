@@ -1,105 +1,14 @@
 /* ==== Slumber fonts (load first) ========================================== */
 @import url("https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&family=Karla:wght@400;700&display=swap");
 
-/* =============================
-   STABLE BACKGROUND (NO FLICKER)
-   - Do NOT paint on <body>
-   - Use a fixed layer behind the app
-   - Stadium photo + subtle tint
-   ============================= */
-
-/* Theme tokens (change these to re-color the tint) */
-:root{
-  --bg-base-1: #1A0F20;   /* deep plum top */
-  --bg-base-2: #120916;   /* deeper plum bottom */
-  --bg-tint-1: rgba(217, 99, 255, .16);  /* magenta glow */
-  --bg-tint-2: rgba(255,136, 64 , .14);  /* ember glow   */
-}
-
-/* 0) Never draw the page background on body (prevents mobile flicker) */
+/* 🌙 Global Dark Background (UPDATED: font-family -> Karla) */
 body {
-  background: transparent !important;
+  background-color: #0c1c2c;
   color: #ffffff;
-  font-family: "Karla", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: "Karla", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif; /* UPDATED */
   margin: 0;
   padding: 0;
 }
-
-/* === STEP C: block any Bootstrap bg-* from painting the body ============== */
-body.bg-dark,
-body.bg-light,
-body[class*="bg-"] {
-  background: transparent !important;
-}
-
-/* 1) Fixed, behind-the-app layer (must exist in DOM; you already use it) */
-.ce-bg-layer{
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  contain: strict;
-}
-
-/* 2) Stadium image on ::before (file is in /public) */
-.ce-bg-layer::before{
-  content:"";
-  position:absolute; inset:0;
-  z-index: 0;
-  pointer-events:none;
-  /* Use CRA public URL token so webpack doesn't try to import it */
-  background:
-    url(%PUBLIC_URL%/stadium123.jpg) center / cover no-repeat;
-}
-
-
-
-/* 3) Non-filtered tint overlay on top of the image (same stable layer) */
-.ce-bg-layer::after{
-  content:"";
-  position:absolute; inset:0;
-  z-index: 1;
-  pointer-events:none;
-  background:
-    radial-gradient(900px 520px at 16% -6%,  var(--bg-tint-1), transparent 55%),
-    radial-gradient(900px 520px at 84% -10%, var(--bg-tint-2), transparent 60%),
-    linear-gradient(180deg, var(--bg-base-1) 0%, var(--bg-base-2) 100%);
-}
-
-/* 4) If your component also renders an <img.ce-bg-layer__img>, keep it inert */
-.ce-bg-layer__img{
-  position:absolute; inset:0; width:100%; height:100%;
-  object-fit:cover;
-  transform:none !important;           /* no parallax on mobile */
-  backface-visibility:hidden;
-  will-change: auto !important;
-  z-index: 0;                           /* below the tint */
-  display:none;                         /* disable if using ::before background */
-}
-
-/* 5) Extra guard for coarse pointers */
-@media (max-width: 900px), (pointer: coarse){
-  .ce-bg-layer__img{ transform:none !important; will-change:auto !important; }
-}
-
-/* ====== OPTIONAL quick theme swaps via <body class="theme-..."> ====== */
-body.theme-sage {
-  --bg-base-1: #0f1712; --bg-base-2: #0c120e;
-  --bg-tint-1: rgba(132,239,195,.16);
-  --bg-tint-2: rgba(147,197,114,.14);
-}
-body.theme-sunset {
-  --bg-base-1: #1e0f12; --bg-base-2: #120a0c;
-  --bg-tint-1: rgba(255,138,76,.16);
-  --bg-tint-2: rgba(255,71,133,.14);
-}
-body.theme-royal {
-  --bg-base-1: #120f1e; --bg-base-2: #0b0a16;
-  --bg-tint-1: rgba(145,110,255,.16);
-  --bg-tint-2: rgba(64,191,255,.14);
-}
-
-/* =================== YOUR EXISTING THEME RULES (kept) =================== */
 
 /* 📦 Card Containers (Forms, Leaderboard, Match Cards) */
 .card {
@@ -110,10 +19,11 @@ body.theme-royal {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* 🧾 Match Form Headings */
+/* 🧾 Match Form Headings
+   (UPDATED: headings use Josefin Sans for the screenshot vibe) */
 h1, h2, h3, .page-title, .tcpro-title {
-  font-family: "Josefin Sans", "Karla", sans-serif;
-  letter-spacing: .02em;
+  font-family: "Josefin Sans", "Karla", sans-serif; /* UPDATED */
+  letter-spacing: .02em;                             /* UPDATED */
 }
 h2, h3, h4 {
   color: #00d2ff;
@@ -171,7 +81,7 @@ h2, h3, h4 {
   box-shadow: 0 0 18px #0ff2, 0 1px 8px #008da3;
 }
 
-/* 🏆 Enhanced Table Styling */
+/* 🏆 Enhanced Table Styling - [Ranaj Parida - 2025-04-12] */
 .table {
   background-color: #112233;
   color: #f0f0f0;
@@ -181,14 +91,14 @@ h2, h3, h4 {
   width: 100%;
 }
 
-/* ✅ Scrollable Container for Sticky Headers */
+/* ✅ Scrollable Container for Sticky Headers - [Ranaj Parida - 2025-04-13 | 11:15 AM] */
 .table-responsive {
   max-height: 500px;
   overflow-y: auto;
   position: relative;
 }
 
-/* ✅ Sticky Headers */
+/* ✅ Sticky Headers for Tables - [Ranaj Parida - 2025-04-13 | 10:40 AM] */
 .table thead th {
   background-color: #1b2a3c;
   color: #ffe57f;
@@ -209,19 +119,36 @@ h2, h3, h4 {
 }
 
 /* 🧊 Alternate row shading */
-.table tr:nth-child(even) td { background-color: #192c3c; }
+.table tr:nth-child(even) td {
+  background-color: #192c3c;
+}
 
 /* ✨ Row Hover */
-.table tr:hover td { background-color: #1f3b56; color: #ffffff; }
+.table tr:hover td {
+  background-color: #1f3b56;
+  color: #ffffff;
+}
 
-/* 🥇 Medal Rank Rows */
-.table tbody tr:nth-child(1) { background-color: #ffd700 !important; color:#000 !important; font-weight:bold; }
-.table tbody tr:nth-child(2) { background-color: #c0c0c0 !important; color:#000 !important; font-weight:bold; }
-.table tbody tr:nth-child(3) { background-color: #cd7f32 !important; color:#000 !important; font-weight:bold; }
+/* 🥇 Medal Rank Rows - [Ranaj Parida - 2025-04-12] */
+.table tbody tr:nth-child(1) {
+  background-color: #ffd700 !important;
+  color: #000 !important;
+  font-weight: bold;
+}
+.table tbody tr:nth-child(2) {
+  background-color: #c0c0c0 !important;
+  color: #000 !important;
+  font-weight: bold;
+}
+.table tbody tr:nth-child(3) {
+  background-color: #cd7f32 !important;
+  color: #000 !important;
+  font-weight: bold;
+}
 
-/* ✅ Color-Coded Match Type Rows */
-.table tbody tr.odi-row  { background-color: #102f47 !important; }
-.table tbody tr.t20-row  { background-color: #3b2d3e !important; }
+/* ✅ Color-Coded Match Type Rows - [Ranaj Parida - 2025-04-13 | 10:40 AM] */
+.table tbody tr.odi-row { background-color: #102f47 !important; }
+.table tbody tr.t20-row { background-color: #3b2d3e !important; }
 .table tbody tr.test-row { background-color: #1a3d2f !important; }
 
 /* ✨ Match Card Styles */
@@ -239,7 +166,12 @@ h2, h3, h4 {
 .match-card .result { font-size: 14px; color: #90caf9; }
 
 /* 🇮🇳 Flag and Layout Support */
-.flag-icon { width: 24px; height: 18px; object-fit: contain; margin-right: 6px; }
+.flag-icon {
+  width: 24px;
+  height: 18px;
+  object-fit: contain;
+  margin-right: 6px;
+}
 .flex-align { display: flex; align-items: center; }
 
 /* 📱 Responsive Adjustments */
@@ -249,48 +181,105 @@ h2, h3, h4 {
   .table th, .table td { font-size: 13px; padding: 8px; }
 }
 
-/* 🌐 Navbar (SCOPED) */
+/* 🌐 Navbar (SCOPED)
+   UPDATED: apply the old dark-blue navbar only to navbars that are NOT the new Slumber navbar. */
 .navbar:not(.slumber-nav) {
   background-color: #0c1c2c;
   border-bottom: 1px solid #00d2ff;
 }
-.navbar-brand, .nav-link { color: #ffffff !important; font-weight: 500; }
+.navbar-brand,
+.nav-link {
+  color: #ffffff !important;
+  font-weight: 500;
+}
 .nav-link:hover { color: #00d2ff !important; }
 
-/* 👉 Navbar Action Button Group */
+/* 👉 Navbar Action Button Group (custom, for +Add Match/+Test Match) */
 .navbar-actions-group {
-  margin-left: auto; display: flex; flex-direction: row; align-items: center; gap: 12px;
+  margin-left: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
 }
 @media (max-width: 992px) {
-  .navbar-actions-group { margin-top: 8px; margin-bottom: 4px; justify-content:flex-end; width:100%; gap:8px; }
+  .navbar-actions-group {
+    margin-top: 8px;
+    margin-bottom: 4px;
+    justify-content: flex-end;
+    width: 100%;
+    gap: 8px;
+  }
 }
 
 /* 📌 Utility */
 .text-center { text-align: center; }
 .text-light  { color: #e0e0e0 !important; }
 
-/* ✅ Medal Row Animations */
-.gold   { background-color:#ffd700 !important; color:#000 !important; font-weight:bold; animation:pulseGold 2s infinite; }
-.silver { background-color:#c0c0c0 !important; color:#000 !important; font-weight:bold; animation:pulseSilver 2s infinite; }
-.bronze { background-color:#cd7f32 !important; color:#000 !important; font-weight:bold; animation:pulseBronze 2s infinite; }
+/* ✅ Medal Row Animations - [Ranaj Parida - 2025-04-13 | 11:55 PM] */
+.gold {
+  background-color: #ffd700 !important;
+  color: #000 !important;
+  font-weight: bold;
+  animation: pulseGold 2s infinite;
+}
+.silver {
+  background-color: #c0c0c0 !important;
+  color: #000 !important;
+  font-weight: bold;
+  animation: pulseSilver 2s infinite;
+}
+.bronze {
+  background-color: #cd7f32 !important;
+  color: #000 !important;
+  font-weight: bold;
+  animation: pulseBronze 2s infinite;
+}
 
-@keyframes pulseGold  { 0%,100%{box-shadow:0 0 10px #ffe066,0 0 20px #ffd700;} 50%{box-shadow:0 0 20px #ffcc00,0 0 30px #ffea00;} }
-@keyframes pulseSilver{ 0%,100%{box-shadow:0 0 10px #e0e0e0,0 0 20px #c0c0c0;} 50%{box-shadow:0 0 20px #d6d6d6,0 0 30px #f5f5f5;} }
-@keyframes pulseBronze{ 0%,100%{box-shadow:0 0 10px #cd7f32,0 0 20px #a0522d;} 50%{box-shadow:0 0 20px #b87333,0 0 30px #d2691e;} }
+/* ✨ Keyframe Animations - [Ranaj Parida - 2025-04-13 | 11:55 PM] */
+@keyframes pulseGold {
+  0%, 100% { box-shadow: 0 0 10px #ffe066, 0 0 20px #ffd700; }
+  50%      { box-shadow: 0 0 20px #ffcc00, 0 0 30px #ffea00; }
+}
+@keyframes pulseSilver {
+  0%, 100% { box-shadow: 0 0 10px #e0e0e0, 0 0 20px #c0c0c0; }
+  50%      { box-shadow: 0 0 20px #d6d6d6, 0 0 30px #f5f5f5; }
+}
+@keyframes pulseBronze {
+  0%, 100% { box-shadow: 0 0 10px #cd7f32, 0 0 20px #a0522d; }
+  50%      { box-shadow: 0 0 20px #b87333, 0 0 30px #d2691e; }
+}
 
-/* ✅ Medal Emoji Sparkle */
-.medal-emoji { animation: glow 1.8s infinite ease-in-out; font-size: 1.2em; }
-@keyframes glow { 0%{text-shadow:0 0 5px #ffd700; transform:scale(1);} 50%{text-shadow:0 0 15px #fff176; transform:scale(1.2);} 100%{text-shadow:0 0 5px #ffd700; transform:scale(1);} }
+/* ✅ Medal Emoji Sparkle Animation - [Ranaj Parida - 2025-04-13 | 11:59 PM] */
+.medal-emoji {
+  animation: glow 1.8s infinite ease-in-out;
+  font-size: 1.2em;
+}
+@keyframes glow {
+  0%   { text-shadow: 0 0 5px #ffd700; transform: scale(1); }
+  50%  { text-shadow: 0 0 15px #fff176; transform: scale(1.2); }
+  100% { text-shadow: 0 0 5px #ffd700; transform: scale(1); }
+}
 
-/* ✅ 🏏 Navbar Emoji Slide */
-.hover-slide-emoji { position: relative; display: inline-block; overflow: hidden; }
+/* ✅ 🏏 Navbar Emoji Slide Animation - [Ranaj Parida - 2025-04-17 | 10:20 PM] */
+.hover-slide-emoji {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+}
 .hover-slide-emoji::after {
-  content: '🏏'; position: absolute; right: -22px; top: 50%; transform: translateY(-50%);
-  opacity: 0; transition: right 0.3s ease, opacity 0.3s ease; font-size: 1rem;
+  content: '🏏';
+  position: absolute;
+  right: -22px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: right 0.3s ease, opacity 0.3s ease;
+  font-size: 1rem;
 }
 .hover-slide-emoji:hover::after { right: 0px; opacity: 1; }
 
-/* ✅ Dark Theme for "More" Dropdown */
+/* ✅ Dark Theme for "More" Dropdown - [Ranaj Parida - 2025-04-18 | Final Fix] */
 .more-dropdown .dropdown-menu {
   background-color: #132c45 !important;
   border: 1px solid #00bfff;
@@ -299,33 +288,51 @@ h2, h3, h4 {
   position: absolute !important;
   z-index: 9999 !important;
 }
-.more-dropdown .dropdown-item { color: #ffffff; font-weight: 500; padding: 10px 16px; transition: background-color 0.3s ease; }
-.more-dropdown .dropdown-item:hover { background-color: #0e1f33; color: #00d2ff; }
+.more-dropdown .dropdown-item {
+  color: #ffffff;
+  font-weight: 500;
+  padding: 10px 16px;
+  transition: background-color 0.3s ease;
+}
+.more-dropdown .dropdown-item:hover {
+  background-color: #0e1f33;
+  color: #00d2ff;
+}
 
-/* ✅ Prevent Navbar Collapse from Clipping Dropdowns */
-.navbar, .navbar-collapse, .navbar-nav { overflow: visible !important; z-index: auto; }
+/* ✅ Prevent Navbar Collapse from Clipping Dropdowns (Mobile Fix) - [Ranaj Parida | 2025-04-18] */
+.navbar,
+.navbar-collapse,
+.navbar-nav {
+  overflow: visible !important;
+  z-index: auto;
+}
 
 /* === Dashboard Glowing Button === */
 .dashboard-glow-btn {
   background: linear-gradient(90deg, #0ff2, #00e6e6 80%);
   color: #181d29 !important;
   box-shadow: 0 0 14px 0 #00e6e6, 0 1px 3px 0 #0ff2;
-  border-radius: 8px; padding: 7px 22px 7px 18px;
-  transition: box-shadow 0.28s, transform 0.18s, color 0.18s; outline: none;
+  border-radius: 8px;
+  padding: 7px 22px 7px 18px;
+  transition: box-shadow 0.28s, transform 0.18s, color 0.18s;
+  outline: none;
 }
-.dashboard-glow-btn:hover, .dashboard-glow-btn:focus{
-  color:#fff !important; background:linear-gradient(90deg, #00e6e6 60%, #2ad7d7 100%);
-  box-shadow:0 0 24px 2px #00fff7, 0 2px 10px #00c6c6; transform: translateY(-1px) scale(1.05);
-  text-shadow:0 0 8px #fff;
+.dashboard-glow-btn:hover,
+.dashboard-glow-btn:focus {
+  color: #fff !important;
+  background: linear-gradient(90deg, #00e6e6 60%, #2ad7d7 100%);
+  box-shadow: 0 0 24px 2px #00fff7, 0 2px 10px #00c6c6;
+  transform: translateY(-1px) scale(1.05);
+  text-shadow: 0 0 8px #fff;
 }
 
 /* ==== Slumber theme add-on (navbar) =================================== */
 :root {
-  --slumber-deep: #081722;
-  --slumber-deeper: #07131d;
-  --slumber-teal: #5fd0c7;
+  --slumber-deep: #081722;       /* deep space blue */
+  --slumber-deeper: #07131d;     /* slightly darker */
+  --slumber-teal: #5fd0c7;       /* menu link color */
   --slumber-teal-strong: #38c7bb;
-  --slumber-gold: #e8caa4;
+  --slumber-gold: #e8caa4;       /* warm gold headings */
   --slumber-gold-strong: #f2d7b7;
   --slumber-faint: rgba(255,255,255,.06);
 }
@@ -335,19 +342,28 @@ h2, h3, h4 {
   background:
     radial-gradient(1100px 420px at 50% -20%, rgba(95,208,199,.12), transparent 60%),
     linear-gradient(180deg, var(--slumber-deep), var(--slumber-deeper));
-  border-bottom: 1px solid rgba(232,202,164,.25);
+  border-bottom: 1px solid rgba(232,202,164,.25); /* thin gold divider */
   box-shadow: 0 18px 40px rgba(0,0,0,.45);
   font-family: "Karla", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 /* Hamburger, toggler */
-.slumber-icon-btn { background: transparent !important; border: none !important; color: var(--slumber-teal) !important; font-size: 22px; }
+.slumber-icon-btn {
+  background: transparent !important;
+  border: none !important;
+  color: var(--slumber-teal) !important;
+  font-size: 22px;
+}
 .slumber-toggler { border-color: var(--slumber-faint) !important; }
 
 /* Brand */
 .slumber-brand {
   font-family: "Josefin Sans", "Karla", system-ui, sans-serif;
-  font-size: 28px; letter-spacing: .5px; display:inline-flex; align-items:center; gap:2px;
+  font-size: 28px;
+  letter-spacing: .5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
 }
 .slumber-brand-word { color: var(--slumber-gold); font-weight: 700; }
 .slumber-brand-accent { color: var(--slumber-teal); font-weight: 700; }
@@ -357,43 +373,78 @@ h2, h3, h4 {
 .slumber-link,
 .slumber-dropdown > .nav-link,
 .slumber-dropdown .dropdown-toggle {
-  color: var(--slumber-teal) !important; font-weight: 600; letter-spacing: .2px;
+  color: var(--slumber-teal) !important;
+  font-weight: 600;
+  letter-spacing: .2px;
 }
-.slumber-link:hover, .slumber-dropdown .dropdown-toggle:hover {
-  color: var(--slumber-teal-strong) !important; text-decoration: none;
+.slumber-link:hover,
+.slumber-dropdown .dropdown-toggle:hover {
+  color: var(--slumber-teal-strong) !important;
+  text-decoration: none;
 }
 
 /* Dropdown menu */
 .slumber-dropdown .dropdown-menu {
-  background: #0c1c29; border: 1px solid var(--slumber-faint); box-shadow: 0 10px 30px rgba(0,0,0,.45);
+  background: #0c1c29;
+  border: 1px solid var(--slumber-faint);
+  box-shadow: 0 10px 30px rgba(0,0,0,.45);
 }
-.slumber-dropdown .dropdown-item { color: #dbe7ef; font-weight: 600; }
-.slumber-dropdown .dropdown-item:hover { background: rgba(95,208,199,.12); color: #fff; }
+.slumber-dropdown .dropdown-item {
+  color: #dbe7ef;
+  font-weight: 600;
+}
+.slumber-dropdown .dropdown-item:hover {
+  background: rgba(95,208,199,.12);
+  color: #fff;
+}
 
 /* Right-side user + buttons */
 .slumber-user { color: #dfeffc; font-weight: 700; }
-.slumber-ghost-btn { background: transparent !important; border: 1px solid var(--slumber-faint) !important; color: #dbe7ef !important; font-weight: 700 !important; }
-.slumber-ghost-btn:hover { border-color: var(--slumber-teal) !important; color: #fff !important; }
+.slumber-ghost-btn {
+  background: transparent !important;
+  border: 1px solid var(--slumber-faint) !important;
+  color: #dbe7ef !important;
+  font-weight: 700 !important;
+}
+.slumber-ghost-btn:hover {
+  border-color: var(--slumber-teal) !important;
+  color: #fff !important;
+}
 .slumber-cta {
-  background: linear-gradient(180deg, #1f4d58, #163b45) !important; color: #dbe7ef !important;
-  border: 1px solid rgba(95,208,199,.35) !important; font-weight: 800 !important; letter-spacing: .03em;
+  background: linear-gradient(180deg, #1f4d58, #163b45) !important;
+  color: #dbe7ef !important;
+  border: 1px solid rgba(95,208,199,.35) !important;
+  font-weight: 800 !important;
+  letter-spacing: .03em;
   box-shadow: 0 6px 18px rgba(0,0,0,.35);
 }
-.slumber-cta:hover { filter: brightness(1.05); box-shadow: 0 8px 22px rgba(0,0,0,.45); }
+.slumber-cta:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 8px 22px rgba(0,0,0,.45);
+}
 
-/* Limit font override to the Slumber navbar only */
-.slumber-nav, .slumber-nav * { font-family: inherit; }
-.slumber-dropdown .dropdown-item { color: var(--slumber-teal) !important; font-weight: 700; }
-.slumber-dropdown .dropdown-item:hover { color: var(--slumber-teal-strong) !important; background: rgba(95,208,199,.12); }
-
+/* Limit font override to the Slumber navbar only (UPDATED) */
+.slumber-nav, .slumber-nav * { font-family: inherit; } /* UPDATED: was `.navbar, .navbar *` */
+/* Make 'More' dropdown items match navbar link color */
+.slumber-dropdown .dropdown-item {
+  color: var(--slumber-teal) !important;
+  font-weight: 700;
+}
+.slumber-dropdown .dropdown-item:hover {
+  color: var(--slumber-teal-strong) !important;
+  background: rgba(95,208,199,.12);
+}
 /* === Pull-to-refresh restore (global) ================================ */
+/* Paste this at the very bottom of theme.css */
 html, body {
   height: auto !important;
-  overflow-y: auto !important;
-  overscroll-behavior-y: auto !important;
-  touch-action: pan-y !important;
-  -webkit-overflow-scrolling: touch;
+  overflow-y: auto !important;          /* allow root to scroll */
+  overscroll-behavior-y: auto !important;/* enable Chrome Android pull-to-refresh */
+  touch-action: pan-y !important;        /* don't block vertical pan */
+  -webkit-overflow-scrolling: touch;     /* smooth inertial scroll on iOS */
 }
+
+/* If any app shell wrapper was trapping scroll, release it */
 #root, .App, .page-wrapper, .content-wrapper {
   max-height: none !important;
   height: auto !important;

@@ -1,6 +1,4 @@
-import "bootstrap/dist/css/bootstrap.min.css"; // load first
 import './App.css';
-import './styles/theme.css'; // ✅ correct path
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import AppNavbar from "./components/Navbar";
@@ -54,7 +52,7 @@ import DeleteAccount from './components/DeleteAccount';
 
 import SchedulerPage from "./components/SchedulerPage";
 
-// import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/css/bootstrap.min.css";
 import TeamDistributor from "./components/TeamDistributor";
 import AllBoardsView from "./components/AllBoardsView"; // ✅ Board Registration View
 import BoardRegistrationForm from "./components/BoardRegistrationForm";
@@ -97,15 +95,9 @@ function App() {
 
   const { currentUser } = useAuth();
 
-useEffect(() => {
-  // remove any Bootstrap body background classes so the fixed layer shows through
-  document.body.classList.remove('bg-dark', 'bg-light');
-
-  // keep only text color on body
-  document.body.classList.toggle('text-light', theme === 'dark');
-  document.body.classList.toggle('text-dark', theme !== 'dark');
-}, [theme]);
-
+  useEffect(() => {
+    document.body.className = theme === 'dark' ? 'bg-dark text-light' : 'bg-light text-dark';
+  }, [theme]);
       
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
@@ -157,8 +149,6 @@ useEffect(() => {
   
   return (
     <div className={theme}>
-    {/* Fixed background layer (render once) */}       
-    <div className="ce-bg-layer" aria-hidden="true" />
       <Router>
         <AppNavbar 
           onAuthClick={() => setShowAuthModal(true)} 
