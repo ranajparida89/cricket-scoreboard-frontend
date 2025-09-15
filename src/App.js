@@ -1,6 +1,6 @@
 import "bootstrap/dist/css/bootstrap.min.css"; // load first
 import './App.css';
-import './theme.css';
+import './styles/theme.css'; // ✅ correct path
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import AppNavbar from "./components/Navbar";
