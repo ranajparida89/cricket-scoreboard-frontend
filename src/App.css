@@ -1,9 +1,8 @@
 /************************************************************
- * App.css — CrickEdge Base + Aubergine + Ember Mist Theme
- * - DISTINCT background (not blue/black): deep plum + warm vignettes
- * - Applied to html, body, #root with !important (hard override)
- * - Mobile = scroll; Desktop(pointer:fine) = fixed parallax
- * - Keeps existing glass cards/panels; no extra components
+ * App.css — background image + stable, mobile-friendly base
+ * - Stadium photo renders behind the whole app (via BackgroundLayer.jsx)
+ * - Glassmorphic surfaces stay translucent (no solid blue)
+ * - Mobile-safe fallbacks to avoid flicker/tearing
  ************************************************************/
 
 /* ===== App layout ===== */
@@ -24,57 +23,44 @@ main { flex: 1; }
   -webkit-overflow-scrolling: touch;  /* smooth iOS scroll */
   overscroll-behavior-y: contain;     /* reduce over-scroll compositing */
 }
+
 body { margin: 0; }
 
-/* =========================================================
-   🎨 THEME: AUBERGINE + EMBER MIST  (HARD OVERRIDE)
-   - Non-blue/non-black background to verify immediately
-   - We paint html, body, #root with !important so it wins
-   ========================================================= */
-html, body, #root { height: 100%; }
+/* ------------------------------------------------------------------
+   🚫 IMPORTANT: we do NOT draw the background on body anymore.
+   The fixed body::before layer is a common source of flicker on
+   Chrome Android (esp. in Desktop site mode). Background now lives
+   in <BackgroundLayer/> which is positioned behind the app.
+   ------------------------------------------------------------------ */
 
-/* Distinct plum base with warm highlights */
-html, body, #root {
-  background-color: #140C16 !important; /* solid fallback (plum) */
-  background-image:
-    radial-gradient(900px 520px at 16% -6%,  rgba(217, 99, 255, .14), transparent 55%),
-    radial-gradient(900px 520px at 84% -10%, rgba(255,136, 64, .12),  transparent 60%),
-    linear-gradient(180deg, #1A0F20 0%, #120916 100%) !important;
-  background-repeat: no-repeat !important;
-  background-size: cover !important;
-  background-attachment: scroll !important; /* phones/tablets: avoid jank */
+/* ===== BackgroundLayer safety styles (backup to the component CSS) ===== */
+.ce-bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  contain: strict;         /* isolate paints */
+  will-change: transform;
+}
+.ce-bg-layer__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: translate3d(0,0,0);
+  backface-visibility: hidden;
+  will-change: transform;
+  filter: none;
 }
 
-/* Desktop/laptop only: tasteful parallax */
-@media (min-width: 1024px) and (pointer: fine){
-  html, body, #root { background-attachment: fixed !important; }
-}
-
-/* Data/low-power users: keep a solid background */
-@media (prefers-reduced-data: reduce){
-  html, body, #root { background: #140C16 !important; }
-}
-
-/* Ensure wrappers don’t paint over the theme */
-#root, .App,
-.app-shell, .container, .page, .content, .card, .panel,
+/* Prevent theme utilities from painting over the image */
 .dark, body.dark, #root.dark,
 .light, body.light, #root.light,
 body.bg-dark {
   background: transparent !important;
   color: inherit;
   transition: color .3s;
-}
-
-/* =========================================================
-   🧹 LEGACY CLEANUP:
-   If a BackgroundLayer component (.ce-bg-layer) still exists,
-   neutralize it so it cannot override the new theme.
-   ========================================================= */
-.ce-bg-layer,
-.ce-bg-layer__img {
-  display: none !important;
-  pointer-events: none !important;
 }
 
 /* ===== Touch polish ===== */
@@ -106,7 +92,7 @@ header {
 /* ===== Cards / dark blocks — translucent glass ===== */
 .card,
 .bg-dark:not(body) {
-  /* subtle glass with blur so background shows through */
+  /* subtle glass with blur so stadium shows through */
   background: rgba(30,33,50,.70) !important;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -140,7 +126,7 @@ a:hover { color: #ffb800; text-decoration: underline; }
 /* ===== Footer (legacy class; ce-footer is styled inline in component) ===== */
 .crickedge-footer {
   width: 100%;
-  background: rgba(10,10,10,.75);     /* translucent over the theme */
+  background: rgba(10,10,10,.75);     /* translucent over the image */
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
   display: flex;
@@ -286,13 +272,18 @@ body.bg-dark { background: transparent !important; }
 
 /* =========================================================
    Samsung S23 Ultra (Chrome, high-DPR) stability overrides
+   - Remove gradients/pseudo glows
+   - Collapse table gaps
+   - Solid row backgrounds
+   - Simple shadows only
    ========================================================= */
 @media (pointer: coarse) and (-webkit-min-device-pixel-ratio: 2) {
+  /* 1) Glass wrappers: no gradients/pseudo backgrounds */
   .leaderboard-glass,
   .lbfx-glass,
   .trfx-glass,
   .mhfx-glass {
-    background: rgba(15,27,40,.88) !important;
+    background: rgba(15,27,40,.88) !important;         /* solid-ish, still lets bg peek */
     box-shadow: 0 6px 16px rgba(0,0,0,.28) !important;
     border: 1px solid rgba(255,255,255,.06) !important;
     backdrop-filter: none !important;
@@ -303,6 +294,7 @@ body.bg-dark { background: transparent !important; }
   .trfx-glass::before, .trfx-glass::after,
   .mhfx-glass::before, .mhfx-glass::after { content: none !important; }
 
+  /* 2) Collapse the tables (removes the “stepped” gaps on scroll) */
   .leaderboard-table,
   .trfx-table,
   .mhfx-table {
@@ -311,6 +303,7 @@ body.bg-dark { background: transparent !important; }
     table-layout: fixed !important;
   }
 
+  /* 3) Rows: solid background, no per-row shadow */
   .leaderboard-table tbody tr,
   .mhfx-table tbody tr {
     background: #0f1e2d !important;
@@ -321,6 +314,7 @@ body.bg-dark { background: transparent !important; }
   .leaderboard-table tbody td,
   .mhfx-table tbody td { position: relative; z-index: 1; }
 
+  /* 4) Never wrap inside cells → no multi-line bumps */
   .leaderboard-table thead th,
   .leaderboard-table tbody td,
   .trfx-table .th, .trfx-table .td,
@@ -330,13 +324,21 @@ body.bg-dark { background: transparent !important; }
     text-overflow: ellipsis !important;
   }
 
+  /* 5) Bars/effects: keep them simple & non-filtered */
   .nrr-track, .win-track { background: rgba(255,255,255,.12) !important; }
-  .nrr-bar, .win-bar, .trophy { filter: none !important; box-shadow: none !important; }
+  .nrr-bar, .win-bar, .trophy {
+    filter: none !important;
+    box-shadow: none !important;
+  }
   .win-bar .win-head { box-shadow: none !important; opacity: .9; }
 
-  .leaderboard-table thead th, .leaderboard-table tbody td,
-  .mhfx-table thead th, .mhfx-table tbody td {
-    padding: 10px 8px !important; font-size: 14px !important;
+  /* 6) Slightly tighter spacing for mobile fit */
+  .leaderboard-table thead th,
+  .leaderboard-table tbody td,
+  .mhfx-table thead th,
+  .mhfx-table tbody td {
+    padding: 10px 8px !important;
+    font-size: 14px !important;
   }
 }
 
@@ -350,6 +352,9 @@ body.bg-dark { background: transparent !important; }
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     background: rgba(17,28,43,.86) !important;
+  }
+  .ce-bg-layer__img {
+    transform: none !important;  /* stop parallax transforms */
   }
 }
 
