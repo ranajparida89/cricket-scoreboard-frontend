@@ -38,7 +38,6 @@
 
 /* Base select look (dark) */
 .sel.dark{
-  /* 🔧 CHANGED: normalize appearance & enforce dark */
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
@@ -49,7 +48,7 @@
   border-radius:10px;
   min-width:160px;
   box-shadow:0 0 0 1px rgba(245,210,107,.05), 0 10px 30px rgba(0,0,0,.25);
-  color-scheme: dark;            /* ✅ NEW: tells the browser to use dark popup UI */
+  color-scheme: dark;
 }
 .sel.dark:focus{
   outline:none;
@@ -57,19 +56,19 @@
   box-shadow:0 0 10px rgba(245,210,107,.25);
 }
 
-/* ✅ NEW: darken the popup options list itself */
+/* darken the popup options list */
 .sel.dark option,
 .sel.dark optgroup{
-  background-color:#0b1119;      /* same as --bg */
+  background-color:#0b1119;
   color:var(--text);
 }
 .sel.dark option:hover,
 .sel.dark option:checked{
-  background-color:#0f1724;      /* same as --panel */
+  background-color:#0f1724;
   color:var(--text);
 }
 
-/* ✅ NEW: safety fallback in case class is missing on a page */
+/* fallback if a select misses .sel.dark */
 .filters select{
   background:#0b1119;
   color:var(--text);
@@ -81,7 +80,7 @@
 .filters select option:hover,
 .filters select option:checked{ background:#0f1724; }
 
-/* Optional: high-contrast mode */
+/* high-contrast */
 @media (forced-colors: active){
   .sel.dark{ forced-color-adjust: none; }
 }
@@ -138,7 +137,7 @@
 .table-wrap{ padding:10px; }
 .tp-table{ width:100%; border-collapse:separate; border-spacing:0 8px; table-layout:fixed; }
 
-/* >>> Dark header w/ white text (explicit) */
+/* dark header */
 .tp-table thead tr{
   background: linear-gradient(180deg, #102235, #0c1a2b) !important;
   border-bottom: 1px solid rgba(255,255,255,.08);
@@ -150,7 +149,7 @@
 }
 .tp-table thead { background: transparent !important; }
 
-/* Base row look */
+/* rows */
 .tp-table tbody td{
   padding:12px 10px; font-size:16px; color:#ffffff; text-align:center; border:0;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
@@ -169,7 +168,10 @@
 
 /* Rank + name */
 .rank-badge{ background:#1a2230; border:1px solid var(--soft2); color:#dfe7ff; padding:0 6px; border-radius:10px; font-weight:900; font-size:13px; }
-.tname{ font-weight:1000; letter-spacing:.2px; text-align:left; }
+.tname{
+  font-weight:1000; letter-spacing:.2px; text-align:left;
+  display:flex; align-items:center; gap:8px;   /* to hold the flag nicely */
+}
 .goldtxt{ color:var(--gold); text-shadow:0 0 14px rgba(245,210,107,.22); }
 
 /* Points chip */
@@ -185,33 +187,52 @@
 
 .good{ color:var(--good); font-weight:900; }
 .bad{ color:var(--bad); font-weight:900; }
-.muted{ color:var(--muted); }
 
-/* >>> Soft light-green highlight for entire Top-3 rows */
+/* ============= NEW: skull for negative NRR (dynamic) ============= */
+.tp-table td .bad::after{
+  content: "  💀";
+  margin-left:6px;
+  font-size:14px;
+  vertical-align:-1px;
+  color:#ff5a66;         /* if your platform colors emoji, this will be red */
+  filter: drop-shadow(0 0 6px rgba(255,90,102,.35));
+}
+
+/* ============= NEW: Top-3 styling ============= */
+/* bigger, punchier rank badge for Top-3 */
+.tp-table tbody tr.lb-row.top-1 .rank-badge,
+.tp-table tbody tr.lb-row.top-2 .rank-badge,
+.tp-table tbody tr.lb-row.top-3 .rank-badge{
+  font-size:16px;
+  padding:0 8px;
+  background: linear-gradient(180deg,#fbe7a2,#d9b447);
+  color:#111;
+  border-color: rgba(245,210,107,.95);
+  box-shadow: 0 0 10px rgba(245,210,107,.25);
+}
+
+/* thin golden, crisp border around the whole Top-3 rows */
 .tp-table tbody tr.lb-row.top-1,
 .tp-table tbody tr.lb-row.top-2,
 .tp-table tbody tr.lb-row.top-3{
   background: linear-gradient(180deg, var(--top3-bg-1), var(--top3-bg-2)) !important;
-  border-color: var(--top3-border) !important;
+  border-color: var(--gold) !important;
   box-shadow:
     0 12px 28px rgba(0,0,0,.35),
-    0 0 0 1px var(--top3-border) inset,
-    0 0 24px var(--top3-glow);
+    0 0 0 1px rgba(245,210,107,.92) inset;  /* sharp golden line */
 }
-.tp-table tbody tr.lb-row.top-1:hover,
-.tp-table tbody tr.lb-row.top-2:hover,
-.tp-table tbody tr.lb-row.top-3:hover{
-  box-shadow:
-    0 18px 38px rgba(0,0,0,.42),
-    0 0 0 1px var(--top3-border) inset,
-    0 0 30px var(--top3-glow);
+
+/* tiny waving flag next to Top-3 team names */
+.flag-emoji{
+  font-size:16px;
+  line-height:1;
+  animation: flagWave 3.2s ease-in-out infinite;
+  transform-origin: left bottom;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.35));
 }
-.tp-table tbody tr.lb-row.top-1 .rank-badge,
-.tp-table tbody tr.lb-row.top-2 .rank-badge,
-.tp-table tbody tr.lb-row.top-3 .rank-badge{
-  border-color: var(--top3-border);
-  color:#eafff0;
-  background:#12241a;
+@keyframes flagWave{
+  0%,100%{ transform: rotate(0deg) translateY(0); }
+  50%{ transform: rotate(-7deg) translateY(-1px); }
 }
 
 /* empty states */
@@ -234,7 +255,7 @@
   .tp-table thead th, .tp-table tbody td{ padding:10px 8px; font-size:14px; }
 }
 
-/* ───── FORCE dark header (wins against any global th styles) ───── */
+/* force dark header */
 .tp-table thead,
 .tp-table thead tr,
 .tp-table thead th,
@@ -245,16 +266,13 @@
   border-color: rgba(255,255,255,.08) !important;
   text-shadow: 0 1px 0 rgba(0,0,0,.35);
 }
+
 /* ===== Inline editing (admin-only UX) ===== */
-.editable {
-  cursor: cell;
-  position: relative;
-}
+.editable { cursor: cell; position: relative; }
 .editable:hover::after {
   content: "↺ dbl-click to edit";
   position: absolute;
-  right: 8px;
-  top: 6px;
+  right: 8px; top: 6px;
   font-size: 11px;
   color: rgba(255,255,255,.45);
   pointer-events: none;
