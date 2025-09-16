@@ -110,6 +110,40 @@ function abbreviateTeamName(name) {
   return words.map((w) => w[0]).join("").slice(0, 3).toUpperCase();
 }
 const displayTeam = (name) => abbreviateTeamName(name);
+/* ----- Flags for team abbreviations (uses displayTeam(name)) ----- */
+/* Notes:
+   - England & Scotland use sub-regional flags (work on modern iOS/Android/Chrome).
+     If you see a plain black flag on an older platform, swap ENG->'🇬🇧' and SCT->'🏴'.
+   - West Indies has no country flag emoji → use a cricket bat as its emblem.
+*/
+const FLAG_EMOJI = {
+  SA:  '🇿🇦', // South Africa
+  ENG:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', // England (St George’s Cross)
+  KEN:'🇰🇪',
+  SCT:'🏴󠁧󠁢󠁳󠁣󠁴󠁿', // Scotland (St Andrew’s Cross)
+  AFG:'🇦🇫',
+  IND:'🇮🇳',
+  BAN:'🇧🇩',
+  NZ: '🇳🇿',
+  HKG:'🇭🇰',
+  AUS:'🇦🇺',
+  PAK:'🇵🇰',
+  IRE:'🇮🇪',
+  NED:'🇳🇱',
+  NAM:'🇳🇦',
+  ZIM:'🇿🇼',
+  NEP:'🇳🇵',
+  OMA:'🇴🇲',
+  CAN:'🇨🇦',
+  UAE:'🇦🇪',
+  SL: '🇱🇰',  // Sri Lanka
+  USA:'🇺🇸',
+  PNG:'🇵🇬',
+  WI: '🏏'    // West Indies (no single flag, use cricket)
+};
+
+const flagForTeam = (name) => FLAG_EMOJI[displayTeam(name)] || "";
+
 
 function headerLabel(key) {
   switch (key) {
@@ -617,11 +651,14 @@ export default function TournamentPoints({ isAdmin: isAdminProp }) {
                 table.map((t, idx) => (
                   <tr key={rowKeyOf(t)} className={`lb-row ${idx < 3 ? `top-${idx + 1}` : ""}`}>
                     <td><span className="rank-badge">#{idx + 1}</span></td>
-
-                    <TD row={t} field="team_name" className={`tname ${idx < 3 ? "goldtxt" : ""}`}>
+                                        <TD row={t} field="team_name" className={`tname ${idx < 3 ? "goldtxt" : ""}`}>
+                      {idx < 3 && (
+                        <span className="flag-emoji" title={t.team_name}>
+                          {flagForTeam(t.team_name)}
+                        </span>
+                      )}
                       {displayTeam(t.team_name)}
                     </TD>
-
                     <TD row={t} field="matches_played">
                       {safeNum(t.matches_played)}
                     </TD>
@@ -645,6 +682,7 @@ export default function TournamentPoints({ isAdmin: isAdminProp }) {
                     <TD row={t} field="nrr">
                       <span className={safeNum(t.nrr) >= 0 ? "good" : "bad"}>
                         {safeNum(t.nrr).toFixed(2)}
+                        {safeNum(t.nrr) < 0 && <span className="skull"> 💀</span>}
                       </span>
                     </TD>
 
