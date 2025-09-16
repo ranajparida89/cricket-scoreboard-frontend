@@ -11,29 +11,67 @@ const safeNum = (v, def = 0) => {
 };
 const norm = (s) => (s ?? "").toString().trim();
 
-/* ========== Admin detection (localStorage + optional JWT claim) ========== */
-function getUserRole() {
-  const keys = ["user", "authUser", "profile"];
-  for (const k of keys) {
-    try {
-      const o = JSON.parse(localStorage.getItem(k) || "null");
-      if (o?.role) return o.role;
-      if (o?.user?.role) return o.user.role;
-    } catch {}
-  }
-  const token = localStorage.getItem("token");
-  if (token && token.split(".").length === 3) {
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      return payload.role || (Array.isArray(payload.roles) ? payload.roles[0] : null);
-    } catch {}
-  }
-  return null;
+/* ------------------------------------------------------------------
+   ADMIN DETECTION: robust + overridable
+   - You can pass <TournamentPoints isAdmin />
+   - Or set localStorage:
+       isAdmin=true  (or admin=true / is_admin=true / tp_can_edit=1)
+     OR put role: 'admin' inside any of: user, authUser, profile, auth
+   - Or use env var REACT_APP_FORCE_ADMIN=true
+-------------------------------------------------------------------*/
+function detectAdmin(explicitProp) {
+  if (typeof explicitProp === "boolean") return explicitProp;
+
+  try {
+    // direct boolean flags in localStorage
+    for (const k of ["isAdmin", "admin", "is_admin", "tp_can_edit", "tp_edit"]) {
+      const v = localStorage.getItem(k);
+      if (v && /^(1|true|yes)$/i.test(v)) return true;
+    }
+
+    // objects with role or isAdmin flag
+    for (const k of ["user", "authUser", "profile", "currentUser", "auth", "userProfile"]) {
+      const raw = localStorage.getItem(k);
+      if (!raw) continue;
+      try {
+        const o = JSON.parse(raw);
+        const role =
+          o?.role ??
+          o?.user?.role ??
+          o?.data?.role ??
+          o?.profile?.role ??
+          o?.currentUser?.role ??
+          o?.auth?.role;
+        if (role && /admin/i.test(String(role))) return true;
+
+        const flag =
+          o?.isAdmin ?? o?.user?.isAdmin ?? o?.data?.isAdmin ?? o?.profile?.isAdmin;
+        if (flag === true) return true;
+      } catch {}
+    }
+
+    // JWT with role / isAdmin
+    const token = localStorage.getItem("token") || localStorage.getItem("jwt");
+    if (token && token.split(".").length === 3) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        if (/admin/i.test(String(payload.role || ""))) return true;
+        if (payload.isAdmin === true) return true;
+        if (Array.isArray(payload.roles) && payload.roles.some((r) => /admin/i.test(r))) {
+          return true;
+        }
+      } catch {}
+    }
+  } catch {}
+
+  if (String(process.env.REACT_APP_FORCE_ADMIN).toLowerCase() === "true") return true;
+  if (typeof window !== "undefined" && (window).__TP_FORCE_ADMIN__ === true) return true;
+
+  return false;
 }
-const useIsAdmin = () => /admin/i.test(getUserRole() || "");
 
 /* =========================================================
- * GLOBAL: team abbreviation map (upper-case)
+ * Team abbreviation map
  * =======================================================*/
 const TEAM_ABBR = {
   "south africa": "SA",
@@ -73,7 +111,6 @@ function abbreviateTeamName(name) {
 }
 const displayTeam = (name) => abbreviateTeamName(name);
 
-/* Column header labels */
 function headerLabel(key) {
   switch (key) {
     case "rank": return "Rank";
@@ -90,31 +127,17 @@ function headerLabel(key) {
   }
 }
 
-/* Label separation (chart) */
-const LABEL = {
-  P_DY: -14,
-  N_POS_DY: -18,
-  N_NEG_DY: 20,
-  P_DX: -8,
-  N_DX: 8,
-  SEP_MIN: 16,
-};
+/* Chart label separations */
+const LABEL = { P_DY: -14, N_POS_DY: -18, N_NEG_DY: 20, P_DX: -8, N_DX: 8, SEP_MIN: 16 };
 
-/* ========== UI-only overrides & editing helpers ========== */
+/* UI-only overrides & editing helpers */
 const NUM_FIELDS = new Set(["matches_played", "wins", "losses", "draws", "points", "season_year"]);
 const FLOAT_FIELDS = new Set(["nrr"]);
-
-const rowKeyOf = (r) =>
-  `${r.team_name}::${r.tournament_name ?? ""}::${r.season_year ?? ""}`;
-
+const rowKeyOf = (r) => `${r.team_name}::${r.tournament_name ?? ""}::${r.season_year ?? ""}`;
 const sortRows = (list) =>
   [...list].sort(
-    (a, b) =>
-      b.points - a.points ||
-      b.nrr - a.nrr ||
-      a.team_name.localeCompare(b.team_name)
+    (a, b) => b.points - a.points || b.nrr - a.nrr || a.team_name.localeCompare(b.team_name)
   );
-
 function applyOverrides(rows, overrides) {
   const next = rows.map((r) => {
     const k = rowKeyOf(r);
@@ -124,24 +147,26 @@ function applyOverrides(rows, overrides) {
   return sortRows(next);
 }
 
-export default function TournamentPoints() {
+/* =================================================================== */
+export default function TournamentPoints({ isAdmin: isAdminProp }) {
   const [loading, setLoading] = useState(false);
-  const isAdmin = useIsAdmin();
+  const [isAdmin, setIsAdmin] = useState(detectAdmin(isAdminProp));
+  useEffect(() => setIsAdmin(detectAdmin(isAdminProp)), [isAdminProp]);
 
   // Filters
   const [matchType, setMatchType] = useState("All");
   const [tournamentName, setTournamentName] = useState("");
   const [seasonYear, setSeasonYear] = useState("");
 
-  // Distinct dropdown options
+  // Options
   const [tournaments, setTournaments] = useState([]);
   const [years, setYears] = useState([]);
 
-  // Original rows from API (DB truth)
+  // Data (DB truth)
   const [rows, setRows] = useState([]);
-  // UI-only overrides: { [rowKey]: {field: value, ...} }
+  // UI overrides
   const [overrides, setOverrides] = useState({});
-  // Inline editing state: { key, field, value } | null
+  // Inline editing state
   const [editing, setEditing] = useState(null);
 
   const [infoOpen, setInfoOpen] = useState(false);
@@ -157,9 +182,7 @@ export default function TournamentPoints() {
     } catch {
       // Fallback to legacy endpoint
       try {
-        const { data } = await axios.get(`${API_URL}/tournaments`, {
-          params: { match_type: type },
-        });
+        const { data } = await axios.get(`${API_URL}/tournaments`, { params: { match_type: type } });
         const cats = Array.isArray(data) ? data : [];
         setTournaments(cats.map((c) => c.name).sort((a, b) => a.localeCompare(b)));
         const yrSet = new Set();
@@ -175,11 +198,7 @@ export default function TournamentPoints() {
       }
     }
   }
-
-  useEffect(() => {
-    loadFilters(matchType);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [matchType]);
+  useEffect(() => { loadFilters(matchType); /* eslint-disable-next-line */ }, [matchType]);
 
   /* ---------- LEADERBOARD ---------- */
   async function reload() {
@@ -215,24 +234,18 @@ export default function TournamentPoints() {
       setLoading(false);
     }
   }
+  useEffect(() => { reload(); /* eslint-disable-next-line */ }, [matchType, tournamentName, seasonYear]);
 
-  useEffect(() => {
-    reload();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [matchType, tournamentName, seasonYear]);
-
-  /* ---------- Apply UI-only overrides everywhere ---------- */
+  /* ---------- Apply overrides ---------- */
   const table = useMemo(() => applyOverrides(rows, overrides), [rows, overrides]);
 
-  /* ---------- Chart series (use table with overrides) ---------- */
+  /* ---------- Chart series ---------- */
   const pointsSeries = useMemo(
-    () =>
-      table.slice(0, 10).map((r) => ({ team: displayTeam(r.team_name), value: safeNum(r.points) })),
+    () => table.slice(0, 10).map((r) => ({ team: displayTeam(r.team_name), value: safeNum(r.points) })),
     [table]
   );
   const nrrSeries = useMemo(
-    () =>
-      table.slice(0, 10).map((r) => ({ team: displayTeam(r.team_name), value: safeNum(r.nrr) })),
+    () => table.slice(0, 10).map((r) => ({ team: displayTeam(r.team_name), value: safeNum(r.nrr) })),
     [table]
   );
 
@@ -240,7 +253,6 @@ export default function TournamentPoints() {
   const W = 980, H = 360, PAD = 44;
   const yLMin = 0;
   const yLMax = Math.ceil(Math.max(2, ...pointsSeries.map((d) => d.value)) * 1.15);
-
   const nrrVals = nrrSeries.map((d) => Number(d.value)).filter(Number.isFinite);
   const nrrMin = Math.min(0, ...(nrrVals.length ? nrrVals : [0]));
   const nrrMax = Math.max(1, ...(nrrVals.length ? nrrVals : [1]));
@@ -265,12 +277,9 @@ export default function TournamentPoints() {
     <line x1={x} y1={y} x2={x2} y2={y2} stroke="rgba(255,255,255,.12)" strokeWidth="1" opacity={opacity} />
   );
 
-  /* ---------- English explainer helpers ---------- */
+  /* ---------- Predictions ---------- */
   const modeLabel = (m) => (m === "S8" ? "Super 8" : m === "S6" ? "Super 6" : "Semi-finals");
-  const fmtNrr = (n) => {
-    const v = safeNum(n, 0);
-    return (v >= 0 ? "+" : "") + v.toFixed(2);
-  };
+  const fmtNrr = (n) => ((safeNum(n, 0) >= 0 ? "+" : "") + safeNum(n, 0).toFixed(2));
   function cutoffNarrative(p) {
     if (!p || !p.cutoff || !p.cut) return "";
     const last = p.cutoff.cutoffTeam;
@@ -289,14 +298,9 @@ export default function TournamentPoints() {
     return parts.join(" ");
   }
 
-  /* ---------- Ranking / Prediction helpers ---------- */
   const rankByStandings = (list) =>
     [...list].sort(
-      (a, b) =>
-        b.points - a.points ||
-        b.nrr - a.nrr ||
-        b.wins - a.wins ||
-        a.team_name.localeCompare(b.team_name)
+      (a, b) => b.points - a.points || b.nrr - a.nrr || b.wins - a.wins || a.team_name.localeCompare(b.team_name)
     );
 
   function scoreAndProb(list) {
@@ -377,22 +381,18 @@ export default function TournamentPoints() {
 
     return { mode: stage.mode, cut: stage.cut, super8, super6, semifinal, cutoff, summary };
   }
-
-  // NOTE: use table (with overrides) for predictions too
   const predictions = useMemo(() => buildPredictions(table), [table]);
 
-  /* ---------- Inline editing handlers (admin only) ---------- */
+  /* ---------- Inline editing (admin only) ---------- */
   const startEdit = (row, field) => {
     if (!isAdmin) return;
     const key = rowKeyOf(row);
     const raw = row[field] ?? "";
     setEditing({ key, field, value: String(raw) });
   };
-
   const commitEdit = () => {
     if (!editing) return;
     const { key, field, value } = editing;
-
     let nextVal = value;
     if (NUM_FIELDS.has(field)) {
       const n = parseInt(value, 10);
@@ -401,27 +401,23 @@ export default function TournamentPoints() {
       const f = parseFloat(value);
       nextVal = Number.isFinite(f) ? f : 0;
     }
-
-    setOverrides((prev) => ({
-      ...prev,
-      [key]: { ...(prev[key] || {}), [field]: nextVal },
-    }));
+    setOverrides((prev) => ({ ...prev, [key]: { ...(prev[key] || {}), [field]: nextVal } }));
     setEditing(null);
   };
-
   const cancelEdit = () => setEditing(null);
 
   const adminReset = async () => {
     setOverrides({});
     setEditing(null);
-    await reload(); // pull fresh from DB and drop UI edits
+    await reload(); // reload from DB (discard local changes)
   };
 
-  /* ---------- Table cell component ---------- */
-  const TD = ({ row, field, className = "", children, inputType = "text", step }) => {
+  /* Table cell with auto number/text input */
+  const TD = ({ row, field, className = "", children }) => {
     const k = rowKeyOf(row);
-    const isEditing =
-      editing && editing.key === k && editing.field === field;
+    const isEditing = editing && editing.key === k && editing.field === field;
+    const isNumberField = NUM_FIELDS.has(field) || FLOAT_FIELDS.has(field);
+    const step = FLOAT_FIELDS.has(field) ? "0.01" : "1";
 
     return (
       <td
@@ -431,8 +427,8 @@ export default function TournamentPoints() {
         {isEditing ? (
           <input
             className="edit-input"
-            type={inputType}
-            step={step}
+            type={isNumberField ? "number" : "text"}
+            step={isNumberField ? step : undefined}
             value={editing.value}
             onChange={(e) => setEditing((ed) => ({ ...ed, value: e.target.value }))}
             onBlur={commitEdit}
@@ -456,48 +452,39 @@ export default function TournamentPoints() {
           <span className="medal" role="img" aria-label="trophy">🏆</span>
           Tournament Points
           <button className="info-btn" onClick={() => setInfoOpen(true)}>i</button>
+          {isAdmin && (
+            <span style={{
+              marginLeft: 10, fontSize: ".85rem", color: "#d9e8ff",
+              background: "rgba(88,230,217,.08)", border: "1px solid rgba(88,230,217,.25)",
+              padding: "3px 8px", borderRadius: 8
+            }}>
+              Admin edit mode
+            </span>
+          )}
         </h2>
 
         {/* Filters */}
         <div className="filters" style={{ marginLeft: "auto" }}>
           <label>
             <span>Match Type</span>
-            <select
-              value={matchType}
-              onChange={(e) => setMatchType(e.target.value)}
-              className="sel dark"
-            >
-              {MTYPES.map((m) => (
-                <option key={m} value={m}>{m}</option>
-              ))}
+            <select value={matchType} onChange={(e) => setMatchType(e.target.value)} className="sel dark">
+              {MTYPES.map((m) => (<option key={m} value={m}>{m}</option>))}
             </select>
           </label>
 
           <label>
             <span>Tournament</span>
-            <select
-              value={tournamentName}
-              onChange={(e) => setTournamentName(e.target.value)}
-              className="sel dark"
-            >
+            <select value={tournamentName} onChange={(e) => setTournamentName(e.target.value)} className="sel dark">
               <option value="">All tournaments</option>
-              {tournaments.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
+              {tournaments.map((t) => (<option key={t} value={t}>{t}</option>))}
             </select>
           </label>
 
           <label>
             <span>Season Year</span>
-            <select
-              value={seasonYear}
-              onChange={(e) => setSeasonYear(e.target.value)}
-              className="sel dark"
-            >
+            <select value={seasonYear} onChange={(e) => setSeasonYear(e.target.value)} className="sel dark">
               <option value="">All years</option>
-              {years.map((y) => (
-                <option key={y} value={y}>{y}</option>
-              ))}
+              {years.map((y) => (<option key={y} value={y}>{y}</option>))}
             </select>
           </label>
 
@@ -505,7 +492,7 @@ export default function TournamentPoints() {
             {loading ? "Loading…" : "Reload"}
           </button>
 
-          {/* ✅ Admin-only: Reset to DB (clears UI edits) */}
+          {/* Admin-only reset */}
           {isAdmin && (
             <button
               className="btn-gold"
@@ -529,6 +516,7 @@ export default function TournamentPoints() {
               <Axis x={PAD} y={H - PAD} x2={W - PAD} y2={H - PAD} />
               <Axis x={PAD} y={PAD} x2={PAD} y2={H - PAD} />
               <Axis x={W - PAD} y={PAD} x2={W - PAD} y2={H - PAD} opacity={0.25} />
+
               {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
                 const v = Math.round(yLMax * t);
                 const y = H - PAD - ((v - yLMin) / Math.max(1e-6, yLMax - yLMin)) * (H - PAD * 2);
@@ -537,8 +525,10 @@ export default function TournamentPoints() {
               {pointsSeries.map((_, i) => (
                 <line key={`v${i}`} x1={PAD + i * step} y1={PAD} x2={PAD + i * step} y2={H - PAD} className="grid v" />
               ))}
+
               <text x={PAD - 28} y={PAD - 10} className="axis-name">Points</text>
               <text x={W - PAD + 6} y={PAD - 10} className="axis-name">NRR</text>
+
               {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
                 const v = Math.round(yLMax * t);
                 const y = H - PAD - ((v - yLMin) / Math.max(1e-6, yLMax - yLMin)) * (H - PAD * 2);
@@ -548,6 +538,7 @@ export default function TournamentPoints() {
                 const v = +(nrrMin + t * (nrrMax - nrrMin)).toFixed(2);
                 return <text key={`rt${i}`} x={W - PAD + 10} y={yRight(v)} className="tick right" dy="4">{v}</text>;
               })}
+
               <polyline className="line gold" points={polyPoints(pointsSeries, W, H, PAD, yLMin, yLMax)} />
               <polyline className="line teal" points={polyPoints(nrrSeries, W, H, PAD, nrrMin, nrrMax)} />
 
@@ -672,7 +663,7 @@ export default function TournamentPoints() {
         </div>
       </div>
 
-      {/* Predictions (unchanged, but fed by 'table' with overrides) */}
+      {/* Predictions */}
       <div className="card tp-predict">
         <div className="card-head">
           Predictions
@@ -802,7 +793,7 @@ export default function TournamentPoints() {
           <div className="tie-note">Tie-breaks in this view: Points → NRR → Wins → Team name.</div>
         </div>
 
-        {/* minimal CSS scope for predictions kept as-is */}
+        {/* (predictions CSS kept inline, unchanged) */}
         <style>{`
           .predict-grid{display:grid;gap:14px;grid-template-columns:repeat(3,minmax(0,1fr));}
           @media(max-width: 992px){.predict-grid{grid-template-columns:1fr;}}
