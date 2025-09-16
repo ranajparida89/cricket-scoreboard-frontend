@@ -11,9 +11,29 @@ const safeNum = (v, def = 0) => {
 };
 const norm = (s) => (s ?? "").toString().trim();
 
+/* ========== Admin detection (localStorage + optional JWT claim) ========== */
+function getUserRole() {
+  const keys = ["user", "authUser", "profile"];
+  for (const k of keys) {
+    try {
+      const o = JSON.parse(localStorage.getItem(k) || "null");
+      if (o?.role) return o.role;
+      if (o?.user?.role) return o.user.role;
+    } catch {}
+  }
+  const token = localStorage.getItem("token");
+  if (token && token.split(".").length === 3) {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload.role || (Array.isArray(payload.roles) ? payload.roles[0] : null);
+    } catch {}
+  }
+  return null;
+}
+const useIsAdmin = () => /admin/i.test(getUserRole() || "");
+
 /* =========================================================
- * 🔹 GLOBAL: team abbreviation map (upper-case)
- *    We apply abbreviations on BOTH desktop and mobile now.
+ * GLOBAL: team abbreviation map (upper-case)
  * =======================================================*/
 const TEAM_ABBR = {
   "south africa": "SA",
@@ -42,90 +62,91 @@ const TEAM_ABBR = {
   usa: "USA",
 };
 
-/* Smart fallback for unknown names:
-   - 1 word: first 3 letters
-   - 2-3+ words: take initials (max 3) */
 function abbreviateTeamName(name) {
   const s = norm(name);
   if (!s) return s;
   const key = s.toLowerCase();
   if (TEAM_ABBR[key]) return TEAM_ABBR[key];
-
   const words = s.split(/\s+/).filter(Boolean);
   if (words.length === 1) return words[0].slice(0, 3).toUpperCase();
   return words.map((w) => w[0]).join("").slice(0, 3).toUpperCase();
 }
-
-// 🔹 GLOBAL: always abbreviate team names (desktop + mobile)
 const displayTeam = (name) => abbreviateTeamName(name);
 
-/* =========================================================
- * 🔹 GLOBAL: column header labels (desktop + mobile)
- *    Rank is ALWAYS "Rank".
- *    Per your spec: use short labels everywhere now.
- * =======================================================*/
+/* Column header labels */
 function headerLabel(key) {
   switch (key) {
-    case "rank":
-      return "Rank"; // Always "Rank" on both screens
-    case "team":
-      return "Team"; // unchanged (title), values are abbreviated
-    case "matches":
-      return "M";
-    case "wins":
-      return "W";
-    case "losses":
-      return "L";
-    case "draws":
-      return "D";
-    case "points":
-      return "Pts";
-    case "nrr":
-      return "NRR"; // unchanged
-    case "tournament":
-      return "TN";
-    case "year":
-      return "Yrs";
-    default:
-      return key;
+    case "rank": return "Rank";
+    case "team": return "Team";
+    case "matches": return "M";
+    case "wins": return "W";
+    case "losses": return "L";
+    case "draws": return "D";
+    case "points": return "Pts";
+    case "nrr": return "NRR";
+    case "tournament": return "TN";
+    case "year": return "Yrs";
+    default: return key;
   }
 }
 
-/* =========================================================
- * 🔹 NEW: label spacing constants
- *    - Moves dot value labels away from dots and from each other
- *    - Prevents the “6.23” overlap you highlighted
- * =======================================================*/
+/* Label separation (chart) */
 const LABEL = {
-  // vertical offsets for labels relative to the dot positions
-  P_DY: -14,       // Points label above its dot (a bit higher than before)
-  N_POS_DY: -18,   // NRR label above its dot when NRR >= 0 (move higher)
-  N_NEG_DY: 20,    // NRR label below its dot when NRR < 0 (a bit lower)
-  // horizontal separation so the two labels don't collide
-  P_DX: -8,        // Points label a little to the left
-  N_DX: 8,         // NRR label a little to the right
-  // ensure a minimum vertical gap between the two labels
-  SEP_MIN: 16,     // px minimal vertical separation between Pts/NRR labels
+  P_DY: -14,
+  N_POS_DY: -18,
+  N_NEG_DY: 20,
+  P_DX: -8,
+  N_DX: 8,
+  SEP_MIN: 16,
 };
+
+/* ========== UI-only overrides & editing helpers ========== */
+const NUM_FIELDS = new Set(["matches_played", "wins", "losses", "draws", "points", "season_year"]);
+const FLOAT_FIELDS = new Set(["nrr"]);
+
+const rowKeyOf = (r) =>
+  `${r.team_name}::${r.tournament_name ?? ""}::${r.season_year ?? ""}`;
+
+const sortRows = (list) =>
+  [...list].sort(
+    (a, b) =>
+      b.points - a.points ||
+      b.nrr - a.nrr ||
+      a.team_name.localeCompare(b.team_name)
+  );
+
+function applyOverrides(rows, overrides) {
+  const next = rows.map((r) => {
+    const k = rowKeyOf(r);
+    const ov = overrides[k];
+    return ov ? { ...r, ...ov } : r;
+  });
+  return sortRows(next);
+}
 
 export default function TournamentPoints() {
   const [loading, setLoading] = useState(false);
+  const isAdmin = useIsAdmin();
 
   // Filters
   const [matchType, setMatchType] = useState("All");
   const [tournamentName, setTournamentName] = useState("");
   const [seasonYear, setSeasonYear] = useState("");
 
-  // Distinct dropdown options (from DB)
+  // Distinct dropdown options
   const [tournaments, setTournaments] = useState([]);
   const [years, setYears] = useState([]);
 
-  // Table rows
+  // Original rows from API (DB truth)
   const [rows, setRows] = useState([]);
+  // UI-only overrides: { [rowKey]: {field: value, ...} }
+  const [overrides, setOverrides] = useState({});
+  // Inline editing state: { key, field, value } | null
+  const [editing, setEditing] = useState(null);
 
   const [infoOpen, setInfoOpen] = useState(false);
 
-  // --------- FILTER CATALOG (distinct values from match_history) ----------
+  /* ---------- FILTER CATALOG ---------- */
   async function loadFilters(type = matchType) {
     try {
       const { data } = await axios.get(`${API_URL}/tournaments/filters`, {
@@ -134,7 +155,7 @@ export default function TournamentPoints() {
       setTournaments(Array.isArray(data?.tournaments) ? data.tournaments : []);
       setYears(Array.isArray(data?.years) ? data.years : []);
     } catch {
-      // Fallback to old /tournaments if /filters isn’t deployed yet
+      // Fallback to legacy endpoint
       try {
         const { data } = await axios.get(`${API_URL}/tournaments`, {
           params: { match_type: type },
@@ -144,8 +165,7 @@ export default function TournamentPoints() {
         const yrSet = new Set();
         cats.forEach((c) =>
           (Array.isArray(c.editions) ? c.editions : []).forEach((e) => {
-            if (!type || type === "All" || e.match_type === type)
-              yrSet.add(Number(e.season_year));
+            if (!type || type === "All" || e.match_type === type) yrSet.add(Number(e.season_year));
           })
         );
         setYears(Array.from(yrSet).sort((a, b) => b - a));
@@ -161,7 +181,7 @@ export default function TournamentPoints() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchType]);
 
-  // --------- LEADERBOARD ----------
+  /* ---------- LEADERBOARD ---------- */
   async function reload() {
     try {
       setLoading(true);
@@ -183,7 +203,6 @@ export default function TournamentPoints() {
         season_year: r.season_year ?? null,
       }));
 
-      // Defensive sort (backend also orders this way)
       normalized.sort(
         (a, b) => b.points - a.points || b.nrr - a.nrr || a.team_name.localeCompare(b.team_name)
       );
@@ -202,32 +221,23 @@ export default function TournamentPoints() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchType, tournamentName, seasonYear]);
 
-  // ---------- Chart series ----------
-  const table = rows;
+  /* ---------- Apply UI-only overrides everywhere ---------- */
+  const table = useMemo(() => applyOverrides(rows, overrides), [rows, overrides]);
 
-  /* 🔹 GLOBAL: use abbreviated team names for chart labels (desktop + mobile) */
+  /* ---------- Chart series (use table with overrides) ---------- */
   const pointsSeries = useMemo(
     () =>
-      table.slice(0, 10).map((r) => ({
-        team: displayTeam(r.team_name),
-        value: safeNum(r.points),
-      })),
+      table.slice(0, 10).map((r) => ({ team: displayTeam(r.team_name), value: safeNum(r.points) })),
     [table]
   );
   const nrrSeries = useMemo(
     () =>
-      table.slice(0, 10).map((r) => ({
-        team: displayTeam(r.team_name),
-        value: safeNum(r.nrr),
-      })),
+      table.slice(0, 10).map((r) => ({ team: displayTeam(r.team_name), value: safeNum(r.nrr) })),
     [table]
   );
 
-  // ---------- Chart layout ----------
-  const W = 980,
-    H = 360,
-    PAD = 44;
-
+  /* ---------- Chart layout ---------- */
+  const W = 980, H = 360, PAD = 44;
   const yLMin = 0;
   const yLMax = Math.ceil(Math.max(2, ...pointsSeries.map((d) => d.value)) * 1.15);
 
@@ -235,7 +245,6 @@ export default function TournamentPoints() {
   const nrrMin = Math.min(0, ...(nrrVals.length ? nrrVals : [0]));
   const nrrMax = Math.max(1, ...(nrrVals.length ? nrrVals : [1]));
   const nrrRange = Math.max(1e-6, nrrMax - nrrMin);
-
   const yRight = (v) => H - PAD - ((v - nrrMin) / nrrRange) * (H - PAD * 2);
 
   const n = pointsSeries.length || 1;
@@ -256,7 +265,7 @@ export default function TournamentPoints() {
     <line x1={x} y1={y} x2={x2} y2={y2} stroke="rgba(255,255,255,.12)" strokeWidth="1" opacity={opacity} />
   );
 
-  // ---------- plain-English explainer helpers ----------
+  /* ---------- English explainer helpers ---------- */
   const modeLabel = (m) => (m === "S8" ? "Super 8" : m === "S6" ? "Super 6" : "Semi-finals");
   const fmtNrr = (n) => {
     const v = safeNum(n, 0);
@@ -280,19 +289,18 @@ export default function TournamentPoints() {
     return parts.join(" ");
   }
 
-  // ---------- Ranking / Prediction helpers ----------
+  /* ---------- Ranking / Prediction helpers ---------- */
   const rankByStandings = (list) =>
     [...list].sort(
       (a, b) =>
-        b.points - a.points || // primary
-        b.nrr - a.nrr || // tie-break 1
-        b.wins - a.wins || // extra signal
+        b.points - a.points ||
+        b.nrr - a.nrr ||
+        b.wins - a.wins ||
         a.team_name.localeCompare(b.team_name)
     );
 
   function scoreAndProb(list) {
     if (!list?.length) return [];
-
     const ptsMax = Math.max(...list.map((r) => safeNum(r.points, 0)), 1);
     const wrArr = list.map((r) => safeNum(r.wins) / Math.max(1, safeNum(r.matches_played)));
     const wrMax = Math.max(...wrArr, 1);
@@ -304,7 +312,7 @@ export default function TournamentPoints() {
       const ptsNorm = safeNum(r.points, 0) / ptsMax;
       const wr = safeNum(r.wins) / Math.max(1, safeNum(r.matches_played));
       const wrNorm = wr / wrMax;
-      const nrrNorm = (safeNum(r.nrr) - nrrMinL) / nrrRangeL; // 0..1
+      const nrrNorm = (safeNum(r.nrr) - nrrMinL) / nrrRangeL;
       const score = 0.55 * ptsNorm + 0.35 * wrNorm + 0.10 * nrrNorm;
       return { ...r, score };
     });
@@ -322,38 +330,24 @@ export default function TournamentPoints() {
     if (teams > 9) return { mode: "S8", label: "Super 8", cut: 8, teams };
     if (teams === 9) return { mode: "S6", label: "Super 6", cut: 6, teams };
     if (teams < 5) return { mode: "DIRECT_SEMIS", label: "Direct Semi-finals", cut: 4, teams };
-    // 5..8: not enough for S8 and S6 is only for exactly 9
     return { mode: "DIRECT_SEMIS", label: "Direct Semi-finals", cut: 4, teams };
   }
 
   function buildPredictions(list) {
     if (!list?.length) {
-      return {
-        mode: "EMPTY",
-        super8: [],
-        super6: [],
-        semifinal: [],
-        summary: "No data for the chosen filters.",
-        cutoff: null,
-        cut: 0,
-      };
+      return { mode: "EMPTY", super8: [], super6: [], semifinal: [], summary: "No data for the chosen filters.", cutoff: null, cut: 0 };
     }
-
     const stage = buildStage(list);
     const withProb = scoreAndProb(list);
     const rankedAll = rankByStandings(list);
 
-    let super8 = [];
-    let super6 = [];
-    let semifinal = [];
-
+    let super8 = [], super6 = [], semifinal = [];
     if (stage.mode === "S8") {
       super8 = withProb.slice(0, 8);
       const s8Names = new Set(super8.map((t) => t.team_name));
       semifinal = withProb.filter((t) => s8Names.has(t.team_name)).slice(0, 4);
     } else if (stage.mode === "S6") {
       super6 = withProb.slice(0, 6);
-      // Semis: Top 3 from Super6 by points (tie → NRR) + 1 wildcard from the rest by points, then NRR
       const top3 = rankByStandings(super6).slice(0, 3);
       const top3Names = new Set(top3.map((t) => t.team_name));
       const rest = rankedAll.filter((t) => !top3Names.has(t.team_name));
@@ -363,7 +357,6 @@ export default function TournamentPoints() {
       semifinal = withProb.slice(0, 4);
     }
 
-    // Cutoff snapshot (doesn't assume matches left)
     const cut = stage.cut;
     let cutoff = null;
     if (rankedAll.length >= cut && cut > 0) {
@@ -378,24 +371,83 @@ export default function TournamentPoints() {
     }
 
     let summary = "";
-    if (stage.mode === "S8")
-      summary = `With ${stage.teams} teams in this tournament, the format is Super 8 → Semi-finals.`;
-    else if (stage.mode === "S6")
-      summary = `Exactly 9 teams detected: the format is Super 6 → Semi-finals (Top 3 + 1 wildcard by Points, then NRR tiebreak).`;
+    if (stage.mode === "S8") summary = `With ${stage.teams} teams in this tournament, the format is Super 8 → Semi-finals.`;
+    else if (stage.mode === "S6") summary = `Exactly 9 teams detected: the format is Super 6 → Semi-finals (Top 3 + 1 wildcard by Points, then NRR tiebreak).`;
     else summary = `Not enough teams for Super 8 or Super 6; going straight to Semi-finals.`;
 
-    return {
-      mode: stage.mode,
-      cut: stage.cut,
-      super8,
-      super6,
-      semifinal,
-      cutoff,
-      summary,
-    };
+    return { mode: stage.mode, cut: stage.cut, super8, super6, semifinal, cutoff, summary };
   }
 
-  const predictions = useMemo(() => buildPredictions(rows), [rows]);
+  // NOTE: use table (with overrides) for predictions too
+  const predictions = useMemo(() => buildPredictions(table), [table]);
+
+  /* ---------- Inline editing handlers (admin only) ---------- */
+  const startEdit = (row, field) => {
+    if (!isAdmin) return;
+    const key = rowKeyOf(row);
+    const raw = row[field] ?? "";
+    setEditing({ key, field, value: String(raw) });
+  };
+
+  const commitEdit = () => {
+    if (!editing) return;
+    const { key, field, value } = editing;
+
+    let nextVal = value;
+    if (NUM_FIELDS.has(field)) {
+      const n = parseInt(value, 10);
+      nextVal = Number.isFinite(n) ? n : 0;
+    } else if (FLOAT_FIELDS.has(field)) {
+      const f = parseFloat(value);
+      nextVal = Number.isFinite(f) ? f : 0;
+    }
+
+    setOverrides((prev) => ({
+      ...prev,
+      [key]: { ...(prev[key] || {}), [field]: nextVal },
+    }));
+    setEditing(null);
+  };
+
+  const cancelEdit = () => setEditing(null);
+
+  const adminReset = async () => {
+    setOverrides({});
+    setEditing(null);
+    await reload(); // pull fresh from DB and drop UI edits
+  };
+
+  /* ---------- Table cell component ---------- */
+  const TD = ({ row, field, className = "", children, inputType = "text", step }) => {
+    const k = rowKeyOf(row);
+    const isEditing =
+      editing && editing.key === k && editing.field === field;
+
+    return (
+      <td
+        className={`${className} ${isAdmin ? "editable" : ""}`}
+        onDoubleClick={() => startEdit(row, field)}
+      >
+        {isEditing ? (
+          <input
+            className="edit-input"
+            type={inputType}
+            step={step}
+            value={editing.value}
+            onChange={(e) => setEditing((ed) => ({ ...ed, value: e.target.value }))}
+            onBlur={commitEdit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") commitEdit();
+              if (e.key === "Escape") cancelEdit();
+            }}
+            autoFocus
+          />
+        ) : (
+          children
+        )}
+      </td>
+    );
+  };
 
   return (
     <div className="tp-simple">
@@ -452,6 +504,19 @@ export default function TournamentPoints() {
           <button className="btn-gold" onClick={reload} disabled={loading}>
             {loading ? "Loading…" : "Reload"}
           </button>
+
+          {/* ✅ Admin-only: Reset to DB (clears UI edits) */}
+          {isAdmin && (
+            <button
+              className="btn-gold"
+              style={{ marginLeft: 8 }}
+              onClick={adminReset}
+              disabled={loading}
+              title="Discard local edits and refetch from server"
+            >
+              Reset to DB
+            </button>
+          )}
         </div>
       </div>
 
@@ -464,7 +529,6 @@ export default function TournamentPoints() {
               <Axis x={PAD} y={H - PAD} x2={W - PAD} y2={H - PAD} />
               <Axis x={PAD} y={PAD} x2={PAD} y2={H - PAD} />
               <Axis x={W - PAD} y={PAD} x2={W - PAD} y2={H - PAD} opacity={0.25} />
-
               {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
                 const v = Math.round(yLMax * t);
                 const y = H - PAD - ((v - yLMin) / Math.max(1e-6, yLMax - yLMin)) * (H - PAD * 2);
@@ -473,10 +537,8 @@ export default function TournamentPoints() {
               {pointsSeries.map((_, i) => (
                 <line key={`v${i}`} x1={PAD + i * step} y1={PAD} x2={PAD + i * step} y2={H - PAD} className="grid v" />
               ))}
-
               <text x={PAD - 28} y={PAD - 10} className="axis-name">Points</text>
               <text x={W - PAD + 6} y={PAD - 10} className="axis-name">NRR</text>
-
               {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
                 const v = Math.round(yLMax * t);
                 const y = H - PAD - ((v - yLMin) / Math.max(1e-6, yLMax - yLMin)) * (H - PAD * 2);
@@ -486,7 +548,6 @@ export default function TournamentPoints() {
                 const v = +(nrrMin + t * (nrrMax - nrrMin)).toFixed(2);
                 return <text key={`rt${i}`} x={W - PAD + 10} y={yRight(v)} className="tick right" dy="4">{v}</text>;
               })}
-
               <polyline className="line gold" points={polyPoints(pointsSeries, W, H, PAD, yLMin, yLMax)} />
               <polyline className="line teal" points={polyPoints(nrrSeries, W, H, PAD, nrrMin, nrrMax)} />
 
@@ -496,31 +557,22 @@ export default function TournamentPoints() {
                 const rVal = nrrSeries[i]?.value ?? 0;
                 const yR = yRight(rVal);
 
-                // ── NEW: compute label positions with separation rules ──
                 const pX = x + LABEL.P_DX;
                 const nX = x + LABEL.N_DX;
-
-                let pY = yL + LABEL.P_DY; // points label above dot
-                let nY = yR + (rVal >= 0 ? LABEL.N_POS_DY : LABEL.N_NEG_DY); // nrr label above/below
-
-                // If labels are too close vertically, push the NRR label further
+                let pY = yL + LABEL.P_DY;
+                let nY = yR + (rVal >= 0 ? LABEL.N_POS_DY : LABEL.N_NEG_DY);
                 const sep = Math.abs(pY - nY);
                 if (sep < LABEL.SEP_MIN) {
-                  const bump = LABEL.SEP_MIN - sep + 2; // +2px safety
+                  const bump = LABEL.SEP_MIN - sep + 2;
                   nY += (rVal >= 0 ? -bump : bump);
                 }
 
                 return (
                   <g key={`${d.team}-${i}`}>
-                    {/* dots */}
                     <circle cx={x} cy={yL} r="4" className="dot gold" />
                     <circle cx={x} cy={yR} r="4" className="dot teal" />
-
-                    {/* value labels (now colored + spaced) */}
                     <text className="val goldv" x={pX} y={pY}>{d.value}</text>
                     <text className="val tealv" x={nX} y={nY}>{Number(rVal).toFixed(2)}</text>
-
-                    {/* x-axis team label */}
                     <text
                       className={`xlabel ${rotateLabels ? "small rot" : ""}`}
                       x={x}
@@ -555,7 +607,6 @@ export default function TournamentPoints() {
           <table className="tp-table">
             <thead>
               <tr>
-                {/* 🔹 GLOBAL: header labels (short on desktop + mobile) */}
                 <th>{headerLabel("rank")}</th>
                 <th>{headerLabel("team")}</th>
                 <th>{headerLabel("matches")}</th>
@@ -573,20 +624,46 @@ export default function TournamentPoints() {
                 <tr><td colSpan="10" className="empty-row">No data</td></tr>
               ) : (
                 table.map((t, idx) => (
-                  <tr key={t.team_name} className={`lb-row ${idx < 3 ? `top-${idx + 1}` : ""}`}>
+                  <tr key={rowKeyOf(t)} className={`lb-row ${idx < 3 ? `top-${idx + 1}` : ""}`}>
                     <td><span className="rank-badge">#{idx + 1}</span></td>
-                    {/* 🔹 GLOBAL: team names abbreviated in table */}
-                    <td className={`tname ${idx < 3 ? "goldtxt" : ""}`}>
+
+                    <TD row={t} field="team_name" className={`tname ${idx < 3 ? "goldtxt" : ""}`}>
                       {displayTeam(t.team_name)}
-                    </td>
-                    <td>{safeNum(t.matches_played)}</td>
-                    <td className="good">{safeNum(t.wins)}</td>
-                    <td className="bad">{safeNum(t.losses)}</td>
-                    <td>{safeNum(t.draws)}</td>
-                    <td><span className="points-chip">{safeNum(t.points)}</span></td>
-                    <td className={safeNum(t.nrr) >= 0 ? "good" : "bad"}>{safeNum(t.nrr).toFixed(2)}</td>
-                    <td className="muted">{norm(t.tournament_name) ? t.tournament_name : "—"}</td>
-                    <td className="muted">{safeNum(t.season_year) ? t.season_year : "—"}</td>
+                    </TD>
+
+                    <TD row={t} field="matches_played">
+                      {safeNum(t.matches_played)}
+                    </TD>
+
+                    <TD row={t} field="wins" className="good">
+                      {safeNum(t.wins)}
+                    </TD>
+
+                    <TD row={t} field="losses" className="bad">
+                      {safeNum(t.losses)}
+                    </TD>
+
+                    <TD row={t} field="draws">
+                      {safeNum(t.draws)}
+                    </TD>
+
+                    <TD row={t} field="points">
+                      <span className="points-chip">{safeNum(t.points)}</span>
+                    </TD>
+
+                    <TD row={t} field="nrr">
+                      <span className={safeNum(t.nrr) >= 0 ? "good" : "bad"}>
+                        {safeNum(t.nrr).toFixed(2)}
+                      </span>
+                    </TD>
+
+                    <TD row={t} field="tournament_name" className="muted">
+                      {norm(t.tournament_name) ? t.tournament_name : "—"}
+                    </TD>
+
+                    <TD row={t} field="season_year" className="muted">
+                      {safeNum(t.season_year) ? t.season_year : "—"}
+                    </TD>
                   </tr>
                 ))
               )}
@@ -595,7 +672,7 @@ export default function TournamentPoints() {
         </div>
       </div>
 
-      {/* Predictions */}
+      {/* Predictions (unchanged, but fed by 'table' with overrides) */}
       <div className="card tp-predict">
         <div className="card-head">
           Predictions
@@ -603,7 +680,6 @@ export default function TournamentPoints() {
         </div>
 
         <div className="predict-grid">
-          {/* Super 8 */}
           <div className="predict-col">
             <div className="predict-title">
               Super 8 — strongest 8
@@ -627,7 +703,6 @@ export default function TournamentPoints() {
             )}
           </div>
 
-          {/* Super 6 */}
           <div className="predict-col">
             <div className="predict-title">
               Super 6 — strongest 6
@@ -653,7 +728,6 @@ export default function TournamentPoints() {
             )}
           </div>
 
-          {/* Semi Final */}
           <div className="predict-col">
             <div className="predict-title">
               Semi-finals — strongest 4
@@ -678,15 +752,12 @@ export default function TournamentPoints() {
           </div>
         </div>
 
-        {/* Cutoff snapshot (static, no assumptions about remaining matches) */}
+        {/* Cutoff snapshot */}
         <div className="snapshot-card">
           <div className="snapshot-title">Qualification cutoff snapshot (Top {predictions.cut})</div>
-
-          {/* plain-English explainer */}
           {predictions.cut > 0 && predictions.cutoff && (
             <p className="snapshot-help">{cutoffNarrative(predictions)}</p>
           )}
-
           {predictions.cut > 0 && predictions.cutoff ? (
             <ul className="snapshot-list">
               {predictions.cutoff.above && (
@@ -731,7 +802,7 @@ export default function TournamentPoints() {
           <div className="tie-note">Tie-breaks in this view: Points → NRR → Wins → Team name.</div>
         </div>
 
-        {/* minimal CSS scoped to this card */}
+        {/* minimal CSS scope for predictions kept as-is */}
         <style>{`
           .predict-grid{display:grid;gap:14px;grid-template-columns:repeat(3,minmax(0,1fr));}
           @media(max-width: 992px){.predict-grid{grid-template-columns:1fr;}}
@@ -747,7 +818,6 @@ export default function TournamentPoints() {
           .stage-badge{margin-left:8px;font-size:.85rem;color:#d9e8ff;background:rgba(88,230,217,.08);border:1px solid rgba(88,230,217,.25);padding:4px 8px;border-radius:8px}
           .wild-tag{margin-left:8px;font-size:.72rem;color:#ffe59a;background:rgba(245,210,107,.08);border:1px solid rgba(245,210,107,.25);padding:2px 6px;border-radius:6px}
           .empty.small{padding:12px;color:#a9bdd9}
-
           .snapshot-card{margin-top:16px;padding:12px;border-top:1px dashed rgba(255,255,255,.08)}
           .snapshot-title{font-weight:900;color:#e8caa4;margin-bottom:8px}
           .snapshot-help{margin:6px 0 10px;color:#cfe0ff}
@@ -775,6 +845,9 @@ export default function TournamentPoints() {
                 Predictions are recalculated on each reload using Points, Win-rate and NRR. Stages are chosen
                 automatically from the team count with your rules.
               </p>
+              {isAdmin && (
+                <p><strong>Admin:</strong> Double-click any cell in Standings to edit it locally. Click <em>Reset to DB</em> to discard edits.</p>
+              )}
             </div>
             <div className="modal-foot">
               <button className="btn-gold" onClick={() => setInfoOpen(false)}>Got it</button>

@@ -245,3 +245,32 @@
   border-color: rgba(255,255,255,.08) !important;
   text-shadow: 0 1px 0 rgba(0,0,0,.35);
 }
+/* ===== Inline editing (admin-only UX) ===== */
+.editable {
+  cursor: cell;
+  position: relative;
+}
+.editable:hover::after {
+  content: "↺ dbl-click to edit";
+  position: absolute;
+  right: 8px;
+  top: 6px;
+  font-size: 11px;
+  color: rgba(255,255,255,.45);
+  pointer-events: none;
+}
+
+.edit-input {
+  width: 100%;
+  padding: 6px 8px;
+  background: #0b1119;
+  color: var(--text);
+  border: 1px solid var(--soft2);
+  border-radius: 8px;
+  outline: none;
+  box-shadow: 0 0 0 1px rgba(245,210,107,.05);
+}
+.edit-input:focus {
+  border-color: rgba(245,210,107,.35);
+  box-shadow: 0 0 0 2px rgba(245,210,107,.2);
+}
