@@ -1,6 +1,8 @@
 // ✅ src/components/PlayerPerformance.js
 // Adds Tournament dropdown (fetched from backend) + Season Year
 // NEW: 5W haul auto-badge + message field (persisted)
+// 🔧 CHANGED: Season Year UX — manual entry allowed without noisy per-keystroke errors;
+//             Season Year is required only when it wasn't auto-detected from Tournament/Match.
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
@@ -63,10 +65,10 @@ function buildFiveWMessage({ wickets_taken, runs_given, against_team, match_type
   return `🎯 5-wicket haul${ratio}${vsTxt}${mtTxt}`;
 }
 
-const PlayerPerformance = () => {
+export default function PlayerPerformance() {
   const [players, setPlayers] = useState([]);
   const [teams, setTeams]     = useState([]);
-  const [tournaments, setTournaments] = useState([]); // NEW
+  const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
@@ -75,8 +77,8 @@ const PlayerPerformance = () => {
     team_name: "",
     match_type: "ODI", // "ODI" | "T20" | "Test"
     against_team: "",
-    tournament_name: "",  // NEW
-    season_year: "",      // NEW
+    tournament_name: "",
+    season_year: "",
     run_scored: 0,
     balls_faced: 0,
     wickets_taken: 0,
@@ -89,6 +91,9 @@ const PlayerPerformance = () => {
     is_five_wicket_haul: false,
     bowling_milestone: ""
   });
+
+  // ✅ NEW: track whether Season Year must be provided by user
+  const [needsSeasonYear, setNeedsSeasonYear] = useState(false);
 
   // -- fetch players + tournaments
   useEffect(() => {
@@ -125,20 +130,50 @@ const PlayerPerformance = () => {
         (String(guess).match(YEAR_RE) || [])[0] ||
         (String(form.match_name).match(YEAR_RE) || [])[0] ||
         "";
+      // 🔧 CHANGED: also update "needsSeasonYear" based on whether we auto-detected a year
       setForm((f) => ({ ...f, tournament_name: guess, season_year: yr }));
+      setNeedsSeasonYear(!yr); // ✅ NEW
     }
   }, [form.match_name, form.tournament_name, tournaments]);
 
+  // 🔧 CHANGED: tournament change sets year if present, and toggles requirement
   const handleTournamentChange = (name) => {
     const yr =
       (String(name).match(YEAR_RE) || [])[0] ||
       (String(form.match_name).match(YEAR_RE) || [])[0] ||
       "";
-    setForm({ ...form, tournament_name: name, season_year: yr });
+    setForm((f) => ({ ...f, tournament_name: name, season_year: yr }));
+    setNeedsSeasonYear(!yr); // ✅ NEW
+  };
+
+  // 🔧 CHANGED: season year handled by dedicated handlers (no per-keystroke errors)
+  const handleSeasonYearChange = (e) => {
+    const v = e.target.value;
+    // allow empty or up to 4 digits while typing
+    if (/^\d{0,4}$/.test(v)) {
+      setForm((f) => ({ ...f, season_year: v }));
+    }
+  };
+
+  // ✅ NEW: validate year only on blur/submit
+  const validateSeasonYear = () => {
+    if (!form.season_year) return !needsSeasonYear; // ok if not required
+    if (form.season_year.length < 4) {
+      toast.error("Enter a 4-digit year.");
+      return false;
+    }
+    const yr = parseInt(form.season_year, 10);
+    if (Number.isNaN(yr) || yr < 1877 || yr > 2100) {
+      toast.error("Season year looks invalid (1877–2100).");
+      return false;
+    }
+    return true;
   };
 
   const handleNumberChange = (e, key) => {
     let value = e.target.value;
+
+    // Keep empty state (so users can clear a field)
     if (value === "") {
       setForm({ ...form, [key]: "" });
       return;
@@ -147,9 +182,7 @@ const PlayerPerformance = () => {
     if (value.includes(".")) {
       if (key === "balls_faced") toast.error("Please enter a full number (no decimal).");
       else if (
-        ["wickets_taken", "runs_given", "fifties", "hundreds", "run_scored", "season_year"].includes(
-          key
-        )
+        ["wickets_taken", "runs_given", "fifties", "hundreds", "run_scored"].includes(key) // 🔧 CHANGED: removed "season_year" from this list
       ) toast.error("Only full numbers allowed.");
       return;
     }
@@ -159,10 +192,6 @@ const PlayerPerformance = () => {
 
     if (key === "wickets_taken" && (form.match_type === "ODI" || form.match_type === "T20") && intValue > 10) {
       toast.error("Maximum 10 wickets in ODI/T20.");
-      return;
-    }
-    if (key === "season_year" && (intValue < 1877 || intValue > 2100)) {
-      toast.error("Season year looks invalid.");
       return;
     }
 
@@ -222,6 +251,7 @@ const PlayerPerformance = () => {
       setForm({ ...form, team_name, against_team: "" });
     } else setForm({ ...form, team_name });
   };
+
   const handleAgainstTeamChange = (against_team) => {
     if (against_team === form.team_name) {
       toast.error("Same team names are not allowed.");
@@ -243,13 +273,13 @@ const PlayerPerformance = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Base required fields (season_year handled separately)
     if (
       !form.player_id ||
       !form.team_name ||
       !form.match_type ||
       !form.against_team ||
-      !form.tournament_name ||
-      !form.season_year
+      !form.tournament_name
     ) {
       toast.error("⚠️ All fields are required.");
       return;
@@ -258,6 +288,8 @@ const PlayerPerformance = () => {
       alert("⚠️ Please enter the Match Name.");
       return;
     }
+    if (needsSeasonYear && !validateSeasonYear()) return; // 🔧 CHANGED
+
     if (!window.confirm("Are you sure you want to submit this performance?")) return;
 
     const { fifties, hundreds } = deriveMilestones(Number(form.run_scored) || 0);
@@ -265,6 +297,8 @@ const PlayerPerformance = () => {
 
     const payload = {
       ...form,
+      // 🔧 CHANGED: send undefined if empty (backend can infer)
+      season_year: form.season_year ? parseInt(form.season_year, 10) : undefined,
       fifties,
       hundreds,
       user_id: userId ?? undefined,
@@ -275,6 +309,7 @@ const PlayerPerformance = () => {
       await axios.post(API_PERF, payload, { headers });
       toast.success("✅ Player performance added successfully!");
       resetForm();
+      setNeedsSeasonYear(false); // ✅ NEW: reset
     } catch (err) {
       console.error("❌ Error submitting performance:", err?.response?.data || err.message);
       toast.error(err?.response?.data?.message || "❌ Failed to add player performance.");
@@ -328,7 +363,7 @@ const PlayerPerformance = () => {
             />
           </div>
 
-          {/* NEW: Tournament + Season Year */}
+          {/* Tournament + Season Year */}
           <div className="row">
             <div className="col-md-8 mb-2">
               <label>Tournament</label>
@@ -348,13 +383,21 @@ const PlayerPerformance = () => {
             <div className="col-md-4 mb-2">
               <label>Season Year</label>
               <input
-                type="number"
+                // 🔧 CHANGED: text + numeric keypad; validate on blur
+                type="text"
+                inputMode="numeric"
+                pattern="\d{4}"
+                maxLength={4}
                 className={`form-control ${isFilled(form.season_year) ? "field-filled" : ""}`}
                 value={form.season_year}
-                onChange={(e) => handleNumberChange(e, "season_year")}
+                onChange={handleSeasonYearChange}   // ✅ NEW
+                onBlur={validateSeasonYear}         // ✅ NEW
                 placeholder="e.g. 2025"
-                required
+                required={needsSeasonYear}          // ✅ NEW
               />
+              {!needsSeasonYear && (
+                <small className="text-muted">Optional if tournament name already has the year.</small>
+              )}
             </div>
           </div>
 
@@ -453,7 +496,7 @@ const PlayerPerformance = () => {
             </div>
           </div>
 
-          {/* NEW: Five-wicket Haul badge + message */}
+          {/* Five-wicket Haul badge + message */}
           {form.is_five_wicket_haul && (
             <div className="fivew-wrap">
               <div className="fivew-badge">
@@ -482,6 +525,4 @@ const PlayerPerformance = () => {
       </div>
     </div>
   );
-};
-
-export default PlayerPerformance;
+}
