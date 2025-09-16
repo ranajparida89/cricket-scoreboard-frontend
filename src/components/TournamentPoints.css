@@ -36,12 +36,55 @@
 .filters label{ display:flex; flex-direction:column; gap:6px; }
 .filters label span{ color:var(--muted); font-size:12px; }
 
+/* Base select look (dark) */
 .sel.dark{
-  appearance:none; background:#0b1119; color:var(--text); border:1px solid var(--soft2);
-  padding:8px 10px; border-radius:10px; min-width:160px;
+  /* 🔧 CHANGED: normalize appearance & enforce dark */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background:#0b1119;
+  color:var(--text);
+  border:1px solid var(--soft2);
+  padding:8px 10px;
+  border-radius:10px;
+  min-width:160px;
   box-shadow:0 0 0 1px rgba(245,210,107,.05), 0 10px 30px rgba(0,0,0,.25);
+  color-scheme: dark;            /* ✅ NEW: tells the browser to use dark popup UI */
 }
-.sel.dark:focus{ outline:none; border-color:rgba(245,210,107,.35); box-shadow:0 0 10px rgba(245,210,107,.25); }
+.sel.dark:focus{
+  outline:none;
+  border-color:rgba(245,210,107,.35);
+  box-shadow:0 0 10px rgba(245,210,107,.25);
+}
+
+/* ✅ NEW: darken the popup options list itself */
+.sel.dark option,
+.sel.dark optgroup{
+  background-color:#0b1119;      /* same as --bg */
+  color:var(--text);
+}
+.sel.dark option:hover,
+.sel.dark option:checked{
+  background-color:#0f1724;      /* same as --panel */
+  color:var(--text);
+}
+
+/* ✅ NEW: safety fallback in case class is missing on a page */
+.filters select{
+  background:#0b1119;
+  color:var(--text);
+  border:1px solid var(--soft2);
+  border-radius:10px;
+  color-scheme: dark;
+}
+.filters select option{ background:#0b1119; color:var(--text); }
+.filters select option:hover,
+.filters select option:checked{ background:#0f1724; }
+
+/* Optional: high-contrast mode */
+@media (forced-colors: active){
+  .sel.dark{ forced-color-adjust: none; }
+}
 
 .btn-gold{
   background:linear-gradient(180deg,var(--gold),var(--gold-d));
@@ -80,15 +123,15 @@
 .grid.v{ opacity:.45; }
 .axis-name{ fill:#cfe4ff; font-weight:800; }
 
-/* Value labels: keep contrast outline, but color-fill to match series */
+/* Value labels */
 .val{
   font-weight:900;
   paint-order:stroke;
   stroke:rgba(0,0,0,.65);
   stroke-width:2px;
 }
-.val.goldv{ fill:var(--gold); }   /* 🔸 Points numbers now gold */
-.val.tealv{ fill:var(--teal); }   /* 🔹 NRR numbers now teal   */
+.val.goldv{ fill:var(--gold); }
+.val.tealv{ fill:var(--teal); }
 
 /* table */
 .tp-table-card{ margin-top:12px; }
@@ -163,7 +206,6 @@
     0 0 0 1px var(--top3-border) inset,
     0 0 30px var(--top3-glow);
 }
-/* Optional: make the rank badge hint green for top-3 */
 .tp-table tbody tr.lb-row.top-1 .rank-badge,
 .tp-table tbody tr.lb-row.top-2 .rank-badge,
 .tp-table tbody tr.lb-row.top-3 .rank-badge{
