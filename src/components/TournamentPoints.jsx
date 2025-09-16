@@ -110,40 +110,51 @@ function abbreviateTeamName(name) {
   return words.map((w) => w[0]).join("").slice(0, 3).toUpperCase();
 }
 const displayTeam = (name) => abbreviateTeamName(name);
-/* ----- Flags for team abbreviations (uses displayTeam(name)) ----- */
-/* Notes:
-   - England & Scotland use sub-regional flags (work on modern iOS/Android/Chrome).
-     If you see a plain black flag on an older platform, swap ENG->'🇬🇧' and SCT->'🏴'.
-   - West Indies has no country flag emoji → use a cricket bat as its emblem.
-*/
+/* --- Desktop fallback for England/Scotland flags --- */
+function supportsSubregionalFlags() {
+  try {
+    // canvas width differs if the emoji renders as a glyph vs text fallback
+    const c = document.createElement("canvas");
+    const ctx = c.getContext("2d");
+    if (!ctx) return false;
+    ctx.font = "32px sans-serif";
+    const w1 = ctx.measureText("🏴").width; // subregional (England/Scotland/Wales use this base)
+    const w2 = ctx.measureText("ENG").width; // approximate fallback width
+    return Math.abs(w1 - w2) > 4;            // if it renders as emoji, widths differ meaningfully
+  } catch {
+    return false;
+  }
+}
+const SUBDIV_OK = supportsSubregionalFlags();
+
+/* Correct, cross-platform flag map (with fallback for ENG/SCT) */
 const FLAG_EMOJI = {
-  SA:  '🇿🇦', // South Africa
-  ENG:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', // England (St George’s Cross)
-  KEN:'🇰🇪',
-  SCT:'🏴󠁧󠁢󠁳󠁣󠁴󠁿', // Scotland (St Andrew’s Cross)
-  AFG:'🇦🇫',
-  IND:'🇮🇳',
-  BAN:'🇧🇩',
-  NZ: '🇳🇿',
-  HKG:'🇭🇰',
-  AUS:'🇦🇺',
-  PAK:'🇵🇰',
-  IRE:'🇮🇪',
-  NED:'🇳🇱',
-  NAM:'🇳🇦',
-  ZIM:'🇿🇼',
-  NEP:'🇳🇵',
-  OMA:'🇴🇲',
-  CAN:'🇨🇦',
-  UAE:'🇦🇪',
-  SL: '🇱🇰',  // Sri Lanka
-  USA:'🇺🇸',
-  PNG:'🇵🇬',
-  WI: '🏏'    // West Indies (no single flag, use cricket)
+  SA:  "🇿🇦",
+  ENG: SUBDIV_OK ? "🏴" : "🇬🇧", // England → St George’s Cross, else Union Jack fallback
+  KEN: "🇰🇪",
+  SCT: SUBDIV_OK ? "🏴" : "🇬🇧", // Scotland → St Andrew’s Cross, else Union Jack fallback
+  AFG: "🇦🇫",
+  IND: "🇮🇳",
+  BAN: "🇧🇩",
+  NZ:  "🇳🇿",
+  HKG: "🇭🇰",
+  AUS: "🇦🇺",
+  PAK: "🇵🇰",
+  IRE: "🇮🇪",
+  NED: "🇳🇱",
+  NAM: "🇳🇦",
+  ZIM: "🇿🇼",
+  NEP: "🇳🇵",
+  OMA: "🇴🇲",
+  CAN: "🇨🇦",
+  UAE: "🇦🇪",
+  SL:  "🇱🇰",
+  USA: "🇺🇸",
+  PNG: "🇵🇬",
+  WI:  "🏏"   // West Indies has no single emoji flag—use a cricket bat
 };
 
 const flagForTeam = (name) => FLAG_EMOJI[displayTeam(name)] || "";
-
 
 function headerLabel(key) {
   switch (key) {

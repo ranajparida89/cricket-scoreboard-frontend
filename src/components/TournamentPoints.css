@@ -292,3 +292,16 @@
   border-color: rgba(245,210,107,.35);
   box-shadow: 0 0 0 2px rgba(245,210,107,.2);
 }
+/* Ensure only one skull is ever shown (JSX-controlled) */
+.tp-table .bad::before,
+.tp-table .bad::after,
+.tp-table .nrr.bad::before,
+.tp-table .nrr.bad::after {
+  content: none !important;
+}
+
+.skull {
+  margin-left: 6px;
+  font-size: 14px;
+  vertical-align: -1px;
+}
