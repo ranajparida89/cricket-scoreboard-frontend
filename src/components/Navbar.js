@@ -151,7 +151,7 @@ const AppNavbar = ({ onAuthClick }) => {
                 onClick={() => playSound("click")}
                 onMouseEnter={() => playSound("hover")}
               >
-                🧾 Test Match History
+               Test Match History
               </NavDropdown.Item>
 
               <NavDropdown.Item
@@ -169,7 +169,7 @@ const AppNavbar = ({ onAuthClick }) => {
                 onClick={() => playSound("click")}
                 onMouseEnter={() => playSound("hover")}
               >
-                📘 Test Rankings
+                Test Rankings
               </NavDropdown.Item>
 
               <NavDropdown.Divider />
