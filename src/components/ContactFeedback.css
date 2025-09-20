@@ -1,0 +1,125 @@
+:root{
+  --cf-bg:#0b0d11;
+  --cf-card:#121726;
+  --cf-soft: rgba(255,255,255,.08);
+  --cf-soft2: rgba(255,255,255,.16);
+  --cf-text:#f6f8ff;
+  --cf-muted:#bcd0ff;
+  --cf-accent:#58e6d9;
+  --cf-success:#2fce7b;
+  --cf-danger:#ff6b7a;
+  --cf-gold:#f5d26b;
+}
+
+.cf-wrap{
+  max-width: 880px;
+  margin: 24px auto 60px;
+  padding: 0 16px;
+  color: var(--cf-text);
+}
+
+.cf-head{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.cf-head h2{
+  margin: 0;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: .4px;
+}
+.cf-emoji{ font-size: 28px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.4)); }
+
+.cf-pill{
+  margin-left: auto;
+  font-size: 12px;
+  color: #cfe9ff;
+  background: rgba(88,230,217,.09);
+  border: 1px solid rgba(88,230,217,.25);
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+.cf-card{
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+  border: 1px solid var(--cf-soft);
+  border-radius: 14px;
+  box-shadow: 0 10px 32px rgba(0,0,0,.35);
+  padding: 18px 16px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.cf-label{
+  color: var(--cf-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cf-input, .cf-textarea{
+  width: 100%;
+  padding: 10px 12px;
+  background: #0b1119;
+  color: var(--cf-text);
+  border: 1px solid var(--cf-soft2);
+  border-radius: 10px;
+  outline: none;
+  transition: box-shadow .15s ease, border-color .15s ease, background-color .15s ease;
+}
+.cf-input::placeholder, .cf-textarea::placeholder{
+  color: rgba(200,220,255,.55);
+}
+.cf-input:focus, .cf-textarea:focus{
+  border-color: rgba(245,210,107,.35);
+  box-shadow: 0 0 0 2px rgba(245,210,107,.18);
+  background: #0e1624;
+}
+
+.cf-textarea{
+  resize: vertical;
+  min-height: 140px;
+}
+
+.cf-actions{
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.cf-btn{
+  background: linear-gradient(180deg, var(--cf-success), #1fae67);
+  color: #0b1119;
+  font-weight: 900;
+  border: 0;
+  padding: 10px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(47,206,123,.25);
+}
+.cf-btn:disabled{
+  opacity: .65;
+  cursor: default;
+}
+
+.cf-alert{
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 10px 0;
+  font-weight: 700;
+}
+.cf-alert.ok{
+  background: rgba(47,206,123,.12);
+  border: 1px solid rgba(47,206,123,.35);
+  color: #d9ffea;
+}
+.cf-alert.err{
+  background: rgba(255,107,122,.12);
+  border: 1px solid rgba(255,107,122,.35);
+  color: #ffd9df;
+}
+
+/* honeypot */
+.cf-hp{ position:absolute; left:-9999px; top:-9999px; height:0; width:0; opacity:0; }
