@@ -58,7 +58,7 @@ export default function RecentMatchesPanelV2({ userId, limit = 5 }) {
         match_name: m.match_name,
         match_type: m.match_type,
         opponent: m.opponent,
-        result: m.result, // "Won" | "Lost" | "Draw" | etc
+        result: m.result, // "Won" | "Lost" | "Draw"
         runs: m.runs,
         wickets: m.wickets,
         raw: m,
@@ -83,16 +83,8 @@ export default function RecentMatchesPanelV2({ userId, limit = 5 }) {
     if (norm === "won")
       return { cls: "win", icon: <FaTrophy aria-hidden="true" />, text: "Won" };
     if (norm === "lost")
-      return {
-        cls: "loss",
-        icon: <FaRegSadCry aria-hidden="true" />,
-        text: "Lost",
-      };
-    return {
-      cls: "draw",
-      icon: <FaHandshake aria-hidden="true" />,
-      text: result || "Draw",
-    };
+      return { cls: "loss", icon: <FaRegSadCry aria-hidden="true" />, text: "Lost" };
+    return { cls: "draw", icon: <FaHandshake aria-hidden="true" />, text: result || "Draw" };
   };
 
   return (
@@ -119,7 +111,7 @@ export default function RecentMatchesPanelV2({ userId, limit = 5 }) {
         </div>
       ) : (
         <div className="recent-matches-panel-scroll">
-          {/* Sticky table header (no overlapping text) */}
+          {/* Sticky header grid */}
           <div className="rm-header">
             <span>Date</span>
             <span>Match</span>
@@ -140,8 +132,7 @@ export default function RecentMatchesPanelV2({ userId, limit = 5 }) {
                 tabIndex={0}
                 onClick={() => setSelectedMatch(r.raw)}
                 onKeyDown={(e) =>
-                  (e.key === "Enter" || e.key === " ") &&
-                  setSelectedMatch(r.raw)
+                  (e.key === "Enter" || e.key === " ") && setSelectedMatch(r.raw)
                 }
                 title="Open match details"
                 aria-label={`Open details for ${r.match_name}`}
@@ -186,16 +177,17 @@ export default function RecentMatchesPanelV2({ userId, limit = 5 }) {
             <h4 className="rm-modal-title">Match Details</h4>
 
             <div className="rm-modal-details">
-              <Detail label="Date" value={new Date(selectedMatch.match_time).toLocaleString()} />
+              <Detail
+                label="Date"
+                value={new Date(selectedMatch.match_time).toLocaleString()}
+              />
               <Detail label="Match" value={selectedMatch.match_name} />
               <Detail label="Type" value={selectedMatch.match_type} />
               <Detail label="Opponent" value={selectedMatch.opponent} />
               <Detail
                 label="Result"
                 value={
-                  <span
-                    className={`rm-chip ${getResultChip(selectedMatch.result).cls}`}
-                  >
+                  <span className={`rm-chip ${getResultChip(selectedMatch.result).cls}`}>
                     <span className="rm-chip-icon">
                       {getResultChip(selectedMatch.result).icon}
                     </span>

@@ -1,3 +1,4 @@
+// src/components/TopPerformerCard.js
 import React from "react";
 import "./TopPerformerCard.css";
 
@@ -22,7 +23,7 @@ const TopPerformerCard = ({ performer, period, matchType }) => {
 
   return (
     <div className={`tp-card card-3d glass ${performer.mvp_badge ? "is-mvp" : ""}`}>
-      {/* ✅ Left-aligned inside the card, with extra top padding on the card */}
+      {/* Left-aligned inside the card, with extra top padding on the card */}
       {performer.mvp_badge && (
         <div className="tp-ribbon" title="MVP of the Month">
           🏆 MVP of the Month

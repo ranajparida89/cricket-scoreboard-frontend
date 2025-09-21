@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../services/auth";
 import "./UserCricketStatsDashboardV2.css";
@@ -26,20 +26,28 @@ export default function UserCricketStatsDashboardV2() {
   // Teams
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState("");
-  const [teamsLoading, setTeamsLoading] = useState(true);
 
   // Match type
   const [selectedType, setSelectedType] = useState("All");
+
+  // Tournament/Season filters (+options) — ODI/T20 only
+  const [tournamentOptions, setTournamentOptions] = useState([]);
+  const [seasonOptions, setSeasonOptions] = useState([]);
+  const [tournamentName, setTournamentName] = useState("");
+  const [seasonYear, setSeasonYear] = useState("");
 
   // Top Performer
   const [topPerformer, setTopPerformer] = useState(null);
   const [tpLoading, setTpLoading] = useState(false);
   const [tpError, setTpError] = useState("");
 
-  // Stats cards
+  // Summary cards
   const [cardStats, setCardStats] = useState(null);
   const [cardLoading, setCardLoading] = useState(false);
   const [cardError, setCardError] = useState("");
+
+  // Flags
+  const [teamsLoading, setTeamsLoading] = useState(true);
 
   // Load user teams
   useEffect(() => {
@@ -55,7 +63,34 @@ export default function UserCricketStatsDashboardV2() {
       .finally(() => setTeamsLoading(false));
   }, [currentUser]);
 
-  // Load top performer (depends on team + type)
+  // Load Tournament/Season options when match-type changes (ODI/T20 only)
+  useEffect(() => {
+    if (selectedType === "Test") {
+      setTournamentOptions([]);
+      setSeasonOptions([]);
+      setTournamentName("");
+      setSeasonYear("");
+      return;
+    }
+    axios
+      .get(`${API_BASE_URL}/tournaments/filters`, {
+        params: { match_type: selectedType },
+      })
+      .then((res) => {
+        const topts = res.data?.tournaments || [];
+        const yopts = res.data?.years || [];
+        setTournamentOptions(topts);
+        setSeasonOptions(yopts);
+        setTournamentName((t) => (topts.includes(t) ? t : ""));
+        setSeasonYear((y) => (yopts.includes(Number(y)) ? String(y) : ""));
+      })
+      .catch(() => {
+        setTournamentOptions([]);
+        setSeasonOptions([]);
+      });
+  }, [selectedType]);
+
+  // Load top performer (depends on team + type + filters)
   useEffect(() => {
     if (!currentUser?.id || !selectedTeam) {
       setTopPerformer(null);
@@ -63,19 +98,37 @@ export default function UserCricketStatsDashboardV2() {
       setTpLoading(false);
       return;
     }
-    fetchTopPerformer(currentUser.id, selectedType, selectedTeam);
+    fetchTopPerformer(
+      currentUser.id,
+      selectedType,
+      selectedTeam,
+      tournamentName,
+      seasonYear
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedType, selectedTeam, currentUser]);
+  }, [selectedType, selectedTeam, tournamentName, seasonYear, currentUser]);
 
-  const fetchTopPerformer = async (userId, matchType, teamName) => {
+  const fetchTopPerformer = async (
+    userId,
+    matchType,
+    teamName,
+    tournament,
+    year
+  ) => {
     setTpLoading(true);
     setTpError("");
     setTopPerformer(null);
     try {
-      const url = `${API_BASE_URL}/top-performer?user_id=${userId}&period=month&match_type=${matchType}&team_name=${encodeURIComponent(
-        teamName
-      )}`;
-      const res = await axios.get(url);
+      const res = await axios.get(`${API_BASE_URL}/top-performer`, {
+        params: {
+          user_id: userId,
+          period: "month",
+          match_type: matchType,
+          team_name: teamName,
+          tournament_name: tournament || undefined,
+          season_year: year ? Number(year) : undefined,
+        },
+      });
       setTopPerformer(res.data?.performer ?? null);
     } catch {
       setTpError("Could not fetch top performer.");
@@ -85,7 +138,7 @@ export default function UserCricketStatsDashboardV2() {
     }
   };
 
-  // Load summary cards (depends on team + type)
+  // Load summary cards (depends on team + type + filters)
   useEffect(() => {
     if (!currentUser?.id || !selectedTeam) return;
     setCardLoading(true);
@@ -97,6 +150,8 @@ export default function UserCricketStatsDashboardV2() {
           user_id: currentUser.id,
           team_name: selectedTeam,
           match_type: selectedType,
+          tournament_name: tournamentName || undefined,
+          season_year: seasonYear ? Number(seasonYear) : undefined,
         },
       })
       .then((res) => setCardStats(res.data))
@@ -104,7 +159,12 @@ export default function UserCricketStatsDashboardV2() {
         setCardError("Could not load stats for the selected team/match type.")
       )
       .finally(() => setCardLoading(false));
-  }, [currentUser, selectedTeam, selectedType]);
+  }, [currentUser, selectedTeam, selectedType, tournamentName, seasonYear]);
+
+  const hasFilterControls = useMemo(
+    () => selectedType !== "Test",
+    [selectedType]
+  );
 
   if (!currentUser?.id) {
     return (
@@ -126,7 +186,13 @@ export default function UserCricketStatsDashboardV2() {
           />
           <div className="who">
             <div className="hello">
-              Welcome, <span className="name">{currentUser.name || currentUser.first_name || currentUser.email || "Player"}</span>
+              Welcome,{" "}
+              <span className="name">
+                {currentUser.name ||
+                  currentUser.first_name ||
+                  currentUser.email ||
+                  "Player"}
+              </span>
             </div>
 
             {/* Team select */}
@@ -162,6 +228,43 @@ export default function UserCricketStatsDashboardV2() {
                 </button>
               ))}
             </div>
+
+            {/* Tournament/Season filters (ODI/T20 only) */}
+            {hasFilterControls && (
+              <div className="filters-row">
+                <div className="select-wrap">
+                  <select
+                    className="dark-select"
+                    value={tournamentName}
+                    onChange={(e) => setTournamentName(e.target.value)}
+                    aria-label="Select tournament"
+                  >
+                    <option value="">All Tournaments</option>
+                    {tournamentOptions.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="select-wrap">
+                  <select
+                    className="dark-select"
+                    value={seasonYear}
+                    onChange={(e) => setSeasonYear(e.target.value)}
+                    aria-label="Select season year"
+                  >
+                    <option value="">All Seasons</option>
+                    {seasonOptions.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -173,13 +276,22 @@ export default function UserCricketStatsDashboardV2() {
         ) : tpError ? (
           <div className="dashboard-error">{tpError}</div>
         ) : (
-          <TopPerformerCard performer={topPerformer} period="month" matchType={selectedType} />
+          <TopPerformerCard
+            performer={topPerformer}
+            period="month"
+            matchType={selectedType}
+          />
         )}
       </div>
 
       {/* Win/Loss Trend */}
       <div className="block">
-        <WinLossTrendDashboard selectedMatchType={selectedType} teamName={selectedTeam} />
+        <WinLossTrendDashboard
+          selectedMatchType={selectedType}
+          teamName={selectedTeam}
+          tournamentName={tournamentName}
+          seasonYear={seasonYear}
+        />
       </div>
 
       {/* Summary cards */}
@@ -204,10 +316,22 @@ export default function UserCricketStatsDashboardV2() {
 
       {/* Achievements + Recent matches */}
       <div className="block">
-        <UserAchievements userId={currentUser.id} matchType={selectedType} />
+        <UserAchievements
+          userId={currentUser.id}
+          matchType={selectedType}
+          tournamentName={tournamentName}
+          seasonYear={seasonYear}
+        />
       </div>
       <div className="block">
-        <RecentMatchesPanelV2 userId={currentUser.id} limit={5} />
+        <RecentMatchesPanelV2
+          userId={currentUser.id}
+          limit={5}
+          tournamentName={tournamentName}
+          seasonYear={seasonYear}
+          matchType={selectedType}
+          teamName={selectedTeam}
+        />
       </div>
     </div>
   );
@@ -215,7 +339,10 @@ export default function UserCricketStatsDashboardV2() {
 
 function StatCard({ color, label, value, icon }) {
   return (
-    <div className="stat-card-3d" style={{ "--bg": color }}>
+    <div
+      className="stat-card-3d"
+      style={{ ["--bg"]: color }}
+    >
       <div className="stat-top">
         <span className="stat-ico" aria-hidden="true">{icon}</span>
         <span className="stat-label">{label}</span>

@@ -1,3 +1,4 @@
+// src/components/WinLossTrendDashboard.js
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import {
@@ -73,8 +74,8 @@ const WinLossTrendDashboard = ({ selectedMatchType = "All", teamName }) => {
       .reverse()
       .map((entry, i) => ({
         ...entry,
-        h: 1,          // constant height so color blocks read uniformly
-        idx: i + 1,    // 1..10 (oldest → newest)
+        h: 1, // constant height so color blocks read uniformly
+        idx: i + 1, // 1..10 (oldest → newest)
       }));
   }, [trendData]);
 
@@ -117,14 +118,8 @@ const WinLossTrendDashboard = ({ selectedMatchType = "All", teamName }) => {
                 barCategoryGap={14}
                 barGap={6}
               >
-                {/* ✅ No tick text → prevents overlap entirely */}
-                <XAxis
-                  dataKey="idx"
-                  tick={false}
-                  axisLine={false}
-                  tickLine={false}
-                  height={0}
-                />
+                {/* hide ticks to prevent overlap */}
+                <XAxis dataKey="idx" tick={false} axisLine={false} tickLine={false} height={0} />
 
                 <Tooltip
                   cursor={{ fill: "transparent" }}

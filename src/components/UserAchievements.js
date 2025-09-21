@@ -18,7 +18,12 @@ const iconMap = {
   wins: <FaUsers className="ua-icon wins" aria-hidden="true" />,
 };
 
-export default function UserAchievements({ userId, matchType = "All" }) {
+export default function UserAchievements({
+  userId,
+  matchType = "All",
+  tournamentName = "",
+  seasonYear = "",
+}) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState("");
@@ -30,10 +35,13 @@ export default function UserAchievements({ userId, matchType = "All" }) {
     setLoading(true);
     setApiError("");
 
+    // Build params cleanly, omit empty filters
+    const params = { user_id: userId, match_type: matchType };
+    if (tournamentName) params.tournament_name = tournamentName;
+    if (seasonYear) params.season_year = Number(seasonYear);
+
     axios
-      .get(`${API_BASE}/user-achievements`, {
-        params: { user_id: userId, match_type: matchType },
-      })
+      .get(`${API_BASE}/user-achievements`, { params })
       .then((res) => {
         if (!cancelled) setData(res.data || null);
       })
@@ -43,7 +51,7 @@ export default function UserAchievements({ userId, matchType = "All" }) {
     return () => {
       cancelled = true;
     };
-  }, [userId, matchType]);
+  }, [userId, matchType, tournamentName, seasonYear]);
 
   const achievements = data?.achievements || {};
   const topRatings = data?.top_ratings || {};
@@ -95,7 +103,7 @@ export default function UserAchievements({ userId, matchType = "All" }) {
       <div className="ua-dashboard card-3d glass" aria-live="polite">
         <div className="ua-header">
           <FaStar className="ua-star" />
-          <h2>Achievements & Milestones</h2>
+          <h2>Achievements &amp; Milestones</h2>
           {matchType !== "All" && <span className="ua-pill">({matchType})</span>}
         </div>
         <div className="ua-skeleton-cards">
@@ -132,8 +140,10 @@ export default function UserAchievements({ userId, matchType = "All" }) {
     <div className="ua-dashboard card-3d glass">
       <div className="ua-header">
         <FaStar className="ua-star" />
-        <h2>Achievements & Milestones</h2>
+        <h2>Achievements &amp; Milestones</h2>
         {matchType !== "All" && <span className="ua-pill">({matchType})</span>}
+        {tournamentName && <span className="ua-pill">({tournamentName})</span>}
+        {seasonYear && <span className="ua-pill">({seasonYear})</span>}
       </div>
 
       {/* Highlight cards */}
