@@ -63,4 +63,10 @@
       backdrop-filter: blur(10px);
     }
   }
-  
+  .sidebar-menu a svg {
+  vertical-align: middle;
+}
+
+.sidebar-menu a[href="/pitch-randomizer"] svg {
+  color: #00ffaa; /* Neon green highlight */
+}

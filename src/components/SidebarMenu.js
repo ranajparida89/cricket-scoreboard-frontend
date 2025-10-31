@@ -3,7 +3,14 @@
 
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { FaUsers, FaPlus, FaChartLine, FaUserCheck, FaTimes } from "react-icons/fa";
+import {
+  FaUsers,
+  FaPlus,
+  FaChartLine,
+  FaUserCheck,
+  FaTimes,
+  FaDiceD20,  // 🎯 Added unique icon for Pitch Randomizer
+} from "react-icons/fa";
 import { FaRegNewspaper } from "react-icons/fa";
 import { FaHandshake } from "react-icons/fa";
 import { FaBrain } from "react-icons/fa";
@@ -36,9 +43,8 @@ const SidebarMenu = () => {
         <h4>CrickEdge</h4>
         <button className="close-btn" onClick={handleClose}><FaTimes /></button>
       </div>
-      <ul>
 
-       
+      <ul>
         <li><Link to="/player-performance" onClick={handleClose}><FaUserCheck className="me-2" /> Add Player Performance</Link></li>
         <li><Link to="/player-stats" onClick={handleClose}><FaChartLine className="me-2" /> Player Stats</Link></li>
         <li><Link to="/squad-lineup" onClick={handleClose}><FaUsers className="me-2" /> Add Squad / Lineup</Link></li>
@@ -48,75 +54,76 @@ const SidebarMenu = () => {
         <li><Link to="/match-story" onClick={handleClose}><FaRegNewspaper className="me-2" /> Match Story</Link></li>  
         <li><Link to="/h2h-records" onClick={handleClose}><FaHandshake className="me-2" /> H2H Records</Link></li>
         <li><Link to="/smart-analyzer" onClick={handleClose}><FaBrain className="me-2" /> Smart Analyzer</Link></li>
-        <li><Link to="/pitch-randomizer" onClick={handleClose}>Pitch Randomizer</Link></li>
 
+        {/* 🎯 Updated Pitch Randomizer with Dice Icon */}
+        <li>
+          <Link to="/pitch-randomizer" onClick={handleClose}>
+            <FaDiceD20 className="me-2 text-success" /> Pitch Randomizer
+          </Link>
+        </li>
 
-                        <li>
-              <Link to="/scheduler" onClick={handleClose}>
-                <span role="img" aria-label="scheduler" style={{ marginRight: 6 }}>🗓️</span>
-                Scheduler
-              </Link>
-            </li>
+        <li>
+          <Link to="/scheduler" onClick={handleClose}>
+            <span role="img" aria-label="scheduler" style={{ marginRight: 6 }}>🗓️</span>
+            Scheduler
+          </Link>
+        </li>
 
-                      <li>
-            <Link to="/team-distributor" onClick={handleClose}>
-              <span role="img" aria-label="wheel" style={{ marginRight: 6 }}>🎡</span>
-              Team Distributor
-            </Link>
-          </li>
-
+        <li>
+          <Link to="/team-distributor" onClick={handleClose}>
+            <span role="img" aria-label="wheel" style={{ marginRight: 6 }}>🎡</span>
+            Team Distributor
+          </Link>
+        </li>
 
         {/* 01-JULY-2025 Ranaj Parida: Only show for Admins */}
         {isAdmin && (
-  <>
-    <li>
-      <Link to="/admin/manage" onClick={handleClose}>
-        <FaUsers className="me-2" /> Manage Admins
-      </Link>
-    </li>
-  </>
-)}
+          <>
+            <li>
+              <Link to="/admin/manage" onClick={handleClose}>
+                <FaUsers className="me-2" /> Manage Admins
+              </Link>
+            </li>
+          </>
+        )}
 
-<li>
-  <Link to="/all-boards" onClick={handleClose}>
-    <span role="img" aria-label="view" style={{ marginRight: 6 }}>📋</span>
-    View Boards & Teams
-  </Link>
-</li>
+        <li>
+          <Link to="/all-boards" onClick={handleClose}>
+            <span role="img" aria-label="view" style={{ marginRight: 6 }}>📋</span>
+            View Boards & Teams
+          </Link>
+        </li>
 
-<li>
-  <Link to="/boards/analytics" onClick={handleClose}>
-    <FaChartLine className="me-2" /> Board Analytics (Pro)
-  </Link>
-</li>
+        <li>
+          <Link to="/boards/analytics" onClick={handleClose}>
+            <FaChartLine className="me-2" /> Board Analytics (Pro)
+          </Link>
+        </li>
 
-<li>
-  <Link to="/tournament-points" onClick={handleClose}>
-    <FaChartLine className="me-2" /> Tournament Points
-  </Link>
-</li>
+        <li>
+          <Link to="/tournament-points" onClick={handleClose}>
+            <FaChartLine className="me-2" /> Tournament Points
+          </Link>
+        </li>
 
+        {isAdmin || localStorage.getItem("token") ? (
+          <li>
+            <Link to="/register-board" onClick={handleClose}>
+              <span role="img" aria-label="create" style={{ marginRight: 6 }}>➕</span>
+              Create New Board
+            </Link>
+          </li>
+        ) : null}
 
-{isAdmin || localStorage.getItem("token") ? (
-  <li>
-  <Link to="/register-board" onClick={handleClose}>
-    <span role="img" aria-label="create" style={{ marginRight: 6 }}>➕</span>
-    Create New Board
-  </Link>
-</li>
-) : null}
-
-<li>
-  <Link to="/gallery" onClick={handleClose}>
-    <span role="img" aria-label="gallery" style={{ marginRight: 6 }}>🖼️</span>
-    Gallery
-  </Link>
-</li>
+        <li>
+          <Link to="/gallery" onClick={handleClose}>
+            <span role="img" aria-label="gallery" style={{ marginRight: 6 }}>🖼️</span>
+            Gallery
+          </Link>
+        </li>
       </ul>
     </div>
   );
 };
 
 export default SidebarMenu;
-
-// <li><Link to="/add-player" onClick={handleClose}><FaPlus className="me-2" /> Add Player</Link></li> 
