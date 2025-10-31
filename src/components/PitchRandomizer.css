@@ -1,0 +1,75 @@
+.pitch-container {
+  max-width: 600px;
+  margin: 50px auto;
+  background: #111;
+  color: #fff;
+  padding: 25px;
+  border-radius: 20px;
+  box-shadow: 0 0 20px rgba(0,255,170,0.3);
+  text-align: center;
+  animation: fade-in 0.5s ease;
+}
+
+.pitch-title {
+  color: #00ffaa;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.input-group {
+  margin-bottom: 15px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  margin-top: 5px;
+  text-align: center;
+}
+
+.btn-generate {
+  background: linear-gradient(90deg,#00ffaa,#0066ff);
+  border: none;
+  padding: 10px 25px;
+  color: #000;
+  font-weight: bold;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-generate:hover {
+  transform: scale(1.05);
+  background: linear-gradient(90deg,#00ffcc,#00aaff);
+}
+
+.pitch-result {
+  margin-top: 20px;
+  padding: 20px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.pitch-history {
+  margin-top: 30px;
+  text-align: left;
+}
+
+.pitch-history table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pitch-history th, .pitch-history td {
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding: 8px;
+  text-align: center;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -48,6 +48,8 @@ const SidebarMenu = () => {
         <li><Link to="/match-story" onClick={handleClose}><FaRegNewspaper className="me-2" /> Match Story</Link></li>  
         <li><Link to="/h2h-records" onClick={handleClose}><FaHandshake className="me-2" /> H2H Records</Link></li>
         <li><Link to="/smart-analyzer" onClick={handleClose}><FaBrain className="me-2" /> Smart Analyzer</Link></li>
+        <li><Link to="/pitch-randomizer" onClick={handleClose}>Pitch Randomizer</Link></li>
+
 
                         <li>
               <Link to="/scheduler" onClick={handleClose}>

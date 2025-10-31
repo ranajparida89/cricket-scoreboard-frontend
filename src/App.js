@@ -16,37 +16,37 @@ import PageWrapper from "./components/PageWrapper";
 import TestMatchForm from "./components/TestMatchForm";
 import TestMatchHistory from "./components/TestMatchHistory";
 import TeamRanking from "./components/TeamRanking";
-import TestRanking from "./components/TestRanking"; // ✅ [Ranaj Parida - 2025-04-21 | Test Ranking Page]
+import TestRanking from "./components/TestRanking";
 import PointTable from "./components/PointTable";
 import MatchTicker from "./components/MatchTicker";
-import AuthModal from "./components/AuthModal"; // ✅ [Ranaj Parida - 2025-04-22 | User Auth Modal]
-import ProtectedRoute from "./components/ProtectedRoute"; // ✅ [Ranaj Parida - 22-Apr-2025 | Route Guard for login-only pages]
-import AddPlayers from "./components/AddPlayers"; // AddPlayer Ranaj Parida 23-04-2025
-import SidebarMenu from "./components/SidebarMenu"; // ✅ Import sidebar Ranaj Parida 23-04-2025
-import PlayerRouteWrapper from "./components/PlayerRouteWrapper"; // ✅ Import this
-import SquadLineup from "./components/SquadLineup"; // ✅ Squad Page
-import PlayerStats from "./components/PlayerStats"; // PlayerStats page 
-import PlayerPerformance from "./components/PlayerPerformance"; // Playerperformance page
-import QualificationScenario from './components/QualificationScenario'; // qualifiaction
-import AddUpcomingMatch from "./components/AddUpcomingMatch";// for Addupcoming match
-import UpcomingMatches from "./components/UpcomingMatches"; // upcoming match details
-import PlayerRankings from "./components/PlayerRankings"; // playerratings
-import MatchStory from "./components/MatchStory"; // for matchstory 14th MAY 2025 Ranaj Parida
-import H2HRecords from "./components/H2HRecords"; // H2H 15th May 2025 Ranaj Parida
-import SmartAnalyzer from "./components/SmartAnalyzer"; // AI enable 16th MAY 2025 ranaj Parida
+import AuthModal from "./components/AuthModal";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AddPlayers from "./components/AddPlayers";
+import SidebarMenu from "./components/SidebarMenu";
+import PlayerRouteWrapper from "./components/PlayerRouteWrapper";
+import SquadLineup from "./components/SquadLineup";
+import PlayerStats from "./components/PlayerStats";
+import PlayerPerformance from "./components/PlayerPerformance";
+import QualificationScenario from './components/QualificationScenario';
+import AddUpcomingMatch from "./components/AddUpcomingMatch";
+import UpcomingMatches from "./components/UpcomingMatches";
+import PlayerRankings from "./components/PlayerRankings";
+import MatchStory from "./components/MatchStory";
+import H2HRecords from "./components/H2HRecords";
+import SmartAnalyzer from "./components/SmartAnalyzer";
 import FavoritesManager from './components/FavoritesManager';
 import UserCricketStatsDashboard from './components/UserCricketStatsDashboard';
-import UserCricketStatsDashboardV2 from "./components/UserCricketStatsDashboardV2"; // new Dashboard 
+import UserCricketStatsDashboardV2 from "./components/UserCricketStatsDashboardV2";
 import WinLossTrendDashboard from "./components/WinLossTrendDashboard";
-import AdminPromptModal from "./components/AdminPromptModal"; // admin portal
-import PendingMatches from "./components/Admin/PendingMatches"; //auto approval 2-July-2025
+import AdminPromptModal from "./components/AdminPromptModal";
+import PendingMatches from "./components/Admin/PendingMatches";
 
-import { useAuth } from './services/auth'; 
+import { useAuth } from './services/auth';
 import UserDashboardV2Page from './components/UserDashboardV2Page';
-import ManageAdmins from './components/Admin/ManageAdmins'; // FOR MANAGE ADMIN 01-JULY-2025 RANAJ PARIDA
-import Gallery from './components/Gallery'; // For Gallary 
-import Footer from "./components/Footer"; // for Footer
-import DownloadAppButton from "./components/DownloadAppButton"; // ✅ Step 3 - Add PWA Install Button
+import ManageAdmins from './components/Admin/ManageAdmins';
+import Gallery from './components/Gallery';
+import Footer from "./components/Footer";
+import DownloadAppButton from "./components/DownloadAppButton";
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import DeleteAccount from './components/DeleteAccount';
 
@@ -54,16 +54,17 @@ import SchedulerPage from "./components/SchedulerPage";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import TeamDistributor from "./components/TeamDistributor";
-import AllBoardsView from "./components/AllBoardsView"; // ✅ Board Registration View
+import AllBoardsView from "./components/AllBoardsView";
 import BoardRegistrationForm from "./components/BoardRegistrationForm";
-import BoardAnalyticsPro from "./components/BoardAnalyticsPro"; // 🔥 Pro Board Analytics UI
+import BoardAnalyticsPro from "./components/BoardAnalyticsPro";
 import TournamentPoints from "./components/TournamentPoints";
 
-// ✅ Homepage = Match Summary (ODI + T20) + Leaderboard (Allowed for all users)
+// 🔥 NEW
+import PitchRandomizer from "./components/PitchRandomizer";
+
 function HomePage() {
   return (
     <div className="container mt-4">
-      {/* 🏏 Match Summary Section */}
       <div className="mb-5">
         <MatchCards />
       </div>
@@ -74,7 +75,6 @@ function HomePage() {
       </div>
 
       <div className="card bg-dark text-white p-4 shadow mb-5">
-        {/* ✅ Filled missing heading */}
         <h4 className="text-center text-info mb-3">World Test Match Team Rankings</h4>
         <TestLeaderboard />
       </div>
@@ -83,27 +83,26 @@ function HomePage() {
 }
 
 function App() {
-  const [showAuthModal, setShowAuthModal] = useState(false); // ✅ [Added for Auth Modal Toggle]
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [theme, setTheme] = useState('dark');
   const [checkedAdmin, setCheckedAdmin] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // ✅ Step 3: Add update detection state
-  const [updateAvailable, setUpdateAvailable] = useState(false);  // Added for serviceworkreg 22-07-2025 
-  const [waitingWorker, setWaitingWorker] = useState(null);       // Added for serviceworkreg 22-07-2025 
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [waitingWorker, setWaitingWorker] = useState(null);
 
   const { currentUser } = useAuth();
 
   useEffect(() => {
-    document.body.className = theme === 'dark' ? 'bg-dark text-light' : 'bg-light text-dark';
+    document.body.className =
+      theme === 'dark' ? 'bg-dark text-light' : 'bg-light text-dark';
   }, [theme]);
-      
+
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // ✅ Step 4: Add handler to activate the update
   const handleAppUpdate = () => {
     if (waitingWorker) {
       waitingWorker.postMessage({ type: 'SKIP_WAITING' });
@@ -115,16 +114,14 @@ function App() {
     }
   };
 
-  // ✅ Listen for custom "toggleSidebar" event from Navbar's hamburger button
   useEffect(() => {
     const toggleHandler = () => {
-      setSidebarOpen(prev => !prev);
+      setSidebarOpen((prev) => !prev);
     };
     window.addEventListener("toggleSidebar", toggleHandler);
     return () => window.removeEventListener("toggleSidebar", toggleHandler);
   }, []);
 
-  // ✅ Step 3: Register SW and detect updates
   useEffect(() => {
     serviceWorkerRegistration.register({
       onUpdate: (registration) => {
@@ -134,37 +131,40 @@ function App() {
     });
   }, []);
 
-  // Admin gate (kept exactly as you structured)
   if (!checkedAdmin) {
     return (
       <AdminPromptModal
         onAdminResponse={(admin) => {
           setIsAdmin(admin);
           setCheckedAdmin(true);
-          // Optionally: localStorage.setItem("isAdmin", admin);
         }}
       />
     );
   }
-  
+
   return (
     <div className={theme}>
       <Router>
-        <AppNavbar 
-          onAuthClick={() => setShowAuthModal(true)} 
+        <AppNavbar
+          onAuthClick={() => setShowAuthModal(true)}
           toggleTheme={toggleTheme}
           theme={theme}
         />
 
-        {/* ✅ Update banner (a11y live region added) */}
         {updateAvailable && (
           <div
             role="status"
             aria-live="polite"
             style={{
-              position: 'fixed', bottom: 20, left: 20, zIndex: 1000,
-              background: '#ffc107', padding: '12px 18px', borderRadius: '8px',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.15)', color: '#000'
+              position: 'fixed',
+              bottom: 20,
+              left: 20,
+              zIndex: 1000,
+              background: '#ffc107',
+              padding: '12px 18px',
+              borderRadius: '8px',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
+              color: '#000'
             }}
           >
             <strong>Update available</strong><br />
@@ -176,9 +176,7 @@ function App() {
           </div>
         )}
 
-        <DownloadAppButton /> {/* ✅ PWA Install Button */}
-
-        {/* Global UI hooks */}
+        <DownloadAppButton />
         <MatchTicker />
         <AuthModal show={showAuthModal} onClose={() => setShowAuthModal(false)} />
         <SidebarMenu isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -268,7 +266,19 @@ function App() {
             }
           />
 
-          {/* Alias so old /create-board links still work */}
+          {/* ✅ NEW: Pitch Randomizer */}
+          <Route
+            path="/pitch-randomizer"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <PitchRandomizer />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* old alias */}
           <Route path="/create-board" element={<Navigate to="/register-board" replace />} />
 
           <Route
@@ -342,7 +352,6 @@ function App() {
             }
           />
 
-          {/* ✅ Separate Test Ranking Route */}
           <Route
             path="/test-ranking"
             element={
@@ -354,7 +363,7 @@ function App() {
             }
           />
 
-          <Route // added for admin only use 26 june 2026 Ranaj Parida
+          <Route
             path="/add-player"
             element={
               <ProtectedRoute>
@@ -380,7 +389,7 @@ function App() {
             }
           />
 
-          <Route  // added to restrict for Non-Admin users 27 June 2025 Ranaj Parida
+          <Route
             path="/player-performance"
             element={
               <ProtectedRoute>
@@ -395,7 +404,7 @@ function App() {
             }
           />
 
-          <Route  // Restricted for non-admin user
+          <Route
             path="/squad-lineup"
             element={
               <ProtectedRoute>
@@ -441,7 +450,7 @@ function App() {
             path="/my-dashboard"
             element={
               currentUser ? (
-                <UserCricketStatsDashboardV2 />  // <-- NEW Dashboard
+                <UserCricketStatsDashboardV2 />
               ) : (
                 <div>Please log in to view your dashboard.</div>
               )
@@ -464,10 +473,16 @@ function App() {
           <Route path="/admin/pending" element={<PendingMatches />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/privacy/delete-account" element={<DeleteAccount />} />
-
           <Route path="/scheduler" element={<SchedulerPage />} />
           <Route path="/team-distributor" element={<TeamDistributor />} />
-          <Route path="/tournament-points" element={<TournamentPoints />} />
+          <Route
+            path="/tournament-points"
+            element={
+              <PageWrapper>
+                <TournamentPoints />
+              </PageWrapper>
+            }
+          />
         </Routes>
 
         <Footer />
