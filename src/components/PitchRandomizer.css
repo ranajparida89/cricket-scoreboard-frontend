@@ -1,36 +1,54 @@
 .pitch-container {
-  max-width: 600px;
+  max-width: 720px;
   margin: 50px auto;
   background: #111;
   color: #fff;
   padding: 25px;
   border-radius: 20px;
-  box-shadow: 0 0 20px rgba(0,255,170,0.3);
+  box-shadow: 0 0 25px rgba(0, 255, 170, 0.35);
   text-align: center;
   animation: fade-in 0.5s ease;
 }
 
 .pitch-title {
   color: #00ffaa;
-  font-weight: bold;
+  font-weight: 700;
   margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  font-size: 1.6rem;
+}
+
+.emoji-icon {
+  font-size: 1.8rem;
 }
 
 .input-group {
   margin-bottom: 15px;
+  text-align: left;
+}
+
+.input-group label {
+  font-weight: 500;
+  margin-bottom: 4px;
+  display: block;
 }
 
 .input-group input {
   width: 100%;
-  padding: 8px;
+  padding: 10px 12px;
   border-radius: 8px;
   border: none;
   margin-top: 5px;
-  text-align: center;
+  text-align: left;
+  background: #1f1f1f;
+  color: #fff;
 }
 
 .btn-generate {
-  background: linear-gradient(90deg,#00ffaa,#0066ff);
+  background: linear-gradient(90deg, #00ffaa, #0066ff);
   border: none;
   padding: 10px 25px;
   color: #000;
@@ -38,19 +56,33 @@
   border-radius: 10px;
   cursor: pointer;
   transition: 0.3s;
+  margin-top: 5px;
 }
 
 .btn-generate:hover {
-  transform: scale(1.05);
-  background: linear-gradient(90deg,#00ffcc,#00aaff);
+  transform: translateY(-1px);
+  background: linear-gradient(90deg, #00ffcc, #00aaff);
 }
 
 .pitch-result {
   margin-top: 20px;
   padding: 20px;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: left;
+}
+
+.pitch-result h3 {
+  margin-bottom: 15px;
+  text-align: center;
+  color: #00d4ff;
+}
+
+.generated-at {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #ccc;
 }
 
 .pitch-history {
@@ -58,18 +90,54 @@
   text-align: left;
 }
 
+.pitch-history h4 {
+  color: #00d4ff;
+  margin-bottom: 12px;
+}
+
 .pitch-history table {
   width: 100%;
   border-collapse: collapse;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-.pitch-history th, .pitch-history td {
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding: 8px;
+.pitch-history th,
+.pitch-history td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 8px 6px;
   text-align: center;
+  font-size: 0.85rem;
+}
+
+.pitch-history thead th {
+  background: rgba(0, 255, 170, 0.03);
+  font-weight: 600;
+}
+
+.pitch-history tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.history-footnote {
+  margin-top: 10px;
+  font-size: 0.7rem;
+  color: #888;
 }
 
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+  .pitch-container {
+    margin: 20px 10px;
+    padding: 18px;
+  }
+  .pitch-history table {
+    display: block;
+    overflow-x: auto;
+  }
 }
