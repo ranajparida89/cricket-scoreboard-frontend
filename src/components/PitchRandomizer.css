@@ -1,39 +1,56 @@
 .pitch-container {
-  max-width: 720px;
+  width: 95%;
+  max-width: 1400px;
   margin: 50px auto;
-  background: #111;
+  background: #0e0e0e;
   color: #fff;
-  padding: 25px;
+  padding: 35px;
   border-radius: 20px;
   box-shadow: 0 0 25px rgba(0, 255, 170, 0.35);
   text-align: center;
   animation: fade-in 0.5s ease;
 }
 
+.wide-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .pitch-title {
   color: #00ffaa;
   font-weight: 700;
-  margin-bottom: 15px;
+  margin-bottom: 25px;
   display: flex;
   align-items: center;
-  gap: 10px;
   justify-content: center;
-  font-size: 1.6rem;
+  font-size: 2rem;
+  gap: 10px;
 }
 
 .emoji-icon {
-  font-size: 1.8rem;
+  font-size: 2rem;
+}
+
+.form-row {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
 }
 
 .input-group {
-  margin-bottom: 15px;
+  flex: 1;
+  min-width: 250px;
   text-align: left;
 }
 
 .input-group label {
   font-weight: 500;
-  margin-bottom: 4px;
   display: block;
+  margin-bottom: 6px;
 }
 
 .input-group input {
@@ -41,89 +58,96 @@
   padding: 10px 12px;
   border-radius: 8px;
   border: none;
-  margin-top: 5px;
-  text-align: left;
   background: #1f1f1f;
   color: #fff;
+  outline: none;
 }
 
 .btn-generate {
   background: linear-gradient(90deg, #00ffaa, #0066ff);
   border: none;
-  padding: 10px 25px;
+  padding: 12px 35px;
   color: #000;
   font-weight: bold;
   border-radius: 10px;
   cursor: pointer;
   transition: 0.3s;
-  margin-top: 5px;
+  margin-top: 10px;
 }
 
 .btn-generate:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   background: linear-gradient(90deg, #00ffcc, #00aaff);
 }
 
 .pitch-result {
-  margin-top: 20px;
+  margin-top: 30px;
   padding: 20px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
   text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.pitch-result h3 {
-  margin-bottom: 15px;
-  text-align: center;
-  color: #00d4ff;
+.duplicate-box {
+  border: 1px solid #ff4747;
+  box-shadow: 0 0 10px rgba(255, 71, 71, 0.6);
 }
 
-.generated-at {
-  margin-top: 10px;
-  font-size: 0.9rem;
-  color: #ccc;
+.dup-warning {
+  color: #ff4747;
+  font-weight: 600;
 }
 
 .pitch-history {
-  margin-top: 30px;
+  margin-top: 40px;
+  width: 100%;
   text-align: left;
 }
 
 .pitch-history h4 {
   color: #00d4ff;
-  margin-bottom: 12px;
+  margin-bottom: 15px;
 }
 
 .pitch-history table {
   width: 100%;
   border-collapse: collapse;
-  background: rgba(0, 0, 0, 0.25);
   border-radius: 12px;
   overflow: hidden;
+  font-size: 0.9rem;
 }
 
 .pitch-history th,
 .pitch-history td {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 8px 6px;
+  padding: 10px;
   text-align: center;
-  font-size: 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .pitch-history thead th {
-  background: rgba(0, 255, 170, 0.03);
+  background: linear-gradient(90deg, #00ffaa22, #0066ff22);
   font-weight: 600;
 }
 
+.pitch-history tbody tr:hover {
+  background: rgba(0, 255, 170, 0.06);
+}
+
 .pitch-history tbody tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.015);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.duplicate-row {
+  background: rgba(255, 71, 71, 0.15) !important;
+  color: #ff8a8a;
+  font-weight: 600;
 }
 
 .history-footnote {
   margin-top: 10px;
-  font-size: 0.7rem;
-  color: #888;
+  font-size: 0.75rem;
+  color: #999;
 }
 
 @keyframes fade-in {
@@ -131,11 +155,16 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .pitch-container {
-    margin: 20px 10px;
-    padding: 18px;
+    padding: 20px;
   }
+
+  .form-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .pitch-history table {
     display: block;
     overflow-x: auto;
