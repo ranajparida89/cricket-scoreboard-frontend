@@ -1,5 +1,5 @@
 // src/components/PitchRandomizer.js
-// [Ranaj Parida - Pitch Randomizer with backend duplicate enforcement + UI sync]
+// [Ranaj Parida - Pitch Randomizer with backend duplicate enforcement + 10-row auto-reset]
 
 import React, { useState, useEffect } from "react";
 import "./PitchRandomizer.css";
@@ -27,7 +27,7 @@ export default function PitchRandomizer() {
 
   const LOCAL_KEY = "crickedge_pitch_history_v2";
 
-  // Load from backend first (fallback: localStorage)
+  // 🔁 load latest from backend first
   useEffect(() => {
     (async () => {
       try {
@@ -50,14 +50,16 @@ export default function PitchRandomizer() {
             }),
             duplicate: row.is_duplicate,
           }));
-          setHistory(mapped);
-          localStorage.setItem(LOCAL_KEY, JSON.stringify(mapped));
+          // show only 10 in UI
+          setHistory(mapped.slice(0, 10));
+          localStorage.setItem(LOCAL_KEY, JSON.stringify(mapped.slice(0, 10)));
           return;
         }
       } catch (err) {
         console.warn("Backend not reachable, using local fallback", err);
       }
 
+      // fallback to local
       try {
         const stored = localStorage.getItem(LOCAL_KEY);
         if (stored) setHistory(JSON.parse(stored));
@@ -67,6 +69,7 @@ export default function PitchRandomizer() {
     })();
   }, []);
 
+  // persist UI copy
   useEffect(() => {
     localStorage.setItem(LOCAL_KEY, JSON.stringify(history));
   }, [history]);
@@ -78,7 +81,7 @@ export default function PitchRandomizer() {
     if (!name.trim() || !matchName.trim())
       return alert("Please enter both your name and match name.");
 
-    // Pitch generation
+    // 1. build pitch object (same as before)
     let hardness = "Medium";
     let selectedPitchType;
     let selectedPitchAge;
@@ -87,6 +90,7 @@ export default function PitchRandomizer() {
       const r = Math.random() * 100;
       hardness = r < 70 ? "Medium" : "Hard";
       const testFriendlyTypes = ["Standard", "Dry", "Grassy", "Grassy/Dry"];
+
       if (hardness === "Hard") {
         selectedPitchType = getRandom(["Standard", "Dry", "Grassy/Dry"]);
         selectedPitchAge = "Day 3";
@@ -99,6 +103,7 @@ export default function PitchRandomizer() {
       hardness = "Medium";
       if (r < 15) hardness = "Soft";
       else if (r > 85) hardness = "Hard";
+
       if (hardness === "Hard") {
         selectedPitchType = getRandom(["Standard", "Dry", "Grassy/Dry"]);
         selectedPitchAge = "Day 3";
@@ -119,7 +124,8 @@ export default function PitchRandomizer() {
       dateStyle: "short",
     });
 
-    let newPitch = {
+    // temporary (will update after server responds)
+    let tempPitch = {
       id: Date.now(),
       matchType,
       name: name.trim(),
@@ -132,32 +138,54 @@ export default function PitchRandomizer() {
       duplicate: false,
     };
 
-    setPitch(newPitch);
-    const updated = [newPitch, ...history].slice(0, 60);
-    setHistory(updated);
+    // show immediately
+    setPitch(tempPitch);
 
-    // Send to backend
+    // 2. send to backend
     try {
       const res = await fetch(`${API_BASE}/api/tools/pitch-randomizer/log`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          match_type: newPitch.matchType,
-          user_name: newPitch.name,
-          match_name: newPitch.matchName,
-          pitch_type: newPitch.pitchType,
-          pitch_hardness: newPitch.hardness,
-          pitch_crack: newPitch.crack,
-          pitch_age: newPitch.pitchAge,
-          is_duplicate: false, // server will check
+          match_type: tempPitch.matchType,
+          user_name: tempPitch.name,
+          match_name: tempPitch.matchName,
+          pitch_type: tempPitch.pitchType,
+          pitch_hardness: tempPitch.hardness,
+          pitch_crack: tempPitch.crack,
+          pitch_age: tempPitch.pitchAge,
+          is_duplicate: false,
           browser_fingerprint: fingerprint,
         }),
       });
 
       const json = await res.json();
-      if (json.success) {
-        newPitch = { ...newPitch, duplicate: json.is_duplicate };
-        setPitch(newPitch);
+      if (json && json.success) {
+        // server may mark it as duplicate
+        const finalPitch = {
+          ...tempPitch,
+          duplicate: json.is_duplicate === true,
+          id: new Date(json.created_at).getTime(),
+          time: new Date(json.created_at).toLocaleString("en-IN", {
+            hour12: false,
+            timeStyle: "medium",
+            dateStyle: "short",
+          }),
+        };
+
+        // ✅ if server said "history_cleared" → start fresh with only this one
+        if (json.history_cleared) {
+          setPitch(finalPitch);
+          setHistory([finalPitch]);
+          return;
+        }
+
+        // ✅ otherwise prepend and cap at 10
+        setPitch(finalPitch);
+        setHistory((prev) => {
+          const next = [finalPitch, ...prev];
+          return next.slice(0, 10);
+        });
 
         if (json.is_duplicate) {
           alert("⚠ Duplicate pitch detected — try again after 1 minute.");
@@ -165,6 +193,12 @@ export default function PitchRandomizer() {
       }
     } catch (err) {
       console.warn("Could not send pitch log to backend:", err);
+
+      // if backend fails, still keep local, but cap at 10
+      setHistory((prev) => {
+        const next = [tempPitch, ...prev];
+        return next.slice(0, 10);
+      });
     }
   };
 
@@ -220,9 +254,7 @@ export default function PitchRandomizer() {
         <div className={`pitch-result fade-in ${pitch.duplicate ? "duplicate-box" : ""}`}>
           <h3>
             {pitch.matchType} Pitch Generated for {pitch.name} ({pitch.matchName})
-            {pitch.duplicate && (
-              <span className="dup-warning"> ⚠ Duplicate (within 1 min)</span>
-            )}
+            {pitch.duplicate && <span className="dup-warning"> ⚠ Duplicate (within 1 min)</span>}
           </h3>
           <p><strong>Pitch Type:</strong> {pitch.pitchType}</p>
           <p><strong>Pitch Hardness:</strong> {pitch.hardness}</p>
@@ -268,7 +300,7 @@ export default function PitchRandomizer() {
             </table>
           </div>
           <p className="history-footnote">
-            (Global + Local View. Red rows = duplicate attempts within 1 minute for the same user, match & type.)
+            (Holds max 10 rows. When 11th is generated, old 10 are purged from DB and UI restarts from #1.)
           </p>
         </div>
       )}
