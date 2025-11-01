@@ -1,24 +1,22 @@
 // src/components/PitchRandomizer.js
-// [Ranaj Parida - Pitch Randomizer with backend + localStorage sync]
+// [Ranaj Parida - Pitch Randomizer with backend duplicate enforcement + UI sync]
 
 import React, { useState, useEffect } from "react";
 import "./PitchRandomizer.css";
 
-const API_BASE = "https://cricket-scoreboard-backend.onrender.com"; // ← your Render backend
+const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
 
 export default function PitchRandomizer() {
-  // fixed lists
   const pitchTypes = ["Standard", "Dry", "Dusty", "Grassy", "Grassy/Dry", "Grassy/Dusty"];
   const pitchCracks = ["Light", "Heavy", "None"];
   const pitchAges = ["Day 1", "Day 2", "Day 3"];
 
-  const [matchType, setMatchType] = useState("");        // ODI / T20 / Test
+  const [matchType, setMatchType] = useState("");
   const [name, setName] = useState("");
   const [matchName, setMatchName] = useState("");
   const [pitch, setPitch] = useState(null);
   const [history, setHistory] = useState([]);
 
-  // browser-only id to know which device generated this
   const [fingerprint] = useState(() => {
     const existing = localStorage.getItem("pitch_fp");
     if (existing) return existing;
@@ -29,13 +27,11 @@ export default function PitchRandomizer() {
 
   const LOCAL_KEY = "crickedge_pitch_history_v2";
 
-  // 1) on mount → try backend first; if fails, use localStorage
+  // Load from backend first (fallback: localStorage)
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(
-          `${API_BASE}/api/tools/pitch-randomizer/history?limit=60`
-        );
+        const res = await fetch(`${API_BASE}/api/tools/pitch-randomizer/history?limit=60`);
         const json = await res.json();
         if (json.success) {
           const mapped = json.data.map((row) => ({
@@ -59,10 +55,9 @@ export default function PitchRandomizer() {
           return;
         }
       } catch (err) {
-        console.warn("Backend not reachable, using localStorage fallback", err);
+        console.warn("Backend not reachable, using local fallback", err);
       }
 
-      // fallback
       try {
         const stored = localStorage.getItem(LOCAL_KEY);
         if (stored) setHistory(JSON.parse(stored));
@@ -72,60 +67,38 @@ export default function PitchRandomizer() {
     })();
   }, []);
 
-  // 2) whenever history changes → keep local copy (fast render, offline)
   useEffect(() => {
-    try {
-      localStorage.setItem(LOCAL_KEY, JSON.stringify(history));
-    } catch (e) {
-      console.warn("Pitch history save failed:", e);
-    }
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(history));
   }, [history]);
 
   const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
   const generatePitch = async () => {
-    // validation
-    if (!matchType) {
-      alert("Please select Match Type (ODI / T20 / Test).");
-      return;
-    }
-    if (!name.trim() || !matchName.trim()) {
-      alert("Please enter both your name and match name (e.g. India vs Australia).");
-      return;
-    }
+    if (!matchType) return alert("Please select Match Type (ODI / T20 / Test).");
+    if (!name.trim() || !matchName.trim())
+      return alert("Please enter both your name and match name.");
 
-    // -------------------------
-    // 1. generate pitch (UI logic)
-    // -------------------------
+    // Pitch generation
     let hardness = "Medium";
     let selectedPitchType;
     let selectedPitchAge;
 
     if (matchType === "Test") {
-      // 70% Medium, 30% Hard
       const r = Math.random() * 100;
       hardness = r < 70 ? "Medium" : "Hard";
-
       const testFriendlyTypes = ["Standard", "Dry", "Grassy", "Grassy/Dry"];
-
       if (hardness === "Hard") {
         selectedPitchType = getRandom(["Standard", "Dry", "Grassy/Dry"]);
         selectedPitchAge = "Day 3";
       } else {
-        // medium test wicket → day 2 or 3
         selectedPitchType = getRandom(testFriendlyTypes);
         selectedPitchAge = getRandom(["Day 2", "Day 3"]);
       }
     } else {
-      // ODI / T20 → old logic
       const r = Math.random() * 100;
       hardness = "Medium";
-      if (r < 15) {
-        hardness = "Soft";
-      } else if (r > 85) {
-        hardness = "Hard";
-      }
-
+      if (r < 15) hardness = "Soft";
+      else if (r > 85) hardness = "Hard";
       if (hardness === "Hard") {
         selectedPitchType = getRandom(["Standard", "Dry", "Grassy/Dry"]);
         selectedPitchAge = "Day 3";
@@ -146,7 +119,7 @@ export default function PitchRandomizer() {
       dateStyle: "short",
     });
 
-    const newPitch = {
+    let newPitch = {
       id: Date.now(),
       matchType,
       name: name.trim(),
@@ -159,29 +132,13 @@ export default function PitchRandomizer() {
       duplicate: false,
     };
 
-    // duplicate check: same user + same match + same matchType within 1 minute
-    const lastSame = history.find(
-      (h) =>
-        h.name === newPitch.name &&
-        h.matchName === newPitch.matchName &&
-        h.matchType === newPitch.matchType
-    );
-    if (lastSame) {
-      const diffSec = (Date.now() - lastSame.id) / 1000;
-      if (diffSec <= 60) {
-        newPitch.duplicate = true;
-      }
-    }
-
-    const updated = [newPitch, ...history].slice(0, 60);
     setPitch(newPitch);
+    const updated = [newPitch, ...history].slice(0, 60);
     setHistory(updated);
 
-    // -------------------------
-    // 2. send to backend (so mobile / other devices can see)
-    // -------------------------
+    // Send to backend
     try {
-      await fetch(`${API_BASE}/api/tools/pitch-randomizer/log`, {
+      const res = await fetch(`${API_BASE}/api/tools/pitch-randomizer/log`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -192,12 +149,21 @@ export default function PitchRandomizer() {
           pitch_hardness: newPitch.hardness,
           pitch_crack: newPitch.crack,
           pitch_age: newPitch.pitchAge,
-          is_duplicate: newPitch.duplicate,
+          is_duplicate: false, // server will check
           browser_fingerprint: fingerprint,
         }),
       });
+
+      const json = await res.json();
+      if (json.success) {
+        newPitch = { ...newPitch, duplicate: json.is_duplicate };
+        setPitch(newPitch);
+
+        if (json.is_duplicate) {
+          alert("⚠ Duplicate pitch detected — try again after 1 minute.");
+        }
+      }
     } catch (err) {
-      // we don't block UI if backend call fails
       console.warn("Could not send pitch log to backend:", err);
     }
   };
@@ -208,7 +174,6 @@ export default function PitchRandomizer() {
         <span className="emoji-icon">🏏</span> Pitch Randomizer
       </h2>
 
-      {/* top form */}
       <div className="form-row">
         <div className="input-group">
           <label>
@@ -251,7 +216,6 @@ export default function PitchRandomizer() {
         Generate Pitch
       </button>
 
-      {/* result block */}
       {pitch && (
         <div className={`pitch-result fade-in ${pitch.duplicate ? "duplicate-box" : ""}`}>
           <h3>
@@ -260,25 +224,14 @@ export default function PitchRandomizer() {
               <span className="dup-warning"> ⚠ Duplicate (within 1 min)</span>
             )}
           </h3>
-          <p>
-            <strong>Pitch Type:</strong> {pitch.pitchType}
-          </p>
-          <p>
-            <strong>Pitch Hardness:</strong> {pitch.hardness}
-          </p>
-          <p>
-            <strong>Pitch Crack:</strong> {pitch.crack}
-          </p>
-          <p>
-            <strong>Pitch Age:</strong> {pitch.pitchAge}
-          </p>
-          <p className="generated-at">
-            <strong>Generated At:</strong> {pitch.time}
-          </p>
+          <p><strong>Pitch Type:</strong> {pitch.pitchType}</p>
+          <p><strong>Pitch Hardness:</strong> {pitch.hardness}</p>
+          <p><strong>Pitch Crack:</strong> {pitch.crack}</p>
+          <p><strong>Pitch Age:</strong> {pitch.pitchAge}</p>
+          <p className="generated-at"><strong>Generated At:</strong> {pitch.time}</p>
         </div>
       )}
 
-      {/* table */}
       {history.length > 0 && (
         <div className="pitch-history">
           <h4>Previous Generations</h4>
@@ -315,8 +268,7 @@ export default function PitchRandomizer() {
             </table>
           </div>
           <p className="history-footnote">
-            (Stored locally for fast load, and also saved to backend. Red rows = duplicate
-            attempts within 1 minute for the same user + same match + same match type.)
+            (Global + Local View. Red rows = duplicate attempts within 1 minute for the same user, match & type.)
           </p>
         </div>
       )}
