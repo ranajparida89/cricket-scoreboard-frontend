@@ -1,8 +1,7 @@
-/* ===================================================================
-   PITCH RANDOMIZER - BASIC TABLE VERSION
-   =================================================================== */
+/* =========================================================
+   PITCH RANDOMIZER – TABLE VIEW (dark, compact)
+   ========================================================= */
 
-/* ===== Main container ===== */
 .pitch-container {
   width: 96%;
   max-width: 1400px;
@@ -23,7 +22,6 @@
   gap: 22px;
 }
 
-/* ===== Title ===== */
 .pitch-title {
   color: #00ffaa;
   font-weight: 700;
@@ -38,7 +36,7 @@
   font-size: 2.1rem;
 }
 
-/* ===== Form row ===== */
+/* ---------- form ---------- */
 .form-row {
   display: flex;
   gap: 20px;
@@ -64,7 +62,6 @@
   font-weight: 600;
 }
 
-/* ===== Inputs ===== */
 .input-group input,
 .input-group select {
   width: 100%;
@@ -86,7 +83,7 @@
   color: #fff;
 }
 
-/* ===== Button ===== */
+/* ---------- button ---------- */
 .btn-generate {
   background: linear-gradient(90deg, #00ffaa, #0066ff);
   border: none;
@@ -105,7 +102,7 @@
   box-shadow: 0 0 10px rgba(0, 255, 170, 0.4);
 }
 
-/* ===== Current result box ===== */
+/* ---------- current result ---------- */
 .pitch-result {
   width: 100%;
   text-align: left;
@@ -138,9 +135,9 @@
   color: #bbb;
 }
 
-/* ===================================================================
-   HISTORY TABLE (back to classic rows + columns)
-   =================================================================== */
+/* =========================================================
+   HISTORY TABLE
+   ========================================================= */
 
 .pitch-history {
   width: 100%;
@@ -152,7 +149,6 @@
   margin-bottom: 12px;
 }
 
-/* wrapper so table can scroll horizontally on small screens */
 .table-wrapper {
   width: 100%;
   overflow-x: auto;
@@ -160,67 +156,62 @@
   border: 1px solid rgba(255, 255, 255, 0.03);
 }
 
-/* actual table */
 .pitch-history table {
   width: 100%;
   border-collapse: collapse;
-  background: rgba(0, 0, 0, 0.25);
   font-size: 0.85rem;
+  background: rgba(0, 0, 0, 0.25);
 }
 
-/* header */
 .pitch-history thead th {
   background: linear-gradient(90deg, #00ffaa0d, #0066ff0d);
-  padding: 10px 8px;
+  padding: 9px 6px;
   text-align: center;
   font-weight: 600;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
   white-space: nowrap;
 }
 
-/* body cells */
 .pitch-history tbody td {
-  padding: 9px 8px;
+  padding: 9px 6px;
   text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.015);
 }
 
-/* zebra */
 .pitch-history tbody tr:nth-child(even) {
   background: rgba(255, 255, 255, 0.01);
 }
 
-/* hover */
 .pitch-history tbody tr:hover {
   background: rgba(0, 255, 170, 0.045);
 }
 
-/* duplicate row */
-.pitch-history tbody tr.duplicate-row {
+.duplicate-row {
   background: rgba(255, 71, 71, 0.15) !important;
   color: #ffd2d2;
   font-weight: 600;
 }
 
-/* footer note */
 .history-footnote {
-  margin-top: 10px;
+  margin-top: 12px;
   font-size: 0.7rem;
   color: #888;
   text-align: center;
 }
 
-/* ===================================================================
-   ANIMATION
-   =================================================================== */
+/* ---------- animations ---------- */
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* ===================================================================
-   RESPONSIVE
-   =================================================================== */
+/* ---------- responsive ---------- */
 @media (max-width: 768px) {
   .pitch-container {
     padding: 20px 14px;
@@ -228,8 +219,8 @@
   .form-row {
     flex-direction: column;
   }
-  /* table stays, but becomes scrollable thanks to .table-wrapper */
-  .pitch-history table {
-    min-width: 700px; /* so columns don’t get squeezed too much */
+  .pitch-history thead th,
+  .pitch-history tbody td {
+    font-size: 0.78rem;
   }
 }
