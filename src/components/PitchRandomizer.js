@@ -1,5 +1,5 @@
 // src/components/PitchRandomizer.js
-// [Ranaj Parida - Pitch Randomizer with backend duplicate enforcement + 10-row auto-reset]
+// [Ranaj Parida - Pitch Randomizer with backend duplicate enforcement + 10-row auto-reset + max Day 2 + card history]
 
 import React, { useState, useEffect } from "react";
 import "./PitchRandomizer.css";
@@ -7,9 +7,10 @@ import "./PitchRandomizer.css";
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
 
 export default function PitchRandomizer() {
+  // we will still keep the list, but we will NEVER pick Day 3 now
   const pitchTypes = ["Standard", "Dry", "Dusty", "Grassy", "Grassy/Dry", "Grassy/Dusty"];
   const pitchCracks = ["Light", "Heavy", "None"];
-  const pitchAges = ["Day 1", "Day 2", "Day 3"];
+  const pitchAgesMax2 = ["Day 1", "Day 2"]; // 👈 new controlled list
 
   const [matchType, setMatchType] = useState("");
   const [name, setName] = useState("");
@@ -17,6 +18,7 @@ export default function PitchRandomizer() {
   const [pitch, setPitch] = useState(null);
   const [history, setHistory] = useState([]);
 
+  // fingerprint per device/browser
   const [fingerprint] = useState(() => {
     const existing = localStorage.getItem("pitch_fp");
     if (existing) return existing;
@@ -50,7 +52,7 @@ export default function PitchRandomizer() {
             }),
             duplicate: row.is_duplicate,
           }));
-          // show only 10 in UI
+          // UI will show only 10
           setHistory(mapped.slice(0, 10));
           localStorage.setItem(LOCAL_KEY, JSON.stringify(mapped.slice(0, 10)));
           return;
@@ -81,38 +83,50 @@ export default function PitchRandomizer() {
     if (!name.trim() || !matchName.trim())
       return alert("Please enter both your name and match name.");
 
-    // 1. build pitch object (same as before)
+    // -------------------------------
+    // 1. build pitch object
+    // -------------------------------
     let hardness = "Medium";
     let selectedPitchType;
     let selectedPitchAge;
 
+    // ✅ TEST LOGIC
     if (matchType === "Test") {
+      // 70% medium, 30% hard
       const r = Math.random() * 100;
       hardness = r < 70 ? "Medium" : "Hard";
+
       const testFriendlyTypes = ["Standard", "Dry", "Grassy", "Grassy/Dry"];
 
       if (hardness === "Hard") {
+        // for hard test pitch → force Day 2
         selectedPitchType = getRandom(["Standard", "Dry", "Grassy/Dry"]);
-        selectedPitchAge = "Day 3";
+        selectedPitchAge = "Day 2";
       } else {
+        // medium test pitch → Day 1 or Day 2
         selectedPitchType = getRandom(testFriendlyTypes);
-        selectedPitchAge = getRandom(["Day 2", "Day 3"]);
+        selectedPitchAge = getRandom(pitchAgesMax2);
       }
-    } else {
+    }
+    // ✅ ODI / T20 LOGIC
+    else {
       const r = Math.random() * 100;
       hardness = "Medium";
       if (r < 15) hardness = "Soft";
       else if (r > 85) hardness = "Hard";
 
       if (hardness === "Hard") {
+        // hard LOI pitch → Day 2 only
         selectedPitchType = getRandom(["Standard", "Dry", "Grassy/Dry"]);
-        selectedPitchAge = "Day 3";
+        selectedPitchAge = "Day 2";
       } else if (hardness === "Soft") {
+        // soft LOI pitch → Day 1
         selectedPitchType = getRandom(pitchTypes.filter((t) => t !== "Dusty"));
         selectedPitchAge = "Day 1";
       } else {
+        // medium LOI pitch → Day 1 or Day 2
         selectedPitchType = getRandom(pitchTypes);
-        selectedPitchAge = getRandom(pitchAges);
+        selectedPitchAge = getRandom(pitchAgesMax2);
       }
     }
 
@@ -124,7 +138,7 @@ export default function PitchRandomizer() {
       dateStyle: "short",
     });
 
-    // temporary (will update after server responds)
+    // temporary pitch (will be updated with server ts / duplicate flag)
     let tempPitch = {
       id: Date.now(),
       matchType,
@@ -138,10 +152,12 @@ export default function PitchRandomizer() {
       duplicate: false,
     };
 
-    // show immediately
+    // show right away
     setPitch(tempPitch);
 
+    // -------------------------------
     // 2. send to backend
+    // -------------------------------
     try {
       const res = await fetch(`${API_BASE}/api/tools/pitch-randomizer/log`, {
         method: "POST",
@@ -154,14 +170,14 @@ export default function PitchRandomizer() {
           pitch_hardness: tempPitch.hardness,
           pitch_crack: tempPitch.crack,
           pitch_age: tempPitch.pitchAge,
-          is_duplicate: false,
+          is_duplicate: false, // server will recheck
           browser_fingerprint: fingerprint,
         }),
       });
 
       const json = await res.json();
       if (json && json.success) {
-        // server may mark it as duplicate
+        // server may mark as duplicate + will send server time
         const finalPitch = {
           ...tempPitch,
           duplicate: json.is_duplicate === true,
@@ -173,14 +189,14 @@ export default function PitchRandomizer() {
           }),
         };
 
-        // ✅ if server said "history_cleared" → start fresh with only this one
+        // if server told "history_cleared" (we implemented in backend) → start fresh
         if (json.history_cleared) {
           setPitch(finalPitch);
           setHistory([finalPitch]);
           return;
         }
 
-        // ✅ otherwise prepend and cap at 10
+        // else prepend & cap at 10
         setPitch(finalPitch);
         setHistory((prev) => {
           const next = [finalPitch, ...prev];
@@ -194,7 +210,7 @@ export default function PitchRandomizer() {
     } catch (err) {
       console.warn("Could not send pitch log to backend:", err);
 
-      // if backend fails, still keep local, but cap at 10
+      // fallback: still keep locally, cap at 10
       setHistory((prev) => {
         const next = [tempPitch, ...prev];
         return next.slice(0, 10);
@@ -208,6 +224,7 @@ export default function PitchRandomizer() {
         <span className="emoji-icon">🏏</span> Pitch Randomizer
       </h2>
 
+      {/* top form */}
       <div className="form-row">
         <div className="input-group">
           <label>
@@ -250,57 +267,62 @@ export default function PitchRandomizer() {
         Generate Pitch
       </button>
 
+      {/* result block */}
       {pitch && (
         <div className={`pitch-result fade-in ${pitch.duplicate ? "duplicate-box" : ""}`}>
           <h3>
             {pitch.matchType} Pitch Generated for {pitch.name} ({pitch.matchName})
             {pitch.duplicate && <span className="dup-warning"> ⚠ Duplicate (within 1 min)</span>}
           </h3>
-          <p><strong>Pitch Type:</strong> {pitch.pitchType}</p>
-          <p><strong>Pitch Hardness:</strong> {pitch.hardness}</p>
-          <p><strong>Pitch Crack:</strong> {pitch.crack}</p>
-          <p><strong>Pitch Age:</strong> {pitch.pitchAge}</p>
-          <p className="generated-at"><strong>Generated At:</strong> {pitch.time}</p>
+          <p>
+            <strong>Pitch Type:</strong> {pitch.pitchType}
+          </p>
+          <p>
+            <strong>Pitch Hardness:</strong> {pitch.hardness}
+          </p>
+          <p>
+            <strong>Pitch Crack:</strong> {pitch.crack}
+          </p>
+          <p>
+            <strong>Pitch Age:</strong> {pitch.pitchAge}
+          </p>
+          <p className="generated-at">
+            <strong>Generated At:</strong> {pitch.time}
+          </p>
         </div>
       )}
 
+      {/* history (cards) */}
       {history.length > 0 && (
         <div className="pitch-history">
           <h4>Previous Generations</h4>
-          <div className="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Match Type</th>
-                  <th>User</th>
-                  <th>Match</th>
-                  <th>Type</th>
-                  <th>Hardness</th>
-                  <th>Crack</th>
-                  <th>Age</th>
-                  <th>Generated At</th>
-                </tr>
-              </thead>
-              <tbody>
-                {history.map((h, i) => (
-                  <tr key={h.id} className={h.duplicate ? "duplicate-row" : ""}>
-                    <td>{i + 1}</td>
-                    <td>{h.matchType}</td>
-                    <td>{h.name}</td>
-                    <td>{h.matchName}</td>
-                    <td>{h.pitchType}</td>
-                    <td>{h.hardness}</td>
-                    <td>{h.crack}</td>
-                    <td>{h.pitchAge}</td>
-                    <td>{h.time}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="history-grid">
+            {history.map((h, i) => (
+              <div key={h.id} className={`history-card ${h.duplicate ? "duplicate-row" : ""}`}>
+                <div className="history-card-header">
+                  <span className="badge-no">#{i + 1}</span>
+                  <span className="badge-type">{h.matchType}</span>
+                </div>
+                <div className="history-line">
+                  <strong>User:</strong> {h.name}
+                </div>
+                <div className="history-line">
+                  <strong>Match:</strong> {h.matchName}
+                </div>
+                <div className="history-pills">
+                  <span className="pill">Type: {h.pitchType}</span>
+                  <span className="pill">Hard: {h.hardness}</span>
+                  <span className="pill">Crack: {h.crack}</span>
+                  <span className="pill">Age: {h.pitchAge}</span>
+                </div>
+                <div className="history-time">{h.time}</div>
+                {h.duplicate && <div className="dup-label">Duplicate (within 1 min)</div>}
+              </div>
+            ))}
           </div>
           <p className="history-footnote">
-            (Holds max 10 rows. When 11th is generated, old 10 are purged from DB and UI restarts from #1.)
+            (Holds max 10 rows. When 11th is generated, old 10 are purged from DB/UI and the list restarts from
+            #1.)
           </p>
         </div>
       )}

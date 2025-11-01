@@ -1,3 +1,10 @@
+/* ===================================================================
+   PITCH RANDOMIZER - STYLESHEET
+   Author: Ranaj Parida
+   Description: Unified dark theme, max Day 2 rule compatible, card grid layout
+   =================================================================== */
+
+/* === Main Container === */
 .pitch-container {
   width: 96%;
   max-width: 1400px;
@@ -12,12 +19,14 @@
   border: 1px solid rgba(0, 255, 170, 0.07);
 }
 
+/* === Layout for wider displays === */
 .wide-layout {
   display: flex;
   flex-direction: column;
   gap: 22px;
 }
 
+/* === Title Section === */
 .pitch-title {
   color: #00ffaa;
   font-weight: 700;
@@ -32,6 +41,7 @@
   font-size: 2.1rem;
 }
 
+/* === Input Row === */
 .form-row {
   display: flex;
   gap: 20px;
@@ -40,6 +50,7 @@
   justify-content: center;
 }
 
+/* === Input Group === */
 .input-group {
   flex: 1;
   min-width: 220px;
@@ -57,6 +68,7 @@
   font-weight: 600;
 }
 
+/* === Input & Select Styling === */
 .input-group input,
 .input-group select {
   width: 100%;
@@ -78,6 +90,7 @@
   color: #fff;
 }
 
+/* === Generate Button === */
 .btn-generate {
   background: linear-gradient(90deg, #00ffaa, #0066ff);
   border: none;
@@ -96,6 +109,7 @@
   box-shadow: 0 0 10px rgba(0, 255, 170, 0.4);
 }
 
+/* === Current Pitch Result === */
 .pitch-result {
   width: 100%;
   text-align: left;
@@ -128,6 +142,10 @@
   color: #bbb;
 }
 
+/* ===================================================================
+   HISTORY SECTION (CARD GRID)
+   =================================================================== */
+
 .pitch-history {
   width: 100%;
   text-align: left;
@@ -138,65 +156,134 @@
   margin-bottom: 12px;
 }
 
-.table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-  border-radius: 14px;
+/* === Responsive Grid for Cards === */
+.history-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+/* === Individual History Card === */
+.history-card {
+  background: rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 14px;
+  padding: 12px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 150px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.pitch-history table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.85rem;
-  background: rgba(0, 0, 0, 0.25);
+.history-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 12px rgba(0, 255, 170, 0.25);
 }
 
-.pitch-history thead th {
-  background: linear-gradient(90deg, #00ffaa0d, #0066ff0d);
-  padding: 9px 6px;
-  text-align: center;
+/* === Card Header (Badge Row) === */
+.history-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.badge-no {
+  background: rgba(0, 255, 170, 0.23);
+  border: 1px solid rgba(0, 255, 170, 0.4);
+  padding: 2px 8px;
+  border-radius: 999px;
   font-weight: 600;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-  white-space: nowrap;
+  font-size: 0.75rem;
 }
 
-.pitch-history tbody td {
-  padding: 9px 6px;
-  text-align: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.015);
+.badge-type {
+  background: rgba(0, 102, 255, 0.2);
+  border: 1px solid rgba(0, 102, 255, 0.5);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
-.pitch-history tbody tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.01);
+/* === Text Lines Inside Card === */
+.history-line {
+  font-size: 0.78rem;
 }
 
-.pitch-history tbody tr:hover {
-  background: rgba(0, 255, 170, 0.045);
+/* === Pills for Attributes === */
+.history-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
 }
 
-.duplicate-row {
-  background: rgba(255, 71, 71, 0.15) !important;
-  color: #ffd2d2;
-  font-weight: 600;
+.pill {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 999px;
+  padding: 2px 10px 3px;
+  font-size: 0.68rem;
 }
 
+/* === Timestamp === */
+.history-time {
+  font-size: 0.7rem;
+  color: #bbb;
+  margin-top: 4px;
+}
+
+/* === Duplicate Indicator === */
+.dup-label {
+  margin-top: 4px;
+  font-size: 0.68rem;
+  color: #ffd0d0;
+  background: rgba(255, 71, 71, 0.22);
+  border: 1px solid rgba(255, 71, 71, 0.5);
+  border-radius: 6px;
+  padding: 2px 7px;
+  width: fit-content;
+}
+
+/* === Highlight duplicate cards === */
+.history-card.duplicate-row {
+  background: rgba(255, 71, 71, 0.14);
+  border: 1px solid rgba(255, 71, 71, 0.6);
+  box-shadow: 0 0 12px rgba(255, 71, 71, 0.25);
+}
+
+/* === Footer Note === */
 .history-footnote {
   margin-top: 12px;
   font-size: 0.7rem;
   color: #888;
+  text-align: center;
 }
 
+/* === Animation for smooth entry === */
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
+/* === Mobile Optimization === */
 @media (max-width: 768px) {
   .pitch-container {
     padding: 20px 14px;
   }
   .form-row {
     flex-direction: column;
+  }
+  .history-grid {
+    grid-template-columns: 1fr;
   }
 }
