@@ -1,10 +1,9 @@
 /* ===================================================================
-   PITCH RANDOMIZER - STYLESHEET
+   PITCH RANDOMIZER - STYLESHEET (table-like card rows)
    Author: Ranaj Parida
-   Description: Unified dark theme, max Day 2 rule compatible, card grid layout
    =================================================================== */
 
-/* === Main Container === */
+/* ========== MAIN CONTAINER ========== */
 .pitch-container {
   width: 96%;
   max-width: 1400px;
@@ -19,14 +18,13 @@
   border: 1px solid rgba(0, 255, 170, 0.07);
 }
 
-/* === Layout for wider displays === */
 .wide-layout {
   display: flex;
   flex-direction: column;
   gap: 22px;
 }
 
-/* === Title Section === */
+/* ========== TITLE ========== */
 .pitch-title {
   color: #00ffaa;
   font-weight: 700;
@@ -41,7 +39,7 @@
   font-size: 2.1rem;
 }
 
-/* === Input Row === */
+/* ========== FORM ROW ========== */
 .form-row {
   display: flex;
   gap: 20px;
@@ -50,7 +48,6 @@
   justify-content: center;
 }
 
-/* === Input Group === */
 .input-group {
   flex: 1;
   min-width: 220px;
@@ -68,7 +65,6 @@
   font-weight: 600;
 }
 
-/* === Input & Select Styling === */
 .input-group input,
 .input-group select {
   width: 100%;
@@ -90,7 +86,7 @@
   color: #fff;
 }
 
-/* === Generate Button === */
+/* ========== BUTTON ========== */
 .btn-generate {
   background: linear-gradient(90deg, #00ffaa, #0066ff);
   border: none;
@@ -109,7 +105,7 @@
   box-shadow: 0 0 10px rgba(0, 255, 170, 0.4);
 }
 
-/* === Current Pitch Result === */
+/* ========== CURRENT RESULT BOX ========== */
 .pitch-result {
   width: 100%;
   text-align: left;
@@ -143,7 +139,7 @@
 }
 
 /* ===================================================================
-   HISTORY SECTION (CARD GRID)
+   HISTORY SECTION – TABLE-LIKE CARD ROWS
    =================================================================== */
 
 .pitch-history {
@@ -153,109 +149,127 @@
 
 .pitch-history h4 {
   color: #00d4ff;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
-/* === Responsive Grid for Cards === */
-.history-grid {
+/* --- header bar like your leaderboard --- */
+.history-header {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
+  grid-template-columns: 60px 90px 160px 1fr 130px;
+  gap: 10px;
+  background: rgba(0, 255, 170, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 12px 12px 0 0;
+  padding: 10px 14px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #a9b7c0;
 }
 
-/* === Individual History Card === */
-.history-card {
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  border-radius: 14px;
-  padding: 12px 12px 14px;
+/* container holding all rows */
+.history-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-height: 150px;
+  gap: 10px;
+}
+
+/* each row looks like leaderboard row */
+.history-row {
+  display: grid;
+  grid-template-columns: 60px 90px 160px 1fr 130px;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.015);
+  border-radius: 14px;
+  padding: 10px 14px;
+  align-items: center;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.history-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 0 12px rgba(0, 255, 170, 0.25);
+.history-row:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  background: rgba(0, 255, 170, 0.015);
 }
 
-/* === Card Header (Badge Row) === */
-.history-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.badge-no {
-  background: rgba(0, 255, 170, 0.23);
-  border: 1px solid rgba(0, 255, 170, 0.4);
-  padding: 2px 8px;
+/* left number bubble (#1, #2, ...) */
+.history-no {
+  background: rgba(0, 255, 170, 0.2);
+  border: 1px solid rgba(0, 255, 170, 0.8);
+  width: 34px;
+  height: 26px;
   border-radius: 999px;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
   font-size: 0.75rem;
 }
 
-.badge-type {
-  background: rgba(0, 102, 255, 0.2);
+/* match type pill (ODI/T20/Test) */
+.history-mtype {
+  background: rgba(0, 102, 255, 0.1);
   border: 1px solid rgba(0, 102, 255, 0.5);
-  padding: 2px 8px;
   border-radius: 999px;
+  padding: 2px 10px 3px;
   font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  justify-self: flex-start;
 }
 
-/* === Text Lines Inside Card === */
-.history-line {
+/* user + match name column */
+.history-user-match {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.history-user {
   font-size: 0.78rem;
+  font-weight: 600;
 }
 
-/* === Pills for Attributes === */
+.history-match {
+  font-size: 0.72rem;
+  color: #cfd3db;
+}
+
+/* pill group (type, hardness, crack, age) */
 .history-pills {
   display: flex;
+  gap: 6px;
   flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 4px;
 }
 
 .pill {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.03);
   border-radius: 999px;
   padding: 2px 10px 3px;
-  font-size: 0.68rem;
+  font-size: 0.66rem;
+  white-space: nowrap;
 }
 
-/* === Timestamp === */
+/* timestamp (rightmost) */
 .history-time {
-  font-size: 0.7rem;
-  color: #bbb;
-  margin-top: 4px;
-}
-
-/* === Duplicate Indicator === */
-.dup-label {
-  margin-top: 4px;
   font-size: 0.68rem;
-  color: #ffd0d0;
-  background: rgba(255, 71, 71, 0.22);
+  text-align: right;
+  color: #b9bec7;
+}
+
+/* duplicate highlight like table-row red */
+.history-row.duplicate-row {
+  background: rgba(255, 71, 71, 0.12);
   border: 1px solid rgba(255, 71, 71, 0.5);
-  border-radius: 6px;
-  padding: 2px 7px;
-  width: fit-content;
+  box-shadow: 0 0 10px rgba(255, 71, 71, 0.25);
 }
 
-/* === Highlight duplicate cards === */
-.history-card.duplicate-row {
-  background: rgba(255, 71, 71, 0.14);
-  border: 1px solid rgba(255, 71, 71, 0.6);
-  box-shadow: 0 0 12px rgba(255, 71, 71, 0.25);
+.history-row.duplicate-row .history-time {
+  color: #ffe0e0;
 }
 
-/* === Footer Note === */
+/* footer note */
 .history-footnote {
   margin-top: 12px;
   font-size: 0.7rem;
@@ -263,7 +277,9 @@
   text-align: center;
 }
 
-/* === Animation for smooth entry === */
+/* ===================================================================
+   ANIMATIONS
+   =================================================================== */
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -275,7 +291,20 @@
   }
 }
 
-/* === Mobile Optimization === */
+/* ===================================================================
+   RESPONSIVE
+   =================================================================== */
+@media (max-width: 1024px) {
+  /* on tablet shrink last col */
+  .history-header,
+  .history-row {
+    grid-template-columns: 50px 80px 150px 1fr;
+  }
+  .history-time {
+    display: none; /* hide timestamp to save space */
+  }
+}
+
 @media (max-width: 768px) {
   .pitch-container {
     padding: 20px 14px;
@@ -283,7 +312,22 @@
   .form-row {
     flex-direction: column;
   }
-  .history-grid {
+  /* turn each row into stacked card on mobile */
+  .history-header {
+    display: none;
+  }
+  .history-row {
     grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+  .history-user-match {
+    margin-top: 6px;
+  }
+  .history-pills {
+    margin-top: 4px;
+  }
+  .history-time {
+    display: block;
+    text-align: left;
   }
 }
