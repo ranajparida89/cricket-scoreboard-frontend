@@ -1,7 +1,9 @@
 /* =========================================================
-   PITCH RANDOMIZER – TABLE VIEW (dark, compact)
+   PITCH RANDOMIZER – TABLE VIEW (dark, complete version)
+   Author: Ranaj Parida
    ========================================================= */
 
+/* ---------- Main Container ---------- */
 .pitch-container {
   width: 96%;
   max-width: 1400px;
@@ -22,6 +24,7 @@
   gap: 22px;
 }
 
+/* ---------- Title ---------- */
 .pitch-title {
   color: #00ffaa;
   font-weight: 700;
@@ -36,7 +39,7 @@
   font-size: 2.1rem;
 }
 
-/* ---------- form ---------- */
+/* ---------- Input Section ---------- */
 .form-row {
   display: flex;
   gap: 20px;
@@ -83,7 +86,7 @@
   color: #fff;
 }
 
-/* ---------- button ---------- */
+/* ---------- Button ---------- */
 .btn-generate {
   background: linear-gradient(90deg, #00ffaa, #0066ff);
   border: none;
@@ -102,7 +105,7 @@
   box-shadow: 0 0 10px rgba(0, 255, 170, 0.4);
 }
 
-/* ---------- current result ---------- */
+/* ---------- Current Pitch Result ---------- */
 .pitch-result {
   width: 100%;
   text-align: left;
@@ -136,7 +139,7 @@
 }
 
 /* =========================================================
-   HISTORY TABLE
+   HISTORY TABLE – CLEAN, ROUNDED, AND STRUCTURED
    ========================================================= */
 
 .pitch-history {
@@ -149,49 +152,88 @@
   margin-bottom: 12px;
 }
 
+/* Wrapper with rounded background */
 .table-wrapper {
   width: 100%;
   overflow-x: auto;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 15px rgba(0, 255, 170, 0.05);
 }
 
+/* Table setup */
 .pitch-history table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 0.85rem;
-  background: rgba(0, 0, 0, 0.25);
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.35);
 }
 
+/* Table header */
 .pitch-history thead th {
-  background: linear-gradient(90deg, #00ffaa0d, #0066ff0d);
-  padding: 9px 6px;
+  background: linear-gradient(90deg, #00ffaa10, #0066ff10);
+  padding: 10px 8px;
   text-align: center;
   font-weight: 600;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  color: #d1f7ff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 1px solid rgba(255, 255, 255, 0.03);
   white-space: nowrap;
 }
 
+.pitch-history thead th:first-child {
+  border-top-left-radius: 14px;
+}
+
+.pitch-history thead th:last-child {
+  border-top-right-radius: 14px;
+  border-right: none;
+}
+
+/* Table body */
 .pitch-history tbody td {
   padding: 9px 6px;
   text-align: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.015);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-right: 1px solid rgba(255, 255, 255, 0.02);
+  color: #e2e2e2;
 }
 
+/* Remove last right border */
+.pitch-history tbody td:last-child {
+  border-right: none;
+}
+
+/* Zebra stripes */
 .pitch-history tbody tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.01);
+  background: rgba(255, 255, 255, 0.02);
 }
 
+/* Hover effect */
 .pitch-history tbody tr:hover {
-  background: rgba(0, 255, 170, 0.045);
+  background: rgba(0, 255, 170, 0.05);
 }
 
+/* Rounded bottom corners */
+.pitch-history tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 14px;
+}
+.pitch-history tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 14px;
+}
+
+/* Duplicate rows (red highlight) */
 .duplicate-row {
-  background: rgba(255, 71, 71, 0.15) !important;
+  background: rgba(255, 71, 71, 0.16) !important;
   color: #ffd2d2;
   font-weight: 600;
 }
 
+/* Footer note */
 .history-footnote {
   margin-top: 12px;
   font-size: 0.7rem;
@@ -199,7 +241,9 @@
   text-align: center;
 }
 
-/* ---------- animations ---------- */
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -211,7 +255,9 @@
   }
 }
 
-/* ---------- responsive ---------- */
+/* =========================================================
+   RESPONSIVE DESIGN
+   ========================================================= */
 @media (max-width: 768px) {
   .pitch-container {
     padding: 20px 14px;
@@ -222,5 +268,8 @@
   .pitch-history thead th,
   .pitch-history tbody td {
     font-size: 0.78rem;
+  }
+  .table-wrapper {
+    border-radius: 10px;
   }
 }
