@@ -10,11 +10,30 @@ import "./MatchForm.css";
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
 
 const TEAM_MAP = {
-  IND: "India", AUS: "Australia", ENG: "England", PAK: "Pakistan", SA: "South Africa",
-  NZ: "New Zealand", SL: "Sri Lanka", BAN: "Bangladesh", AFG: "Afghanistan", WI: "West Indies",
-  UAE: "United Arab Emirates", NAM: "Namibia", SCO: "Scotland", USA: "United States of America",
-  NEP: "Nepal", NED: "Netherlands", IRE: "Ireland", OMA: "Oman", PNG: "Papua New Guinea",
-  CAN: "Canada", KEN: "Kenya", BER: "Bermuda", HK: "Hong Kong", ZIM: "Zimbabwe"
+  IND: "India",
+  AUS: "Australia",
+  ENG: "England",
+  PAK: "Pakistan",
+  SA: "South Africa",
+  NZ: "New Zealand",
+  SL: "Sri Lanka",
+  BAN: "Bangladesh",
+  AFG: "Afghanistan",
+  WI: "West Indies",
+  UAE: "United Arab Emirates",
+  NAM: "Namibia",
+  SCO: "Scotland",
+  USA: "United States of America",
+  NEP: "Nepal",
+  NED: "Netherlands",
+  IRE: "Ireland",
+  OMA: "Oman",
+  PNG: "Papua New Guinea",
+  CAN: "Canada",
+  KEN: "Kenya",
+  BER: "Bermuda",
+  HK: "Hong Kong",
+  ZIM: "Zimbabwe",
 };
 
 const normalizeTeamName = (input) => {
@@ -47,8 +66,8 @@ function buildMatchName(tournamentName, seasonYear, team1, team2) {
 
   // strip any 19xx/20xx year tokens already present in the tournament text
   const base = tournamentName
-    .replace(/\b(19|20)\d{2}\b/g, "")   // remove any year
-    .replace(/\s{2,}/g, " ")            // collapse spaces
+    .replace(/\b(19|20)\d{2}\b/g, "") // remove any year
+    .replace(/\s{2,}/g, " ") // collapse spaces
     .trim();
 
   return `${base} ${seasonYear} : ${t1} vs ${t2}`;
@@ -80,6 +99,10 @@ export default function MatchForm() {
   const [wickets1Error, setWickets1Error] = useState("");
   const [wickets2Error, setWickets2Error] = useState("");
 
+  // 🆕 MoM fields
+  const [momPlayer, setMomPlayer] = useState("");
+  const [momReason, setMomReason] = useState("");
+
   const [resultMsg, setResultMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
@@ -109,16 +132,21 @@ export default function MatchForm() {
       })
       .catch(() => !cancelled && setTournaments([]))
       .finally(() => !cancelled && setTournamentsLoading(false));
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Load years when a tournament is chosen; default to newest
   useEffect(() => {
     let cancelled = false;
-    if (!tournamentName) { setYearOptions([]); return; }
+    if (!tournamentName) {
+      setYearOptions([]);
+      return;
+    }
     axios
       .get(`${API_BASE}/match/tournaments/years`, {
-        params: { scope: "limited", tournament_name: tournamentName }
+        params: { scope: "limited", tournament_name: tournamentName },
       })
       .then(({ data }) => {
         if (cancelled) return;
@@ -127,7 +155,9 @@ export default function MatchForm() {
         if (yrs.length) setSeasonYear(yrs[0]); // newest first (API orders DESC)
       })
       .catch(() => !cancelled && setYearOptions([]));
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [tournamentName]);
 
   // 🔁 Auto compose match name (read-only target)
@@ -150,9 +180,18 @@ export default function MatchForm() {
 
   const validateTournament = () => {
     const y = Number(seasonYear);
-    if (!tournamentName.trim()) { alert("❌ Tournament Name is required."); return false; }
-    if (!Number.isInteger(y) || y < 1860 || y > 2100) { alert("❌ Season Year must be between 1860 and 2100."); return false; }
-    if (!matchDate) { alert("❌ Match Date is required."); return false; }
+    if (!tournamentName.trim()) {
+      alert("❌ Tournament Name is required.");
+      return false;
+    }
+    if (!Number.isInteger(y) || y < 1860 || y > 2100) {
+      alert("❌ Season Year must be between 1860 and 2100.");
+      return false;
+    }
+    if (!matchDate) {
+      alert("❌ Match Date is required.");
+      return false;
+    }
     return true;
   };
 
@@ -160,7 +199,7 @@ export default function MatchForm() {
     e.preventDefault();
     const nm = newTourName.trim();
     if (!nm) return;
-    if (!tournaments.includes(nm)) setTournaments(prev => [...prev, nm].sort());
+    if (!tournaments.includes(nm)) setTournaments((prev) => [...prev, nm].sort());
     setTournamentName(nm);
     setSeasonYear(Number(newTourYear) || seasonDefault);
     setAddOpen(false);
@@ -172,22 +211,46 @@ export default function MatchForm() {
     const t1 = normalizeTeamName(team1);
     const t2 = normalizeTeamName(team2);
 
-    if (!matchName) { alert("❌ Match Name will auto-generate once Tournament, Year and both teams are set."); return; }
-    if (t1.toLowerCase() === t2.toLowerCase()) { alert("❌ Both teams cannot be the same."); return; }
-    if (overs1Error || overs2Error || wickets1Error || wickets2Error) { alert("❌ Please fix all validation errors before submitting."); return; }
+    if (!matchName) {
+      alert("❌ Match Name will auto-generate once Tournament, Year and both teams are set.");
+      return;
+    }
+    if (t1.toLowerCase() === t2.toLowerCase()) {
+      alert("❌ Both teams cannot be the same.");
+      return;
+    }
+    if (overs1Error || overs2Error || wickets1Error || wickets2Error) {
+      alert("❌ Please fix all validation errors before submitting.");
+      return;
+    }
     if (!validateTournament()) return;
+
+    // 🛑 MoM validation
+    if (!momPlayer.trim()) {
+      alert("❌ Man of the Match is required.");
+      return;
+    }
+    if (!momReason.trim()) {
+      alert("❌ Reason for MoM is required.");
+      return;
+    }
 
     try {
       setIsSubmitting(true);
       const storedUser = JSON.parse(localStorage.getItem("user"));
       const userId = storedUser?.id;
 
-      const match = await createMatch({ match_name: matchName, match_type: matchType, user_id: userId });
+      const match = await createMatch({
+        match_name: matchName,
+        match_type: matchType,
+        user_id: userId,
+      });
 
       const payload = {
         match_id: match.match_id,
         match_type: matchType,
-        team1: t1, team2: t2,
+        team1: t1,
+        team2: t2,
         runs1: parseInt(runs1 || 0, 10),
         overs1: parseFloat(overs1 || 0),
         wickets1: parseInt(wickets1 || 0, 10),
@@ -197,7 +260,10 @@ export default function MatchForm() {
         user_id: userId,
         tournament_name: tournamentName.trim(),
         season_year: Number(seasonYear),
-        match_date: matchDate
+        match_date: matchDate,
+        // 🆕 MoM data
+        mom_player: momPlayer.trim(),
+        mom_reason: momReason.trim(),
       };
 
       const result = await submitMatchResult(payload);
@@ -217,7 +283,9 @@ export default function MatchForm() {
 
   return (
     <div className="container mt-4">
-      {showPopup && <Confetti width={width} height={height} numberOfPieces={300} recycle={false} />}
+      {showPopup && (
+        <Confetti width={width} height={height} numberOfPieces={300} recycle={false} />
+      )}
       {showPopup && <div className="celebration-banner">🎉 Congratulations {winnerTeam}!</div>}
 
       <div className="card shadow p-4">
@@ -251,18 +319,39 @@ export default function MatchForm() {
                   value={tournamentName}
                   onChange={(e) => setTournamentName(e.target.value)}
                 >
-                  <option value="">{tournamentsLoading ? "Loading…" : "Select tournament…"}</option>
-                  {tournaments.map((t) => <option key={t} value={t}>{t}</option>)}
+                  <option value="">
+                    {tournamentsLoading ? "Loading…" : "Select tournament…"}
+                  </option>
+                  {tournaments.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
                 </select>
-                <button type="button" className="btn btn-add-gold" title="Add new tournament" onClick={() => setAddOpen(true)}>+</button>
+                <button
+                  type="button"
+                  className="btn btn-add-gold"
+                  title="Add new tournament"
+                  onClick={() => setAddOpen(true)}
+                >
+                  +
+                </button>
               </div>
             </div>
 
             <div className="col-md-3">
               <label>Season Year:</label>
               {yearOptions.length ? (
-                <select className="form-select" value={seasonYear} onChange={(e) => setSeasonYear(Number(e.target.value))}>
-                  {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+                <select
+                  className="form-select"
+                  value={seasonYear}
+                  onChange={(e) => setSeasonYear(Number(e.target.value))}
+                >
+                  {yearOptions.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
                 </select>
               ) : (
                 <input
@@ -279,7 +368,13 @@ export default function MatchForm() {
 
             <div className="col-md-3">
               <label>Match Date:</label>
-              <input type="date" className="form-control" value={matchDate} onChange={(e) => setMatchDate(e.target.value)} required />
+              <input
+                type="date"
+                className="form-control"
+                value={matchDate}
+                onChange={(e) => setMatchDate(e.target.value)}
+                required
+              />
             </div>
           </div>
 
@@ -290,15 +385,31 @@ export default function MatchForm() {
                 <div className="addtour-header">➕ Add Tournament</div>
                 <div className="mb-2">
                   <label className="form-label">Tournament Name</label>
-                  <input className="form-control" placeholder="e.g., Champions Trophy" value={newTourName} onChange={(e) => setNewTourName(e.target.value)} />
+                  <input
+                    className="form-control"
+                    placeholder="e.g., Champions Trophy"
+                    value={newTourName}
+                    onChange={(e) => setNewTourName(e.target.value)}
+                  />
                 </div>
                 <div className="mb-3">
                   <label className="form-label">Season Year</label>
-                  <input type="number" className="form-control" value={newTourYear} min={1860} max={2100} onChange={(e) => setNewTourYear(e.target.value)} />
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={newTourYear}
+                    min={1860}
+                    max={2100}
+                    onChange={(e) => setNewTourYear(e.target.value)}
+                  />
                 </div>
                 <div className="d-flex gap-2">
-                  <button className="btn btn-primary flex-fill" onClick={addNewTournament}>Add</button>
-                  <button className="btn btn-secondary flex-fill" onClick={() => setAddOpen(false)}>Cancel</button>
+                  <button className="btn btn-primary flex-fill" onClick={addNewTournament}>
+                    Add
+                  </button>
+                  <button className="btn btn-secondary flex-fill" onClick={() => setAddOpen(false)}>
+                    Cancel
+                  </button>
                 </div>
               </div>
             </div>
@@ -307,7 +418,11 @@ export default function MatchForm() {
           {/* Match Type */}
           <div className="mb-3 mt-3">
             <label>Match Type:</label>
-            <select className="form-select" value={matchType} onChange={(e) => setMatchType(e.target.value)}>
+            <select
+              className="form-select"
+              value={matchType}
+              onChange={(e) => setMatchType(e.target.value)}
+            >
               <option value="T20">T20</option>
               <option value="ODI">ODI</option>
             </select>
@@ -315,37 +430,110 @@ export default function MatchForm() {
 
           {/* Team 1 */}
           <h5 className="mt-4">Team 1 (Bat First)</h5>
-          <input type="text" className="form-control mb-2" placeholder="Team 1 Name" value={team1} onChange={(e) => setTeam1(e.target.value)} required />
+          <input
+            type="text"
+            className="form-control mb-2"
+            placeholder="Team 1 Name"
+            value={team1}
+            onChange={(e) => setTeam1(e.target.value)}
+            required
+          />
           <div className="row">
             <div className="col">
-              <input type="number" className="form-control mb-2" placeholder={`Runs by ${normalizeTeamName(team1) || "Team 1"}`} value={runs1} onChange={(e) => setRuns1(e.target.value)} />
+              <input
+                type="number"
+                className="form-control mb-2"
+                placeholder={`Runs by ${normalizeTeamName(team1) || "Team 1"}`}
+                value={runs1}
+                onChange={(e) => setRuns1(e.target.value)}
+              />
             </div>
             <div className="col">
-              <input type="text" className="form-control mb-2" placeholder="Overs" value={overs1} onChange={(e) => handleOversChange(e.target.value, setOvers1, setOvers1Error, team1)} />
+              <input
+                type="text"
+                className="form-control mb-2"
+                placeholder="Overs"
+                value={overs1}
+                onChange={(e) =>
+                  handleOversChange(e.target.value, setOvers1, setOvers1Error, team1)
+                }
+              />
               {overs1Error && <small className="text-danger">{overs1Error}</small>}
             </div>
             <div className="col">
-              <input type="number" className="form-control mb-2" placeholder="Wickets" value={wickets1} onChange={(e) => handleWicketsChange(e.target.value, setWickets1, setWickets1Error)} />
+              <input
+                type="number"
+                className="form-control mb-2"
+                placeholder="Wickets"
+                value={wickets1}
+                onChange={(e) => handleWicketsChange(e.target.value, setWickets1, setWickets1Error)}
+              />
               {wickets1Error && <small className="text-danger">{wickets1Error}</small>}
             </div>
           </div>
 
           {/* Team 2 */}
           <h5 className="mt-4">Team 2</h5>
-          <input type="text" className="form-control mb-2" placeholder="Team 2 Name" value={team2} onChange={(e) => setTeam2(e.target.value)} required />
+          <input
+            type="text"
+            className="form-control mb-2"
+            placeholder="Team 2 Name"
+            value={team2}
+            onChange={(e) => setTeam2(e.target.value)}
+            required
+          />
           <div className="row">
             <div className="col">
-              <input type="number" className="form-control mb-2" placeholder={`Runs by ${normalizeTeamName(team2) || "Team 2"}`} value={runs2} onChange={(e) => setRuns2(e.target.value)} />
+              <input
+                type="number"
+                className="form-control mb-2"
+                placeholder={`Runs by ${normalizeTeamName(team2) || "Team 2"}`}
+                value={runs2}
+                onChange={(e) => setRuns2(e.target.value)}
+              />
             </div>
             <div className="col">
-              <input type="text" className="form-control mb-2" placeholder="Overs" value={overs2} onChange={(e) => handleOversChange(e.target.value, setOvers2, setOvers2Error, team2)} />
+              <input
+                type="text"
+                className="form-control mb-2"
+                placeholder="Overs"
+                value={overs2}
+                onChange={(e) =>
+                  handleOversChange(e.target.value, setOvers2, setOvers2Error, team2)
+                }
+              />
               {overs2Error && <small className="text-danger">{overs2Error}</small>}
             </div>
             <div className="col">
-              <input type="number" className="form-control mb-2" placeholder="Wickets" value={wickets2} onChange={(e) => handleWicketsChange(e.target.value, setWickets2, setWickets2Error)} />
+              <input
+                type="number"
+                className="form-control mb-2"
+                placeholder="Wickets"
+                value={wickets2}
+                onChange={(e) => handleWicketsChange(e.target.value, setWickets2, setWickets2Error)}
+              />
               {wickets2Error && <small className="text-danger">{wickets2Error}</small>}
             </div>
           </div>
+
+          {/* 🆕 MoM section */}
+          <h5 className="mt-4">Man of the Match</h5>
+          <input
+            type="text"
+            className="form-control mb-2"
+            placeholder="Player name (e.g. Virat Kohli)"
+            value={momPlayer}
+            onChange={(e) => setMomPlayer(e.target.value)}
+            required
+          />
+          <textarea
+            className="form-control mb-3"
+            rows={2}
+            placeholder="Reason for Man of the Match (e.g. 85(45) + 1 wicket in a tight chase)"
+            value={momReason}
+            onChange={(e) => setMomReason(e.target.value)}
+            required
+          />
 
           <div className="d-grid mt-3">
             <button className="btn btn-primary" disabled={isSubmitting}>
