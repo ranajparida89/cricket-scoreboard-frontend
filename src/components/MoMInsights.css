@@ -109,3 +109,40 @@
 
 .loading { text-align: center; color: #00ffaa; font-weight: 600; }
 .no-data { text-align: center; color: #ccc; }
+/* make table scrollable on small screens */
+.mom-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mom-table {
+  width: 100%;
+  min-width: 680px; /* table can be wider than screen; wrapper will scroll */
+  border-collapse: collapse;
+}
+
+/* filters should wrap on mobile */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filters select,
+.filters input,
+.filters button {
+  min-width: 150px;
+}
+
+@media (max-width: 768px) {
+  .mom-container {
+    padding: 0.75rem;
+  }
+  .filters {
+    flex-direction: row;
+  }
+  .summary-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+}

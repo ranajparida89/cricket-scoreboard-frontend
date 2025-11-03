@@ -35,7 +35,6 @@ export default function MoMInsights() {
   const [page, setPage] = useState(1);
   const perPage = 10;
 
-  // ✅ 1. Load dropdown/meta data once
   const fetchMeta = async () => {
     try {
       const { data } = await axios.get(`${API_BASE}/mom-insights/meta`);
@@ -44,12 +43,10 @@ export default function MoMInsights() {
       setSeasons(data.seasons || []);
     } catch (err) {
       console.error("MoM meta error:", err);
-      // don't block page, just show message
       setError("Failed to load filter options.");
     }
   };
 
-  // ✅ 2. Validation
   const validateFilters = () => {
     if (filters.season_year && !/^\d{4}$/.test(filters.season_year)) {
       setError("❌ Year must be in YYYY format");
@@ -59,7 +56,6 @@ export default function MoMInsights() {
     return true;
   };
 
-  // ✅ 3. Fetch actual insights
   const fetchData = async () => {
     if (!validateFilters()) return;
     setLoading(true);
@@ -69,7 +65,7 @@ export default function MoMInsights() {
       });
       setSummary(data.summary || []);
       setRecords(data.records || []);
-      setPage(1); // reset pagination every fetch
+      setPage(1);
     } catch (err) {
       console.error(err);
       setError("Failed to fetch data. Please try again.");
@@ -78,9 +74,7 @@ export default function MoMInsights() {
     }
   };
 
-  // initial load
   useEffect(() => {
-    // first load dropdowns, then data
     (async () => {
       await fetchMeta();
       await fetchData();
@@ -88,13 +82,11 @@ export default function MoMInsights() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // generic change handler
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  // pagination
   const paginatedRecords = records.slice((page - 1) * perPage, page * perPage);
   const totalPages = Math.ceil(records.length / perPage) || 1;
 
@@ -104,7 +96,6 @@ export default function MoMInsights() {
 
       {/* 🔽 Filter row */}
       <div className="filters">
-        {/* Match Type dropdown */}
         <select
           name="match_type"
           value={filters.match_type}
@@ -118,7 +109,6 @@ export default function MoMInsights() {
           ))}
         </select>
 
-        {/* Tournament dropdown */}
         <select
           name="tournament_name"
           value={filters.tournament_name}
@@ -132,7 +122,6 @@ export default function MoMInsights() {
           ))}
         </select>
 
-        {/* Season dropdown */}
         <select
           name="season_year"
           value={filters.season_year}
@@ -146,7 +135,6 @@ export default function MoMInsights() {
           ))}
         </select>
 
-        {/* Player text search */}
         <input
           name="player"
           placeholder="Player"
@@ -163,7 +151,6 @@ export default function MoMInsights() {
         <div className="loading">Loading Insights...</div>
       ) : (
         <>
-          {/* Summary cards + chart */}
           {summary.length > 0 && (
             <>
               <h3 className="subtitle">🏅 Top Players by MoM Awards</h3>
@@ -173,7 +160,6 @@ export default function MoMInsights() {
                     <span className="rank-badge">#{i + 1}</span>
                     <h4>{s.player}</h4>
                     <p>{s.count} Awards</p>
-                    {/* show formats/tournaments if available */}
                     {s.formats && s.formats.length > 0 && (
                       <small>{s.formats.join(", ")}</small>
                     )}
@@ -182,62 +168,65 @@ export default function MoMInsights() {
               </div>
 
               <h3 className="subtitle">📊 MoM Count by Player</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart
-                  data={summary.slice(0, 10)}
-                  margin={{ top: 10, right: 20, bottom: 20, left: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                  <XAxis
-                    dataKey="player"
-                    tick={{ fill: "#ccc", fontSize: 12 }}
-                    interval={0}
-                    angle={-20}
-                    textAnchor="end"
-                    height={60}
-                  />
-                  <YAxis tick={{ fill: "#ccc" }} />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#00ffaa" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="chart-wrapper">
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart
+                    data={summary.slice(0, 10)}
+                    margin={{ top: 10, right: 20, bottom: 20, left: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                    <XAxis
+                      dataKey="player"
+                      tick={{ fill: "#ccc", fontSize: 12 }}
+                      interval={0}
+                      angle={-20}
+                      textAnchor="end"
+                      height={60}
+                    />
+                    <YAxis tick={{ fill: "#ccc" }} />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#00ffaa" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </>
           )}
 
-          {/* Detailed table */}
           <h3 className="subtitle">📜 Detailed MoM Records</h3>
           {records.length === 0 ? (
             <p className="no-data">No records found for selected filters.</p>
           ) : (
             <>
-              <table className="mom-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Match Name</th>
-                    <th>Player</th>
-                    <th>Reason</th>
-                    <th>Format</th>
-                    <th>Tournament</th>
-                    <th>Year</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedRecords.map((r, i) => (
-                    <tr key={i}>
-                      <td>{r.match_date || "—"}</td>
-                      <td>{r.match_name}</td>
-                      <td>{r.player_name}</td>
-                      <td>{r.reason}</td>
-                      <td>{r.match_type}</td>
-                      <td>{r.tournament_name}</td>
-                      <td>{r.season_year}</td>
+              {/* ✅ responsive wrapper for mobile */}
+              <div className="mom-table-wrapper">
+                <table className="mom-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Match Name</th>
+                      <th>Player</th>
+                      <th>Reason</th>
+                      <th>Format</th>
+                      <th>Tournament</th>
+                      <th>Year</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {paginatedRecords.map((r, i) => (
+                      <tr key={i}>
+                        <td>{r.match_date || "—"}</td>
+                        <td>{r.match_name}</td>
+                        <td>{r.player_name}</td>
+                        <td>{r.reason}</td>
+                        <td>{r.match_type}</td>
+                        <td>{r.tournament_name}</td>
+                        <td>{r.season_year}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-              {/* Pagination */}
               <div className="pagination">
                 <button
                   disabled={page === 1}
