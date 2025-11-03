@@ -61,6 +61,7 @@ import TournamentPoints from "./components/TournamentPoints";
 
 // 🔥 NEW
 import PitchRandomizer from "./components/PitchRandomizer";
+import MoMInsights from "./components/MoMInsights"; // ✅ MoM 04/11/2025
 
 function HomePage() {
   return (
@@ -481,6 +482,17 @@ function App() {
               <PageWrapper>
                 <TournamentPoints />
               </PageWrapper>
+            }
+          />
+                    {/* ✅ Man of the Match Insights */}
+          <Route
+            path="/mom-insights"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <MoMInsights />
+                </PageWrapper>
+              </ProtectedRoute>
             }
           />
         </Routes>
