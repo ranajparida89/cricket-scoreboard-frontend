@@ -76,8 +76,6 @@ const safeDraws = (m, w, l) => Math.max(0, toNum(m) - toNum(w) - toNum(l));
 
 /* =======================================================================
    Row component (static)
-   - NO GSAP, NO react-spring, NO react-move
-   - Top 3 get soft gold/silver/bronze highlight via CSS classes
    ======================================================================= */
 const TLRow = memo(
   forwardRef(function TLRow({ index, row }, ref) {
@@ -105,7 +103,7 @@ export default function TestLeaderboard() {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Refs kept to mirror the original structure (even though no animation now)
+  // refs kept to mirror your original structure
   const wrapRef = useRef(null);
   const rowRefs = useRef([]);
   rowRefs.current = [];
@@ -120,7 +118,7 @@ export default function TestLeaderboard() {
     let mounted = true;
     (async () => {
       try {
-        const data = await getTestMatchLeaderboard();
+        const data = await getTestMatchLeaderboard(); // → /api/leaderboard/test
         const arr = Array.isArray(data) ? data : [];
         const normalized = arr.map((t) => {
           const matches = toNum(t.matches);
@@ -136,10 +134,13 @@ export default function TestLeaderboard() {
             points: toNum(t.points),
           };
         });
-        // Sort by points, then wins (tie-breaker)
+
+        // ✅ IMPORTANT:
+        // Test must be sorted by WINS first, then POINTS (your rule)
         const sorted = normalized.sort(
-          (a, b) => b.points - a.points || b.wins - a.wins
+          (a, b) => b.wins - a.wins || b.points - a.points
         );
+
         if (mounted) setTeams(sorted);
       } catch (_e) {
         if (mounted) setTeams([]);
@@ -147,18 +148,18 @@ export default function TestLeaderboard() {
         if (mounted) setLoading(false);
       }
     })();
+
     return () => {
       mounted = false;
     };
   }, []);
 
-  // Derive some memoized snapshot info (kept for parity with “full” code)
+  // memo (kept for parity)
   const maxPoints = useMemo(
     () => Math.max(10, ...teams.map((t) => t.points || 0)),
     [teams]
   );
   const summary = useMemo(() => {
-    // Optional: expose totals; not displayed but handy for future badges
     const totalMatches = teams.reduce((s, t) => s + toNum(t.matches), 0);
     const totalWins = teams.reduce((s, t) => s + toNum(t.wins), 0);
     const totalLosses = teams.reduce((s, t) => s + toNum(t.losses), 0);
@@ -166,16 +167,11 @@ export default function TestLeaderboard() {
     return { totalMatches, totalWins, totalLosses, totalDraws, maxPoints };
   }, [teams, maxPoints]);
 
-  // Keep an interface-compatible placeholder “register ref” (no animations now)
   const attachRowRef = (idx) => (el) => addRowRef(el);
 
-  /* -------------------------------------------------------------------
-     Render
-     ------------------------------------------------------------------- */
   return (
     <div className="tlfx-shell">
       <div ref={wrapRef} className="tlfx-glass">
-        {/* Page title (single; avoid external duplicates) */}
         <h2 className="tlfx-title" style={TITLE_STYLE}>
           Test Leaderboard
         </h2>
@@ -184,7 +180,6 @@ export default function TestLeaderboard() {
           <table className="tlfx-table">
             <thead>
               <tr>
-                {/* Short headers */}
                 <th>R</th>
                 <th>T</th>
                 <th>M</th>
@@ -194,9 +189,7 @@ export default function TestLeaderboard() {
                 <th>Pts</th>
               </tr>
             </thead>
-
             <tbody>
-              {/* Loading state — static skeleton (no shimmer/motion) */}
               {loading && (
                 <>
                   <tr className="skeleton">
@@ -211,7 +204,6 @@ export default function TestLeaderboard() {
                 </>
               )}
 
-              {/* Empty state */}
               {!loading && teams.length === 0 && (
                 <tr>
                   <td className="tlfx-empty" colSpan="7">
@@ -220,7 +212,6 @@ export default function TestLeaderboard() {
                 </tr>
               )}
 
-              {/* Rows */}
               {!loading &&
                 teams.map((t, i) => (
                   <TLRow
@@ -234,7 +225,7 @@ export default function TestLeaderboard() {
           </table>
         </div>
 
-        {/* Optional future: summary strip (kept commented; no UI now)
+        {/* future summary (kept commented)
         <div className="tlfx-summary subtle">
           <span>Total M: {summary.totalMatches}</span>
           <span>Total W: {summary.totalWins}</span>
