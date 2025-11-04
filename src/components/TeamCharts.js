@@ -1,4 +1,9 @@
-// TeamCharts.js — dark theme + permanent banner + % ticks + meaningful animations
+// ✅ src/components/TeamCharts.js
+// ✅ [05-NOV-2025 | Ranaj Parida] Logic + Responsive Fixes
+//  - Test sorting prioritized by Wins → Points → Draws
+//  - Mobile chart & table responsiveness improved
+//  - maintainAspectRatio:false applied consistently
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getTeamChartData, getMatchHistory } from "../services/api";
 import "./TeamCharts.css";
@@ -221,6 +226,7 @@ const TeamCharts = () => {
           if (!Number.isNaN(Number(r.points))) stat.points = Number(r.points);
         }
       }
+
       // add LOI rows present only in rankings
       for (const [key, r] of rankingMap) {
         const [, type] = key.split("|");
@@ -233,11 +239,12 @@ const TeamCharts = () => {
         }
       }
 
-      // Test rows straight from rankings (points already 12/6/4 logic)
+      // ✅ [RP-Fix-05-Nov-2025] Test rows from ranking with correct 12/6/3 logic
       const tests = (rankingRows || [])
         .filter((r) => (r.match_type || "").toUpperCase() === "TEST")
         .map((r) => ({
-          team: r.team_name, type: "Test",
+          team: r.team_name,
+          type: "Test",
           matches: Number(r.matches) || 0,
           wins: Number(r.wins) || 0,
           losses: Number(r.losses) || 0,
@@ -256,11 +263,16 @@ const TeamCharts = () => {
     return rows.filter((r) => r.type?.toLowerCase() === format.toLowerCase());
   }, [rows, format]);
 
+  // ✅ [RP-Fix-05-Nov-2025] Custom sort for Test: Wins → Points → Draws
   const sorted = useMemo(() => {
     const copy = [...filtered];
-    copy.sort((a, b) => (b.points - a.points) || (b.nrr - a.nrr));
+    if (format.toLowerCase() === "test") {
+      copy.sort((a, b) => b.wins - a.wins || b.points - a.points || b.draws - a.draws);
+    } else {
+      copy.sort((a, b) => (b.points - a.points) || (b.nrr - a.nrr));
+    }
     return copy;
-  }, [filtered]);
+  }, [filtered, format]);
 
   const labels = sorted.map((r) => r.team);
   const wins = sorted.map((r) => r.wins);
@@ -364,6 +376,7 @@ const TeamCharts = () => {
     return { labels: ["T20", "ODI", "Test"], datasets };
   }, [lineTeams, byTeam, reduce]);
 
+  // ✅ [RP-Fix-05-Nov-2025] maintainAspectRatio:false for mobile scaling
   const winRateOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -371,7 +384,6 @@ const TeamCharts = () => {
     animation: !reduce && { duration: 900, easing: "easeOutQuart" },
     plugins: {
       ...basePlugins,
-      // show value labels on the line points, aligned & non-overlapping
       datalabels: {
         display: (ctx) => ctx.dataset.data[ctx.dataIndex] > 0,
         formatter: (v) => `${v}%`,
@@ -399,10 +411,7 @@ const TeamCharts = () => {
         ...axes.y,
         max: 100,
         title: { display: true, text: "Win %", color: textDim },
-        ticks: {
-          color: textDim,
-          callback: (value) => `${value}%`,  // 0 → 0%, 20 → 20% ...
-        },
+        ticks: { color: textDim, callback: (v) => `${v}%` },
       },
     },
   };
@@ -415,8 +424,10 @@ const TeamCharts = () => {
       { label: "Draws", data: draws, backgroundColor: "rgba(250,204,21,.95)", borderRadius: 8 },
     ],
   };
+
   const performanceBarOptions = {
     responsive: true,
+    maintainAspectRatio: false, // [RP-Fix]
     animation: !reduce && { duration: 700, easing: "easeOutCubic", delay },
     plugins: {
       ...basePlugins,
@@ -449,8 +460,10 @@ const TeamCharts = () => {
       },
     ],
   };
+
   const combinedOptions = {
     responsive: true,
+    maintainAspectRatio: false, // [RP-Fix]
     animation: !reduce && { duration: 800, easing: "easeOutCubic", delay },
     plugins: {
       ...basePlugins,
@@ -467,7 +480,6 @@ const TeamCharts = () => {
   useEffect(() => {
     if (!seen || reduce) return;
     const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
-
     tl.fromTo(
       ".tcpro-card",
       { y: 24, opacity: 0, rotateX: -3 },
@@ -485,10 +497,10 @@ const TeamCharts = () => {
         { y: 0, opacity: 1, duration: 0.35, stagger: 0.03 },
         "-=0.2"
       );
-
     return () => tl.kill();
   }, [seen, reduce, format]);
 
+  /* ---------- UI ---------- */
   return (
     <div ref={shellRef} className="tcpro-shell">
       {!isTouch && (
@@ -516,9 +528,10 @@ const TeamCharts = () => {
           <h3 className="tcpro-title">Team Performance Insights</h3>
 
           <div className="tcpro-actions">
-            {/* permanent yellow banner with arrow */}
             <div className="tcpro-banner" role="note">
-              <span className="tcpro-banner-text">Please select <b>Match Type</b></span>
+              <span className="tcpro-banner-text">
+                Please select <b>Match Type</b>
+              </span>
             </div>
 
             <select
@@ -537,9 +550,11 @@ const TeamCharts = () => {
                 type="button"
                 className="tcpro-help-btn"
                 aria-label="About these charts"
-                onClick={() => alert(
-                  'LOI: Win=2, Loss=0, Tie/NR=1 • Test: Win=12, Loss=6, Draw=4. All charts/table follow your Match Type.'
-                )}
+                onClick={() =>
+                  alert(
+                    "LOI: Win=2, Loss=0, Draw=1 • Test: Win=12, Loss=6, Draw=3.\nAll charts and tables follow your Match Type."
+                  )
+                }
               >
                 i
               </button>
@@ -549,17 +564,15 @@ const TeamCharts = () => {
 
         {/* Win rate line */}
         <Tilt>
-          <div className="tcpro-card-inner">
-            <div className="chart-tall">
-              <Line data={winRateLine} options={winRateOptions} plugins={[ChartDataLabels, panelBg]} />
-            </div>
+          <div className="tcpro-card-inner chart-tall">
+            <Line data={winRateLine} options={winRateOptions} plugins={[ChartDataLabels, panelBg]} />
           </div>
         </Tilt>
 
         {/* Two charts */}
         <div className="tcpro-grid">
           <Tilt>
-            <div className="tcpro-card-inner">
+            <div className="tcpro-card-inner chart-sm">
               <Bar
                 key={`bar-perf-${format}-${labels.join("|")}`}
                 data={performanceBarData}
@@ -570,7 +583,7 @@ const TeamCharts = () => {
           </Tilt>
 
           <Tilt>
-            <div className="tcpro-card-inner">
+            <div className="tcpro-card-inner chart-sm">
               <Bar
                 key={`combo-${format}-${labels.join("|")}`}
                 data={combinedData}
@@ -583,52 +596,75 @@ const TeamCharts = () => {
 
         {/* KPIs */}
         <div className="tcpro-kpis">
-          <div className="tcpro-kpi"><div className="kpi-title">Matches</div><div className="kpi-value">{totalMatches}</div></div>
-          <div className="tcpro-kpi" title="Across all teams in the current filter">
-            <div className="kpi-title">Avg Win-Rate</div><div className="kpi-value">{avgWinRate}%</div>
+          <div className="tcpro-kpi">
+            <div className="kpi-title">Matches</div>
+            <div className="kpi-value">{totalMatches}</div>
           </div>
-          <div className="tcpro-kpi"><div className="kpi-title">Best Team</div><div className="kpi-value">{bestTeam}</div></div>
-          <div className="tcpro-kpi"><div className="kpi-title">Best NRR</div><div className="kpi-value">{bestNRR}</div></div>
+          <div className="tcpro-kpi" title="Across all teams in the current filter">
+            <div className="kpi-title">Avg Win-Rate</div>
+            <div className="kpi-value">{avgWinRate}%</div>
+          </div>
+          <div className="tcpro-kpi">
+            <div className="kpi-title">Best Team</div>
+            <div className="kpi-value">{bestTeam}</div>
+          </div>
+          <div className="tcpro-kpi">
+            <div className="kpi-title">Best NRR</div>
+            <div className="kpi-value">{bestNRR}</div>
+          </div>
         </div>
 
         {/* Table */}
         <div className="tcpro-table-wrap">
-          <table className="tcpro-table tcpro-table--pretty">
-            <thead>
-              <tr>
-                <th>Team</th>
-                <th>Match Type</th>
-                <th>Matches</th>
-                <th>Wins</th>
-                <th>Losses</th>
-                <th>Draws</th>
-                <th>Points</th>
-                <th>Win %</th>
-                <th>NRR</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sorted.map((r, i) => (
-                <tr key={`${r.team}-${r.type}`} className={i < 3 ? `rank${i + 1}` : ""}>
-                  <td className="left">
-                    {i < 3 && <span className={`medal m${i + 1}`} aria-hidden="true" />}
-                    {r.team}
-                  </td>
-                  <td><span className={`badge-type ${r.type?.toLowerCase()}`}>{(r.type || "").toUpperCase()}</span></td>
-                  <td>{r.matches}</td>
-                  <td className="pos">{r.wins}</td>
-                  <td className="neg">{r.losses}</td>
-                  <td>{r.draws}</td>
-                  <td className="pos">{r.points}</td>
-                  <td className="pos">{winPct(r)}%</td>
-                  <td className={r.nrr >= 0 ? "pos" : "neg"}>{r.nrr >= 0 ? `+${r.nrr}` : r.nrr}</td>
+          <div className="tcpro-table-scroll">
+            {/* [RP-Fix-05-Nov-2025] Responsive scroll container */}
+            <table className="tcpro-table tcpro-table--pretty">
+              <thead>
+                <tr>
+                  <th>Team</th>
+                  <th>Match Type</th>
+                  <th>Matches</th>
+                  <th>Wins</th>
+                  <th>Losses</th>
+                  <th>Draws</th>
+                  <th>Points</th>
+                  <th>Win %</th>
+                  <th>NRR</th>
                 </tr>
-              ))}
-              {!sorted.length && (
-                <tr><td colSpan="9" className="muted">No data for this selection.</td></tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {sorted.map((r, i) => (
+                  <tr key={`${r.team}-${r.type}`} className={i < 3 ? `rank${i + 1}` : ""}>
+                    <td className="left">
+                      {i < 3 && <span className={`medal m${i + 1}`} aria-hidden="true" />}
+                      {r.team}
+                    </td>
+                    <td>
+                      <span className={`badge-type ${r.type?.toLowerCase()}`}>
+                        {(r.type || "").toUpperCase()}
+                      </span>
+                    </td>
+                    <td>{r.matches}</td>
+                    <td className="pos">{r.wins}</td>
+                    <td className="neg">{r.losses}</td>
+                    <td>{r.draws}</td>
+                    <td className="pos">{r.points}</td>
+                    <td className="pos">{winPct(r)}%</td>
+                    <td className={r.nrr >= 0 ? "pos" : "neg"}>
+                      {r.nrr >= 0 ? `+${r.nrr}` : r.nrr}
+                    </td>
+                  </tr>
+                ))}
+                {!sorted.length && (
+                  <tr>
+                    <td colSpan="9" className="muted">
+                      No data for this selection.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
