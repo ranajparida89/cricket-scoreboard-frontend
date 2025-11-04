@@ -11,7 +11,7 @@ const AllBoardsView = () => {
   const [error, setError] = useState("");
   const { currentUser } = useAuth();
 
-  // admin detection (unchanged)
+  // admin detection
   const isAdmin =
     currentUser?.role === "admin" || localStorage.getItem("isAdmin") === "true";
 
@@ -203,6 +203,7 @@ const AllBoardsView = () => {
             <div className="team-list">
               {board.teams.map((team, index) => (
                 <div key={index} className="team-chip">
+                  <span className="team-serial">{index + 1}.</span>
                   <span className="team-name">{team}</span>
                   {isAdmin && (
                     <button
