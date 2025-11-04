@@ -11,11 +11,10 @@ const AllBoardsView = () => {
   const [error, setError] = useState("");
   const { currentUser } = useAuth();
 
-  // ✅ CHANGE: unify admin detection (either role=admin OR legacy isAdmin flag)
+  // admin detection (unchanged)
   const isAdmin =
     currentUser?.role === "admin" || localStorage.getItem("isAdmin") === "true";
 
-  // ✅ CHANGE: helper to attach admin JWT for protected endpoints
   const authHeaders = () => {
     const t = localStorage.getItem("admin_jwt");
     return t ? { Authorization: `Bearer ${t}` } : {};
@@ -38,8 +37,6 @@ const AllBoardsView = () => {
     fetchBoards();
   }, []);
 
-  // ❗️Your backend's PUT /update/:id expects the FULL board payload, not partial fields.
-  // ✅ CHANGE: send full board object with a single field changed.
   const handleUpdateField = async (board, field, value) => {
     if (!isAdmin) return;
     const payload = {
@@ -48,14 +45,14 @@ const AllBoardsView = () => {
       registration_date:
         field === "registration_date" ? value : board.registration_date,
       owner_email: field === "owner_email" ? value : board.owner_email,
-      teams: board.teams, // unchanged here
+      teams: board.teams,
     };
 
     try {
       await axios.put(
         `https://cricket-scoreboard-backend.onrender.com/api/boards/update/${board.registration_id}`,
         payload,
-        { headers: authHeaders() } // ✅ CHANGE: include admin JWT
+        { headers: authHeaders() }
       );
       fetchBoards();
     } catch (err) {
@@ -63,12 +60,10 @@ const AllBoardsView = () => {
     }
   };
 
-  // ❌ Delete a team (Admin only)
-  // There is NO /remove-team API in backend. We emulate by PUT with filtered teams.
-  // ✅ CHANGE: update board with teams minus the removed team.
   const handleRemoveTeam = async (board, teamName) => {
     if (!isAdmin) return;
-    if (!window.confirm(`Delete team "${teamName}" from ${board.board_name}?`)) return;
+    if (!window.confirm(`Delete team "${teamName}" from ${board.board_name}?`))
+      return;
 
     const payload = {
       board_name: board.board_name,
@@ -82,7 +77,7 @@ const AllBoardsView = () => {
       await axios.put(
         `https://cricket-scoreboard-backend.onrender.com/api/boards/update/${board.registration_id}`,
         payload,
-        { headers: authHeaders() } // ✅ CHANGE: include admin JWT
+        { headers: authHeaders() }
       );
       fetchBoards();
     } catch (err) {
@@ -90,16 +85,15 @@ const AllBoardsView = () => {
     }
   };
 
-  // ❌ Delete board (Admin only)
-  // ✅ CHANGE: include admin JWT header
   const handleDeleteBoard = async (id) => {
     if (!isAdmin) return;
-    if (!window.confirm("Are you sure you want to delete this entire board?")) return;
+    if (!window.confirm("Are you sure you want to delete this entire board?"))
+      return;
 
     try {
       await axios.delete(
         `https://cricket-scoreboard-backend.onrender.com/api/boards/delete/${id}`,
-        { headers: authHeaders() } // ✅ CHANGE
+        { headers: authHeaders() }
       );
       fetchBoards();
     } catch (err) {
@@ -150,76 +144,80 @@ const AllBoardsView = () => {
       <div className="board-grid">
         {boards.map((board) => (
           <div key={board.registration_id} className="board-card">
-            <h2
-              contentEditable={isAdmin} // ✅ CHANGE: use unified isAdmin
-              suppressContentEditableWarning={true}
-              onBlur={(e) =>
-                handleUpdateField(board, "board_name", e.target.innerText)
-              } // ✅ CHANGE: call new updater
-            >
-              {board.board_name}
-            </h2>
-
-            <p>
-              <strong>Owner:</strong>{" "}
-              <span
-                contentEditable={isAdmin} // ✅ CHANGE
+            <div className="board-card-header">
+              <h2
+                contentEditable={isAdmin}
                 suppressContentEditableWarning={true}
                 onBlur={(e) =>
-                  handleUpdateField(board, "owner_name", e.target.innerText)
-                } // ✅ CHANGE
+                  handleUpdateField(board, "board_name", e.target.innerText)
+                }
               >
-                {board.owner_name}
-              </span>
-            </p>
+                {board.board_name}
+              </h2>
+              <span className="board-badge">Board</span>
+            </div>
 
-            <p>
-              <strong>Email:</strong>{" "}
-              <span
-                contentEditable={isAdmin} // ✅ CHANGE
-                suppressContentEditableWarning={true}
-                onBlur={(e) =>
-                  handleUpdateField(board, "owner_email", e.target.innerText)
-                } // ✅ CHANGE
-              >
-                {board.owner_email}
-              </span>
-            </p>
-
-            <p>
-              <strong>Date:</strong>{" "}
-              <span
-                contentEditable={isAdmin} // ✅ CHANGE
-                suppressContentEditableWarning={true}
-                onBlur={(e) =>
-                  handleUpdateField(
-                    board,
-                    "registration_date",
-                    e.target.innerText
-                  )
-                } // ✅ CHANGE
-              >
-                {board.registration_date}
-              </span>
-            </p>
+            <div className="board-meta">
+              <p>
+                <strong>Owner:</strong>{" "}
+                <span
+                  contentEditable={isAdmin}
+                  suppressContentEditableWarning={true}
+                  onBlur={(e) =>
+                    handleUpdateField(board, "owner_name", e.target.innerText)
+                  }
+                >
+                  {board.owner_name}
+                </span>
+              </p>
+              <p>
+                <strong>Email:</strong>{" "}
+                <span
+                  contentEditable={isAdmin}
+                  suppressContentEditableWarning={true}
+                  onBlur={(e) =>
+                    handleUpdateField(board, "owner_email", e.target.innerText)
+                  }
+                >
+                  {board.owner_email}
+                </span>
+              </p>
+              <p>
+                <strong>Date:</strong>{" "}
+                <span
+                  contentEditable={isAdmin}
+                  suppressContentEditableWarning={true}
+                  onBlur={(e) =>
+                    handleUpdateField(
+                      board,
+                      "registration_date",
+                      e.target.innerText
+                    )
+                  }
+                >
+                  {board.registration_date}
+                </span>
+              </p>
+            </div>
 
             <div className="team-list">
               {board.teams.map((team, index) => (
-                <span key={index} className="team-chip">
-                  {team}
-                  {isAdmin && ( // ✅ CHANGE
+                <div key={index} className="team-chip">
+                  <span className="team-name">{team}</span>
+                  {isAdmin && (
                     <button
-                      className="remove-btn"
-                      onClick={() => handleRemoveTeam(board, team)} // ✅ CHANGE
+                      className="team-remove-btn"
+                      onClick={() => handleRemoveTeam(board, team)}
+                      type="button"
                     >
-                      ❌
+                      ✕
                     </button>
                   )}
-                </span>
+                </div>
               ))}
             </div>
 
-            {isAdmin && ( // ✅ CHANGE
+            {isAdmin && (
               <button
                 className="delete-board-btn"
                 onClick={() => handleDeleteBoard(board.registration_id)}

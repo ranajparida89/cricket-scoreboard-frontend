@@ -1,9 +1,9 @@
-/* Container styling */
+/* Container */
 .boards-container {
   padding: 2rem;
   background-color: #0d1117;
   color: #e6edf3;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: "Segoe UI", sans-serif;
   min-height: 100vh;
   animation: fadeIn 0.8s ease-in-out;
 }
@@ -12,109 +12,148 @@
 .boards-title {
   text-align: center;
   font-size: 2.2rem;
-  font-weight: bold;
+  font-weight: 700;
   margin-bottom: 2rem;
   color: #58a6ff;
 }
 
-/* Board cards grid layout */
+/* Grid */
 .board-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1.5rem;
-  padding: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 1.8rem;
 }
 
-/* Card design */
+/* Card */
 .board-card {
-  background: linear-gradient(145deg, #161b22, #1f2630);
-  border: 1px solid #30363d;
-  border-radius: 15px;
-  padding: 1.5rem;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  position: relative;
+  background: radial-gradient(circle at top, #161b22 0%, #0f1318 50%, #0d1117 100%);
+  border: 1px solid rgba(88, 166, 255, 0.08);
+  border-radius: 18px;
+  padding: 1.4rem 1.4rem 1.2rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 270px;
 }
 
-/* Hover effect */
 .board-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(88, 166, 255, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 28px rgba(88, 166, 255, 0.23);
 }
 
-/* Editable header and labels */
+/* Header */
+.board-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .board-card h2 {
   color: #58a6ff;
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
+  font-size: 1.35rem;
+  margin: 0;
   outline: none;
+  letter-spacing: 0.04rem;
 }
 
-.board-card p {
-  margin: 5px 0;
-  font-size: 0.95rem;
-  outline: none;
+.board-badge {
+  background: rgba(88, 166, 255, 0.12);
+  color: #58a6ff;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  border: 1px solid rgba(88, 166, 255, 0.25);
 }
 
-/* Team list style */
+/* Meta section */
+.board-meta p {
+  margin: 3px 0;
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
+.board-meta strong {
+  color: #dbe9ff;
+  font-weight: 600;
+}
+
+/* Team list – nicer wrapping */
 .team-list {
-  margin-top: 10px;
+  margin-top: 0.4rem;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 0.55rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid rgba(88, 166, 255, 0.1);
 }
 
-/* Team chip with delete button */
+/* Team chip */
 .team-chip {
-  background-color: #21262d;
-  border: 1px solid #30363d;
-  border-radius: 20px;
-  padding: 6px 14px;
-  font-size: 0.85rem;
-  color: #c9d1d9;
-  transition: background-color 0.2s ease;
-  position: relative;
-  padding-right: 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: rgba(23, 27, 34, 0.65);
+  border: 1px solid rgba(88, 166, 255, 0.12);
+  border-radius: 999px;
+  padding: 5px 10px 5px 12px;
+  font-size: 0.78rem;
+  color: #d1d7e0;
+  backdrop-filter: blur(4px);
+  transition: background 0.2s ease, border 0.2s ease;
 }
 
 .team-chip:hover {
-  background-color: #58a6ff;
-  color: #0d1117;
+  background: rgba(88, 166, 255, 0.14);
+  border: 1px solid rgba(88, 166, 255, 0.5);
 }
 
-/* Remove team ❌ button */
-.remove-btn {
-  position: absolute;
-  right: 6px;
-  top: 5px;
-  background: none;
-  border: none;
-  color: #ff4d4d;
-  font-weight: bold;
-  font-size: 14px;
+.team-name {
+  white-space: nowrap;
+}
+
+/* X button inside chip */
+.team-remove-btn {
+  background: rgba(255, 76, 96, 0.12);
+  border: 1px solid rgba(255, 76, 96, 0.5);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 0.7rem;
+  display: grid;
+  place-items: center;
   cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.team-remove-btn:hover {
+  background: rgba(255, 76, 96, 0.4);
 }
 
 /* Delete board button */
 .delete-board-btn {
-  margin-top: 12px;
-  background-color: #ff4d4d;
+  margin-top: 0.6rem;
+  background: linear-gradient(90deg, #ff4d4d 0%, #ff6a64 80%);
   border: none;
-  padding: 8px 14px;
+  padding: 9px 14px;
   color: white;
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  display: block;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   width: 100%;
+  text-align: center;
 }
 
 .delete-board-btn:hover {
-  background-color: #ff1a1a;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(255, 77, 77, 0.25);
 }
 
-/* Lottie wrappers */
+/* Lottie sections */
 .lottie-wrapper {
   text-align: center;
   margin: 2rem 0;
@@ -126,7 +165,7 @@
   margin-top: 0.5rem;
 }
 
-/* Animation for initial load */
+/* animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -135,5 +174,15 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* responsive tweak */
+@media (max-width: 520px) {
+  .board-card {
+    padding: 1.1rem 1rem 1rem;
+  }
+  .team-list {
+    gap: 0.4rem;
   }
 }
