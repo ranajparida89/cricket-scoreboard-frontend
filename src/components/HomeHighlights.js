@@ -13,59 +13,41 @@ const HomeHighlights = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // 1) normal highlights for players
-        const hlReq = axios.get(`${API_BASE}/api/home-highlights`);
+        // 1) player / general highlights
+        const highlightsPromise = axios.get(`${API_BASE}/api/home-highlights`);
 
-        // 2) boards -> summary -> top_board
-        const boardsReq = axios.get(`${API_BASE}/api/boards/analytics/boards`);
+        // 2) our lightweight board insight (new route)
+        const boardInsightPromise = axios.get(
+          `${API_BASE}/api/boards/analytics/home/top-board-insight`
+        );
 
-        const [hlRes, boardsRes] = await Promise.all([hlReq, boardsReq]);
+        const [hlRes, boardInsightRes] = await Promise.all([
+          highlightsPromise,
+          boardInsightPromise,
+        ]);
 
         const baseHighlights = hlRes.data || [];
-        const boards = boardsRes.data?.boards || [];
+        const insight = boardInsightRes.data?.insight || null;
 
-        let finalHighlights = [...baseHighlights];
+        const finalHighlights = [...baseHighlights];
 
-        // if we have boards, call summary to know the best board by points
-        if (boards.length) {
-          const boardIdsCsv = boards.map((b) => b.board_id).join(",");
-          try {
-            const sumRes = await axios.get(
-              `${API_BASE}/api/boards/analytics/summary`,
+        // if backend found a board with the longest streak, add it as a slide
+        if (insight) {
+          finalHighlights.push({
+            tag: "Best Board",
+            title: insight.board_name,
+            subtitle: `Held the crown for ${insight.days_at_top} day(s) straight.`,
+            meta: [
               {
-                params: {
-                  board_ids: boardIdsCsv,
-                },
-              }
-            );
-
-            const top = sumRes.data?.top_board;
-            if (top) {
-              finalHighlights.push({
-                _synthetic: true,
-                tag: "Best Board",
-                title: top.board_name || "Top Board",
-                meta: [
-                  {
-                    label: "Points",
-                    value:
-                      top.totals?.points ??
-                      top.points ??
-                      "-",
-                  },
-                  {
-                    label: "Matches",
-                    value:
-                      top.totals?.matches ??
-                      top.matches ??
-                      "-",
-                  },
-                ],
-              });
-            }
-          } catch (err) {
-            console.error("Error fetching board summary", err);
-          }
+                label: "Days at #1",
+                value: insight.days_at_top,
+              },
+              {
+                label: "Period",
+                value: `Last ${insight.period_days} days`,
+              },
+            ],
+          });
         }
 
         setItems(finalHighlights);
@@ -84,7 +66,9 @@ const HomeHighlights = () => {
   };
 
   const handleNext = () => {
-    setActiveIndex((prev) => (prev === items.length - 1 ? 0 : prev + 1));
+    setActiveIndex((prev) =>
+      prev === items.length - 1 ? 0 : prev + 1
+    );
   };
 
   if (loading) {
@@ -110,7 +94,7 @@ const HomeHighlights = () => {
   const current = items[activeIndex];
   const displayTag = current.tag ? current.tag.split("(")[0].trim() : "";
 
-  // drop technical/meta like "PLAYER ID"
+  // drop technical values like Player ID
   const displayMeta = Array.isArray(current.meta)
     ? current.meta.filter(
         (m) => m.label && !/player\s*id/i.test(m.label)
@@ -124,16 +108,19 @@ const HomeHighlights = () => {
       </button>
 
       <div className="ce-hl-card">
-        {/* tiny particle confetti */}
+        {/* tiny, slower particle confetti */}
         <div className="ce-hl-confetti">
           {Array.from({ length: 110 }).map((_, i) => (
             <span
               key={i}
               className={`ce-confetti c-${(i % 5) + 1}`}
               style={{
+                // spread across width
                 "--x": `${(i * 0.9) % 100}%`,
-                "--delay": `${(i % 14) * 0.12}s`,
-                "--duration": `${2.3 + (i % 5) * 0.25}s`,
+                // stagger start
+                "--delay": `${(i % 18) * 0.18}s`,
+                // slightly slower than before
+                "--duration": `${3 + (i % 6) * 0.28}s`,
               }}
             />
           ))}
@@ -142,6 +129,11 @@ const HomeHighlights = () => {
         <div className="ce-hl-content">
           {displayTag && <div className="ce-hl-tag">{displayTag}</div>}
           <h2 className="ce-hl-title">{current.title}</h2>
+
+          {/* optional subtitle if present (used for Best Board) */}
+          {current.subtitle ? (
+            <p className="ce-hl-subtitle">{current.subtitle}</p>
+          ) : null}
 
           {displayMeta.length > 0 && (
             <div className="ce-hl-meta-grid">
