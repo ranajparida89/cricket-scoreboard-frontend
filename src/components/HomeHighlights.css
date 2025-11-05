@@ -1,6 +1,5 @@
 /* src/components/HomeHighlights.css */
 
-/* full width bar */
 .ce-hl-wrapper {
   width: 100%;
   max-width: 100%;
@@ -14,7 +13,7 @@
 
 .ce-hl-card {
   flex: 1;
-  background: radial-gradient(circle at top, rgba(3, 35, 55, 0.9) 0%, rgba(0, 0, 0, 0.7) 50%, rgba(0, 0, 0, 0.4) 100%);
+  background: radial-gradient(circle at top, rgba(3, 35, 55, 0.9) 0%, rgba(0, 0, 0, 0.7) 55%, rgba(0, 0, 0, 0.4) 100%);
   border: 1px solid rgba(0, 255, 170, 0.12);
   border-radius: 20px;
   min-height: 220px;
@@ -22,7 +21,6 @@
   overflow: hidden;
 }
 
-/* watermark */
 .ce-hl-card::after {
   content: "CrickEdge.in";
   position: absolute;
@@ -30,7 +28,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 4.4rem;
+  font-size: 4.1rem;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.015);
   letter-spacing: 0.2rem;
@@ -47,7 +45,7 @@
   color: #fff;
 }
 
-/* bigger tag */
+/* tag */
 .ce-hl-tag {
   display: inline-block;
   background: linear-gradient(135deg, #00ffaa 0%, #00a3ff 100%);
@@ -63,17 +61,19 @@
 }
 
 .ce-hl-title {
-  font-size: 2.3rem;
+  font-size: 2.35rem;
   font-weight: 800;
   margin-bottom: 6px;
 }
 
 .ce-hl-subtitle {
-  font-size: 0.9rem;
-  color: #d3e7ff;
+  font-size: 0.78rem;
+  color: #cfe4ff;
   margin-bottom: 14px;
+  letter-spacing: 0.02em;
 }
 
+/* bigger stat cards */
 .ce-hl-meta-grid {
   display: flex;
   justify-content: center;
@@ -82,24 +82,27 @@
 }
 
 .ce-hl-meta-item {
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.03);
-  border-radius: 14px;
-  padding: 7px 12px 6px;
-  min-width: 110px;
+  border-radius: 16px;
+  padding: 10px 20px 9px;
+  min-width: 140px;
+  backdrop-filter: blur(4px);
 }
 
 .ce-hl-meta-label {
   display: block;
-  font-size: 0.63rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
   color: #8eb7ff;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
+  letter-spacing: 0.04em;
 }
 
 .ce-hl-meta-value {
-  font-size: 1.02rem;
-  font-weight: 600;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 /* arrows */
@@ -115,15 +118,9 @@
   transition: background 0.2s ease;
   z-index: 5;
 }
-.ce-hl-nav.left {
-  margin-left: 10px;
-}
-.ce-hl-nav.right {
-  margin-right: 10px;
-}
-.ce-hl-nav:hover {
-  background: rgba(0, 255, 170, 0.25);
-}
+.ce-hl-nav.left { margin-left: 10px; }
+.ce-hl-nav.right { margin-right: 10px; }
+.ce-hl-nav:hover { background: rgba(0, 255, 170, 0.25); }
 
 /* dots */
 .ce-hl-dots {
@@ -147,7 +144,7 @@
   height: 11px;
 }
 
-/* ===== CONFETTI (thin, sc2-style) ===== */
+/* ===== smaller confetti ===== */
 .ce-hl-confetti {
   position: absolute;
   inset: 0;
@@ -156,17 +153,16 @@
   z-index: 1;
 }
 
-/* each piece */
 .ce-confetti {
   position: absolute;
-  top: -15px;
+  top: -10px;
   left: var(--x);
-  width: 3px;
-  height: 14px;
+  width: 2px;          /* smaller */
+  height: 9px;         /* smaller */
   border-radius: 1px;
-  animation: ceFall 3.6s linear infinite;
+  animation: ceFall 3.3s linear infinite;
   animation-delay: var(--d);
-  opacity: 0.9;
+  opacity: 0.95;
 }
 
 .c-1 { background: #ff4d4d; }
@@ -176,12 +172,8 @@
 .c-5 { background: #ffffff; }
 
 @keyframes ceFall {
-  0% {
-    transform: translateY(0) rotate(0deg);
-  }
-  100% {
-    transform: translateY(240px) rotate(220deg);
-  }
+  0%   { transform: translateY(0) rotate(0deg); }
+  100% { transform: translateY(240px) rotate(220deg); }
 }
 
 /* responsive */
@@ -194,5 +186,8 @@
   }
   .ce-hl-card::after {
     font-size: 3.2rem;
+  }
+  .ce-hl-meta-item {
+    min-width: 120px;
   }
 }

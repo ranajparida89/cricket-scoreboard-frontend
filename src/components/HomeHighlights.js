@@ -62,19 +62,29 @@ const HomeHighlights = () => {
       </button>
 
       <div className="ce-hl-card">
-        {/* thin confetti strips */}
+        {/* tiny confetti */}
         <div className="ce-hl-confetti">
-          {Array.from({ length: 55 }).map((_, i) => (
-            <span key={i} className={`ce-confetti c-${(i % 5) + 1}`} style={{ "--x": `${i * 1.8}%`, "--d": `${(i % 7) * 0.4}s` }} />
+          {Array.from({ length: 70 }).map((_, i) => (
+            <span
+              key={i}
+              className={`ce-confetti c-${(i % 5) + 1}`}
+              style={{
+                "--x": `${(i * 1.3) % 100}%`,
+                "--d": `${(i % 10) * 0.25}s`,
+              }}
+            />
           ))}
         </div>
 
         <div className="ce-hl-content">
           {displayTag && <div className="ce-hl-tag">{displayTag}</div>}
+
           <h2 className="ce-hl-title">{current.title}</h2>
-          {current.subtitle && (
-            <p className="ce-hl-subtitle">{current.subtitle}</p>
-          )}
+
+          {/* instead of boring "calculated from..." show promo line */}
+          <p className="ce-hl-subtitle">
+            CrickEdge Spotlight • auto-picked from latest matches
+          </p>
 
           {current.meta && current.meta.length > 0 && (
             <div className="ce-hl-meta-grid">
