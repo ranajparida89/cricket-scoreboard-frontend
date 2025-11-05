@@ -34,7 +34,7 @@ import PlayerRankings from "./components/PlayerRankings";
 import MatchStory from "./components/MatchStory";
 import H2HRecords from "./components/H2HRecords";
 import SmartAnalyzer from "./components/SmartAnalyzer";
-import FavoritesManager from './components/FavoritesManager';
+import FavoritesManager from './components/FavoritesManager";
 import UserCricketStatsDashboard from './components/UserCricketStatsDashboard';
 import UserCricketStatsDashboardV2 from "./components/UserCricketStatsDashboardV2";
 import WinLossTrendDashboard from "./components/WinLossTrendDashboard";
@@ -63,9 +63,15 @@ import TournamentPoints from "./components/TournamentPoints";
 import PitchRandomizer from "./components/PitchRandomizer";
 import MoMInsights from "./components/MoMInsights"; // ✅ MoM 04/11/2025
 
+// ✅ NEW: Home highlights carousel (Most Runs, Most Wickets, etc.)
+import HomeHighlights from "./components/HomeHighlights";
+
 function HomePage() {
   return (
     <div className="container mt-4">
+      {/* ✅ highlights on landing page */}
+      <HomeHighlights />
+
       <div className="mb-5">
         <MatchCards />
       </div>
@@ -484,7 +490,7 @@ function App() {
               </PageWrapper>
             }
           />
-                    {/* ✅ Man of the Match Insights */}
+          {/* ✅ Man of the Match Insights */}
           <Route
             path="/mom-insights"
             element={
