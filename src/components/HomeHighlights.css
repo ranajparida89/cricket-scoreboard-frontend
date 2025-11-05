@@ -1,11 +1,12 @@
+/* src/components/HomeHighlights.css */
 .ce-hl-wrapper {
   max-width: 1100px;
-  margin: 20px auto;
+  margin: 15px auto 25px auto;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 15px;
   position: relative;
-  padding-bottom: 28px;
+  padding-bottom: 24px;
 }
 
 .ce-hl-card {
@@ -13,15 +14,10 @@
   background: radial-gradient(circle at top, #0f2435 0%, #030b12 50%, #000 100%);
   border: 1px solid rgba(0, 255, 170, 0.16);
   border-radius: 18px;
-  padding: 22px 26px 18px;
+  padding: 20px 24px 16px;
   color: #fff;
   box-shadow: 0 16px 45px rgba(0, 0, 0, 0.35);
-  transition: transform 0.25s ease;
-  min-height: 210px;
-}
-
-.ce-hl-card:hover {
-  transform: translateY(-2px);
+  min-height: 190px;
 }
 
 .ce-hl-tag {
@@ -29,24 +25,23 @@
   background: rgba(0, 255, 170, 0.05);
   border: 1px solid rgba(0, 255, 170, 0.35);
   color: #00ffaa;
-  padding: 4px 14px 3px;
-  border-radius: 9999px;
+  padding: 4px 12px 3px;
+  border-radius: 999px;
   font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
   margin-bottom: 10px;
 }
 
 .ce-hl-title {
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .ce-hl-subtitle {
-  font-size: 0.9rem;
   color: #b9d5ff;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
 }
 
 .ce-hl-meta-grid {
@@ -57,38 +52,37 @@
 
 .ce-hl-meta-item {
   background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.02);
   border-radius: 12px;
-  padding: 6px 12px 5px;
+  padding: 6px 10px 5px;
 }
 
 .ce-hl-meta-label {
   display: block;
-  font-size: 0.67rem;
+  font-size: 0.65rem;
   color: #91b5ff;
   text-transform: uppercase;
   margin-bottom: 1px;
 }
 
 .ce-hl-meta-value {
-  font-size: 1.08rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 
 .ce-hl-nav {
-  width: 36px;
-  height: 74px;
-  border-radius: 16px;
-  border: 1px solid rgba(0, 255, 170, 0.22);
-  background: rgba(2, 111, 80, 0.05);
+  width: 34px;
+  height: 72px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 255, 170, 0.25);
+  background: rgba(0, 255, 170, 0.05);
   color: #fff;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   cursor: pointer;
   transition: background 0.2s ease;
 }
 
 .ce-hl-nav:hover {
-  background: rgba(0, 255, 170, 0.24);
+  background: rgba(0, 255, 170, 0.25);
 }
 
 .ce-hl-dots {
@@ -97,14 +91,14 @@
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 7px;
+  gap: 6px;
 }
 
 .ce-hl-dot {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
   background: rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
   cursor: pointer;
 }
 
