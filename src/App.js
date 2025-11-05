@@ -34,7 +34,7 @@ import PlayerRankings from "./components/PlayerRankings";
 import MatchStory from "./components/MatchStory";
 import H2HRecords from "./components/H2HRecords";
 import SmartAnalyzer from "./components/SmartAnalyzer";
-import FavoritesManager from './components/FavoritesManager";
+import FavoritesManager from "./components/FavoritesManager";
 import UserCricketStatsDashboard from './components/UserCricketStatsDashboard';
 import UserCricketStatsDashboardV2 from "./components/UserCricketStatsDashboardV2";
 import WinLossTrendDashboard from "./components/WinLossTrendDashboard";
