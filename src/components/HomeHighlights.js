@@ -16,7 +16,7 @@ const HomeHighlights = () => {
         // 1) player / general highlights
         const highlightsPromise = axios.get(`${API_BASE}/api/home-highlights`);
 
-        // 2) our lightweight board insight (new route)
+        // 2) lightweight board insight (new route)
         const boardInsightPromise = axios.get(
           `${API_BASE}/api/boards/analytics/home/top-board-insight`
         );
@@ -33,20 +33,29 @@ const HomeHighlights = () => {
 
         // if backend found a board with the longest streak, add it as a slide
         if (insight) {
+          const meta = [
+            {
+              label: "Days at #1",
+              value: insight.days_at_top,
+            },
+          ];
+
+          // only add "Period" if backend sent a real number
+          if (
+            typeof insight.period_days === "number" &&
+            !Number.isNaN(insight.period_days)
+          ) {
+            meta.push({
+              label: "Period",
+              value: `Last ${insight.period_days} days`,
+            });
+          }
+
           finalHighlights.push({
             tag: "Best Board",
             title: insight.board_name,
             subtitle: `Held the crown for ${insight.days_at_top} day(s) straight.`,
-            meta: [
-              {
-                label: "Days at #1",
-                value: insight.days_at_top,
-              },
-              {
-                label: "Period",
-                value: `Last ${insight.period_days} days`,
-              },
-            ],
+            meta,
           });
         }
 
@@ -94,11 +103,9 @@ const HomeHighlights = () => {
   const current = items[activeIndex];
   const displayTag = current.tag ? current.tag.split("(")[0].trim() : "";
 
-  // drop technical values like Player ID
+  // drop technical values like "Player ID"
   const displayMeta = Array.isArray(current.meta)
-    ? current.meta.filter(
-        (m) => m.label && !/player\s*id/i.test(m.label)
-      )
+    ? current.meta.filter((m) => m.label && !/player\s*id/i.test(m.label))
     : [];
 
   return (
@@ -115,11 +122,8 @@ const HomeHighlights = () => {
               key={i}
               className={`ce-confetti c-${(i % 5) + 1}`}
               style={{
-                // spread across width
                 "--x": `${(i * 0.9) % 100}%`,
-                // stagger start
                 "--delay": `${(i % 18) * 0.18}s`,
-                // slightly slower than before
                 "--duration": `${3 + (i % 6) * 0.28}s`,
               }}
             />
@@ -130,7 +134,7 @@ const HomeHighlights = () => {
           {displayTag && <div className="ce-hl-tag">{displayTag}</div>}
           <h2 className="ce-hl-title">{current.title}</h2>
 
-          {/* optional subtitle if present (used for Best Board) */}
+          {/* optional subtitle (used for Best Board) */}
           {current.subtitle ? (
             <p className="ce-hl-subtitle">{current.subtitle}</p>
           ) : null}
