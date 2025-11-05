@@ -53,8 +53,6 @@ const HomeHighlights = () => {
   }
 
   const current = items[activeIndex];
-
-  // remove stuff like "(T20 + ODI + Test)" from tag
   const displayTag = current.tag ? current.tag.split("(")[0].trim() : "";
 
   return (
@@ -64,14 +62,10 @@ const HomeHighlights = () => {
       </button>
 
       <div className="ce-hl-card">
-        {/* celebration / confetti layer */}
+        {/* thin confetti strips */}
         <div className="ce-hl-confetti">
-          {Array.from({ length: 18 }).map((_, i) => (
-            <span
-              key={i}
-              className={`ce-hl-piece p-${(i % 5) + 1}`}
-              style={{ "--i": i }}
-            />
+          {Array.from({ length: 55 }).map((_, i) => (
+            <span key={i} className={`ce-confetti c-${(i % 5) + 1}`} style={{ "--x": `${i * 1.8}%`, "--d": `${(i % 7) * 0.4}s` }} />
           ))}
         </div>
 
