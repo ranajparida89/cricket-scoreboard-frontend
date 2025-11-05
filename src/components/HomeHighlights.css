@@ -46,7 +46,7 @@
   color: #fff;
 }
 
-/* top tag */
+/* tag */
 .ce-hl-tag {
   display: inline-block;
   background: linear-gradient(135deg, #00ffaa 0%, #00a3ff 100%);
@@ -138,7 +138,7 @@
   height: 11px;
 }
 
-/* ====== confetti / particle effect ====== */
+/* ====== tiny confetti / particle effect ====== */
 .ce-hl-confetti {
   position: absolute;
   inset: 0;
@@ -149,14 +149,14 @@
 
 .ce-confetti {
   position: absolute;
-  top: -12px;
+  top: -10px;
   left: var(--x);
-  width: 2px;
-  height: 9px;
+  width: 1.3px;   /* smaller */
+  height: 6px;    /* smaller */
   border-radius: 1px;
   animation: ceConfettiFall var(--duration) linear infinite;
   animation-delay: var(--delay);
-  opacity: 0.9;
+  opacity: 0.95;
 }
 
 .c-1 { background: #ff4d4d; }
@@ -171,10 +171,10 @@
     opacity: 1;
   }
   50% {
-    transform: translateY(120px) translateX(6px) rotate(120deg);
+    transform: translateY(120px) translateX(4px) rotate(120deg);
   }
   100% {
-    transform: translateY(240px) translateX(-4px) rotate(240deg);
+    transform: translateY(240px) translateX(-3px) rotate(240deg);
     opacity: 0;
   }
 }
