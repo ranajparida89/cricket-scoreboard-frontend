@@ -35,7 +35,7 @@ const HomeHighlights = () => {
         if (insight) {
           const meta = [
             {
-              label: "Championchampion since Days",
+              label: "Champion since Days",
               value: insight.days_at_top,
             },
           ];
