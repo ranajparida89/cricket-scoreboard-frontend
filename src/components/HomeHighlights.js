@@ -55,6 +55,13 @@ const HomeHighlights = () => {
   const current = items[activeIndex];
   const displayTag = current.tag ? current.tag.split("(")[0].trim() : "";
 
+  // drop technical meta like "PLAYER ID"
+  const displayMeta = Array.isArray(current.meta)
+    ? current.meta.filter(
+        (m) => m.label && !/player\s*id/i.test(m.label)
+      )
+    : [];
+
   return (
     <div className="ce-hl-wrapper">
       <button className="ce-hl-nav left" onClick={handlePrev}>
@@ -62,15 +69,16 @@ const HomeHighlights = () => {
       </button>
 
       <div className="ce-hl-card">
-        {/* tiny confetti */}
+        {/* confetti particles */}
         <div className="ce-hl-confetti">
-          {Array.from({ length: 70 }).map((_, i) => (
+          {Array.from({ length: 85 }).map((_, i) => (
             <span
               key={i}
               className={`ce-confetti c-${(i % 5) + 1}`}
               style={{
-                "--x": `${(i * 1.3) % 100}%`,
-                "--d": `${(i % 10) * 0.25}s`,
+                "--x": `${(i * 1.15) % 100}%`,
+                "--delay": `${(i % 12) * 0.15}s`,
+                "--duration": `${2.8 + (i % 5) * 0.3}s`,
               }}
             />
           ))}
@@ -78,17 +86,11 @@ const HomeHighlights = () => {
 
         <div className="ce-hl-content">
           {displayTag && <div className="ce-hl-tag">{displayTag}</div>}
-
           <h2 className="ce-hl-title">{current.title}</h2>
 
-          {/* instead of boring "calculated from..." show promo line */}
-          <p className="ce-hl-subtitle">
-            CrickEdge Spotlight • auto-picked from latest matches
-          </p>
-
-          {current.meta && current.meta.length > 0 && (
+          {displayMeta.length > 0 && (
             <div className="ce-hl-meta-grid">
-              {current.meta.map((m, i) => (
+              {displayMeta.map((m, i) => (
                 <div key={i} className="ce-hl-meta-item">
                   <span className="ce-hl-meta-label">{m.label}</span>
                   <span className="ce-hl-meta-value">{m.value}</span>
