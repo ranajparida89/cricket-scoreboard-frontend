@@ -66,6 +66,9 @@ import MoMInsights from "./components/MoMInsights"; // ✅ MoM 04/11/2025
 // ✅ NEW: Home highlights carousel (Most Runs, Most Wickets, etc.)
 import HomeHighlights from "./components/HomeHighlights";
 
+// ✅ NEW: FAQ page
+import FaqPage from "./components/FaqPage";
+
 function HomePage() {
   return (
     <div className="container mt-4">
@@ -322,6 +325,16 @@ function App() {
             element={
               <PageWrapper>
                 <AboutCrickEdge />
+              </PageWrapper>
+            }
+          />
+
+          {/* ✅ NEW FAQ route — sits between About and Contact */}
+          <Route
+            path="/faq"
+            element={
+              <PageWrapper>
+                <FaqPage />
               </PageWrapper>
             }
           />
