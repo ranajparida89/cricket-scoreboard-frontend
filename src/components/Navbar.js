@@ -1,6 +1,6 @@
-// ✅ src/components/Navbar.js — Slumber-themed navbar (complete)
+// ✅ src/components/Navbar.js — Slumber-themed navbar (with FAQ link added)
 // ✅ Keeps: PWA install, sounds, auth badge, Logout, More menu, action buttons
-// ✅ Styles: uses .slumber-* classes already defined in theme.css
+// ✅ New: FAQ under More → after About CrickEdge, before Contact/Feedback
 
 import React, { useEffect, useState } from "react";
 import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
@@ -86,7 +86,7 @@ const AppNavbar = ({ onAuthClick }) => {
         />
 
         <Navbar.Collapse id="navbarScroll" style={{ overflow: "visible" }}>
-          {/* ----- MAIN LINKS (kept original app structure) ----- */}
+          {/* ----- MAIN LINKS ----- */}
           <Nav className="me-auto my-2 my-lg-0" navbarScroll>
             <Nav.Link
               as={Link}
@@ -128,7 +128,7 @@ const AppNavbar = ({ onAuthClick }) => {
               Ranking
             </Nav.Link>
 
-            {/* ----- More Dropdown (YOUR FULL VERSION, restored) ----- */}
+            {/* ----- More Dropdown ----- */}
             <NavDropdown
               title="More"
               id="navbarScrollingDropdown"
@@ -151,7 +151,7 @@ const AppNavbar = ({ onAuthClick }) => {
                 onClick={() => playSound("click")}
                 onMouseEnter={() => playSound("hover")}
               >
-               Test Match History
+                Test Match History
               </NavDropdown.Item>
 
               <NavDropdown.Item
@@ -183,6 +183,7 @@ const AppNavbar = ({ onAuthClick }) => {
                 Graphs & Charts
               </NavDropdown.Item>
 
+              {/* About stays first in info group */}
               <NavDropdown.Item
                 as={Link}
                 to="/about"
@@ -190,6 +191,16 @@ const AppNavbar = ({ onAuthClick }) => {
                 onMouseEnter={() => playSound("hover")}
               >
                 About CrickEdge
+              </NavDropdown.Item>
+
+              {/* ✅ NEW: FAQ — placed AFTER About and BEFORE Contact */}
+              <NavDropdown.Item
+                as={Link}
+                to="/faq"
+                onClick={() => playSound("click")}
+                onMouseEnter={() => playSound("hover")}
+              >
+                FAQ
               </NavDropdown.Item>
 
               <NavDropdown.Item
@@ -243,7 +254,7 @@ const AppNavbar = ({ onAuthClick }) => {
             </Button>
           )}
 
-          {/* ----- Actions (always shown) ----- */}
+          {/* ----- Actions ----- */}
           <div className="navbar-actions-group ms-auto d-flex flex-row align-items-center gap-2">
             <Button
               onClick={handleInstallClick}
