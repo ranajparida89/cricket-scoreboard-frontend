@@ -1,0 +1,205 @@
+/* src/components/AboutCrickEdge.css */
+
+.ce-about-page {
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #0f172a 0%, #020617 55%, #020617 100%);
+  color: #e2e8f0;
+  padding: 2.5rem 1.4rem 4rem;
+}
+
+.ce-about-page h1,
+.ce-about-page h2,
+.ce-about-page h3,
+.ce-about-page h4 {
+  font-weight: 700;
+}
+
+.ce-about-hero {
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 2rem;
+  align-items: center;
+  margin-bottom: 3rem;
+}
+
+.ce-about-hero-body h1 {
+  font-size: clamp(2.25rem, 3.6vw, 3.1rem);
+  line-height: 1.04;
+  margin: 1rem 0 1.2rem;
+}
+
+.ce-about-hero-body p {
+  max-width: 46rem;
+  line-height: 1.5;
+  color: rgba(226, 232, 240, 0.8);
+}
+
+.ce-pill {
+  display: inline-block;
+  background: rgba(34, 197, 235, 0.14);
+  border: 1px solid rgba(34, 197, 235, 0.35);
+  color: #e2e8f0;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.text-accent {
+  color: #22d3ee;
+}
+
+.ce-about-hero-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.ce-stat-card {
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 1rem;
+  padding: 1rem 1.1rem 0.8rem;
+  backdrop-filter: blur(6px);
+}
+
+.ce-stat-card .label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin-bottom: 0.25rem;
+}
+.ce-stat-card .value {
+  font-size: 1.08rem;
+  font-weight: 600;
+}
+
+.ce-about-section {
+  margin-bottom: 3.3rem;
+}
+
+.ce-about-section > h2 {
+  font-size: 1.9rem;
+  margin-bottom: 0.8rem;
+}
+
+.ce-about-section .lead {
+  max-width: 48rem;
+  color: rgba(226, 232, 240, 0.75);
+  margin-bottom: 1.4rem;
+}
+
+.ce-purpose-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1rem;
+}
+
+.ce-purpose-card {
+  background: rgba(15, 23, 42, 0.3);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 1rem;
+  padding: 1rem 1.1rem 1rem;
+}
+
+.ce-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(225px, 1fr));
+  gap: 1rem;
+}
+
+.ce-feature-card {
+  background: radial-gradient(circle at top, rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.1));
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 1rem;
+  padding: 1rem 1.1rem;
+  min-height: 150px;
+}
+
+.ce-feature-card h4 {
+  font-size: 1.02rem;
+  margin-bottom: 0.35rem;
+}
+
+.ce-highlight-strip {
+  background: linear-gradient(90deg, rgba(34, 211, 238, 0.04), rgba(36, 162, 230, 0));
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 1.1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1rem;
+  padding: 1.1rem 1.2rem;
+}
+
+.ce-highlight-item .title {
+  font-weight: 600;
+}
+.ce-highlight-item .desc {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.ce-tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
+  gap: 1rem;
+}
+
+.ce-tech-card {
+  background: rgba(2, 6, 23, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 1rem;
+  padding: 0.9rem 1.1rem;
+}
+
+.ce-founder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+  gap: 1rem;
+  margin: 1.3rem 0 1.1rem;
+}
+
+.ce-founder-card {
+  background: rgba(15, 23, 42, 0.3);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 1rem;
+  padding: 1rem 1.1rem;
+}
+
+.ce-timeline {
+  border-left: 2px solid rgba(148, 163, 184, 0.12);
+  margin-top: 1.4rem;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+.ce-timeline-item {
+  display: flex;
+  gap: 0.9rem;
+  position: relative;
+}
+.ce-timeline-dot {
+  position: absolute;
+  left: -1.45rem;
+  top: 0.35rem;
+  width: 12px;
+  height: 12px;
+  background: #22d3ee;
+  border-radius: 999px;
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.7);
+}
+
+@media (max-width: 960px) {
+  .ce-about-hero {
+    grid-template-columns: 1fr;
+  }
+  .ce-about-page {
+    padding-inline: 1rem;
+  }
+  .ce-about-hero-panel {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
