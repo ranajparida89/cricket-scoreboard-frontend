@@ -212,3 +212,36 @@
     min-width: 120px;
   }
 }
+/* =========================================================
+   RESPONSIVE META GRID FOR ALL ROUND PERFORMER CARD
+   ========================================================= */
+.ce-hl-meta-grid {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  align-items: start;
+}
+
+.ce-hl-meta-item {
+  background: rgba(15, 23, 42, 0.25);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  min-width: 0; /* ensures proper wrapping */
+}
+
+.ce-hl-meta-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  opacity: 0.7;
+  display: block;
+  margin-bottom: 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ce-hl-meta-value {
+  font-weight: 600;
+  word-break: break-word;
+}
