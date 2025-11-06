@@ -1,31 +1,84 @@
+// src/components/BoardAnalyticsPro.js
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import Select from "react-select";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, LabelList,
-  AreaChart, Area, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Cell,
-  LineChart, Line, ReferenceLine, Tooltip, Brush
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Legend,
+  LabelList,
+  AreaChart,
+  Area,
+  ResponsiveContainer,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  Cell,
+  LineChart,
+  Line,
+  ReferenceLine,
+  Tooltip,
+  Brush,
 } from "recharts";
-import { FaCrown, FaPlay, FaSyncAlt, FaInfoCircle, FaTrophy, FaTrash } from "react-icons/fa";
+import {
+  FaCrown,
+  FaPlay,
+  FaSyncAlt,
+  FaInfoCircle,
+  FaTrophy,
+  FaTrash,
+} from "react-icons/fa";
 import "./BoardAnalyticsPro.css";
+// ⬇️ NEW: pull current user to decide admin-only controls
+import { useAuth } from "../services/auth";
 
 const API = "https://cricket-scoreboard-backend.onrender.com";
-const PALETTE = ["#22c55e","#3b82f6","#ef4444","#a855f7","#f59e0b","#14b8a6","#f43f5e","#8b5cf6","#10b981","#eab308"];
-const SERIES = { ODI:"#3b82f6", T20:"#06b6d4", TEST:"#a855f7" }; // T20 moved to cyan for contrast
-const fmts = ["ALL","ODI","T20","TEST"];
-const months = [
-  {v:1,l:"Jan"},{v:2,l:"Feb"},{v:3,l:"Mar"},{v:4,l:"Apr"},{v:5,l:"May"},{v:6,l:"Jun"},
-  {v:7,l:"Jul"},{v:8,l:"Aug"},{v:9,l:"Sep"},{v:10,l:"Oct"},{v:11,l:"Nov"},{v:12,l:"Dec"}
+const PALETTE = [
+  "#22c55e",
+  "#3b82f6",
+  "#ef4444",
+  "#a855f7",
+  "#f59e0b",
+  "#14b8a6",
+  "#f43f5e",
+  "#8b5cf6",
+  "#10b981",
+  "#eab308",
 ];
-const nf = (n)=> new Intl.NumberFormat().format(n ?? 0);
+const SERIES = {
+  ODI: "#3b82f6",
+  T20: "#06b6d4",
+  TEST: "#a855f7",
+}; // T20 moved to cyan for contrast
+const fmts = ["ALL", "ODI", "T20", "TEST"];
+const months = [
+  { v: 1, l: "Jan" },
+  { v: 2, l: "Feb" },
+  { v: 3, l: "Mar" },
+  { v: 4, l: "Apr" },
+  { v: 5, l: "May" },
+  { v: 6, l: "Jun" },
+  { v: 7, l: "Jul" },
+  { v: 8, l: "Aug" },
+  { v: 9, l: "Sep" },
+  { v: 10, l: "Oct" },
+  { v: 11, l: "Nov" },
+  { v: 12, l: "Dec" },
+];
+const nf = (n) => new Intl.NumberFormat().format(n ?? 0);
 const fmtOrZero = (b, f, k) => Number(b?.formats?.[f]?.[k] ?? 0);
-const pc = (n)=> (isFinite(n) ? Number(n.toFixed(2)) : 0);
+const pc = (n) => (isFinite(n) ? Number(n.toFixed(2)) : 0);
 
 // util: ISO or ISO-like -> YYYY-MM-DD (clean)
 const cleanISO = (s) => {
   if (!s) return "";
   const str = String(s);
-  if (str.includes("T")) return str.slice(0,10);
+  if (str.includes("T")) return str.slice(0, 10);
   return str;
 };
 
@@ -34,16 +87,26 @@ function Info({ title, children }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button className="info-btn" type="button" title="What is this?" onClick={()=>setOpen(true)}>
+      <button
+        className="info-btn"
+        type="button"
+        title="What is this?"
+        onClick={() => setOpen(true)}
+      >
         <FaInfoCircle />
       </button>
       {open && (
-        <div className="info-modal" onClick={()=>setOpen(false)}>
-          <div className="info-modal-body" onClick={(e)=>e.stopPropagation()}>
+        <div className="info-modal" onClick={() => setOpen(false)}>
+          <div className="info-modal-body" onClick={(e) => e.stopPropagation()}>
             <div className="info-modal-title">{title}</div>
             <div className="info-modal-content">{children}</div>
             <div className="text-end mt-3">
-              <button className="btn btn-sm btn-primary" onClick={()=>setOpen(false)}>Close</button>
+              <button
+                className="btn btn-sm btn-primary"
+                onClick={() => setOpen(false)}
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
@@ -79,23 +142,37 @@ function ChainConnector({ className = "", tone = "#93a4b8" }) {
       <svg viewBox="0 0 160 28" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
           <linearGradient id="chainMetal" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%"  stopColor="#cbd5e1"/>
-            <stop offset="50%" stopColor={tone}/>
-            <stop offset="100%" stopColor="#e2e8f0"/>
+            <stop offset="0%" stopColor="#cbd5e1" />
+            <stop offset="50%" stopColor={tone} />
+            <stop offset="100%" stopColor="#e2e8f0" />
           </linearGradient>
           <filter id="chainGlow" x="-20%" y="-40%" width="140%" height="180%">
-            <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor="#22d3ee" floodOpacity="0.25"/>
+            <feDropShadow
+              dx="0"
+              dy="0"
+              stdDeviation="2"
+              floodColor="#22d3ee"
+              floodOpacity="0.25"
+            />
           </filter>
         </defs>
 
         {/* 5 interlocking links, alternating rotation */}
         {[
-          { x:18,  r:-18 }, { x:52,  r:18 },
-          { x:86,  r:-18 }, { x:120, r:18 }, { x:154, r:-18 }
+          { x: 18, r: -18 },
+          { x: 52, r: 18 },
+          { x: 86, r: -18 },
+          { x: 120, r: 18 },
+          { x: 154, r: -18 },
         ].map((p, i) => (
           <g key={i} transform={`translate(${p.x} 14) rotate(${p.r})`}>
             <rect
-              x="-18" y="-8" rx="8" ry="8" width="36" height="16"
+              x="-18"
+              y="-8"
+              rx="8"
+              ry="8"
+              width="36"
+              height="16"
               fill="none"
               stroke="url(#chainMetal)"
               strokeWidth="3.5"
@@ -105,14 +182,17 @@ function ChainConnector({ className = "", tone = "#93a4b8" }) {
         ))}
 
         {/* subtle guide line under the links for continuity */}
-        <path d="M6 14 L154 14"
-              stroke={tone} strokeOpacity="0.25" strokeWidth="3" />
+        <path d="M6 14 L154 14" stroke={tone} strokeOpacity="0.25" strokeWidth="3" />
       </svg>
     </div>
   );
 }
 
 export default function BoardAnalyticsPro() {
+  // ⬇️ NEW: admin detection pulled in once here
+  const { currentUser } = useAuth();
+  const isAdmin =
+    currentUser?.role === "admin" || localStorage.getItem("isAdmin") === "true";
   // ====== analytics state ======
   const [boards, setBoards] = useState([]);
   const [selected, setSelected] = useState([]);
@@ -129,132 +209,191 @@ export default function BoardAnalyticsPro() {
   const [hofStats, setHofStats] = useState({});
   const [hofMeta, setHofMeta] = useState({ tournaments: [], years: [], teams: [] }); // filters
   const [hofAddMeta, setHofAddMeta] = useState({ tournaments: [], teams: [], boards: [] }); // modal
-  const [hofFilters, setHofFilters] = useState({ tournament: "", year: "", team: "" });
+  const [hofFilters, setHofFilters] = useState({
+    tournament: "",
+    year: "",
+    team: "",
+  });
   const [hofLoading, setHofLoading] = useState(false);
   const [showHofModal, setShowHofModal] = useState(false);
   const [hofForm, setHofForm] = useState({
-    board_id: "", match_name: "", match_type: "T20",
-    tournament_name: "", season_year: new Date().getFullYear(),
-    season_month: "", champion_team: "", champion_team_id: "",
-    champion_board_id: "", runner_up_board_id: "",
-    runner_up_team: "", final_date: "", remarks: ""
+    board_id: "",
+    match_name: "",
+    match_type: "T20",
+    tournament_name: "",
+    season_year: new Date().getFullYear(),
+    season_month: "",
+    champion_team: "",
+    champion_team_id: "",
+    champion_board_id: "",
+    runner_up_board_id: "",
+    runner_up_team: "",
+    final_date: "",
+    remarks: "",
   });
 
   useEffect(() => {
-    axios.get(`${API}/api/boards/analytics/boards`).then(r => setBoards(r.data.boards||[]));
+    axios.get(`${API}/api/boards/analytics/boards`).then((r) => setBoards(r.data.boards || []));
     const today = new Date();
-    const past  = new Date(); past.setDate(past.getDate()-365);
-    setTo(today.toISOString().slice(0,10));
-    setFrom(past.toISOString().slice(0,10));
+    const past = new Date();
+    past.setDate(past.getDate() - 365);
+    setTo(today.toISOString().slice(0, 10));
+    setFrom(past.toISOString().slice(0, 10));
   }, []);
 
   const analyze = async () => {
-    if (!selected.length) { alert("Select at least one board"); return; }
+    if (!selected.length) {
+      alert("Select at least one board");
+      return;
+    }
     setLoading(true);
     try {
       const ids = selected.join(",");
       const [s, t] = await Promise.all([
-        axios.get(`${API}/api/boards/analytics/summary`, { params: { board_ids: ids, from, to }}),
-        axios.get(`${API}/api/boards/analytics/timeline`, { params: { board_ids: ids, from, to }})
+        axios.get(`${API}/api/boards/analytics/summary`, {
+          params: { board_ids: ids, from, to },
+        }),
+        axios.get(`${API}/api/boards/analytics/timeline`, {
+          params: { board_ids: ids, from, to },
+        }),
       ]);
       setSummary(s.data);
       setTimeline(t.data);
-    } catch(err) {
+    } catch (err) {
       console.error(err);
       alert("Failed to load analytics");
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   // react-select options
   const boardOptions = useMemo(
-    () => (boards||[]).map(b => ({ value: String(b.board_id), label: b.board_name })),
+    () => (boards || []).map((b) => ({ value: String(b.board_id), label: b.board_name })),
     [boards]
   );
   const selectedBoardOptions = useMemo(
-    () => boardOptions.filter(o => selected.includes(o.value)),
+    () => boardOptions.filter((o) => selected.includes(o.value)),
     [boardOptions, selected]
   );
-  const formatOptions = fmts.map(f => ({ value: f, label: f }));
+  const formatOptions = fmts.map((f) => ({ value: f, label: f }));
 
   // color per board
-  const colorMap = useMemo(()=> {
+  const colorMap = useMemo(() => {
     const m = new Map();
-    (summary?.data||[]).forEach((b,i)=> m.set(b.board_id, PALETTE[i%PALETTE.length]));
+    (summary?.data || []).forEach((b, i) => m.set(b.board_id, PALETTE[i % PALETTE.length]));
     return m;
   }, [summary]);
 
   // board name by id
-  const boardName = (id) => boards.find(b=>String(b.board_id)===String(id))?.board_name
-    || summary?.data?.find(x=>String(x.board_id)===String(id))?.board_name
-    || `#${id}`;
+  const boardName = (id) =>
+    boards.find((b) => String(b.board_id) === String(id))?.board_name ||
+    summary?.data?.find((x) => String(x.board_id) === String(id))?.board_name ||
+    `#${id}`;
 
   // table rows
-  const rows = useMemo(()=> {
+  const rows = useMemo(() => {
     if (!summary?.data) return [];
-    return summary.data.map(b => {
-      if (activeFmt==="ALL") {
-        return { id:b.board_id, name:b.board_name, matches:b.totals.matches, wins:b.totals.wins, draws:b.totals.draws, losses:b.totals.losses, win_pct:b.totals.win_pct, points:b.totals.points };
+    return summary.data.map((b) => {
+      if (activeFmt === "ALL") {
+        return {
+          id: b.board_id,
+          name: b.board_name,
+          matches: b.totals.matches,
+          wins: b.totals.wins,
+          draws: b.totals.draws,
+          losses: b.totals.losses,
+          win_pct: b.totals.win_pct,
+          points: b.totals.points,
+        };
       }
-      return { id:b.board_id, name:b.board_name,
-        matches:fmtOrZero(b,activeFmt,"matches"),
-        wins:fmtOrZero(b,activeFmt,"wins"),
-        draws:fmtOrZero(b,activeFmt,"draws"),
-        losses:fmtOrZero(b,activeFmt,"losses"),
-        win_pct:fmtOrZero(b,activeFmt,"win_pct"),
-        points:fmtOrZero(b,activeFmt,"points"),
+      return {
+        id: b.board_id,
+        name: b.board_name,
+        matches: fmtOrZero(b, activeFmt, "matches"),
+        wins: fmtOrZero(b, activeFmt, "wins"),
+        draws: fmtOrZero(b, activeFmt, "draws"),
+        losses: fmtOrZero(b, activeFmt, "losses"),
+        win_pct: fmtOrZero(b, activeFmt, "win_pct"),
+        points: fmtOrZero(b, activeFmt, "points"),
       };
     });
   }, [summary, activeFmt]);
 
-  const pointsData   = useMemo(()=> rows.map(r=>({ name:r.name, points:r.points, color:colorMap.get(r.id) })), [rows, colorMap]);
-  const outcomesData = useMemo(()=> rows.map(r=>({ name:r.name, Wins:r.wins, Draws:r.draws, Losses:r.losses })), [rows]);
-  const radarData    = useMemo(()=> rows.map(r=>({ board:r.name, WinPct:r.win_pct })), [rows]);
-  const perFormatLine = useMemo(()=> {
+  const pointsData = useMemo(
+    () => rows.map((r) => ({ name: r.name, points: r.points, color: colorMap.get(r.id) })),
+    [rows, colorMap]
+  );
+  const outcomesData = useMemo(
+    () => rows.map((r) => ({ name: r.name, Wins: r.wins, Draws: r.draws, Losses: r.losses })),
+    [rows]
+  );
+  const radarData = useMemo(
+    () => rows.map((r) => ({ board: r.name, WinPct: r.win_pct })),
+    [rows]
+  );
+  const perFormatLine = useMemo(() => {
     if (!summary?.data) return [];
-    return summary.data.map(b=>({
+    return summary.data.map((b) => ({
       name: b.board_name,
-      ODI: fmtOrZero(b,"ODI","points"),
-      T20: fmtOrZero(b,"T20","points"),
-      TEST: fmtOrZero(b,"TEST","points")
+      ODI: fmtOrZero(b, "ODI", "points"),
+      T20: fmtOrZero(b, "T20", "points"),
+      TEST: fmtOrZero(b, "TEST", "points"),
     }));
   }, [summary]);
 
-  const marginData = useMemo(()=> {
+  const marginData = useMemo(() => {
     if (!summary?.data) return [];
-    return summary.data.map(b=>{
-      if (activeFmt==="ALL") {
-        const avgs = ["ODI","T20","TEST"].map(f=>Number(b?.formats?.[f]?.avg_run_margin||0)).filter(x=>x>0);
-        const avg = avgs.length? avgs.reduce((a,c)=>a+c,0)/avgs.length : 0;
-        return { name:b.board_name, AvgRunMargin: pc(avg) };
+    return summary.data.map((b) => {
+      if (activeFmt === "ALL") {
+        const avgs = ["ODI", "T20", "TEST"]
+          .map((f) => Number(b?.formats?.[f]?.avg_run_margin || 0))
+          .filter((x) => x > 0);
+        const avg = avgs.length ? avgs.reduce((a, c) => a + c, 0) / avgs.length : 0;
+        return { name: b.board_name, AvgRunMargin: pc(avg) };
       }
-      return { name:b.board_name, AvgRunMargin: Number(b?.formats?.[activeFmt]?.avg_run_margin||0) };
+      return {
+        name: b.board_name,
+        AvgRunMargin: Number(b?.formats?.[activeFmt]?.avg_run_margin || 0),
+      };
     });
   }, [summary, activeFmt]);
 
   // dynamic Y ticks for Points-by-Format (fix #5 readability)
   const yTicks = useMemo(() => {
     const vals = [];
-    perFormatLine.forEach(r => vals.push(r.ODI, r.T20, r.TEST));
-    const max = Math.max(10, ...vals.map(v => Number(v||0)));
-    const step = Math.max(10, Math.ceil(max/5));
+    perFormatLine.forEach((r) => vals.push(r.ODI, r.T20, r.TEST));
+    const max = Math.max(10, ...vals.map((v) => Number(v || 0)));
+    const step = Math.max(10, Math.ceil(max / 5));
     const ticks = [];
-    for (let t=0; t<=max+step; t+=step) ticks.push(t);
+    for (let t = 0; t <= max + step; t += step) ticks.push(t);
     return ticks;
   }, [perFormatLine]);
 
   // info text
   const scoringInfo = (
     <ul className="mb-0">
-      <li><b>ODI/T20</b> — Win: <b>10</b>, Draw: <b>5</b>, Loss: <b>2</b></li>
-      <li><b>Test</b> — Win: <b>18</b>, Draw: <b>9</b>, Loss: <b>4</b></li>
-      <li>“Board Points” also include any <b>Champion Bonus</b> (25 ODI/T20, 50 Test).</li>
+      <li>
+        <b>ODI/T20</b> — Win: <b>10</b>, Draw: <b>5</b>, Loss: <b>2</b>
+      </li>
+      <li>
+        <b>Test</b> — Win: <b>18</b>, Draw: <b>9</b>, Loss: <b>4</b>
+      </li>
+      <li>
+        “Board Points” also include any <b>Champion Bonus</b> (25 ODI/T20, 50 Test).
+      </li>
     </ul>
   );
   const timelineInfo = (
     <div>
-      <p><b>Daily Leader Curve.</b> Each day we add the points earned that day (including any Hall-of-Fame champion bonus awarded on its date) and plot the <i>cumulative top board</i>.</p>
+      <p>
+        <b>Daily Leader Curve.</b> Each day we add the points earned that day (including any
+        Hall-of-Fame champion bonus awarded on its date) and plot the <i>cumulative top board</i>.
+      </p>
       <ul>
-        <li><b>Hover</b> to see the leading board and its cumulative points on that date.</li>
+        <li>
+          <b>Hover</b> to see the leading board and its cumulative points on that date.
+        </li>
         <li>Dates shown on the axis are cleaned and evenly spaced for readability.</li>
         <li>The right panel summarizes how often leadership changed and how many days a board stayed at #1.</li>
       </ul>
@@ -262,7 +401,10 @@ export default function BoardAnalyticsPro() {
   );
   const radarInfo = (
     <div>
-      <p><b>Win % Radar.</b> Compares boards by overall win percentage for the selected format filter.</p>
+      <p>
+        <b>Win % Radar.</b> Compares boards by overall win percentage for the selected format
+        filter.
+      </p>
       <ul>
         <li>100 = all wins; 0 = no wins.</li>
         <li>Use the format selector to view per-format performance.</li>
@@ -271,7 +413,10 @@ export default function BoardAnalyticsPro() {
   );
   const marginInfo = (
     <div>
-      <p><b>Average Run Margin.</b> The average winning margin (in runs) across matches for the selection.</p>
+      <p>
+        <b>Average Run Margin.</b> The average winning margin (in runs) across matches for the
+        selection.
+      </p>
       <ul>
         <li>For ALL formats, this is the mean of each format’s average.</li>
         <li>Higher is generally better; small values indicate tighter contests.</li>
@@ -280,7 +425,9 @@ export default function BoardAnalyticsPro() {
   );
   const byFormatInfo = (
     <div>
-      <p><b>Points by Format.</b> Total points each board earned in ODI, T20, and Test.</p>
+      <p>
+        <b>Points by Format.</b> Total points each board earned in ODI, T20, and Test.
+      </p>
       <ul>
         <li>Includes outcome points and champion bonuses.</li>
         <li>Use the legend to toggle series. The brush lets you focus on a subset of boards.</li>
@@ -290,25 +437,49 @@ export default function BoardAnalyticsPro() {
   );
   const timelineStatsInfo = (
     <div>
-      <p><b>Leadership Summary.</b> How the top position changed over the period.</p>
+      <p>
+        <b>Leadership Summary.</b> How the top position changed over the period.
+      </p>
       <ul>
-        <li><b>Lead Changes</b>: how many times the leader switched.</li>
-        <li><b>Lead Changes by Board</b>: who captured the lead and how often.</li>
-        <li><b>Days at #1</b>: how many days a board stayed on top.</li>
+        <li>
+          <b>Lead Changes</b>: how many times the leader switched.
+        </li>
+        <li>
+          <b>Lead Changes by Board</b>: who captured the lead and how often.
+        </li>
+        <li>
+          <b>Days at #1</b>: how many days a board stayed on top.
+        </li>
       </ul>
     </div>
   );
 
   // react-select dark styles
   const selectStyles = {
-    control: (base)=>({ ...base, background:'#0b1220', borderColor:'#223454', minHeight:38, boxShadow:'none' }),
-    menu: (base)=>({ ...base, background:'#0b1220', color:'#e6f0ff', border:'1px solid #223454' }),
-    option: (base, state)=>({ ...base, background: state.isFocused ? '#13203b' : 'transparent', color:'#e6f0ff', cursor:'pointer' }),
-    multiValue: (base)=>({ ...base, background:'#13203b' }),
-    multiValueLabel: (base)=>({ ...base, color:'#cbd5e1' }),
-    input: (base)=>({ ...base, color:'#e6f0ff' }),
-    singleValue: (base)=>({ ...base, color:'#e6f0ff' }),
-    indicatorSeparator: () => ({ display:'none' })
+    control: (base) => ({
+      ...base,
+      background: "#0b1220",
+      borderColor: "#223454",
+      minHeight: 38,
+      boxShadow: "none",
+    }),
+    menu: (base) => ({
+      ...base,
+      background: "#0b1220",
+      color: "#e6f0ff",
+      border: "1px solid #223454",
+    }),
+    option: (base, state) => ({
+      ...base,
+      background: state.isFocused ? "#13203b" : "transparent",
+      color: "#e6f0ff",
+      cursor: "pointer",
+    }),
+    multiValue: (base) => ({ ...base, background: "#13203b" }),
+    multiValueLabel: (base) => ({ ...base, color: "#cbd5e1" }),
+    input: (base) => ({ ...base, color: "#e6f0ff" }),
+    singleValue: (base) => ({ ...base, color: "#e6f0ff" }),
+    indicatorSeparator: () => ({ display: "none" }),
   };
 
   // ====== HOF loaders ======
@@ -316,14 +487,16 @@ export default function BoardAnalyticsPro() {
     if (!selected.length) return;
     try {
       const { data } = await axios.get(`${API}/api/boards/hof/filters`, {
-        params: { board_ids: selected.join(",") }
+        params: { board_ids: selected.join(",") },
       });
       setHofMeta({
         tournaments: data.tournaments || [],
         years: data.years || [],
-        teams: data.teams || []
+        teams: data.teams || [],
       });
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const loadHOFAddMeta = async () => {
@@ -332,9 +505,11 @@ export default function BoardAnalyticsPro() {
       setHofAddMeta({
         tournaments: data.tournaments || [],
         teams: data.teams || [],
-        boards: data.boards || []
+        boards: data.boards || [],
       });
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const loadHOF = async () => {
@@ -347,14 +522,19 @@ export default function BoardAnalyticsPro() {
       if (hofFilters.team) params.team = hofFilters.team;
 
       const [listRes, statRes] = await Promise.all([
-        axios.get(`${API}/api/boards/hof/list`,  { params }),
-        axios.get(`${API}/api/boards/hof/stats`, { params: { board_ids: selected.join(",") }})
+        axios.get(`${API}/api/boards/hof/list`, { params }),
+        axios.get(`${API}/api/boards/hof/stats`, {
+          params: { board_ids: selected.join(",") },
+        }),
       ]);
       setHofWall(listRes.data.items || []);
       setHofStats(statRes.data.byBoard || {});
     } catch (e) {
-      console.error(e); alert("Failed to load Hall of Fame");
-    } finally { setHofLoading(false); }
+      console.error(e);
+      alert("Failed to load Hall of Fame");
+    } finally {
+      setHofLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -363,19 +543,25 @@ export default function BoardAnalyticsPro() {
       loadHOF();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, selected.join(","), hofFilters.tournament, hofFilters.year, hofFilters.team]);
+  }, [
+    activeTab,
+    selected.join(","),
+    hofFilters.tournament,
+    hofFilters.year,
+    hofFilters.team,
+  ]);
 
   // open HOF modal
   const openHofModal = async () => {
     await loadHOFAddMeta();
-    setHofForm(f => ({
+    setHofForm((f) => ({
       ...f,
       board_id: selected[0] || "",
       champion_board_id: selected[0] || "",
       match_type: "T20",
       season_year: new Date().getFullYear(),
       season_month: "",
-      final_date: ""
+      final_date: "",
     }));
     setShowHofModal(true);
   };
@@ -383,7 +569,7 @@ export default function BoardAnalyticsPro() {
   // de-duplicate team list by name (fix duplicate options)
   const dedupTeams = useMemo(() => {
     const seen = new Map();
-    (hofAddMeta.teams || []).forEach(t => {
+    (hofAddMeta.teams || []).forEach((t) => {
       const key = String(t.name || "").trim().toLowerCase();
       if (key && !seen.has(key)) seen.set(key, { id: t.id, name: t.name });
     });
@@ -393,25 +579,40 @@ export default function BoardAnalyticsPro() {
   // runner-up options (distinct and not equal to champion)
   const ruTeamOptions = useMemo(() => {
     const champ = String(hofForm.champion_team || "").toLowerCase();
-    return dedupTeams.filter(t => String(t.name).toLowerCase() !== champ);
+    return dedupTeams.filter((t) => String(t.name).toLowerCase() !== champ);
   }, [dedupTeams, hofForm.champion_team]);
 
   const ruBoardOptions = useMemo(() => {
-    return (hofAddMeta.boards || []).filter(b => String(b.id) !== String(hofForm.champion_board_id || hofForm.board_id));
+    return (hofAddMeta.boards || []).filter(
+      (b) =>
+        String(b.id) !== String(hofForm.champion_board_id || hofForm.board_id)
+    );
   }, [hofAddMeta.boards, hofForm.champion_board_id, hofForm.board_id]);
 
   return (
     <div className="board-analytics-container">
       {/* Header — crown badge moved next to the title (fixes #3) */}
       <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
-        <h2 className="analytics-section-title mb-0">CrickEdge • Board Analytics</h2>
+        <h2 className="analytics-section-title mb-0">
+          CrickEdge • Board Analytics
+        </h2>
         <TopBoardBadge name={summary?.top_board?.board_name} />
       </div>
 
       {/* Tabs */}
       <div className="tabs-nav mb-3">
-        <button className={`tab-pill ${activeTab==='analytics' ? 'active':''}`} onClick={()=>setActiveTab('analytics')}>Analytics</button>
-        <button className={`tab-pill ${activeTab==='hall' ? 'active':''}`} onClick={()=>setActiveTab('hall')}>Hall of Fame</button>
+        <button
+          className={`tab-pill ${activeTab === "analytics" ? "active" : ""}`}
+          onClick={() => setActiveTab("analytics")}
+        >
+          Analytics
+        </button>
+        <button
+          className={`tab-pill ${activeTab === "hall" ? "active" : ""}`}
+          onClick={() => setActiveTab("hall")}
+        >
+          Hall of Fame
+        </button>
       </div>
 
       {/* Filters Row */}
@@ -427,30 +628,49 @@ export default function BoardAnalyticsPro() {
                 placeholder="Select boards…"
                 classNamePrefix="rs"
                 styles={selectStyles}
-                onChange={(vals)=> setSelected((vals||[]).map(v=>v.value))}
+                onChange={(vals) => setSelected((vals || []).map((v) => v.value))}
               />
               <div className="tiny-actions">
-                <button className="link-btn" onClick={()=>setSelected(boardOptions.map(o=>o.value))}>Select all</button>
+                <button
+                  className="link-btn"
+                  onClick={() => setSelected(boardOptions.map((o) => o.value))}
+                >
+                  Select all
+                </button>
                 <span> · </span>
-                <button className="link-btn" onClick={()=>setSelected([])}>Clear</button>
+                <button className="link-btn" onClick={() => setSelected([])}>
+                  Clear
+                </button>
               </div>
 
-              {activeTab==="hall" && (
+              {activeTab === "hall" && (
                 <div className="tiny-actions mt-2">
-                  <button className="link-btn" onClick={()=>setHofFilters({ tournament:"", year:"", team:"" })}>Clear HOF filters</button>
+                  <button
+                    className="link-btn"
+                    onClick={() =>
+                      setHofFilters({ tournament: "", year: "", team: "" })
+                    }
+                  >
+                    Clear HOF filters
+                  </button>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {activeTab==="analytics" ? (
+        {activeTab === "analytics" ? (
           <>
             <div className="col-6 col-lg-2">
               <div className="card chart-card h-100">
                 <div className="card-body">
                   <div className="filter-title">From</div>
-                  <input type="date" className="form-control light-date" value={from} onChange={e=>setFrom(e.target.value)}/>
+                  <input
+                    type="date"
+                    className="form-control light-date"
+                    value={from}
+                    onChange={(e) => setFrom(e.target.value)}
+                  />
                 </div>
               </div>
             </div>
@@ -459,7 +679,12 @@ export default function BoardAnalyticsPro() {
               <div className="card chart-card h-100">
                 <div className="card-body">
                   <div className="filter-title">To</div>
-                  <input type="date" className="form-control light-date" value={to} onChange={e=>setTo(e.target.value)}/>
+                  <input
+                    type="date"
+                    className="form-control light-date"
+                    value={to}
+                    onChange={(e) => setTo(e.target.value)}
+                  />
                 </div>
               </div>
             </div>
@@ -473,14 +698,28 @@ export default function BoardAnalyticsPro() {
                     value={{ value: activeFmt, label: activeFmt }}
                     classNamePrefix="rs"
                     styles={selectStyles}
-                    onChange={(v)=> setActiveFmt(v?.value || "ALL")}
+                    onChange={(v) => setActiveFmt(v?.value || "ALL")}
                   />
                   <div className="d-flex gap-2 justify-content-end mt-3">
-                    <button className="btn btn-primary btn-sm" onClick={analyze} disabled={loading}>
-                      {loading ? <FaSyncAlt className="me-1 spin"/> : <FaPlay className="me-1"/>}
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={analyze}
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <FaSyncAlt className="me-1 spin" />
+                      ) : (
+                        <FaPlay className="me-1" />
+                      )}
                       Analyze
                     </button>
-                    <button className="btn btn-outline-light btn-sm" onClick={()=>{setSummary(null);setTimeline(null);}}>
+                    <button
+                      className="btn btn-outline-light btn-sm"
+                      onClick={() => {
+                        setSummary(null);
+                        setTimeline(null);
+                      }}
+                    >
                       Clear
                     </button>
                   </div>
@@ -501,20 +740,31 @@ export default function BoardAnalyticsPro() {
                       list="hof-tournaments"
                       placeholder="All tournaments"
                       value={hofFilters.tournament}
-                      onChange={e=>setHofFilters(f=>({...f, tournament: e.target.value}))}
+                      onChange={(e) =>
+                        setHofFilters((f) => ({ ...f, tournament: e.target.value }))
+                      }
                     />
                     <datalist id="hof-tournaments">
-                      {(hofMeta.tournaments||[]).map(t=>(<option key={t.key || t} value={t.label || t} />))}
+                      {(hofMeta.tournaments || []).map((t) => (
+                        <option key={t.key || t} value={t.label || t} />
+                      ))}
                     </datalist>
                   </div>
                   <div className="col-6 col-md-3">
                     <label className="form-label subtle-strong">Year</label>
-                    <select className="form-select dark-input"
+                    <select
+                      className="form-select dark-input"
                       value={hofFilters.year}
-                      onChange={e=>setHofFilters(f=>({...f, year: e.target.value}))}
+                      onChange={(e) =>
+                        setHofFilters((f) => ({ ...f, year: e.target.value }))
+                      }
                     >
                       <option value="">All years</option>
-                      {(hofMeta.years||[]).map(y=><option key={y} value={y}>{y}</option>)}
+                      {(hofMeta.years || []).map((y) => (
+                        <option key={y} value={y}>
+                          {y}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="col-6 col-md-4">
@@ -524,20 +774,38 @@ export default function BoardAnalyticsPro() {
                       list="hof-teams"
                       placeholder="Any team"
                       value={hofFilters.team}
-                      onChange={e=>setHofFilters(f=>({...f, team: e.target.value}))}
+                      onChange={(e) =>
+                        setHofFilters((f) => ({ ...f, team: e.target.value }))
+                      }
                     />
                     <datalist id="hof-teams">
-                      {(hofMeta.teams||[]).map(t=>(<option key={t.key} value={t.label} />))}
+                      {(hofMeta.teams || []).map((t) => (
+                        <option key={t.key} value={t.label} />
+                      ))}
                     </datalist>
                   </div>
                 </div>
 
                 <div className="d-flex justify-content-end gap-2 mt-2">
-                  <button className="btn btn-outline-light btn-sm" onClick={loadHOF} disabled={hofLoading}>
-                    {hofLoading ? <FaSyncAlt className="me-1 spin"/> : <FaSyncAlt className="me-1"/>}
+                  <button
+                    className="btn btn-outline-light btn-sm"
+                    onClick={loadHOF}
+                    disabled={hofLoading}
+                  >
+                    {hofLoading ? (
+                      <FaSyncAlt className="me-1 spin" />
+                    ) : (
+                      <FaSyncAlt className="me-1" />
+                    )}
                     Refresh
                   </button>
-                  <button className="btn btn-primary btn-sm" onClick={openHofModal} disabled={!selected.length}>+ Add Entry</button>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={openHofModal}
+                    disabled={!selected.length}
+                  >
+                    + Add Entry
+                  </button>
                 </div>
               </div>
             </div>
@@ -549,7 +817,8 @@ export default function BoardAnalyticsPro() {
       {activeTab === "analytics" ? (
         !summary ? (
           <div className="text-center subtle py-4 fade-in">
-            <FaCrown className="me-2"/><span>Select boards & date range, then click Analyze.</span>
+            <FaCrown className="me-2" />
+            <span>Select boards & date range, then click Analyze.</span>
           </div>
         ) : (
           <>
@@ -558,7 +827,12 @@ export default function BoardAnalyticsPro() {
               <div className="col-12 col-md-4">
                 <div className="card chart-card h-100">
                   <div className="card-body">
-                    <div className="kpi-title">Boards Compared <Info title="Boards Compared">How many boards are included in this analysis window.</Info></div>
+                    <div className="kpi-title">
+                      Boards Compared{" "}
+                      <Info title="Boards Compared">
+                        How many boards are included in this analysis window.
+                      </Info>
+                    </div>
                     <div className="kpi-value">{summary.data.length}</div>
                   </div>
                 </div>
@@ -566,16 +840,38 @@ export default function BoardAnalyticsPro() {
               <div className="col-12 col-md-4">
                 <div className="card chart-card h-100">
                   <div className="card-body">
-                    <div className="kpi-title">Total Matches <Info title="Total Matches">Sum of matches across the selected boards and date range.</Info></div>
-                    <div className="kpi-value">{nf(summary.data.reduce((a,b)=>a+(b.totals?.matches||0),0))}</div>
+                    <div className="kpi-title">
+                      Total Matches{" "}
+                      <Info title="Total Matches">
+                        Sum of matches across the selected boards and date range.
+                      </Info>
+                    </div>
+                    <div className="kpi-value">
+                      {nf(
+                        summary.data.reduce(
+                          (a, b) => a + (b.totals?.matches || 0),
+                          0
+                        )
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
               <div className="col-12 col-md-4">
                 <div className="card chart-card h-100">
                   <div className="card-body">
-                    <div className="kpi-title">Total Points <Info title="Board Points (BP)">{scoringInfo}</Info></div>
-                    <div className="kpi-value">{nf(summary.data.reduce((a,b)=>a+(b.totals?.points||0),0))}</div>
+                    <div className="kpi-title">
+                      Total Points{" "}
+                      <Info title="Board Points (BP)">{scoringInfo}</Info>
+                    </div>
+                    <div className="kpi-value">
+                      {nf(
+                        summary.data.reduce(
+                          (a, b) => a + (b.totals?.points || 0),
+                          0
+                        )
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -586,7 +882,9 @@ export default function BoardAnalyticsPro() {
               <div className="col-12 col-lg-6">
                 <div className="card chart-card">
                   <div className="card-body">
-                    <div className="chart-title">Total Points <Info title="Total Points (BP)">{scoringInfo}</Info></div>
+                    <div className="chart-title">
+                      Total Points <Info title="Total Points (BP)">{scoringInfo}</Info>
+                    </div>
                     <div className="chart-frame">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={pointsData}>
@@ -594,10 +892,17 @@ export default function BoardAnalyticsPro() {
                           <XAxis dataKey="name" />
                           <YAxis />
                           <Legend />
-                          <Tooltip formatter={(v)=>[v,"Points"]}/>
-                          <Bar dataKey="points" name="Points" radius={[10,10,0,0]} activeBar={false}>
+                          <Tooltip formatter={(v) => [v, "Points"]} />
+                          <Bar
+                            dataKey="points"
+                            name="Points"
+                            radius={[10, 10, 0, 0]}
+                            activeBar={false}
+                          >
                             <LabelList dataKey="points" position="top" />
-                            {pointsData.map((d,i)=> <Cell key={i} fill={d.color} />)}
+                            {pointsData.map((d, i) => (
+                              <Cell key={i} fill={d.color} />
+                            ))}
                           </Bar>
                         </BarChart>
                       </ResponsiveContainer>
@@ -609,7 +914,10 @@ export default function BoardAnalyticsPro() {
               <div className="col-12 col-lg-6">
                 <div className="card chart-card">
                   <div className="card-body">
-                    <div className="chart-title">Wins / Draws / Losses <Info title="W/D/L">Counts of outcomes for the selected format (or ALL).</Info></div>
+                    <div className="chart-title">
+                      Wins / Draws / Losses{" "}
+                      <Info title="W/D/L">Counts of outcomes for the selected format (or ALL).</Info>
+                    </div>
                     <div className="chart-frame">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={outcomesData}>
@@ -618,13 +926,31 @@ export default function BoardAnalyticsPro() {
                           <YAxis />
                           <Legend />
                           <Tooltip />
-                          <Bar dataKey="Wins" fill="#22c55e" stackId="a" radius={[10,10,0,0]} activeBar={false}>
+                          <Bar
+                            dataKey="Wins"
+                            fill="#22c55e"
+                            stackId="a"
+                            radius={[10, 10, 0, 0]}
+                            activeBar={false}
+                          >
                             <LabelList dataKey="Wins" position="top" />
                           </Bar>
-                          <Bar dataKey="Draws" fill="#eab308" stackId="a" radius={[10,10,0,0]} activeBar={false}>
+                          <Bar
+                            dataKey="Draws"
+                            fill="#eab308"
+                            stackId="a"
+                            radius={[10, 10, 0, 0]}
+                            activeBar={false}
+                          >
                             <LabelList dataKey="Draws" position="top" />
                           </Bar>
-                          <Bar dataKey="Losses" fill="#ef4444" stackId="a" radius={[10,10,0,0]} activeBar={false}>
+                          <Bar
+                            dataKey="Losses"
+                            fill="#ef4444"
+                            stackId="a"
+                            radius={[10, 10, 0, 0]}
+                            activeBar={false}
+                          >
                             <LabelList dataKey="Losses" position="top" />
                           </Bar>
                         </BarChart>
@@ -637,14 +963,22 @@ export default function BoardAnalyticsPro() {
               <div className="col-12 col-lg-6">
                 <div className="card chart-card">
                   <div className="card-body">
-                    <div className="chart-title">Win % Radar <Info title="Win % Radar">{radarInfo}</Info></div>
+                    <div className="chart-title">
+                      Win % Radar <Info title="Win % Radar">{radarInfo}</Info>
+                    </div>
                     <div className="chart-frame">
                       <ResponsiveContainer width="100%" height="100%">
                         <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="80%">
                           <PolarGrid />
                           <PolarAngleAxis dataKey="board" />
                           <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                          <Radar name="Win %" dataKey="WinPct" stroke="#22c55e" fill="#22c55e" fillOpacity={0.35} />
+                          <Radar
+                            name="Win %"
+                            dataKey="WinPct"
+                            stroke="#22c55e"
+                            fill="#22c55e"
+                            fillOpacity={0.35}
+                          />
                           <Legend />
                           <Tooltip />
                         </RadarChart>
@@ -657,7 +991,9 @@ export default function BoardAnalyticsPro() {
               <div className="col-12 col-lg-6">
                 <div className="card chart-card">
                   <div className="card-body">
-                    <div className="chart-title">Avg Run Margin <Info title="Average Run Margin">{marginInfo}</Info></div>
+                    <div className="chart-title">
+                      Avg Run Margin <Info title="Average Run Margin">{marginInfo}</Info>
+                    </div>
                     <div className="chart-frame">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={marginData}>
@@ -666,7 +1002,12 @@ export default function BoardAnalyticsPro() {
                           <YAxis />
                           <Legend />
                           <Tooltip />
-                          <Bar dataKey="AvgRunMargin" fill="#38bdf8" radius={[10,10,0,0]} activeBar={false}>
+                          <Bar
+                            dataKey="AvgRunMargin"
+                            fill="#38bdf8"
+                            radius={[10, 10, 0, 0]}
+                            activeBar={false}
+                          >
                             <LabelList dataKey="AvgRunMargin" position="top" />
                           </Bar>
                         </BarChart>
@@ -681,21 +1022,47 @@ export default function BoardAnalyticsPro() {
                 <div className="card chart-card">
                   <div className="card-body">
                     <div className="chart-title">
-                      Points by Format (line) <Info title="Points by Format">{byFormatInfo}</Info>
+                      Points by Format (line){" "}
+                      <Info title="Points by Format">{byFormatInfo}</Info>
                     </div>
                     <div className="chart-frame tall">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={perFormatLine}>
                           <CartesianGrid strokeDasharray="4 4" stroke="#233" />
-                          <XAxis dataKey="name" tickMargin={8}/>
+                          <XAxis dataKey="name" tickMargin={8} />
                           <YAxis ticks={yTicks} domain={[0, Math.max(...yTicks)]} />
                           <Legend />
                           <Tooltip />
                           <ReferenceLine y={0} stroke="#94a3b8" />
-                          <Line type="monotone" dataKey="ODI"  stroke={SERIES.ODI}  strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 5 }} strokeLinecap="round" />
-                          <Line type="monotone" dataKey="T20"  stroke={SERIES.T20}  strokeWidth={3} strokeDasharray="6 3" dot={{ r: 3 }} activeDot={{ r: 5 }} strokeLinecap="round" />
-                          <Line type="monotone" dataKey="TEST" stroke={SERIES.TEST} strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 5 }} strokeLinecap="round" />
-                          <Brush height={18} travellerWidth={8}/>
+                          <Line
+                            type="monotone"
+                            dataKey="ODI"
+                            stroke={SERIES.ODI}
+                            strokeWidth={3}
+                            dot={{ r: 3 }}
+                            activeDot={{ r: 5 }}
+                            strokeLinecap="round"
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="T20"
+                            stroke={SERIES.T20}
+                            strokeWidth={3}
+                            strokeDasharray="6 3"
+                            dot={{ r: 3 }}
+                            activeDot={{ r: 5 }}
+                            strokeLinecap="round"
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="TEST"
+                            stroke={SERIES.TEST}
+                            strokeWidth={3}
+                            dot={{ r: 3 }}
+                            activeDot={{ r: 5 }}
+                            strokeLinecap="round"
+                          />
+                          <Brush height={18} travellerWidth={8} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -711,7 +1078,8 @@ export default function BoardAnalyticsPro() {
                   <div className="card chart-card">
                     <div className="card-body">
                       <div className="chart-title">
-                        Crown Timeline (daily leader) <Info title="Crown Timeline">{timelineInfo}</Info>
+                        Crown Timeline (daily leader){" "}
+                        <Info title="Crown Timeline">{timelineInfo}</Info>
                       </div>
                       <div className="chart-frame tall">
                         <ResponsiveContainer width="100%" height="100%">
@@ -725,20 +1093,37 @@ export default function BoardAnalyticsPro() {
                             <CartesianGrid strokeDasharray="3 3" stroke="#233" />
                             <XAxis
                               dataKey="date"
-                              tickFormatter={(d)=> new Date(d).toLocaleDateString(undefined,{month:"short", day:"2-digit"})}
+                              tickFormatter={(d) =>
+                                new Date(d).toLocaleDateString(undefined, {
+                                  month: "short",
+                                  day: "2-digit",
+                                })
+                              }
                               minTickGap={24}
                               interval="preserveStartEnd"
                             />
                             <YAxis />
-                            {/* Tooltip enabled again, with clean content (fix #6) */}
                             <Tooltip
-                              labelFormatter={(d)=> new Date(d).toLocaleDateString(undefined,{year:"numeric", month:"short", day:"2-digit"})}
-                              formatter={(v, _k, p)=>{
+                              labelFormatter={(d) =>
+                                new Date(d).toLocaleDateString(undefined, {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "2-digit",
+                                })
+                              }
+                              formatter={(v, _k, p) => {
                                 const bn = boardName(p?.payload?.board_id);
                                 return [nf(v), `Leader: ${bn}`];
                               }}
                             />
-                            <Area type="monotone" dataKey="points" stroke="#22c55e" strokeWidth={2} fillOpacity={1} fill="url(#grad1)" />
+                            <Area
+                              type="monotone"
+                              dataKey="points"
+                              stroke="#22c55e"
+                              strokeWidth={2}
+                              fillOpacity={1}
+                              fill="url(#grad1)"
+                            />
                           </AreaChart>
                         </ResponsiveContainer>
                       </div>
@@ -750,27 +1135,43 @@ export default function BoardAnalyticsPro() {
                   <div className="card chart-card">
                     <div className="card-body">
                       <div className="chart-title">
-                        Leadership Summary <Info title="Leadership Summary">{timelineStatsInfo}</Info>
+                        Leadership Summary{" "}
+                        <Info title="Leadership Summary">{timelineStatsInfo}</Info>
                       </div>
                       <div className="small">
                         <div className="d-flex justify-content-between">
                           <span>Lead Changes</span>
-                          <strong>{Object.values(timeline.switches||{}).reduce((a,b)=>a+Number(b||0),0)}</strong>
+                          <strong>
+                            {Object.values(timeline.switches || {}).reduce(
+                              (a, b) => a + Number(b || 0),
+                              0
+                            )}
+                          </strong>
                         </div>
-                        <hr/>
+                        <hr />
                         <div className="mb-1 subtle-strong">Lead Changes by Board</div>
                         <ul className="list-unstyled soft-scroll">
-                          {Object.entries(timeline.switches||{}).map(([bid,c])=>{
+                          {Object.entries(timeline.switches || {}).map(([bid, c]) => {
                             const name = boardName(bid);
-                            return <li key={bid} className="d-flex justify-content-between"><span>{name}</span><span className="text-success">{c}</span></li>;
+                            return (
+                              <li key={bid} className="d-flex justify-content-between">
+                                <span>{name}</span>
+                                <span className="text-success">{c}</span>
+                              </li>
+                            );
                           })}
                         </ul>
-                        <hr/>
+                        <hr />
                         <div className="mb-1 subtle-strong">Days at #1</div>
                         <ul className="list-unstyled soft-scroll">
-                          {Object.entries(timeline.days_held||{}).map(([bid,c])=>{
+                          {Object.entries(timeline.days_held || {}).map(([bid, c]) => {
                             const name = boardName(bid);
-                            return <li key={bid} className="d-flex justify-content-between"><span>{name}</span><span className="text-info">{c}</span></li>;
+                            return (
+                              <li key={bid} className="d-flex justify-content-between">
+                                <span>{name}</span>
+                                <span className="text-info">{c}</span>
+                              </li>
+                            );
                           })}
                         </ul>
                       </div>
@@ -785,14 +1186,15 @@ export default function BoardAnalyticsPro() {
               <div className="lb-header">
                 <div className="lb-title">Summary ({activeFmt})</div>
                 <Info title="Summary Table">
-                  Per-board totals for Matches, Wins, Draws, Losses, Win% and Points (includes bonuses).
+                  Per-board totals for Matches, Wins, Draws, Losses, Win% and Points (includes
+                  bonuses).
                 </Info>
               </div>
               <div className="leaderboard-table-wrapper">
                 <table className="leaderboard-table">
                   <thead>
                     <tr>
-                      <th style={{textAlign:'left'}}>Board</th>
+                      <th style={{ textAlign: "left" }}>Board</th>
                       <th>Matches</th>
                       <th>Wins</th>
                       <th>Draws</th>
@@ -802,7 +1204,7 @@ export default function BoardAnalyticsPro() {
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map((r)=>(
+                    {rows.map((r) => (
                       <tr key={r.id} className="lb-row">
                         <td className="team-name">{r.name}</td>
                         <td>{nf(r.matches)}</td>
@@ -827,22 +1229,35 @@ export default function BoardAnalyticsPro() {
             <div className="card chart-card">
               <div className="card-body">
                 <div className="d-flex align-items-center justify-content-between">
-                  <div className="analytics-section-title">Trophy Cabinet (3×+ Champions)</div>
-                  <Info title="Trophy Cabinet">Teams with 3 or more championships for the selected board(s).</Info>
+                  <div className="analytics-section-title">
+                    Trophy Cabinet (3×+ Champions)
+                  </div>
+                  <Info title="Trophy Cabinet">
+                    Teams with 3 or more championships for the selected board(s).
+                  </Info>
                 </div>
                 <div className="hof-cabinet">
-                  {selected.map(bid => {
+                  {selected.map((bid) => {
                     const boardNameTxt = boardName(bid);
                     const items = hofStats[bid] || [];
                     return (
                       <div className="hof-cabinet-col" key={bid}>
                         <div className="hof-cabinet-title">{boardNameTxt}</div>
                         <div className="hof-cabinet-badges">
-                          {items.length ? items.map((it, i)=>(
-                            <div className="hof-badge" key={i} title={`${it.champion_team}: ${it.titles} titles`}>
-                              <FaCrown className="me-1"/> <b>{it.titles}×</b> {it.champion_team}
-                            </div>
-                          )) : <div className="subtle">No 3× champions yet.</div>}
+                          {items.length ? (
+                            items.map((it, i) => (
+                              <div
+                                className="hof-badge"
+                                key={i}
+                                title={`${it.champion_team}: ${it.titles} titles`}
+                              >
+                                <FaCrown className="me-1" /> <b>{it.titles}×</b>{" "}
+                                {it.champion_team}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="subtle">No 3× champions yet.</div>
+                          )}
                         </div>
                       </div>
                     );
@@ -857,41 +1272,53 @@ export default function BoardAnalyticsPro() {
             <div className="card chart-card">
               <div className="card-body">
                 <div className="d-flex align-items-center justify-content-between">
-                  <div className="analytics-section-title">Past Champions — Trophy Chain</div>
-                  <div className="subtle">Ordered from <b>past</b> to <b>current</b>.</div>
+                  <div className="analytics-section-title">
+                    Past Champions — Trophy Chain
+                  </div>
+                  <div className="subtle">
+                    Ordered from <b>past</b> to <b>current</b>.
+                  </div>
                 </div>
 
                 <div className="hof-chain">
                   {hofLoading ? (
                     <div className="subtle">Loading…</div>
-                  ) : (hofWall.length ? hofWall.map((item, idx) => {
-                    const bName = boardName(item.board_id);
-                    const dateStr = cleanISO(item.final_date) || item.season_year;
-                    const isLast = idx === hofWall.length - 1;
-                    return (
-                      <React.Fragment key={item.id}>
-                        <div className={`hof-chain-item ${isLast ? "last" : ""}`}>
-                          <div className="hof-chain-trophy"><FaTrophy /></div>
-                          <div className="hof-chain-content">
-                            <div className="hof-chain-title">{item.champion_team}</div>
-                            <div className="hof-chain-meta">
-                              <FormatChip type={item.match_type} />
-                              <span className="text">{item.tournament_name}</span>
-                              <span className="dot">•</span>
-                              <span className="text">{dateStr}</span>
+                  ) : hofWall.length ? (
+                    hofWall.map((item, idx) => {
+                      const bName = boardName(item.board_id);
+                      const dateStr = cleanISO(item.final_date) || item.season_year;
+                      const isLast = idx === hofWall.length - 1;
+                      return (
+                        <React.Fragment key={item.id}>
+                          <div className={`hof-chain-item ${isLast ? "last" : ""}`}>
+                            <div className="hof-chain-trophy">
+                              <FaTrophy />
                             </div>
-                            {item.runner_up_team ? (
-                              <div className="hof-chain-sub">Runner-up: <b>{item.runner_up_team}</b></div>
-                            ) : null}
-                            <div className="hof-chain-board">{bName}</div>
+                            <div className="hof-chain-content">
+                              <div className="hof-chain-title">{item.champion_team}</div>
+                              <div className="hof-chain-meta">
+                                <FormatChip type={item.match_type} />
+                                <span className="text">{item.tournament_name}</span>
+                                <span className="dot">•</span>
+                                <span className="text">{dateStr}</span>
+                              </div>
+                              {item.runner_up_team ? (
+                                <div className="hof-chain-sub">
+                                  Runner-up: <b>{item.runner_up_team}</b>
+                                </div>
+                              ) : null}
+                              <div className="hof-chain-board">{bName}</div>
+                            </div>
                           </div>
-                        </div>
 
-                        {/* connector between items */}
-                        {!isLast && <ChainConnector />}
-                      </React.Fragment>
-                    );
-                  }) : <div className="subtle">No entries match your filters.</div>)}
+                          {/* connector between items */}
+                          {!isLast && <ChainConnector />}
+                        </React.Fragment>
+                      );
+                    })
+                  ) : (
+                    <div className="subtle">No entries match your filters.</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -906,33 +1333,60 @@ export default function BoardAnalyticsPro() {
                   <div className="subtle">{hofWall.length} record(s)</div>
                 </div>
                 <div className="hof-grid">
-                  {hofWall.map(item => {
+                  {hofWall.map((item) => {
                     const bName = boardName(item.board_id);
                     return (
                       <div className="hof-card" key={item.id}>
                         <div className="hof-card-top">
                           <div className="hof-card-board">{bName}</div>
-                          <div className="hof-card-type"><FormatChip type={item.match_type} /></div>
+                          <div className="hof-card-type">
+                            <FormatChip type={item.match_type} />
+                          </div>
                         </div>
                         <div className="hof-card-main">
-                          <div className="hof-card-champ"><FaCrown className="me-1 text-warning"/>{item.champion_team}</div>
+                          <div className="hof-card-champ">
+                            <FaCrown className="me-1 text-warning" />
+                            {item.champion_team}
+                          </div>
                           <div className="hof-card-sub">
                             {item.tournament_name} &middot; {item.season_year}
-                            {item.season_month ? ` (${months.find(m=>m.v===item.season_month)?.l||item.season_month})` : ""}
+                            {item.season_month
+                              ? ` (${
+                                  months.find((m) => m.v === item.season_month)?.l ||
+                                  item.season_month
+                                })`
+                              : ""}
                           </div>
-                          {item.runner_up_team ? <div className="hof-card-runner">Runner-up: {item.runner_up_team}</div> : null}
-                          {item.final_date ? <div className="hof-card-date">Final: {cleanISO(item.final_date)}</div> : null}
-                          {item.remarks ? <div className="hof-card-remarks">{item.remarks}</div> : null}
+                          {item.runner_up_team ? (
+                            <div className="hof-card-runner">
+                              Runner-up: {item.runner_up_team}
+                            </div>
+                          ) : null}
+                          {item.final_date ? (
+                            <div className="hof-card-date">
+                              Final: {cleanISO(item.final_date)}
+                            </div>
+                          ) : null}
+                          {item.remarks ? (
+                            <div className="hof-card-remarks">{item.remarks}</div>
+                          ) : null}
                         </div>
-                        <div className="hof-card-actions">
-                          <button className="btn btn-sm btn-outline-light"
-                            onClick={async ()=>{
-                              if (!window.confirm("Delete this entry?")) return;
-                              await axios.delete(`${API}/api/boards/hof/${item.id}`);
-                              await loadHOF();
-                            }}
-                          ><FaTrash className="me-1"/>Delete</button>
-                        </div>
+                        {/* [CRICKEDGE-ADMIN-GUARD] Delete visible only for admin */}
+                        {isAdmin && (
+                          <div className="hof-card-actions">
+                            <button
+                              className="btn btn-sm btn-outline-light"
+                              onClick={async () => {
+                                if (!window.confirm("Delete this entry?")) return;
+                                await axios.delete(`${API}/api/boards/hof/${item.id}`);
+                                await loadHOF();
+                              }}
+                            >
+                              <FaTrash className="me-1" />
+                              Delete
+                            </button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -944,143 +1398,240 @@ export default function BoardAnalyticsPro() {
           {/* Add Entry Modal */}
           {showHofModal && (
             <div className="info-modal">
-              <div className="info-modal-body" style={{maxWidth: 800}}>
+              <div className="info-modal-body" style={{ maxWidth: 800 }}>
                 <div className="info-modal-title">Add Hall of Fame Entry</div>
                 <div className="row g-3">
                   <div className="col-12 col-md-6">
                     <label className="form-label">Board</label>
-                    <select className="form-select dark-input"
+                    <select
+                      className="form-select dark-input"
                       value={hofForm.board_id}
-                      onChange={e=>setHofForm(f=>({...f, board_id:e.target.value, champion_board_id:e.target.value}))}
+                      onChange={(e) =>
+                        setHofForm((f) => ({
+                          ...f,
+                          board_id: e.target.value,
+                          champion_board_id: e.target.value,
+                        }))
+                      }
                     >
                       <option value="">Select</option>
-                      {boards.map(b=><option key={b.board_id} value={b.board_id}>{b.board_name}</option>)}
+                      {boards.map((b) => (
+                        <option key={b.board_id} value={b.board_id}>
+                          {b.board_name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="col-6 col-md-3">
                     <label className="form-label">Match Type</label>
-                    <select className="form-select dark-input"
+                    <select
+                      className="form-select dark-input"
                       value={hofForm.match_type}
-                      onChange={e=>setHofForm(f=>({...f, match_type:e.target.value}))}
+                      onChange={(e) =>
+                        setHofForm((f) => ({ ...f, match_type: e.target.value }))
+                      }
                     >
-                      <option>ODI</option><option>T20</option><option>TEST</option>
+                      <option>ODI</option>
+                      <option>T20</option>
+                      <option>TEST</option>
                     </select>
                   </div>
                   <div className="col-6 col-md-3">
                     <label className="form-label">Season Year</label>
-                    <input className="form-control dark-input" type="number"
+                    <input
+                      className="form-control dark-input"
+                      type="number"
                       value={hofForm.season_year}
-                      onChange={e=>setHofForm(f=>({...f, season_year:e.target.value}))}/>
+                      onChange={(e) =>
+                        setHofForm((f) => ({ ...f, season_year: e.target.value }))
+                      }
+                    />
                   </div>
 
                   <div className="col-6 col-md-3">
                     <label className="form-label">Season Month</label>
-                    <select className="form-select dark-input"
+                    <select
+                      className="form-select dark-input"
                       value={hofForm.season_month}
-                      onChange={e=>setHofForm(f=>({...f, season_month:e.target.value}))}
+                      onChange={(e) =>
+                        setHofForm((f) => ({ ...f, season_month: e.target.value }))
+                      }
                     >
                       <option value="">—</option>
-                      {months.map(m=> <option key={m.v} value={m.v}>{m.l}</option>)}
+                      {months.map((m) => (
+                        <option key={m.v} value={m.v}>
+                          {m.l}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
                   <div className="col-12 col-md-9">
                     <label className="form-label">Tournament</label>
-                    <select className="form-select dark-input"
+                    <select
+                      className="form-select dark-input"
                       value={hofForm.tournament_name}
-                      onChange={e=>setHofForm(f=>({...f, tournament_name:e.target.value}))}
+                      onChange={(e) =>
+                        setHofForm((f) => ({ ...f, tournament_name: e.target.value }))
+                      }
                     >
                       <option value="">Select tournament</option>
-                      {hofAddMeta.tournaments.map(t => <option key={t} value={t}>{t}</option>)}
+                      {hofAddMeta.tournaments.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
                   <div className="col-12 col-md-6">
                     <label className="form-label">Champion Team</label>
-                    <select className="form-select dark-input"
+                    <select
+                      className="form-select dark-input"
                       value={hofForm.champion_team_id}
-                      onChange={e=>{
+                      onChange={(e) => {
                         const id = e.target.value;
-                        const name = dedupTeams.find(t=>String(t.id)===String(id))?.name || "";
-                        setHofForm(f=>({...f, champion_team_id:id, champion_team:name}));
+                        const name =
+                          dedupTeams.find((t) => String(t.id) === String(id))?.name || "";
+                        setHofForm((f) => ({
+                          ...f,
+                          champion_team_id: id,
+                          champion_team: name,
+                        }));
                       }}
                     >
                       <option value="">Select team</option>
-                      {dedupTeams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                      {dedupTeams.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">Runner-up Team</label>
-                    <select className="form-select dark-input"
+                    <select
+                      className="form-select dark-input"
                       value={hofForm.runner_up_team}
-                      onChange={e=>setHofForm(f=>({...f, runner_up_team:e.target.value}))}
+                      onChange={(e) =>
+                        setHofForm((f) => ({ ...f, runner_up_team: e.target.value }))
+                      }
                     >
                       <option value="">Select team</option>
-                      {ruTeamOptions.map(t => <option key={t.id} value={t.name}>{t.name}</option>)}
+                      {ruTeamOptions.map((t) => (
+                        <option key={t.id} value={t.name}>
+                          {t.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
                   <div className="col-12 col-md-6">
                     <label className="form-label">Champion Board</label>
-                    <select className="form-select dark-input"
+                    <select
+                      className="form-select dark-input"
                       value={hofForm.champion_board_id || hofForm.board_id}
-                      onChange={e=>setHofForm(f=>({...f, champion_board_id:e.target.value}))}
+                      onChange={(e) =>
+                        setHofForm((f) => ({ ...f, champion_board_id: e.target.value }))
+                      }
                     >
                       <option value="">Select board</option>
-                      {(hofAddMeta.boards||[]).map(b => <option key={b.id} value={b.id}>{b.board_name}</option>)}
+                      {(hofAddMeta.boards || []).map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.board_name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">Runner-up Board</label>
-                    <select className="form-select dark-input"
+                    <select
+                      className="form-select dark-input"
                       value={hofForm.runner_up_board_id}
-                      onChange={e=>setHofForm(f=>({...f, runner_up_board_id:e.target.value}))}
+                      onChange={(e) =>
+                        setHofForm((f) => ({ ...f, runner_up_board_id: e.target.value }))
+                      }
                     >
                       <option value="">Select board</option>
-                      {ruBoardOptions.map(b => <option key={b.id} value={b.id}>{b.board_name}</option>)}
+                      {ruBoardOptions.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.board_name}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
                   <div className="col-12 col-md-6">
                     <label className="form-label">Final Date</label>
-                    <input className="form-control dark-input" type="date"
+                    <input
+                      className="form-control dark-input"
+                      type="date"
                       value={hofForm.final_date}
-                      onChange={e=>setHofForm(f=>({...f, final_date:e.target.value}))}/>
+                      onChange={(e) =>
+                        setHofForm((f) => ({ ...f, final_date: e.target.value }))
+                      }
+                    />
                   </div>
                   <div className="col-12">
                     <label className="form-label">Remarks</label>
-                    <textarea className="form-control dark-input" rows="2"
+                    <textarea
+                      className="form-control dark-input"
+                      rows="2"
                       value={hofForm.remarks}
-                      onChange={e=>setHofForm(f=>({...f, remarks:e.target.value}))}/>
+                      onChange={(e) =>
+                        setHofForm((f) => ({ ...f, remarks: e.target.value }))
+                      }
+                    />
                   </div>
                 </div>
 
                 <div className="d-flex justify-content-end gap-2 mt-3">
-                  <button className="btn btn-outline-light btn-sm" onClick={()=>setShowHofModal(false)}>Cancel</button>
-                  <button className="btn btn-primary btn-sm" onClick={async ()=>{
-                    if (!hofForm.board_id || !hofForm.tournament_name || !hofForm.champion_team_id) {
-                      alert("Board, Tournament and Champion team are required.");
-                      return;
-                    }
-                    if (hofForm.runner_up_team &&
-                        String(hofForm.runner_up_team).toLowerCase() === String(hofForm.champion_team).toLowerCase()) {
-                      alert("Runner-up team cannot be the same as Champion team.");
-                      return;
-                    }
-                    if (hofForm.runner_up_board_id &&
-                        String(hofForm.runner_up_board_id) === String(hofForm.champion_board_id || hofForm.board_id)) {
-                      alert("Runner-up board cannot be the same as Champion board.");
-                      return;
-                    }
-                    try{
-                      await axios.post(`${API}/api/boards/hof/upsert`, hofForm);
-                      setShowHofModal(false);
-                      await loadHOF();
-                      await loadHOFMeta();
-                    }catch(e){
-                      console.error(e); alert("Save failed");
-                    }
-                  }}>Save</button>
+                  <button
+                    className="btn btn-outline-light btn-sm"
+                    onClick={() => setShowHofModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={async () => {
+                      if (
+                        !hofForm.board_id ||
+                        !hofForm.tournament_name ||
+                        !hofForm.champion_team_id
+                      ) {
+                        alert("Board, Tournament and Champion team are required.");
+                        return;
+                      }
+                      if (
+                        hofForm.runner_up_team &&
+                        String(hofForm.runner_up_team).toLowerCase() ===
+                          String(hofForm.champion_team).toLowerCase()
+                      ) {
+                        alert("Runner-up team cannot be the same as Champion team.");
+                        return;
+                      }
+                      if (
+                        hofForm.runner_up_board_id &&
+                        String(hofForm.runner_up_board_id) ===
+                          String(hofForm.champion_board_id || hofForm.board_id)
+                      ) {
+                        alert("Runner-up board cannot be the same as Champion board.");
+                        return;
+                      }
+                      try {
+                        await axios.post(`${API}/api/boards/hof/upsert`, hofForm);
+                        setShowHofModal(false);
+                        await loadHOF();
+                        await loadHOFMeta();
+                      } catch (e) {
+                        console.error(e);
+                        alert("Save failed");
+                      }
+                    }}
+                  >
+                    Save
+                  </button>
                 </div>
               </div>
             </div>
