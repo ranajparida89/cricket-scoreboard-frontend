@@ -13,7 +13,12 @@
 
 .ce-hl-card {
   flex: 1;
-  background: radial-gradient(circle at top, rgba(3, 35, 55, 0.9) 0%, rgba(0, 0, 0, 0.78) 55%, rgba(0, 0, 0, 0.4) 100%);
+  background: radial-gradient(
+    circle at top,
+    rgba(3, 35, 55, 0.9) 0%,
+    rgba(0, 0, 0, 0.78) 55%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
   border: 1px solid rgba(0, 255, 170, 0.12);
   border-radius: 20px;
   min-height: 220px;
@@ -31,7 +36,7 @@
   justify-content: center;
   font-size: 4.3rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.04); /* was 0.015 */
+  color: rgba(255, 255, 255, 0.04);
   letter-spacing: 0.25rem;
   pointer-events: none;
   text-transform: uppercase;
@@ -84,12 +89,20 @@
   margin-bottom: 16px;
 }
 
-/* stat cards */
+/* subtitle (you had it in JSX but not styled) */
+.ce-hl-subtitle {
+  font-size: 0.9rem;
+  opacity: 0.85;
+  margin-bottom: 16px;
+}
+
+/* responsive meta grid (replaces old flex version) */
 .ce-hl-meta-grid {
-  display: flex;
-  justify-content: center;
-  gap: 14px;
-  flex-wrap: wrap;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  align-items: start;
+  margin-top: 6px;
 }
 
 .ce-hl-meta-item {
@@ -97,7 +110,7 @@
   border: 1px solid rgba(255, 255, 255, 0.03);
   border-radius: 16px;
   padding: 12px 20px 11px;
-  min-width: 140px;
+  min-width: 0;
   backdrop-filter: blur(4px);
 }
 
@@ -108,12 +121,16 @@
   color: #8eb7ff;
   margin-bottom: 4px;
   letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ce-hl-meta-value {
   font-size: 1.3rem;
   font-weight: 700;
   line-height: 1;
+  word-break: break-word;
 }
 
 /* arrows */
@@ -129,9 +146,15 @@
   transition: background 0.2s ease;
   z-index: 5;
 }
-.ce-hl-nav.left { margin-left: 10px; }
-.ce-hl-nav.right { margin-right: 10px; }
-.ce-hl-nav:hover { background: rgba(0, 255, 170, 0.25); }
+.ce-hl-nav.left {
+  margin-left: 10px;
+}
+.ce-hl-nav.right {
+  margin-right: 10px;
+}
+.ce-hl-nav:hover {
+  background: rgba(0, 255, 170, 0.25);
+}
 
 /* dots */
 .ce-hl-dots {
@@ -171,17 +194,26 @@
   width: 1.3px;
   height: 6px;
   border-radius: 1px;
-  /* slower: multiply duration coming from React by ~1.45 */
   animation: ceConfettiFall calc(var(--duration) * 1.45) linear infinite;
   animation-delay: var(--delay);
   opacity: 0.95;
 }
 
-.c-1 { background: #ff4d4d; }
-.c-2 { background: #ffe066; }
-.c-3 { background: #6df2ff; }
-.c-4 { background: #9b6dff; }
-.c-5 { background: #ffffff; }
+.c-1 {
+  background: #ff4d4d;
+}
+.c-2 {
+  background: #ffe066;
+}
+.c-3 {
+  background: #6df2ff;
+}
+.c-4 {
+  background: #9b6dff;
+}
+.c-5 {
+  background: #ffffff;
+}
 
 @keyframes ceConfettiFall {
   0% {
@@ -197,6 +229,75 @@
   }
 }
 
+/* =========================================================
+   SPOTLIGHT EFFECT FOR "ALL ROUND PERFORMER" CARD
+   (we put it on .ce-hl-content so we do NOT clash with
+   .ce-hl-card::before / ::after watermarks)
+   ========================================================= */
+.ce-hl-card-spot .ce-hl-content {
+  position: relative;
+}
+
+/* left beam */
+.ce-hl-card-spot .ce-hl-content::before,
+.ce-hl-card-spot .ce-hl-content::after {
+  content: "";
+  position: absolute;
+  top: -45%;
+  width: 42%;
+  height: 180%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.75;
+  filter: blur(2px);
+  z-index: 0;
+}
+
+/* left */
+.ce-hl-card-spot .ce-hl-content::before {
+  left: -10%;
+  background: radial-gradient(
+      circle at 10% 40%,
+      rgba(0, 255, 209, 0.65),
+      rgba(0, 255, 209, 0) 70%
+    ),
+    linear-gradient(
+      118deg,
+      rgba(0, 255, 209, 0.45) 0%,
+      rgba(0, 255, 209, 0) 70%
+    );
+  transform: rotate(-6deg);
+}
+
+/* right */
+.ce-hl-card-spot .ce-hl-content::after {
+  right: -10%;
+  background: radial-gradient(
+      circle at 90% 40%,
+      rgba(0, 214, 255, 0.6),
+      rgba(0, 214, 255, 0) 70%
+    ),
+    linear-gradient(
+      -118deg,
+      rgba(0, 214, 255, 0.4) 0%,
+      rgba(0, 214, 255, 0) 70%
+    );
+  transform: rotate(6deg);
+}
+
+/* make title sit over the beams */
+.ce-hl-card-spot .ce-hl-title,
+.ce-hl-card-spot .ce-hl-tag,
+.ce-hl-card-spot .ce-hl-subtitle,
+.ce-hl-card-spot .ce-hl-meta-grid {
+  position: relative;
+  z-index: 2;
+}
+
+.ce-hl-card-spot .ce-hl-title {
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.55);
+}
+
 /* responsive */
 @media (max-width: 768px) {
   .ce-hl-title {
@@ -209,39 +310,12 @@
     font-size: 3.2rem;
   }
   .ce-hl-meta-item {
-    min-width: 120px;
+    border-radius: 14px;
   }
-}
-/* =========================================================
-   RESPONSIVE META GRID FOR ALL ROUND PERFORMER CARD
-   ========================================================= */
-.ce-hl-meta-grid {
-  display: grid;
-  gap: 0.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  align-items: start;
-}
-
-.ce-hl-meta-item {
-  background: rgba(15, 23, 42, 0.25);
-  border: 1px solid rgba(148, 163, 184, 0.15);
-  border-radius: 0.5rem;
-  padding: 0.4rem 0.6rem;
-  min-width: 0; /* ensures proper wrapping */
-}
-
-.ce-hl-meta-label {
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  opacity: 0.7;
-  display: block;
-  margin-bottom: 0.15rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.ce-hl-meta-value {
-  font-weight: 600;
-  word-break: break-word;
+  /* narrow screens: soften beams */
+  .ce-hl-card-spot .ce-hl-content::before,
+  .ce-hl-card-spot .ce-hl-content::after {
+    width: 55%;
+    opacity: 0.55;
+  }
 }

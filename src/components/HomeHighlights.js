@@ -108,13 +108,16 @@ const HomeHighlights = () => {
     ? current.meta.filter((m) => m.label && !/player\s*id/i.test(m.label))
     : [];
 
+  // 👇 add special class only for All Round Performer cards
+  const isSpotlight = current.type === "all_round_performer";
+
   return (
     <div className="ce-hl-wrapper">
       <button className="ce-hl-nav left" onClick={handlePrev}>
         &lt;
       </button>
 
-      <div className="ce-hl-card">
+      <div className={`ce-hl-card ${isSpotlight ? "ce-hl-card-spot" : ""}`}>
         {/* tiny, slower particle confetti */}
         <div className="ce-hl-confetti">
           {Array.from({ length: 110 }).map((_, i) => (
