@@ -62,7 +62,7 @@
 
 .ce-hl-content {
   position: relative;
-  z-index: 2;
+  z-index: 3; /* above lights + floor + confetti */
   padding: 26px 24px 18px;
   text-align: center;
   color: #fff;
@@ -89,14 +89,13 @@
   margin-bottom: 16px;
 }
 
-/* subtitle (you had it in JSX but not styled) */
 .ce-hl-subtitle {
   font-size: 0.9rem;
   opacity: 0.85;
   margin-bottom: 16px;
 }
 
-/* responsive meta grid (replaces old flex version) */
+/* responsive meta grid */
 .ce-hl-meta-grid {
   display: grid;
   gap: 0.5rem;
@@ -184,7 +183,7 @@
   inset: 0;
   pointer-events: none;
   overflow: hidden;
-  z-index: 1;
+  z-index: 2; /* lights are 1, content 3 */
 }
 
 .ce-confetti {
@@ -199,21 +198,11 @@
   opacity: 0.95;
 }
 
-.c-1 {
-  background: #ff4d4d;
-}
-.c-2 {
-  background: #ffe066;
-}
-.c-3 {
-  background: #6df2ff;
-}
-.c-4 {
-  background: #9b6dff;
-}
-.c-5 {
-  background: #ffffff;
-}
+.c-1 { background: #ff4d4d; }
+.c-2 { background: #ffe066; }
+.c-3 { background: #6df2ff; }
+.c-4 { background: #9b6dff; }
+.c-5 { background: #ffffff; }
 
 @keyframes ceConfettiFall {
   0% {
@@ -230,72 +219,68 @@
 }
 
 /* =========================================================
-   SPOTLIGHT EFFECT FOR "ALL ROUND PERFORMER" CARD
-   (we put it on .ce-hl-content so we do NOT clash with
-   .ce-hl-card::before / ::after watermarks)
+   REAL SPOTLIGHT EFFECT (two cones + floor) FOR ALL CARDS
    ========================================================= */
-.ce-hl-card-spot .ce-hl-content {
-  position: relative;
-}
-
-/* left beam */
 .ce-hl-card-spot .ce-hl-content::before,
 .ce-hl-card-spot .ce-hl-content::after {
   content: "";
   position: absolute;
-  top: -45%;
-  width: 42%;
-  height: 180%;
+  top: -90px;              /* start above the card so it looks like coming from top */
+  width: 55%;
+  height: 260px;
   pointer-events: none;
   mix-blend-mode: screen;
-  opacity: 0.75;
-  filter: blur(2px);
-  z-index: 0;
+  background: radial-gradient(
+    ellipse at top,
+    rgba(255, 255, 255, 0.65) 0%,
+    rgba(255, 255, 255, 0) 65%
+  );
+  filter: blur(3px);
+  opacity: 0.58;
+  z-index: 1;
 }
 
-/* left */
+/* left cone */
 .ce-hl-card-spot .ce-hl-content::before {
-  left: -10%;
-  background: radial-gradient(
-      circle at 10% 40%,
-      rgba(0, 255, 209, 0.65),
-      rgba(0, 255, 209, 0) 70%
-    ),
-    linear-gradient(
-      118deg,
-      rgba(0, 255, 209, 0.45) 0%,
-      rgba(0, 255, 209, 0) 70%
-    );
-  transform: rotate(-6deg);
+  left: -12%;
+  transform: rotate(-12deg);
 }
 
-/* right */
+/* right cone */
 .ce-hl-card-spot .ce-hl-content::after {
-  right: -10%;
-  background: radial-gradient(
-      circle at 90% 40%,
-      rgba(0, 214, 255, 0.6),
-      rgba(0, 214, 255, 0) 70%
-    ),
-    linear-gradient(
-      -118deg,
-      rgba(0, 214, 255, 0.4) 0%,
-      rgba(0, 214, 255, 0) 70%
-    );
-  transform: rotate(6deg);
+  right: -12%;
+  transform: rotate(12deg);
 }
 
-/* make title sit over the beams */
-.ce-hl-card-spot .ce-hl-title,
+/* floor glow under the name / meta */
+.ce-hl-spot-floor {
+  position: absolute;
+  bottom: -45px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 46%;
+  height: 130px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.35) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  filter: blur(18px);
+  opacity: 0.65;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* make text sit above everything */
 .ce-hl-card-spot .ce-hl-tag,
+.ce-hl-card-spot .ce-hl-title,
 .ce-hl-card-spot .ce-hl-subtitle,
 .ce-hl-card-spot .ce-hl-meta-grid {
   position: relative;
-  z-index: 2;
+  z-index: 4;
 }
-
 .ce-hl-card-spot .ce-hl-title {
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.55);
+  text-shadow: 0 6px 32px rgba(0, 0, 0, 0.6);
 }
 
 /* responsive */
@@ -312,10 +297,15 @@
   .ce-hl-meta-item {
     border-radius: 14px;
   }
-  /* narrow screens: soften beams */
+  /* softer lights on mobile */
   .ce-hl-card-spot .ce-hl-content::before,
   .ce-hl-card-spot .ce-hl-content::after {
-    width: 55%;
-    opacity: 0.55;
+    width: 70%;
+    opacity: 0.45;
+    top: -70px;
+  }
+  .ce-hl-spot-floor {
+    width: 70%;
+    bottom: -55px;
   }
 }

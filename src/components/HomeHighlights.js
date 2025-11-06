@@ -40,7 +40,6 @@ const HomeHighlights = () => {
             },
           ];
 
-          // only add "Period" if backend sent a real number
           if (
             typeof insight.period_days === "number" &&
             !Number.isNaN(insight.period_days)
@@ -108,16 +107,17 @@ const HomeHighlights = () => {
     ? current.meta.filter((m) => m.label && !/player\s*id/i.test(m.label))
     : [];
 
-  // 👇 add special class only for All Round Performer cards
-  const isSpotlight = current.type === "all_round_performer";
-
   return (
     <div className="ce-hl-wrapper">
       <button className="ce-hl-nav left" onClick={handlePrev}>
         &lt;
       </button>
 
-      <div className={`ce-hl-card ${isSpotlight ? "ce-hl-card-spot" : ""}`}>
+      {/* spotlight on EVERY card now */}
+      <div className="ce-hl-card ce-hl-card-spot">
+        {/* floor glow for spotlight */}
+        <div className="ce-hl-spot-floor" />
+
         {/* tiny, slower particle confetti */}
         <div className="ce-hl-confetti">
           {Array.from({ length: 110 }).map((_, i) => (
@@ -137,7 +137,6 @@ const HomeHighlights = () => {
           {displayTag && <div className="ce-hl-tag">{displayTag}</div>}
           <h2 className="ce-hl-title">{current.title}</h2>
 
-          {/* optional subtitle (used for Best Board) */}
           {current.subtitle ? (
             <p className="ce-hl-subtitle">{current.subtitle}</p>
           ) : null}
