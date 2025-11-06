@@ -6,142 +6,150 @@ const FaqPage = () => {
   // ===== MASTER FAQ DATA =====
   const faqSections = [
     {
-      category: "1. Getting Started",
+      id: "getting-started",
+      category: "Getting Started",
       items: [
         {
           q: "What is CrickEdge?",
-          a: "CrickEdge is a real-time cricket analytics and scoreboard platform. It lets organizers record results, teams view standings and fans explore insights — all in a modern web experience."
+          a: "CrickEdge is a real-time cricket scoreboard and analytics web app. It lets organizers record results, teams see standings, and fans explore insights in one place."
         },
         {
           q: "Who is CrickEdge for?",
-          a: "For tournament organizers, board admins, team captains, players and fans who want structured cricket data instead of scattered sheets."
+          a: "For tournament organizers, board admins, captains, players, and fans who want structured cricket data instead of scattered spreadsheets."
         },
         {
           q: "Is CrickEdge free to use?",
-          a: "Yes. Viewing data and analytics is free. Some write actions may be restricted to admins for safety."
+          a: "Yes. Viewing is free. Some match / board actions may be restricted to admins so that official data isn’t changed accidentally."
         },
         {
           q: "Do I need an account to view data?",
-          a: "No. You only need an account if you submit or manage matches/boards."
+          a: "No. You sign in only if you submit, manage, or access protected admin panels."
         }
       ]
     },
     {
-      category: "2. Match Management",
+      id: "match-management",
+      category: "Match Management",
       items: [
         {
           q: "How do I submit a new match result?",
-          a: "Go to the match submission page, pick the format, select both teams, enter runs/wickets/overs/winner and save. CrickEdge will recalc leaderboards instantly."
+          a: "Go to Add Match → select format → pick the two teams → enter runs, wickets, overs and the winner → save. The leaderboard will refresh instantly."
         },
         {
           q: "What match formats are supported?",
-          a: "T20 (20 overs), ODI (50 overs) and Test. Each is handled separately in analytics."
+          a: "T20, ODI and Test. Each format is calculated separately so you can see performance per format."
         },
         {
           q: "What if a team is all-out early?",
-          a: "CrickEdge applies ICC-style logic — the full quota of overs for that format is considered for NRR."
+          a: "CrickEdge uses ICC-style NRR logic — the full quota of overs is considered for the team that got all-out early."
         },
         {
           q: "Can I edit or delete a match?",
-          a: "Only admins or privileged users can edit/delete, to avoid tampering with official results."
+          a: "Only admins or privileged users can edit / delete, to protect the tournament table."
         }
       ]
     },
     {
-      category: "3. Leaderboards & NRR",
+      id: "leaderboards",
+      category: "Leaderboards & NRR",
       items: [
         {
           q: "How does CrickEdge calculate NRR?",
-          a: "NRR = (Total Runs Scored ÷ Overs Faced) – (Total Runs Conceded ÷ Overs Bowled). Overs with balls are converted to decimal (19.3 → 19.5)."
+          a: "NRR = (Total runs scored ÷ overs faced) – (Total runs conceded ÷ overs bowled). Ball parts are converted to decimals, e.g. 19.3 → 19.5."
         },
         {
           q: "How fast are leaderboards updated?",
-          a: "Immediately after a valid match result is saved."
+          a: "Immediately after a valid match is saved."
         },
         {
           q: "What if two teams have the same NRR?",
-          a: "Secondary tie-breakers like wins or head-to-head can be applied — this keeps tables fair."
+          a: "Secondary tie-breakers like wins or head-to-head can be considered, depending on the tournament rules."
         },
         {
           q: "Can I view rankings per format?",
-          a: "Yes — ODI, T20 and Test can be viewed separately."
+          a: "Yes — the Ranking pages let you view ODI, T20 and Test separately."
         }
       ]
     },
     {
-      category: "4. Teams & Boards",
+      id: "teams-boards",
+      category: "Teams & Boards",
       items: [
         {
           q: "What is a Board in CrickEdge?",
-          a: "A board is an organizing unit (club, association, tournament owner) with its own teams, matches and analytics."
+          a: "A board is an organizing unit (club / association / tournament owner) that owns teams, matches and analytics."
         },
         {
           q: "Can I create a new board?",
-          a: "Yes, if your account has admin permission. This is to keep the structure tidy."
+          a: "Yes, if your login has admin rights. This keeps the list of boards clean."
         },
         {
           q: "How many teams can be added to a board?",
-          a: "There’s no strict limit — multiple teams per board are supported."
+          a: "Multiple teams per board are supported — ideal for clubs running multiple squads."
         },
         {
           q: "Can I compare boards?",
-          a: "Yes. Board Analytics shows multi-board comparisons with charts and leadership timeline."
+          a: "Yes. Board Analytics shows multi-board scorecards, charts and crown timeline."
         }
       ]
     },
     {
-      category: "5. Player Analytics",
+      id: "player-analytics",
+      category: "Player Analytics",
       items: [
         {
           q: "How are player ratings stored?",
-          a: "Every match updates batting, bowling and all-round components for the player, and CrickEdge aggregates them."
+          a: "Each match contributes to batting, bowling and all-round buckets. CrickEdge then aggregates these to show total rating."
         },
         {
-          q: "What is an All Round Performer?",
-          a: "The player whose combined rating (batting + bowling + all-rounder) is the best inside that category/time. These are highlighted on the homepage."
+          q: "What is an All-Round Performer?",
+          a: "A player whose combined score (batting + bowling + all-rounder) is the highest for that skill group / period. These are shown in highlights."
         },
         {
           q: "Can I see which team a player belongs to?",
-          a: "Yes — player records keep team and board mapping."
+          a: "Yes. Player records keep team and board mapping so you always know the source team."
         }
       ]
     },
     {
-      category: "6. Installation & Access",
+      id: "install-access",
+      category: "Installation & Access",
       items: [
         {
           q: "Can I install CrickEdge like an app?",
-          a: "Yes. CrickEdge is a PWA — install from browser (desktop) or 'Add to home screen' (mobile)."
+          a: "Yes. It's a PWA — click Get App (desktop) or use Add to Home Screen (mobile)."
         },
         {
           q: "Do I get updates automatically?",
-          a: "Yes. When a new build is deployed, you may see a refresh prompt — click it to load the latest UI."
+          a: "Yes. When a new build is pushed you may see an update prompt; click Update to reload with the latest features."
         },
         {
           q: "What browsers are supported?",
-          a: "Latest Chrome, Edge and Firefox give the best experience. Safari works too but install prompts may differ."
+          a: "Latest Chrome, Edge and Firefox are recommended. Safari works, though install prompts can look different."
         }
       ]
     },
     {
-      category: "7. Technical & Data",
+      id: "technical",
+      category: "Technical & Data",
       items: [
         {
-          q: "What stack does CrickEdge use?",
-          a: "React (frontend), Node/Express (backend), PostgreSQL (database), hosted on modern cloud platforms."
+          q: "What tech does CrickEdge use?",
+          a: "React for the UI, Node/Express for APIs, PostgreSQL for data, deployed on modern cloud hosting."
         },
         {
           q: "Is data secure?",
-          a: "Write operations are authenticated and admin-only actions are hidden for normal users."
+          a: "Admin-only actions are hidden for normal users. Mutating operations are validated server-side."
         },
         {
           q: "Is it real-time?",
-          a: "Yes — once you submit a match, leaderboards and analytics pull the latest numbers."
+          a: "Yes — dashboards and analytics pull fresh data right after submission."
         }
       ]
     },
     {
-      category: "8. Developer & Support",
+      id: "support",
+      category: "Developer & Support",
       items: [
         {
           q: "Who built CrickEdge?",
@@ -149,11 +157,11 @@ const FaqPage = () => {
         },
         {
           q: "How can I report a problem?",
-          a: "Use the in-app feedback/contact path (if enabled) or reach out to the site owner with match, teams and date."
+          a: "Use the Contact / Feedback page and include: format, teams, date and what went wrong."
         },
         {
           q: "Can I request features?",
-          a: "Yes — feature suggestions are welcome, especially around tournament automation and AI insights."
+          a: "Yes. Suggestions around tournament automation, AI insights and mobile friendliness are welcome."
         }
       ]
     }
@@ -161,83 +169,121 @@ const FaqPage = () => {
 
   // ===== STATE =====
   const [searchTerm, setSearchTerm] = useState("");
-  const [openMap, setOpenMap] = useState({}); // { "sectionIndex-itemIndex": true }
+  const [openKey, setOpenKey] = useState(null);
+  const [activeSection, setActiveSection] = useState(faqSections[0].id);
 
-  // ===== FILTERED VIEW =====
+  // ===== FILTERING =====
   const filteredSections = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return faqSections;
     return faqSections
       .map((section) => {
-        const filteredItems = section.items.filter((item) => {
-          return (
+        const filteredItems = section.items.filter(
+          (item) =>
             item.q.toLowerCase().includes(term) ||
             item.a.toLowerCase().includes(term)
-          );
-        });
-        if (filteredItems.length === 0) return null;
+        );
+        if (!filteredItems.length) return null;
         return { ...section, items: filteredItems };
       })
       .filter(Boolean);
   }, [searchTerm, faqSections]);
 
-  // ===== HANDLERS =====
   const handleToggle = (key) => {
-    setOpenMap((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+    setOpenKey((prev) => (prev === key ? null : key));
   };
 
   return (
-    <div className="ce-faq-page">
-      <h1>❓ CrickEdge FAQ</h1>
-      <p className="intro">
-        Find answers about scoring, boards, player analytics, NRR and how to
-        use CrickEdge if you’re an organizer or a first-time visitor.
-      </p>
+    <div className="ce-faq-shell">
+      {/* sidebar */}
+      <aside className="ce-faq-sidebar">
+        <div className="ce-faq-sidebar-title">FAQ Sections</div>
+        <ul>
+          {faqSections.map((s) => (
+            <li
+              key={s.id}
+              className={s.id === activeSection ? "active" : ""}
+              onClick={() => {
+                setActiveSection(s.id);
+                setOpenKey(null);
+                setSearchTerm("");
+              }}
+            >
+              {s.category}
+            </li>
+          ))}
+        </ul>
+      </aside>
 
-      {/* search bar */}
-      <div className="faq-search-wrap">
-        <input
-          type="text"
-          placeholder="Search in FAQ… (try: NRR, match edit, install, board)"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="faq-search-input"
-        />
-      </div>
-
-      {filteredSections.length === 0 ? (
-        <p className="no-results">
-          No FAQ matched your search. Try a different keyword.
-        </p>
-      ) : (
-        filteredSections.map((section, sIdx) => (
-          <div key={section.category} className="faq-section">
-            <h2>{section.category}</h2>
-            {section.items.map((item, iIdx) => {
-              const key = `${sIdx}-${iIdx}`;
-              const isOpen = !!openMap[key];
-              return (
-                <div key={key} className={`faq-item ${isOpen ? "open" : ""}`}>
-                  <button
-                    type="button"
-                    className="faq-trigger"
-                    onClick={() => handleToggle(key)}
-                  >
-                    <span className="faq-icon" aria-hidden="true">
-                      {isOpen ? "➖" : "➕"}
-                    </span>
-                    <span className="faq-question">{item.q}</span>
-                  </button>
-                  {isOpen && <p className="faq-answer">{item.a}</p>}
-                </div>
-              );
-            })}
+      {/* main panel */}
+      <main className="ce-faq-page">
+        <div className="ce-faq-header">
+          <div className="ce-faq-pill">❓ FAQ</div>
+          <h1>CrickEdge Help Center</h1>
+          <p>
+            Everything about matches, boards, leaderboards, NRR, installation
+            and admin access — in one place.
+          </p>
+          <div className="faq-search-wrap">
+            <input
+              type="text"
+              placeholder="Search in FAQ… (e.g. NRR, match edit, install, board)"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="faq-search-input"
+            />
           </div>
-        ))
-      )}
+        </div>
+
+        {/* list of sections (filtered) */}
+        {filteredSections.map((section, sIdx) => (
+          <section
+            key={section.id}
+            className={`faq-section-block ${
+              searchTerm ? "expanded" : section.id === activeSection ? "show" : "hide"
+            }`}
+          >
+            <h2 className="faq-section-title">
+              <span className="bar" />
+              {sIdx + 1}. {section.category}
+            </h2>
+
+            <div className="faq-grid">
+              {section.items.map((item, iIdx) => {
+                const key = `${section.id}-${iIdx}`;
+                const isOpen = openKey === key;
+                return (
+                  <div key={key} className={`faq-item ${isOpen ? "open" : ""}`}>
+                    <button
+                      type="button"
+                      className="faq-trigger"
+                      onClick={() => handleToggle(key)}
+                    >
+                      <span className="faq-icon" aria-hidden="true">
+                        {isOpen ? "−" : "+"}
+                      </span>
+                      <span className="faq-question">{item.q}</span>
+                    </button>
+                    <div
+                      className="faq-answer-wrap"
+                      style={{ maxHeight: isOpen ? "400px" : "0px" }}
+                    >
+                      <p className="faq-answer">{item.a}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+
+        {filteredSections.length === 0 && (
+          <p className="no-results">
+            No FAQ matched your search. Try a broader word like “match” or
+            “leaderboard”.
+          </p>
+        )}
+      </main>
     </div>
   );
 };
