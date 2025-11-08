@@ -1,5 +1,5 @@
 // ✅ src/components/SidebarMenu.js
-// ✅ [01-JUL-2025 Ranaj Parida | Admin-only "Manage Admins" menu item]
+// ✅ [01-JULY-2025 Ranaj Parida | Admin-only "Manage Admins" menu item]
 // ✅ [04-NOV-2025 Ranaj Parida | Added "Man of the Match Insights" module + polished icons]
 
 import React, { useEffect, useState } from "react";
@@ -10,8 +10,8 @@ import {
   FaChartLine,
   FaUserCheck,
   FaTimes,
-  FaDiceD20, // pitch randomizer
-  FaMedal, // MoM insights
+  FaDiceD20, // 🎯 Pitch Randomizer icon
+  FaMedal, // 🏅 MoM Insights
 } from "react-icons/fa";
 import { FaRegNewspaper } from "react-icons/fa";
 import { FaHandshake } from "react-icons/fa";
@@ -19,23 +19,25 @@ import { FaBrain } from "react-icons/fa";
 import "./SidebarMenu.css";
 
 const SidebarMenu = () => {
-  // sidebar open/close
+  // Sidebar toggle state
   const [isOpen, setIsOpen] = useState(false);
-  // admin flag
+
+  // ✅ Admin privilege state
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // listen to global toggle
+  // ✅ Listen for global sidebar toggle event
   useEffect(() => {
     const handleToggle = () => setIsOpen((prev) => !prev);
     window.addEventListener("toggleSidebar", handleToggle);
     return () => window.removeEventListener("toggleSidebar", handleToggle);
   }, []);
 
-  // load admin from localStorage
+  // ✅ Load admin state from localStorage
   useEffect(() => {
     setIsAdmin(localStorage.getItem("isAdmin") === "true");
   }, []);
 
+  // ✅ Close sidebar on link click
   const handleClose = () => setIsOpen(false);
 
   return (
@@ -64,6 +66,7 @@ const SidebarMenu = () => {
             <FaChartLine className="me-2" /> 🏆 CrickEdge Rankings
           </Link>
         </li>
+
         {/* ✅ RESTORED – Squad / Lineup */}
         <li>
           <Link to="/squad-lineup" onClick={handleClose}>
