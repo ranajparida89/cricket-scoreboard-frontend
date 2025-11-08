@@ -1,4 +1,4 @@
-// ✅ src/components/PlayerStats.js — original layout + extra combined table + search + info modals
+// ✅ src/components/PlayerStats.js — original layout + extra combined table + search + info modals + fixed ranks
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
@@ -143,12 +143,16 @@ const PlayerStats = () => {
       acc.total_double_hundreds += dh;
     }
 
+    // turn map -> array, sort once, and assign GLOBAL rank
     const arr = Array.from(map.values());
     arr.sort((a, b) => b.total_runs - a.total_runs);
+    arr.forEach((p, idx) => {
+      p.rank = idx + 1; // 👈 fixed, global rank
+    });
     return arr;
   }, [rows]);
 
-  // 3b) apply search to table 3 only
+  // 3b) apply search to table 3 only — but KEEP original rank
   const filteredCombinedAllFormats = useMemo(() => {
     const q = combinedSearch.trim().toLowerCase();
     if (!q) return combinedAllFormats;
@@ -381,92 +385,93 @@ const PlayerStats = () => {
       )}
 
       {/* ===== 3) Player Combined (All Formats) ===== */}
-      {filteredCombinedAllFormats.length > 0 && (
-        <div className="ps-card mt-4">
-          <div className="ps-header ps-header--mini">
-            <h4 className="ps-title-small">
-              Player Combined (All Formats)
-            </h4>
-            <button
-              type="button"
-              className="ps-info"
-              onClick={() =>
-                openInfo(
-                  "Player Combined (All Formats)",
-                  "This table shows exactly 1 row per player. It adds ODI + T20 + Test for that player from the filtered list above. Use the search below to find a specific player."
-                )
-              }
-            >
-              i
-            </button>
+      <div className="ps-card mt-4">
+        <div className="ps-header ps-header--mini">
+          <h4 className="ps-title-small">Player Combined (All Formats)</h4>
+          <button
+            type="button"
+            className="ps-info"
+            onClick={() =>
+              openInfo(
+                "Player Combined (All Formats)",
+                "This table shows exactly 1 row per player. It adds ODI + T20 + Test for that player from the filtered list above. Use the search below to find a specific player."
+              )
+            }
+          >
+            i
+          </button>
+        </div>
+
+        {/* search just for table 3 */}
+        <div className="ps-filters ps-filters--compact">
+          <input
+            className="ps-input"
+            placeholder="Search player in combined table..."
+            value={combinedSearch}
+            onChange={(e) => setCombinedSearch(e.target.value)}
+          />
+        </div>
+
+        <div className="ps-grid-combined" role="table">
+          <div className="ps-head-combined" role="rowgroup">
+            <div className="cell head num">Rank</div>
+            <div className="cell head">Player</div>
+            <div className="cell head num">Matches</div>
+            <div className="cell head num">Total Runs</div>
+            <div className="cell head num">Total Wkts</div>
+            <div className="cell head num">Total 50s</div>
+            <div className="cell head num">Total 100s</div>
+            <div className="cell head num">Total 200s</div>
           </div>
 
-          {/* search just for table 3 */}
-          <div className="ps-filters ps-filters--compact">
-            <input
-              className="ps-input"
-              placeholder="Search player in combined table..."
-              value={combinedSearch}
-              onChange={(e) => setCombinedSearch(e.target.value)}
-            />
-          </div>
+          <div className="ps-body" role="rowgroup">
+            {filteredCombinedAllFormats.length === 0 && (
+              <div className="ps-empty">No such player found.</div>
+            )}
 
-          <div className="ps-grid-combined" role="table">
-            <div className="ps-head-combined" role="rowgroup">
-              <div className="cell head num">Rank</div>
-              <div className="cell head">Player</div>
-              <div className="cell head num">Matches</div>
-              <div className="cell head num">Total Runs</div>
-              <div className="cell head num">Total Wkts</div>
-              <div className="cell head num">Total 50s</div>
-              <div className="cell head num">Total 100s</div>
-              <div className="cell head num">Total 200s</div>
-            </div>
+            {filteredCombinedAllFormats.map((p) => {
+              // use GLOBAL rank, not filtered index
+              const top =
+                p.rank === 1
+                  ? "gold"
+                  : p.rank === 2
+                  ? "silver"
+                  : p.rank === 3
+                  ? "bronze"
+                  : "";
+              const medal =
+                p.rank === 1 ? "🥇" : p.rank === 2 ? "🥈" : p.rank === 3 ? "🥉" : null;
 
-            <div className="ps-body" role="rowgroup">
-              {filteredCombinedAllFormats.map((p, i) => {
-                const top =
-                  i === 0
-                    ? "gold"
-                    : i === 1
-                    ? "silver"
-                    : i === 2
-                    ? "bronze"
-                    : "";
-                const medal =
-                  i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : null;
-
-                return (
-                  <div
-                    className={`ps-row-combined ${top}`}
-                    role="row"
-                    key={`${p.player_name}-${i}`}
-                  >
-                    <div className="cell num">
-                      <span className={`medal ${top || ""}`}>{medal}</span>
-                      {i + 1}
-                    </div>
-                    <div className="cell">
-                      <button
-                        className="player-link"
-                        onClick={() => handlePlayerClick(p.player_name)}
-                      >
-                        {p.player_name}
-                      </button>
-                    </div>
-                    <div className="cell num">{p.total_matches}</div>
-                    <div className="cell num">{p.total_runs}</div>
-                    <div className="cell num">{p.total_wickets}</div>
-                    <div className="cell num">{p.total_fifties}</div>
-                    <div className="cell num">{p.total_hundreds}</div>
-                    <div className="cell num">{p.total_double_hundreds}</div>
+              return (
+                <div
+                  className={`ps-row-combined ${top}`}
+                  role="row"
+                  key={p.player_name}
+                >
+                  <div className="cell num">
+                    <span className={`medal ${top || ""}`}>{medal}</span>
+                    {p.rank}
                   </div>
-                );
-              })}
-            </div>
+                  <div className="cell">
+                    <button
+                      className="player-link"
+                      onClick={() => handlePlayerClick(p.player_name)}
+                    >
+                      {p.player_name}
+                    </button>
+                  </div>
+                  <div className="cell num">{p.total_matches}</div>
+                  <div className="cell num">{p.total_runs}</div>
+                  <div className="cell num">{p.total_wickets}</div>
+                  <div className="cell num">{p.total_fifties}</div>
+                  <div className="cell num">{p.total_hundreds}</div>
+                  <div className="cell num">{p.total_double_hundreds}</div>
+                </div>
+              );
+            })}
           </div>
         </div>
-      )}
+      </div>
 
       {/* ===== Match details modal (unchanged) ===== */}
       {showDetailsModal && selectedPlayer && (
