@@ -261,16 +261,16 @@
   border: 1px solid rgba(255, 255, 255, 0.03);
 }
 .reel-card--teal {
-  background: linear-gradient(180deg, rgba(0, 255, 170, 0.15) 0%, rgba(5, 29, 19, 0) 75%);
+  background: linear-gradient(180deg, rgba(0, 255, 170, 0.16) 0%, rgba(5, 29, 19, 0) 75%);
 }
 .reel-card--blue {
-  background: linear-gradient(180deg, rgba(68, 162, 255, 0.18) 0%, rgba(8, 20, 35, 0) 75%);
+  background: linear-gradient(180deg, rgba(68, 162, 255, 0.19) 0%, rgba(8, 20, 35, 0) 75%);
 }
 .reel-card--purple {
-  background: linear-gradient(180deg, rgba(175, 115, 255, 0.2) 0%, rgba(21, 11, 28, 0) 75%);
+  background: linear-gradient(180deg, rgba(175, 115, 255, 0.21) 0%, rgba(21, 11, 28, 0) 75%);
 }
 .reel-card--orange {
-  background: linear-gradient(180deg, rgba(255, 179, 77, 0.21) 0%, rgba(37, 22, 9, 0) 75%);
+  background: linear-gradient(180deg, rgba(255, 179, 77, 0.23) 0%, rgba(37, 22, 9, 0) 75%);
 }
 
 .reel-label {
@@ -294,12 +294,37 @@
   justify-content: center;
 }
 
+/* when reel is locked, hide arrow + strip */
+.reel-window.has-final .reel-arrow {
+  display: none;
+}
+.reel-window.has-final .reel-strip {
+  display: none;
+}
+
 .reel-strip {
   display: flex;
   flex-direction: column;
   gap: 6px;
   animation: none;
   font-size: 0.9rem;
+}
+
+/* colorful icons in strip */
+.reel-strip span:nth-child(1) {
+  color: #ffffff;
+}
+.reel-strip span:nth-child(2) {
+  color: #ffe082;
+}
+.reel-strip span:nth-child(3) {
+  color: #64b5f6;
+}
+.reel-strip span:nth-child(4) {
+  color: #ff8a65;
+}
+.reel-strip span:nth-child(5) {
+  color: #ba68c8;
 }
 
 .reel-window.is-spinning .reel-strip {
@@ -315,7 +340,7 @@
   }
 }
 
-/* arrow at the top center */
+/* arrow at the top center - colored per reel */
 .reel-arrow {
   position: absolute;
   top: -12px;
@@ -327,6 +352,18 @@
   border-right: 7px solid transparent;
   border-bottom: 10px solid rgba(255, 255, 255, 0.8);
   filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.6));
+}
+.reel-card--teal .reel-arrow {
+  border-bottom-color: #4ef3c1;
+}
+.reel-card--blue .reel-arrow {
+  border-bottom-color: #64b5f6;
+}
+.reel-card--purple .reel-arrow {
+  border-bottom-color: #c792ff;
+}
+.reel-card--orange .reel-arrow {
+  border-bottom-color: #ffb347;
 }
 
 /* final value overlay */

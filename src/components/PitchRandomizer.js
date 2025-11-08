@@ -1,5 +1,6 @@
 // src/components/PitchRandomizer.js
 // Pitch Randomizer with colorful, bigger casino reels + progress bar
+// arrow/strip hide after lock
 
 import React, { useState, useEffect, useRef } from "react";
 import "./PitchRandomizer.css";
@@ -298,11 +299,7 @@ export default function PitchRandomizer() {
 
   // progress for glow bar: 0, 25, 50, 75, 100
   const progress =
-    reelDone.r4
-      ? 100
-      : activeReel === 0
-      ? 100
-      : activeReel * 25; // 1→25, 2→50 etc.
+    reelDone.r4 ? 100 : activeReel === 0 ? 100 : activeReel * 25; // 1→25, 2→50 etc.
 
   return (
     <div className="pitch-container wide-layout">
@@ -379,7 +376,7 @@ export default function PitchRandomizer() {
                 <div
                   className={`reel-window ${
                     activeReel === 1 ? "is-spinning" : ""
-                  }`}
+                  } ${reelDone.r1 ? "has-final" : ""}`}
                 >
                   <div className="reel-arrow" />
                   <div className="reel-strip">
@@ -401,7 +398,7 @@ export default function PitchRandomizer() {
                 <div
                   className={`reel-window ${
                     activeReel === 2 ? "is-spinning" : ""
-                  }`}
+                  } ${reelDone.r2 ? "has-final" : ""}`}
                 >
                   <div className="reel-arrow" />
                   <div className="reel-strip">
@@ -423,7 +420,7 @@ export default function PitchRandomizer() {
                 <div
                   className={`reel-window ${
                     activeReel === 3 ? "is-spinning" : ""
-                  }`}
+                  } ${reelDone.r3 ? "has-final" : ""}`}
                 >
                   <div className="reel-arrow" />
                   <div className="reel-strip">
@@ -445,7 +442,7 @@ export default function PitchRandomizer() {
                 <div
                   className={`reel-window ${
                     activeReel === 4 ? "is-spinning" : ""
-                  }`}
+                  } ${reelDone.r4 ? "has-final" : ""}`}
                 >
                   <div className="reel-arrow" />
                   <div className="reel-strip">
