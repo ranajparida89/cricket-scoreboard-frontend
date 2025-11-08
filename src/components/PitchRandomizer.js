@@ -1,6 +1,5 @@
 // src/components/PitchRandomizer.js
-// Pitch Randomizer with real 4-slot spinning popup (user closes)
-// backend + history logic kept as-is
+// Pitch Randomizer with colorful, bigger casino reels + progress bar
 
 import React, { useState, useEffect, useRef } from "react";
 import "./PitchRandomizer.css";
@@ -297,6 +296,14 @@ export default function PitchRandomizer() {
     setReelDone({ r1: false, r2: false, r3: false, r4: false });
   };
 
+  // progress for glow bar: 0, 25, 50, 75, 100
+  const progress =
+    reelDone.r4
+      ? 100
+      : activeReel === 0
+      ? 100
+      : activeReel * 25; // 1→25, 2→50 etc.
+
   return (
     <div className="pitch-container wide-layout">
       <h2 className="pitch-title">
@@ -367,7 +374,7 @@ export default function PitchRandomizer() {
 
             <div className="reel-row">
               {/* Reel 1 */}
-              <div className="reel-card">
+              <div className="reel-card reel-card--teal">
                 <div className="reel-label">Pitch Type</div>
                 <div
                   className={`reel-window ${
@@ -389,7 +396,7 @@ export default function PitchRandomizer() {
               </div>
 
               {/* Reel 2 */}
-              <div className="reel-card">
+              <div className="reel-card reel-card--blue">
                 <div className="reel-label">Pitch Hardness</div>
                 <div
                   className={`reel-window ${
@@ -411,7 +418,7 @@ export default function PitchRandomizer() {
               </div>
 
               {/* Reel 3 */}
-              <div className="reel-card">
+              <div className="reel-card reel-card--purple">
                 <div className="reel-label">Pitch Crack</div>
                 <div
                   className={`reel-window ${
@@ -433,7 +440,7 @@ export default function PitchRandomizer() {
               </div>
 
               {/* Reel 4 */}
-              <div className="reel-card">
+              <div className="reel-card reel-card--orange">
                 <div className="reel-label">Pitch Age</div>
                 <div
                   className={`reel-window ${
@@ -453,6 +460,14 @@ export default function PitchRandomizer() {
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* progress glow bar */}
+            <div className="spin-progress">
+              <div
+                className="spin-progress-bar"
+                style={{ width: `${progress}%` }}
+              />
             </div>
 
             <div className="spin-footer">

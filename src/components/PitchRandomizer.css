@@ -1,5 +1,5 @@
 /* =========================================================
-   BASE CONTAINER / FORM (same as before)
+   BASE CONTAINER / FORM
    ========================================================= */
 .pitch-container {
   width: 96%;
@@ -28,7 +28,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  font-size: 2rem;
+  font-size: 2.05rem;
 }
 .emoji-icon {
   font-size: 2.1rem;
@@ -50,6 +50,7 @@
   font-weight: 500;
   display: block;
   margin-bottom: 6px;
+  font-size: 0.92rem;
 }
 .req {
   color: #ff7b7b;
@@ -59,7 +60,7 @@
 .input-group input,
 .input-group select {
   width: 100%;
-  padding: 10px 12px;
+  padding: 11px 13px;
   border-radius: 9px;
   border: 1px solid rgba(255, 255, 255, 0.03);
   background: #1a1a1a;
@@ -78,7 +79,7 @@
 .btn-generate {
   background: linear-gradient(90deg, #00ffaa, #0066ff);
   border: none;
-  padding: 12px 35px;
+  padding: 13px 38px;
   color: #000;
   font-weight: bold;
   border-radius: 10px;
@@ -86,6 +87,7 @@
   transition: 0.25s;
   margin-top: 5px;
   align-self: center;
+  font-size: 0.93rem;
 }
 .btn-generate:hover {
   transform: translateY(-1px);
@@ -188,7 +190,7 @@
 }
 
 /* =========================================================
-   SPIN MODAL WITH CASINO REELS
+   SPIN MODAL WITH COLORFUL CASINO REELS
    ========================================================= */
 .spin-overlay {
   position: fixed;
@@ -202,7 +204,7 @@
 }
 
 .spin-modal {
-  background: linear-gradient(180deg, #0f1720 0%, #0a0f14 100%);
+  background: radial-gradient(circle at top, #0f1720 0%, #0a0f14 60%, #040608 100%);
   border: 1px solid rgba(0, 255, 170, 0.16);
   border-radius: 18px;
   box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
@@ -211,7 +213,7 @@
 
 .spin-modal--reels {
   width: min(1050px, 96vw);
-  padding: 20px 20px 18px;
+  padding: 22px 22px 18px;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -224,19 +226,20 @@
   gap: 12px;
 }
 .spin-title {
-  font-weight: 700;
-  font-size: 1.02rem;
+  font-weight: 750;
+  font-size: 1.12rem;
+  letter-spacing: 0.01em;
 }
 .spin-sub {
-  font-size: 0.7rem;
-  color: #8ca9bd;
+  font-size: 0.78rem;
+  color: #b7cfe0;
   margin-top: 4px;
 }
 .spin-close {
-  background: rgba(0, 255, 170, 0.05);
+  background: rgba(0, 255, 170, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 999px;
   color: #fff;
   cursor: pointer;
@@ -248,32 +251,43 @@
 
 .reel-row {
   display: grid;
-  grid-template-columns: repeat(4, minmax(130px, 1fr));
+  grid-template-columns: repeat(4, minmax(142px, 1fr));
   gap: 16px;
 }
 
 .reel-card {
-  background: radial-gradient(circle, rgba(7, 13, 18, 0.5), rgba(0, 0, 0, 0));
-  border: 1px solid rgba(255, 255, 255, 0.02);
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 10px 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+.reel-card--teal {
+  background: linear-gradient(180deg, rgba(0, 255, 170, 0.15) 0%, rgba(5, 29, 19, 0) 75%);
+}
+.reel-card--blue {
+  background: linear-gradient(180deg, rgba(68, 162, 255, 0.18) 0%, rgba(8, 20, 35, 0) 75%);
+}
+.reel-card--purple {
+  background: linear-gradient(180deg, rgba(175, 115, 255, 0.2) 0%, rgba(21, 11, 28, 0) 75%);
+}
+.reel-card--orange {
+  background: linear-gradient(180deg, rgba(255, 179, 77, 0.21) 0%, rgba(37, 22, 9, 0) 75%);
 }
 
 .reel-label {
   text-transform: uppercase;
-  font-size: 0.6rem;
+  font-size: 0.68rem;
   letter-spacing: 0.04em;
-  color: #b7cfe0;
-  margin-bottom: 6px;
+  color: #e9f3ff;
+  margin-bottom: 8px;
 }
 
 /* the window that shows the spinning strip */
 .reel-window {
   position: relative;
-  height: 60px;
+  height: 72px;
   overflow: hidden;
-  border-radius: 10px;
-  background: radial-gradient(circle, #081017 0%, #010304 100%);
+  border-radius: 12px;
+  background: radial-gradient(circle, #0a1b27 0%, #03080c 100%);
   border: 1px solid rgba(0, 255, 170, 0.08);
   display: flex;
   align-items: center;
@@ -285,6 +299,7 @@
   flex-direction: column;
   gap: 6px;
   animation: none;
+  font-size: 0.9rem;
 }
 
 .reel-window.is-spinning .reel-strip {
@@ -296,7 +311,7 @@
     transform: translateY(0);
   }
   100% {
-    transform: translateY(-56px);
+    transform: translateY(-64px);
   }
 }
 
@@ -310,24 +325,24 @@
   height: 0;
   border-left: 7px solid transparent;
   border-right: 7px solid transparent;
-  border-bottom: 10px solid rgba(0, 255, 170, 0.8);
-  filter: drop-shadow(0 0 6px rgba(0, 255, 170, 0.6));
+  border-bottom: 10px solid rgba(255, 255, 255, 0.8);
+  filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.6));
 }
 
 /* final value overlay */
 .reel-final {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, #0d1821 0%, #020506 100%);
+  background: radial-gradient(circle, rgba(3, 30, 19, 0.1) 0%, rgba(2, 5, 6, 1) 95%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 0.85rem;
+  font-weight: 750;
+  font-size: 0.92rem;
   text-align: center;
   padding: 6px;
   color: #fff;
-  border-radius: 10px;
+  border-radius: 12px;
   animation: reveal-pop 0.25s ease;
 }
 
@@ -342,10 +357,27 @@
   }
 }
 
+/* progress bar */
+.spin-progress {
+  margin-top: 6px;
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.spin-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #00ffaa 0%, #00bfff 50%, #ff9f43 100%);
+  transition: width 0.4s ease;
+  box-shadow: 0 0 12px rgba(0, 255, 170, 0.3);
+}
+
 .spin-footer {
-  font-size: 0.68rem;
-  color: #7ca4ba;
+  font-size: 0.7rem;
+  color: #9cb9cc;
   text-align: right;
+  margin-top: 4px;
 }
 
 /* animations */
@@ -363,7 +395,7 @@
 /* responsive */
 @media (max-width: 980px) {
   .reel-row {
-    grid-template-columns: repeat(2, minmax(140px, 1fr));
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
   }
 }
 @media (max-width: 768px) {
