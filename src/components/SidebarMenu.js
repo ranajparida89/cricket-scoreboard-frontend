@@ -66,6 +66,15 @@ const SidebarMenu = () => {
             <FaChartLine className="me-2" /> 🏆 CrickEdge Rankings
           </Link>
         </li>
+        {/* ✅ RESTORED – Squad / Lineup */}
+        <li>
+          <Link to="/squad-lineup" onClick={handleClose}>
+            <span role="img" aria-label="squad" style={{ marginRight: 6 }}>
+              👥
+            </span>
+            Squad / Lineup
+          </Link>
+        </li>
 
         {/* 🧠 Analyzer + Head-to-Head */}
         <li>
