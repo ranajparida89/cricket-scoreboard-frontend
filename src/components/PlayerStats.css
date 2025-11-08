@@ -502,6 +502,30 @@
   box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.15);
 }
 
+/* force dark dropdown for the sort on most browsers */
+.ps-combined-sort {
+  background: linear-gradient(180deg, #0f1b28, #0a1520);
+  color: #eaf6ff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 6px 9px;
+  font-weight: 600;
+  outline: none;
+  appearance: none;
+}
+
+/* the actual dropdown items */
+.ps-combined-sort option {
+  background: #0f172a;
+  color: #eaf6ff;
+}
+
+/* hide default arrow on old Edge/IE */
+.ps-combined-sort::-ms-expand {
+  display: none;
+}
+
+
 /* Highlights bar */
 .ps-combined-highlights {
   display: flex;
