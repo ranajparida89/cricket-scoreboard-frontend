@@ -1,5 +1,5 @@
 /* =========================================================
-   PITCH RANDOMIZER – BASE
+   BASE CONTAINER / FORM (same as before)
    ========================================================= */
 .pitch-container {
   width: 96%;
@@ -30,12 +30,10 @@
   gap: 10px;
   font-size: 2rem;
 }
-
 .emoji-icon {
   font-size: 2.1rem;
 }
 
-/* form */
 .form-row {
   display: flex;
   gap: 20px;
@@ -43,19 +41,16 @@
   flex-wrap: wrap;
   justify-content: center;
 }
-
 .input-group {
   flex: 1;
   min-width: 220px;
   text-align: left;
 }
-
 .input-group label {
   font-weight: 500;
   display: block;
   margin-bottom: 6px;
 }
-
 .req {
   color: #ff7b7b;
   font-weight: 600;
@@ -72,17 +67,14 @@
   outline: none;
   font-size: 0.9rem;
 }
-
 .input-group select.placeholder-select {
   color: #aaa;
 }
-
 .input-group select option {
   background: #0f0f0f;
   color: #fff;
 }
 
-/* button */
 .btn-generate {
   background: linear-gradient(90deg, #00ffaa, #0066ff);
   border: none;
@@ -140,7 +132,6 @@
   color: #00d4ff;
   margin-bottom: 12px;
 }
-
 .table-wrapper {
   width: 100%;
   overflow-x: auto;
@@ -149,7 +140,6 @@
   border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: 0 0 15px rgba(0, 255, 170, 0.05);
 }
-
 .pitch-history table {
   width: 100%;
   border-collapse: separate;
@@ -182,6 +172,9 @@
 .pitch-history tbody tr:hover {
   background: rgba(0, 255, 170, 0.05);
 }
+.pitch-history tbody td:last-child {
+  border-right: none;
+}
 .duplicate-row {
   background: rgba(255, 71, 71, 0.16) !important;
   color: #ffd2d2;
@@ -195,7 +188,7 @@
 }
 
 /* =========================================================
-   SPIN MODAL (casino-style)
+   SPIN MODAL WITH CASINO REELS
    ========================================================= */
 .spin-overlay {
   position: fixed;
@@ -205,103 +198,153 @@
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(3px);
 }
+
 .spin-modal {
-  width: min(1050px, 95vw);
-  background: linear-gradient(180deg, #0e141b 0%, #091017 100%);
-  border: 1px solid rgba(0, 255, 170, 0.14);
+  background: linear-gradient(180deg, #0f1720 0%, #0a0f14 100%);
+  border: 1px solid rgba(0, 255, 170, 0.16);
   border-radius: 18px;
-  padding: 22px 22px 18px;
   box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+
+.spin-modal--reels {
+  width: min(1050px, 96vw);
+  padding: 20px 20px 18px;
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
-.spin-header {
-  text-align: left;
+
+.spin-modal-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
 }
 .spin-title {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.02rem;
 }
 .spin-sub {
-  font-size: 0.75rem;
-  color: #9fb8c8;
-}
-.spin-row {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(130px, 1fr));
-  gap: 14px;
-}
-.spin-slot {
-  background: radial-gradient(circle, rgba(12, 18, 25, 0.4), rgba(0, 0, 0, 0.2));
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  border-radius: 14px;
-  padding: 10px 10px 14px;
-  position: relative;
-  min-height: 120px;
-  transition: border 0.2s ease, transform 0.2s ease;
-}
-.spin-slot.spinning {
-  border: 1px solid rgba(0, 255, 170, 0.55);
-  box-shadow: 0 0 10px rgba(0, 255, 170, 0.3);
-  transform: translateY(-2px);
-}
-.spin-slot.done {
-  border: 1px solid rgba(0, 255, 170, 0.25);
-}
-.slot-label {
   font-size: 0.7rem;
-  color: #9fb8c8;
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: #8ca9bd;
+  margin-top: 4px;
 }
-.slot-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-.slot-arrow {
-  font-size: 0.7rem;
+.spin-close {
+  background: rgba(0, 255, 170, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
   color: #fff;
-  opacity: 0.5;
-}
-.slot-wheel {
-  width: 100%;
-  min-height: 54px;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #0d1923 0%, #03080c 100%);
+  cursor: pointer;
+  font-size: 0.85rem;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.reel-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(130px, 1fr));
+  gap: 16px;
+}
+
+.reel-card {
+  background: radial-gradient(circle, rgba(7, 13, 18, 0.5), rgba(0, 0, 0, 0));
   border: 1px solid rgba(255, 255, 255, 0.02);
-  font-weight: 700;
-  font-size: 0.8rem;
-  text-align: center;
-  padding: 6px;
-  line-height: 1.25;
-  color: #fff;
+  border-radius: 14px;
+  padding: 10px 10px 12px;
 }
-.spin-slot.spinning .slot-wheel span {
-  animation: slot-pulse 0.4s ease-in-out infinite;
+
+.reel-label {
+  text-transform: uppercase;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  color: #b7cfe0;
+  margin-bottom: 6px;
 }
-@keyframes slot-pulse {
+
+/* the window that shows the spinning strip */
+.reel-window {
+  position: relative;
+  height: 60px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: radial-gradient(circle, #081017 0%, #010304 100%);
+  border: 1px solid rgba(0, 255, 170, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reel-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: none;
+}
+
+.reel-window.is-spinning .reel-strip {
+  animation: reel-spin 0.35s linear infinite;
+}
+
+@keyframes reel-spin {
   0% {
-    opacity: 0.4;
-  }
-  50% {
-    opacity: 1;
+    transform: translateY(0);
   }
   100% {
-    opacity: 0.4;
+    transform: translateY(-56px);
   }
 }
+
+/* arrow at the top center */
+.reel-arrow {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 10px solid rgba(0, 255, 170, 0.8);
+  filter: drop-shadow(0 0 6px rgba(0, 255, 170, 0.6));
+}
+
+/* final value overlay */
+.reel-final {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #0d1821 0%, #020506 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 6px;
+  color: #fff;
+  border-radius: 10px;
+  animation: reveal-pop 0.25s ease;
+}
+
+@keyframes reveal-pop {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 .spin-footer {
-  font-size: 0.7rem;
-  color: #7ea6be;
+  font-size: 0.68rem;
+  color: #7ca4ba;
   text-align: right;
 }
 
@@ -319,7 +362,7 @@
 
 /* responsive */
 @media (max-width: 980px) {
-  .spin-row {
+  .reel-row {
     grid-template-columns: repeat(2, minmax(140px, 1fr));
   }
 }
@@ -330,10 +373,10 @@
   .form-row {
     flex-direction: column;
   }
-  .spin-modal {
-    width: 100%;
-  }
-  .spin-row {
+  .reel-row {
     grid-template-columns: 1fr;
+  }
+  .spin-modal--reels {
+    width: 96vw;
   }
 }

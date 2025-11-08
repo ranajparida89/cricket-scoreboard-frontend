@@ -1,6 +1,6 @@
 // src/components/PitchRandomizer.js
-// Pitch Randomizer with 4-step reveal modal (casino-style)
-// keeps same backend + history logic
+// Pitch Randomizer with real 4-slot spinning popup (user closes)
+// backend + history logic kept as-is
 
 import React, { useState, useEffect, useRef } from "react";
 import "./PitchRandomizer.css";
@@ -25,15 +25,15 @@ export default function PitchRandomizer() {
   const [name, setName] = useState("");
   const [matchName, setMatchName] = useState("");
 
-  // pitch currently displayed under the form
+  // current pitch shown under the form
   const [pitch, setPitch] = useState(null);
 
   // history table
   const [history, setHistory] = useState([]);
 
-  // modal / spinning UI
+  // popup (slot modal)
   const [showSpinModal, setShowSpinModal] = useState(false);
-  const [spinStep, setSpinStep] = useState(0); // 0=none,1=type,2=hard,3=crack,4=age
+  const [activeReel, setActiveReel] = useState(0); // 0=none, 1..4 spinning now
   const [spinData, setSpinData] = useState({
     pitchType: "",
     hardness: "",
@@ -43,11 +43,17 @@ export default function PitchRandomizer() {
     name: "",
     matchName: "",
   });
+  const [reelDone, setReelDone] = useState({
+    r1: false,
+    r2: false,
+    r3: false,
+    r4: false,
+  });
 
-  // to cancel timeouts if user clicks Generate fast
+  // timers so we can clear
   const spinTimersRef = useRef([]);
 
-  // browser fingerprint (per device)
+  // browser fingerprint
   const [fingerprint] = useState(() => {
     const existing = localStorage.getItem("pitch_fp");
     if (existing) return existing;
@@ -101,35 +107,33 @@ export default function PitchRandomizer() {
       }
     })();
 
-    // cleanup on unmount
     return () => {
       spinTimersRef.current.forEach((t) => clearTimeout(t));
     };
   }, []);
 
-  // sync localStorage with history
+  // keep local storage in sync
   useEffect(() => {
     localStorage.setItem(LOCAL_KEY, JSON.stringify(history));
   }, [history]);
 
   const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-  // -------
+  // =======================
   // GENERATE
-  // -------
+  // =======================
   const generatePitch = async () => {
     if (!matchType)
       return alert("Please select Match Type (ODI / T20 / Test).");
     if (!name.trim() || !matchName.trim())
       return alert("Please enter both your name and match name.");
 
-    // 1) build pitch object (same logic as before)
+    // build pitch (same logic)
     let hardness = "Medium";
     let selectedPitchType;
     let selectedPitchAge;
 
     if (matchType === "Test") {
-      // more stable wickets
       const r = Math.random() * 100;
       hardness = r < 70 ? "Medium" : "Hard";
 
@@ -169,7 +173,6 @@ export default function PitchRandomizer() {
       dateStyle: "short",
     });
 
-    // object before server
     const tempPitch = {
       id: Date.now(),
       matchType,
@@ -183,10 +186,10 @@ export default function PitchRandomizer() {
       duplicate: false,
     };
 
-    // 2) open modal + run 4-step reveal
+    // open casino modal & spin
     startSpinSequence(tempPitch);
 
-    // 3) send to backend (same as before)
+    // send to backend as before
     try {
       const res = await fetch(`${API_BASE}/api/tools/pitch-randomizer/log`, {
         method: "POST",
@@ -217,17 +220,12 @@ export default function PitchRandomizer() {
           }),
         };
 
-        // show under the form
         setPitch(finalPitch);
 
-        // reset history if backend trimmed
         if (json.history_cleared) {
           setHistory([finalPitch]);
         } else {
-          setHistory((prev) => {
-            const next = [finalPitch, ...prev];
-            return next.slice(0, 10);
-          });
+          setHistory((prev) => [finalPitch, ...prev].slice(0, 10));
         }
 
         if (json.is_duplicate) {
@@ -237,18 +235,16 @@ export default function PitchRandomizer() {
       }
     } catch (err) {
       console.warn("Could not send pitch log to backend:", err);
-      // fallback: local only
       setPitch(tempPitch);
-      setHistory((prev) => {
-        const next = [tempPitch, ...prev];
-        return next.slice(0, 10);
-      });
+      setHistory((prev) => [tempPitch, ...prev].slice(0, 10));
     }
   };
 
-  // run 4-step wheel reveal
+  // =======================
+  // 4-reel spinning sequence
+  // =======================
   const startSpinSequence = (tempPitch) => {
-    // clear previous timers
+    // clear timers
     spinTimersRef.current.forEach((t) => clearTimeout(t));
     spinTimersRef.current = [];
 
@@ -261,22 +257,44 @@ export default function PitchRandomizer() {
       name: tempPitch.name,
       matchName: tempPitch.matchName,
     });
+
+    setReelDone({ r1: false, r2: false, r3: false, r4: false });
     setShowSpinModal(true);
-    setSpinStep(0);
+    setActiveReel(1); // start spinning first
 
-    const timings = [200, 900, 1600, 2300]; // when each one is revealed
-    timings.forEach((ms, idx) => {
-      const timer = setTimeout(() => {
-        setSpinStep(idx + 1);
-      }, ms);
-      spinTimersRef.current.push(timer);
-    });
+    // stop 1, start 2
+    const t1 = setTimeout(() => {
+      setReelDone((prev) => ({ ...prev, r1: true }));
+      setActiveReel(2);
+    }, 1200);
 
-    // close modal after all revealed
-    const closeTimer = setTimeout(() => {
-      setShowSpinModal(false);
-    }, 3200);
-    spinTimersRef.current.push(closeTimer);
+    // stop 2, start 3
+    const t2 = setTimeout(() => {
+      setReelDone((prev) => ({ ...prev, r2: true }));
+      setActiveReel(3);
+    }, 2400);
+
+    // stop 3, start 4
+    const t3 = setTimeout(() => {
+      setReelDone((prev) => ({ ...prev, r3: true }));
+      setActiveReel(4);
+    }, 3600);
+
+    // stop 4, all done, but DO NOT close
+    const t4 = setTimeout(() => {
+      setReelDone((prev) => ({ ...prev, r4: true }));
+      setActiveReel(0);
+    }, 4800);
+
+    spinTimersRef.current.push(t1, t2, t3, t4);
+  };
+
+  const closeSpinModal = () => {
+    spinTimersRef.current.forEach((t) => clearTimeout(t));
+    spinTimersRef.current = [];
+    setShowSpinModal(false);
+    setActiveReel(0);
+    setReelDone({ r1: false, r2: false, r3: false, r4: false });
   };
 
   return (
@@ -328,89 +346,123 @@ export default function PitchRandomizer() {
         Generate Pitch
       </button>
 
-      {/* spinning modal */}
+      {/* casino modal */}
       {showSpinModal && (
         <div className="spin-overlay">
-          <div className="spin-modal">
-            <div className="spin-header">
-              <div className="spin-title">
-                🎰 Generating pitch for {spinData.matchType} — {spinData.name}
+          <div className="spin-modal spin-modal--reels">
+            <div className="spin-modal-top">
+              <div>
+                <div className="spin-title">
+                  🎰 Generating pitch for {spinData.matchType} —{" "}
+                  {spinData.name || "—"}
+                </div>
+                {spinData.matchName && (
+                  <div className="spin-sub">{spinData.matchName}</div>
+                )}
               </div>
-              <div className="spin-sub">
-                {spinData.matchName ? spinData.matchName : ""}
-              </div>
+              <button className="spin-close" onClick={closeSpinModal}>
+                ✖
+              </button>
             </div>
 
-            <div className="spin-row">
-              {/* 1. Pitch Type */}
-              <div
-                className={`spin-slot ${
-                  spinStep === 1 ? "spinning" : spinStep > 1 ? "done" : ""
-                }`}
-              >
-                <div className="slot-label">Pitch Type</div>
-                <div className="slot-body">
-                  <div className="slot-arrow">▲</div>
-                  <div className="slot-wheel">
-                    <span>{spinStep >= 1 ? spinData.pitchType : "•••"}</span>
+            <div className="reel-row">
+              {/* Reel 1 */}
+              <div className="reel-card">
+                <div className="reel-label">Pitch Type</div>
+                <div
+                  className={`reel-window ${
+                    activeReel === 1 ? "is-spinning" : ""
+                  }`}
+                >
+                  <div className="reel-arrow" />
+                  <div className="reel-strip">
+                    <span>•••</span>
+                    <span>🏏</span>
+                    <span>██</span>
+                    <span>▲</span>
+                    <span>◎</span>
                   </div>
+                  {reelDone.r1 && (
+                    <div className="reel-final">{spinData.pitchType}</div>
+                  )}
                 </div>
               </div>
 
-              {/* 2. Hardness */}
-              <div
-                className={`spin-slot ${
-                  spinStep === 2 ? "spinning" : spinStep > 2 ? "done" : ""
-                }`}
-              >
-                <div className="slot-label">Pitch Hardness</div>
-                <div className="slot-body">
-                  <div className="slot-arrow">▲</div>
-                  <div className="slot-wheel">
-                    <span>{spinStep >= 2 ? spinData.hardness : "•••"}</span>
+              {/* Reel 2 */}
+              <div className="reel-card">
+                <div className="reel-label">Pitch Hardness</div>
+                <div
+                  className={`reel-window ${
+                    activeReel === 2 ? "is-spinning" : ""
+                  }`}
+                >
+                  <div className="reel-arrow" />
+                  <div className="reel-strip">
+                    <span>•••</span>
+                    <span>🏏</span>
+                    <span>██</span>
+                    <span>◆</span>
+                    <span>◎</span>
                   </div>
+                  {reelDone.r2 && (
+                    <div className="reel-final">{spinData.hardness}</div>
+                  )}
                 </div>
               </div>
 
-              {/* 3. Crack */}
-              <div
-                className={`spin-slot ${
-                  spinStep === 3 ? "spinning" : spinStep > 3 ? "done" : ""
-                }`}
-              >
-                <div className="slot-label">Pitch Crack</div>
-                <div className="slot-body">
-                  <div className="slot-arrow">▲</div>
-                  <div className="slot-wheel">
-                    <span>{spinStep >= 3 ? spinData.crack : "•••"}</span>
+              {/* Reel 3 */}
+              <div className="reel-card">
+                <div className="reel-label">Pitch Crack</div>
+                <div
+                  className={`reel-window ${
+                    activeReel === 3 ? "is-spinning" : ""
+                  }`}
+                >
+                  <div className="reel-arrow" />
+                  <div className="reel-strip">
+                    <span>•••</span>
+                    <span>🏏</span>
+                    <span>██</span>
+                    <span>◆</span>
+                    <span>◎</span>
                   </div>
+                  {reelDone.r3 && (
+                    <div className="reel-final">{spinData.crack}</div>
+                  )}
                 </div>
               </div>
 
-              {/* 4. Age */}
-              <div
-                className={`spin-slot ${
-                  spinStep === 4 ? "spinning" : spinStep > 4 ? "done" : ""
-                }`}
-              >
-                <div className="slot-label">Pitch Age</div>
-                <div className="slot-body">
-                  <div className="slot-arrow">▲</div>
-                  <div className="slot-wheel">
-                    <span>{spinStep >= 4 ? spinData.pitchAge : "•••"}</span>
+              {/* Reel 4 */}
+              <div className="reel-card">
+                <div className="reel-label">Pitch Age</div>
+                <div
+                  className={`reel-window ${
+                    activeReel === 4 ? "is-spinning" : ""
+                  }`}
+                >
+                  <div className="reel-arrow" />
+                  <div className="reel-strip">
+                    <span>•••</span>
+                    <span>🏏</span>
+                    <span>██</span>
+                    <span>◆</span>
+                    <span>◎</span>
                   </div>
+                  {reelDone.r4 && (
+                    <div className="reel-final">{spinData.pitchAge}</div>
+                  )}
                 </div>
               </div>
             </div>
 
             <div className="spin-footer">
-              Auto-closing after reveal…
+              All 4 values will lock one-by-one. Close when you’re done.
             </div>
           </div>
         </div>
       )}
 
-      {/* result panel (same as before) */}
+      {/* result panel */}
       {pitch && (
         <div
           className={`pitch-result fade-in ${
@@ -445,7 +497,7 @@ export default function PitchRandomizer() {
         </div>
       )}
 
-      {/* history table (unchanged) */}
+      {/* history table */}
       {history.length > 0 && (
         <div className="pitch-history">
           <h4>Previous Generations</h4>
@@ -485,8 +537,8 @@ export default function PitchRandomizer() {
             </table>
           </div>
           <p className="history-footnote">
-            (Holds max 10 rows. When 11th is generated, old 10 are purged from
-            DB/UI and the list restarts from #1.)
+            (Holds max 10 rows. When 11th is generated, old 10 are purged and it
+            restarts from #1.)
           </p>
         </div>
       )}
