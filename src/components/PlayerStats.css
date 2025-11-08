@@ -406,3 +406,35 @@
   max-height: 420px;
   overflow-y: auto;
 }
+/* Soft pastel medals only for the combined table */
+.ps-grid-combined .ps-row-combined.gold {
+  background: linear-gradient(180deg, #fef6d9 0%, #f9ebbd 100%);
+  border: 1px solid rgba(247, 190, 80, 0.35);
+  box-shadow: 0 6px 18px rgba(247, 190, 80, 0.18);
+  color: #2f2f2f;
+}
+
+.ps-grid-combined .ps-row-combined.silver {
+  background: linear-gradient(180deg, #edf3ff 0%, #dfe6f2 100%);
+  border: 1px solid rgba(184, 198, 223, 0.45);
+  box-shadow: 0 6px 18px rgba(184, 198, 223, 0.18);
+  color: #273047;
+}
+
+.ps-grid-combined .ps-row-combined.bronze {
+  background: linear-gradient(180deg, #ffe8d9 0%, #f4d1b9 100%);
+  border: 1px solid rgba(244, 178, 120, 0.4);
+  box-shadow: 0 6px 18px rgba(244, 178, 120, 0.18);
+  color: #322824;
+}
+
+/* keep non-top rows subtle */
+.ps-grid-combined .ps-row-combined {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0.008));
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/* medal emoji look better on light backgrounds */
+.ps-grid-combined .medal {
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.12));
+}
