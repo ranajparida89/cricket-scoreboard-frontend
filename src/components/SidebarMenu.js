@@ -10,8 +10,8 @@ import {
   FaChartLine,
   FaUserCheck,
   FaTimes,
-  FaDiceD20, // 🎯 Pitch Randomizer icon
-  FaMedal, // 🏅 MoM Insights
+  FaDiceD20,   // 🎯 Pitch Randomizer icon
+  FaMedal,      // 🏅 Added for MoM Insights
 } from "react-icons/fa";
 import { FaRegNewspaper } from "react-icons/fa";
 import { FaHandshake } from "react-icons/fa";
@@ -64,16 +64,6 @@ const SidebarMenu = () => {
         <li>
           <Link to="/player-rankings" onClick={handleClose}>
             <FaChartLine className="me-2" /> 🏆 CrickEdge Rankings
-          </Link>
-        </li>
-
-        {/* ✅ RESTORED – Squad / Lineup */}
-        <li>
-          <Link to="/squad-lineup" onClick={handleClose}>
-            <span role="img" aria-label="squad" style={{ marginRight: 6 }}>
-              👥
-            </span>
-            Squad / Lineup
           </Link>
         </li>
 
