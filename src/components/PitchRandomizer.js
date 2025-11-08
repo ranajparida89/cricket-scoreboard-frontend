@@ -1,25 +1,51 @@
 // src/components/PitchRandomizer.js
-// [Ranaj Parida - Pitch Randomizer with backend duplicate enforcement
-//   + 10-row auto-reset
-//   + max Day 2 for ALL formats
-//   + classic TABLE view]
+// Pitch Randomizer with 4-step reveal modal (casino-style)
+// keeps same backend + history logic
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./PitchRandomizer.css";
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
 
 export default function PitchRandomizer() {
   // fixed lists
-  const pitchTypes = ["Standard", "Dry", "Dusty", "Grassy", "Grassy/Dry", "Grassy/Dusty"];
+  const pitchTypes = [
+    "Standard",
+    "Dry",
+    "Dusty",
+    "Grassy",
+    "Grassy/Dry",
+    "Grassy/Dusty",
+  ];
   const pitchCracks = ["Light", "Heavy", "None"];
-  const pitchAgesMax2 = ["Day 1", "Day 2"]; // 👈 global rule: no Day 3 anywhere
+  const pitchAgesMax2 = ["Day 1", "Day 2"]; // global: no Day 3
 
+  // form state
   const [matchType, setMatchType] = useState("");
   const [name, setName] = useState("");
   const [matchName, setMatchName] = useState("");
+
+  // pitch currently displayed under the form
   const [pitch, setPitch] = useState(null);
+
+  // history table
   const [history, setHistory] = useState([]);
+
+  // modal / spinning UI
+  const [showSpinModal, setShowSpinModal] = useState(false);
+  const [spinStep, setSpinStep] = useState(0); // 0=none,1=type,2=hard,3=crack,4=age
+  const [spinData, setSpinData] = useState({
+    pitchType: "",
+    hardness: "",
+    crack: "",
+    pitchAge: "",
+    matchType: "",
+    name: "",
+    matchName: "",
+  });
+
+  // to cancel timeouts if user clicks Generate fast
+  const spinTimersRef = useRef([]);
 
   // browser fingerprint (per device)
   const [fingerprint] = useState(() => {
@@ -32,11 +58,13 @@ export default function PitchRandomizer() {
 
   const LOCAL_KEY = "crickedge_pitch_history_v2";
 
-  // 🔁 load from backend first
+  // initial load
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/tools/pitch-randomizer/history?limit=60`);
+        const res = await fetch(
+          `${API_BASE}/api/tools/pitch-randomizer/history?limit=60`
+        );
         const json = await res.json();
         if (json.success) {
           const mapped = json.data.map((row) => ({
@@ -55,7 +83,6 @@ export default function PitchRandomizer() {
             }),
             duplicate: row.is_duplicate,
           }));
-          // show only 10 in UI
           const ten = mapped.slice(0, 10);
           setHistory(ten);
           localStorage.setItem(LOCAL_KEY, JSON.stringify(ten));
@@ -65,7 +92,7 @@ export default function PitchRandomizer() {
         console.warn("Backend not reachable, using local fallback", err);
       }
 
-      // fallback to local
+      // fallback
       try {
         const stored = localStorage.getItem(LOCAL_KEY);
         if (stored) setHistory(JSON.parse(stored));
@@ -73,62 +100,62 @@ export default function PitchRandomizer() {
         console.warn("Local history load failed:", e);
       }
     })();
+
+    // cleanup on unmount
+    return () => {
+      spinTimersRef.current.forEach((t) => clearTimeout(t));
+    };
   }, []);
 
-  // keep local copy in sync
+  // sync localStorage with history
   useEffect(() => {
     localStorage.setItem(LOCAL_KEY, JSON.stringify(history));
   }, [history]);
 
   const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
+  // -------
+  // GENERATE
+  // -------
   const generatePitch = async () => {
-    if (!matchType) return alert("Please select Match Type (ODI / T20 / Test).");
+    if (!matchType)
+      return alert("Please select Match Type (ODI / T20 / Test).");
     if (!name.trim() || !matchName.trim())
       return alert("Please enter both your name and match name.");
 
-    // -----------------------------
-    // 1. build pitch object (UI)
-    // -----------------------------
+    // 1) build pitch object (same logic as before)
     let hardness = "Medium";
     let selectedPitchType;
     let selectedPitchAge;
 
-    // ✅ TEST
     if (matchType === "Test") {
-      // 70% medium, 30% hard
+      // more stable wickets
       const r = Math.random() * 100;
       hardness = r < 70 ? "Medium" : "Hard";
 
       const testFriendlyTypes = ["Standard", "Dry", "Grassy", "Grassy/Dry"];
 
       if (hardness === "Hard") {
-        // hard TEST → Day 2 only (no Day 3)
         selectedPitchType = getRandom(["Standard", "Dry", "Grassy/Dry"]);
         selectedPitchAge = "Day 2";
       } else {
-        // medium test wicket → Day 1 or Day 2
         selectedPitchType = getRandom(testFriendlyTypes);
         selectedPitchAge = getRandom(pitchAgesMax2);
       }
-    }
-    // ✅ ODI / T20
-    else {
+    } else {
+      // ODI / T20
       const r = Math.random() * 100;
       hardness = "Medium";
       if (r < 15) hardness = "Soft";
       else if (r > 85) hardness = "Hard";
 
       if (hardness === "Hard") {
-        // hard LOI → Day 2 only
         selectedPitchType = getRandom(["Standard", "Dry", "Grassy/Dry"]);
         selectedPitchAge = "Day 2";
       } else if (hardness === "Soft") {
-        // soft LOI → Day 1
         selectedPitchType = getRandom(pitchTypes.filter((t) => t !== "Dusty"));
         selectedPitchAge = "Day 1";
       } else {
-        // medium LOI → Day 1 or 2
         selectedPitchType = getRandom(pitchTypes);
         selectedPitchAge = getRandom(pitchAgesMax2);
       }
@@ -142,8 +169,8 @@ export default function PitchRandomizer() {
       dateStyle: "short",
     });
 
-    // temp (before server response)
-    let tempPitch = {
+    // object before server
+    const tempPitch = {
       id: Date.now(),
       matchType,
       name: name.trim(),
@@ -156,12 +183,10 @@ export default function PitchRandomizer() {
       duplicate: false,
     };
 
-    // show immediately
-    setPitch(tempPitch);
+    // 2) open modal + run 4-step reveal
+    startSpinSequence(tempPitch);
 
-    // -----------------------------
-    // 2. send to backend
-    // -----------------------------
+    // 3) send to backend (same as before)
     try {
       const res = await fetch(`${API_BASE}/api/tools/pitch-randomizer/log`, {
         method: "POST",
@@ -181,7 +206,6 @@ export default function PitchRandomizer() {
 
       const json = await res.json();
       if (json && json.success) {
-        // server may mark as duplicate & set real timestamp
         const finalPitch = {
           ...tempPitch,
           duplicate: json.is_duplicate === true,
@@ -193,32 +217,66 @@ export default function PitchRandomizer() {
           }),
         };
 
-        // if server cleared history → start fresh
-        if (json.history_cleared) {
-          setPitch(finalPitch);
-          setHistory([finalPitch]);
-          return;
-        }
-
-        // otherwise prepend & cap at 10
+        // show under the form
         setPitch(finalPitch);
-        setHistory((prev) => {
-          const next = [finalPitch, ...prev];
-          return next.slice(0, 10);
-        });
+
+        // reset history if backend trimmed
+        if (json.history_cleared) {
+          setHistory([finalPitch]);
+        } else {
+          setHistory((prev) => {
+            const next = [finalPitch, ...prev];
+            return next.slice(0, 10);
+          });
+        }
 
         if (json.is_duplicate) {
           alert("⚠ Duplicate pitch detected — try again after 1 minute.");
         }
+        return;
       }
     } catch (err) {
       console.warn("Could not send pitch log to backend:", err);
-      // fallback: keep locally, cap at 10
+      // fallback: local only
+      setPitch(tempPitch);
       setHistory((prev) => {
         const next = [tempPitch, ...prev];
         return next.slice(0, 10);
       });
     }
+  };
+
+  // run 4-step wheel reveal
+  const startSpinSequence = (tempPitch) => {
+    // clear previous timers
+    spinTimersRef.current.forEach((t) => clearTimeout(t));
+    spinTimersRef.current = [];
+
+    setSpinData({
+      pitchType: tempPitch.pitchType,
+      hardness: tempPitch.hardness,
+      crack: tempPitch.crack,
+      pitchAge: tempPitch.pitchAge,
+      matchType: tempPitch.matchType,
+      name: tempPitch.name,
+      matchName: tempPitch.matchName,
+    });
+    setShowSpinModal(true);
+    setSpinStep(0);
+
+    const timings = [200, 900, 1600, 2300]; // when each one is revealed
+    timings.forEach((ms, idx) => {
+      const timer = setTimeout(() => {
+        setSpinStep(idx + 1);
+      }, ms);
+      spinTimersRef.current.push(timer);
+    });
+
+    // close modal after all revealed
+    const closeTimer = setTimeout(() => {
+      setShowSpinModal(false);
+    }, 3200);
+    spinTimersRef.current.push(closeTimer);
   };
 
   return (
@@ -270,12 +328,104 @@ export default function PitchRandomizer() {
         Generate Pitch
       </button>
 
-      {/* result */}
+      {/* spinning modal */}
+      {showSpinModal && (
+        <div className="spin-overlay">
+          <div className="spin-modal">
+            <div className="spin-header">
+              <div className="spin-title">
+                🎰 Generating pitch for {spinData.matchType} — {spinData.name}
+              </div>
+              <div className="spin-sub">
+                {spinData.matchName ? spinData.matchName : ""}
+              </div>
+            </div>
+
+            <div className="spin-row">
+              {/* 1. Pitch Type */}
+              <div
+                className={`spin-slot ${
+                  spinStep === 1 ? "spinning" : spinStep > 1 ? "done" : ""
+                }`}
+              >
+                <div className="slot-label">Pitch Type</div>
+                <div className="slot-body">
+                  <div className="slot-arrow">▲</div>
+                  <div className="slot-wheel">
+                    <span>{spinStep >= 1 ? spinData.pitchType : "•••"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Hardness */}
+              <div
+                className={`spin-slot ${
+                  spinStep === 2 ? "spinning" : spinStep > 2 ? "done" : ""
+                }`}
+              >
+                <div className="slot-label">Pitch Hardness</div>
+                <div className="slot-body">
+                  <div className="slot-arrow">▲</div>
+                  <div className="slot-wheel">
+                    <span>{spinStep >= 2 ? spinData.hardness : "•••"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Crack */}
+              <div
+                className={`spin-slot ${
+                  spinStep === 3 ? "spinning" : spinStep > 3 ? "done" : ""
+                }`}
+              >
+                <div className="slot-label">Pitch Crack</div>
+                <div className="slot-body">
+                  <div className="slot-arrow">▲</div>
+                  <div className="slot-wheel">
+                    <span>{spinStep >= 3 ? spinData.crack : "•••"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Age */}
+              <div
+                className={`spin-slot ${
+                  spinStep === 4 ? "spinning" : spinStep > 4 ? "done" : ""
+                }`}
+              >
+                <div className="slot-label">Pitch Age</div>
+                <div className="slot-body">
+                  <div className="slot-arrow">▲</div>
+                  <div className="slot-wheel">
+                    <span>{spinStep >= 4 ? spinData.pitchAge : "•••"}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="spin-footer">
+              Auto-closing after reveal…
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* result panel (same as before) */}
       {pitch && (
-        <div className={`pitch-result fade-in ${pitch.duplicate ? "duplicate-box" : ""}`}>
+        <div
+          className={`pitch-result fade-in ${
+            pitch.duplicate ? "duplicate-box" : ""
+          }`}
+        >
           <h3>
-            {pitch.matchType} Pitch Generated for {pitch.name} ({pitch.matchName})
-            {pitch.duplicate && <span className="dup-warning"> ⚠ Duplicate (within 1 min)</span>}
+            {pitch.matchType} Pitch Generated for {pitch.name} (
+            {pitch.matchName})
+            {pitch.duplicate && (
+              <span className="dup-warning">
+                {" "}
+                ⚠ Duplicate (within 1 min)
+              </span>
+            )}
           </h3>
           <p>
             <strong>Pitch Type:</strong> {pitch.pitchType}
@@ -295,7 +445,7 @@ export default function PitchRandomizer() {
         </div>
       )}
 
-      {/* history - back to TABLE */}
+      {/* history table (unchanged) */}
       {history.length > 0 && (
         <div className="pitch-history">
           <h4>Previous Generations</h4>
@@ -316,7 +466,10 @@ export default function PitchRandomizer() {
               </thead>
               <tbody>
                 {history.map((h, i) => (
-                  <tr key={h.id} className={h.duplicate ? "duplicate-row" : ""}>
+                  <tr
+                    key={h.id}
+                    className={h.duplicate ? "duplicate-row" : ""}
+                  >
                     <td>{i + 1}</td>
                     <td>{h.matchType}</td>
                     <td>{h.name}</td>
@@ -332,8 +485,8 @@ export default function PitchRandomizer() {
             </table>
           </div>
           <p className="history-footnote">
-            (Holds max 10 rows. When 11th is generated, old 10 are purged from DB/UI and the list restarts
-            from #1.)
+            (Holds max 10 rows. When 11th is generated, old 10 are purged from
+            DB/UI and the list restarts from #1.)
           </p>
         </div>
       )}
