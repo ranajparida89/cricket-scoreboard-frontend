@@ -438,3 +438,25 @@
 .ps-grid-combined .medal {
   filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.12));
 }
+/* make text readable on the light pastel rows */
+.ps-grid-combined .ps-row-combined.gold .cell,
+.ps-grid-combined .ps-row-combined.gold .player-link {
+  color: #1f2933; /* dark slate */
+}
+
+.ps-grid-combined .ps-row-combined.silver .cell,
+.ps-grid-combined .ps-row-combined.silver .player-link {
+  color: #243046; /* slightly bluish dark */
+}
+
+.ps-grid-combined .ps-row-combined.bronze .cell,
+.ps-grid-combined .ps-row-combined.bronze .player-link {
+  color: #3a2a24; /* warm dark */
+}
+
+/* keep the medal icon visible */
+.ps-grid-combined .ps-row-combined.gold .medal,
+.ps-grid-combined .ps-row-combined.silver .medal,
+.ps-grid-combined .ps-row-combined.bronze .medal {
+  filter: drop-shadow(0 0 3px rgba(0,0,0,.15));
+}
