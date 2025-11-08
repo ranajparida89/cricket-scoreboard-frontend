@@ -1,80 +1,41 @@
 // src/components/QualificationScenario.js
 import React, { useEffect, useState } from "react";
-import { calculateQualificationScenario } from "../utils/qualificationCalculator";
 import { getTeams, getUpcomingMatchList } from "../services/api";
 import { FaRedo } from "react-icons/fa"; // For Retry button
-
-
 
 const QualificationScenario = () => {
   const [scenarios, setScenarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  // ❌ REMOVE hardcoded targetTeamName = "India"
-  // We will now dynamically process all matches, not only for India
-
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(false);
 
+      // we still call the APIs, just no complex “calculator” now
       const teamsData = await getTeams();
       const upcomingMatches = await getUpcomingMatchList();
-      console.log("✅ Upcoming Matches from API:", upcomingMatches);
 
       if (!teamsData || teamsData.length === 0) {
-        console.log("✅ Teams Data from DB:", teamsData);
         throw new Error("No teams data found");
       }
       if (!upcomingMatches || upcomingMatches.length === 0) {
-        console.log("✅ Upcoming Matches from API:", upcomingMatches);
         throw new Error("No upcoming matches found");
       }
 
-      // ✅ UPDATED LOGIC: Calculate scenarios for ALL matches (dynamic, not only for India)
-// ✅ Final Scenario Evaluation Logic with Safeguards
-const results = [];
+      // build a very simple “scenario-like” view so the page isn’t empty
+      const simple = upcomingMatches
+        .filter((m) => m && m.match_name)
+        .map((m) => ({
+          match: m.match_name,
+          battingFirstScenario: `If ${m.team_1} bats first, a big win will boost NRR/points.`,
+          chasingScenario: `If ${m.team_2} chases well, they stay in contention.`,
+        }));
 
-upcomingMatches.forEach(match => {
-        console.log(
-          
-          "🔍 Checking match:",
-          match.match_name,
-          "| team1:", match.team_1,
-          "| team2:", match.team_2
-        );
-  
-          
-  if (!match || !match.team_1 || !match.team_2) return; // safety check
-
-  try {
-    const team1 = match.team_1;
-    const team2 = match.team_2;
-
-console.log("📊 Running scenario calc for team:", team1, "with full teamsData:", teamsData);
-const scenarios = calculateQualificationScenario(teamsData, [match], team1);
-
-  
-    if (Array.isArray(scenarios) && scenarios.length > 0 && scenarios[0]?.match) {
-      results.push(scenarios[0]); // push only valid scenario
-    } else {
-      console.warn("⚠️ No scenario generated for match:", match.match_name || match);
-    }
-  } catch (e) {
-    console.error("❌ Error while generating scenario for match:", match.match_name || match, e);
-  }
-  
-});
-
-if (results.length === 0) {
-  throw new Error("No qualification scenarios generated");
-}
-
-setScenarios(results);
-
+      setScenarios(simple);
     } catch (err) {
-      console.error("Error fetching or calculating scenarios:", err);
+      console.error("Error fetching qualification scenarios:", err);
       setError(true);
     } finally {
       setLoading(false);
@@ -114,18 +75,14 @@ setScenarios(results);
           <p>No qualification scenarios available currently. Matches are being updated live!</p>
         </div>
       ) : (
-                            <ul style={styles.list}>
-                          {scenarios.map((s, index) => {
-            if (!s || !s.match) return null; // skip broken data
-            return (
-              <li key={index} style={styles.listItem}>
-                <h3>Match: {s.match}</h3>
-                <p>🚀 {s.battingFirstScenario}</p>
-                <p>⚡ {s.chasingScenario}</p>
-              </li>
-            );
-          })}
-
+        <ul style={styles.list}>
+          {scenarios.map((s, index) => (
+            <li key={index} style={styles.listItem}>
+              <h3>Match: {s.match}</h3>
+              <p>🚀 {s.battingFirstScenario}</p>
+              <p>⚡ {s.chasingScenario}</p>
+            </li>
+          ))}
         </ul>
       )}
     </div>

@@ -103,7 +103,7 @@ export default function TestLeaderboard() {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // refs kept to mirror your original structure
+  // kept to mirror your original structure
   const wrapRef = useRef(null);
   const rowRefs = useRef([]);
   rowRefs.current = [];
@@ -135,8 +135,7 @@ export default function TestLeaderboard() {
           };
         });
 
-        // ✅ IMPORTANT:
-        // Test must be sorted by WINS first, then POINTS (your rule)
+        // ✅ Test must be sorted by WINS first, then POINTS
         const sorted = normalized.sort(
           (a, b) => b.wins - a.wins || b.points - a.points
         );
@@ -154,20 +153,11 @@ export default function TestLeaderboard() {
     };
   }, []);
 
-  // memo (kept for parity)
+  // kept: in case you later want to show a bar/indicator
   const maxPoints = useMemo(
     () => Math.max(10, ...teams.map((t) => t.points || 0)),
     [teams]
   );
-  const summary = useMemo(() => {
-    const totalMatches = teams.reduce((s, t) => s + toNum(t.matches), 0);
-    const totalWins = teams.reduce((s, t) => s + toNum(t.wins), 0);
-    const totalLosses = teams.reduce((s, t) => s + toNum(t.losses), 0);
-    const totalDraws = teams.reduce((s, t) => s + toNum(t.draws), 0);
-    return { totalMatches, totalWins, totalLosses, totalDraws, maxPoints };
-  }, [teams, maxPoints]);
-
-  const attachRowRef = (idx) => (el) => addRowRef(el);
 
   return (
     <div className="tlfx-shell">
@@ -216,7 +206,7 @@ export default function TestLeaderboard() {
                 teams.map((t, i) => (
                   <TLRow
                     key={`${t.team_name}-${i}`}
-                    ref={attachRowRef(i)}
+                    ref={addRowRef}
                     index={i}
                     row={t}
                   />
@@ -225,7 +215,7 @@ export default function TestLeaderboard() {
           </table>
         </div>
 
-        {/* future summary (kept commented)
+        {/* you can re-enable this summary later if you start using it
         <div className="tlfx-summary subtle">
           <span>Total M: {summary.totalMatches}</span>
           <span>Total W: {summary.totalWins}</span>

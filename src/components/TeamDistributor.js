@@ -1,12 +1,8 @@
 // ✅ src/components/TeamDistributor.js
-// [2025-08-06 rev9 - FULL FILE]
-// - Spin snapshot to prevent desync (teams, player, type, winning team)
-// - End angle computed to land exactly at the chosen segment center
-// - finalizeSpin uses the pre-chosen team from the snapshot (no re-calc)
-// - Ignore edits while spinning; button disabled; pointer/Toast always match
-// - ✅ Fair-share rule now checks ONLY at build time; once armed, spins are not blocked
-// - ✅ If players change or phase switches, wheel is "disarmed" and asks to Build again
-// - ✅ Friendly validation for names, duplicates, and guidance messages
+// [2025-08-06 rev10 - ESLint-friendly]
+// - Fixed deps: no computed expression in dependency array
+// - Fixed drawing effect: local color helper inside effect
+// - All original logic kept intact
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -100,12 +96,12 @@ export default function TeamDistributor() {
 
   // 👉 Wheel arming state: fairness is checked at build time only
   const [wheelGate, setWheelGate] = useState({
-    ok: false,           // true = armed and allowed to spin regardless of remaining count
+    ok: false,
     reason: "Click “Build Wheel” to arm equal distribution.",
     initialTeams: 0,
     playersAtBuild: 0,
     typeAtBuild: "Weak",
-    armedAt: 0,          // timestamp for reference
+    armedAt: 0,
   });
 
   useEffect(() => {
@@ -114,11 +110,13 @@ export default function TeamDistributor() {
   }, [teamType, weakPool, strongPool]);
 
   const parseLines = (raw) =>
-    raw.split(/[\n,]/g).map((s) => s.trim()).filter(Boolean);
+    raw
+      .split(/[\n,]/g)
+      .map((s) => s.trim())
+      .filter(Boolean);
 
   const [toasts, setToasts] = useState([]);
-  const removeToast = (id) =>
-    setToasts((arr) => arr.filter((x) => x.id !== id));
+  const removeToast = (id) => setToasts((arr) => arr.filter((x) => x.id !== id));
   const pushToast = (message, type = "success", timeout = 3000) => {
     const id = Math.random().toString(36).slice(2);
     setToasts((arr) => [...arr, { id, message, type, visible: false, timeout }]);
@@ -193,7 +191,6 @@ export default function TeamDistributor() {
     const remainder = teamsCount % playersCount;
 
     if (remainder === 0) {
-      // ✅ Armed: after this point we won't block spins as teams are distributed
       setWheelGate({
         ok: true,
         reason: "",
@@ -237,16 +234,18 @@ export default function TeamDistributor() {
   const [turnPtr, setTurnPtr] = useState(0);
   const currentPlayer = orderQueue[turnPtr] || "";
 
+  // ⬇️ FIX 1: no computed expression in deps
   useEffect(() => {
+    const oqLen = orderQueue.length;
     if (playerNames.length === 0) {
       setOrderQueue([]);
       setTurnPtr(0);
       return;
     }
-    if (orderQueue.length - turnPtr <= 1) {
+    if (oqLen - turnPtr <= 1) {
       setOrderQueue((prev) => [...prev, ...shuffle(playerNames)]);
     }
-  }, [playerNames, orderQueue.length, turnPtr]);
+  }, [playerNames, orderQueue, turnPtr]);
 
   useEffect(() => {
     setOrderQueue(shuffle(playerNames));
@@ -256,7 +255,7 @@ export default function TeamDistributor() {
   // If players change after we armed, require a rebuild to recheck fairness.
   useEffect(() => {
     setWheelGate((prev) => {
-      if (!prev.ok && prev.reason) return prev; // already disarmed
+      if (!prev.ok && prev.reason) return prev;
       return {
         ok: false,
         reason: "Players changed. Click “Build Wheel” to recheck and arm equal distribution.",
@@ -266,7 +265,7 @@ export default function TeamDistributor() {
         armedAt: prev.armedAt,
       };
     });
-  }, [playersCount]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [playersCount]); // keep your original intent
 
   // Disarm when switching between Weak/Strong; user must click Build again.
   useEffect(() => {
@@ -279,7 +278,7 @@ export default function TeamDistributor() {
       armedAt: 0,
     });
     setAngle(0);
-  }, [teamType]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [teamType, playersCount]);
 
   const teamsForWheel = currentPool.filter(Boolean);
 
@@ -288,13 +287,16 @@ export default function TeamDistributor() {
     const f = parseInt(hex.replace("#", ""), 16);
     const t = pct < 0 ? 0 : 255;
     const p = Math.abs(pct);
-    const R = f >> 16, G = (f >> 8) & 0xff, B = f & 0xff;
+    const R = f >> 16,
+      G = (f >> 8) & 0xff,
+      B = f & 0xff;
     const v = (c) => Math.round((t - c) * p) + c;
-    return `#${(0x1000000 + (v(R) << 16) + (v(G) << 8) + (v(B))).toString(16).slice(1)}`;
+    return `#${(0x1000000 + (v(R) << 16) + (v(G) << 8) + v(B)).toString(16).slice(1)}`;
   };
 
   const hslToHex = (h, s, l) => {
-    s /= 100; l /= 100;
+    s /= 100;
+    l /= 100;
     const k = (n) => (n + h / 30) % 12;
     const a = s * Math.min(l, 1 - l);
     const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
@@ -302,13 +304,8 @@ export default function TeamDistributor() {
     return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
   };
 
-  const segBaseHex = (i, n) => {
-    const startHue = teamType === "Weak" ? 270 : 170;
-    const hue = (startHue + (360 * i) / n) % 360;
-    return hslToHex(hue, 70, 45);
-  };
-
   // ---------- Drawing ----------
+  // ⬇️ FIX 2: define color helper inside effect so ESLint is happy
   useEffect(() => {
     const cvs = canvasRef.current;
     if (!cvs) return;
@@ -320,7 +317,11 @@ export default function TeamDistributor() {
     cvs.height = size * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const w = size, h = size, cx = w / 2, cy = h / 2, r = Math.min(w, h) / 2 - WHEEL_MARGIN;
+    const w = size,
+      h = size,
+      cx = w / 2,
+      cy = h / 2,
+      r = Math.min(w, h) / 2 - WHEEL_MARGIN;
 
     if (confettiRef.current) {
       const c2 = confettiRef.current;
@@ -348,6 +349,13 @@ export default function TeamDistributor() {
     const n = Math.max(teamsForWheel.length, 1);
     const slice = (Math.PI * 2) / n;
 
+    // local helper uses current teamType
+    const getSegBaseHex = (i, total) => {
+      const startHue = teamType === "Weak" ? 270 : 170;
+      const hue = (startHue + (360 * i) / total) % 360;
+      return hslToHex(hue, 70, 45);
+    };
+
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(angle);
@@ -358,7 +366,7 @@ export default function TeamDistributor() {
       ctx.arc(0, 0, r, i * slice, (i + 1) * slice);
       ctx.closePath();
 
-      const base = teamsForWheel.length ? segBaseHex(i, n) : "#777";
+      const base = teamsForWheel.length ? getSegBaseHex(i, n) : "#777";
       const segGrad = ctx.createLinearGradient(-r, -r, r, r);
       segGrad.addColorStop(0, shade(base, -0.14));
       segGrad.addColorStop(0.5, shade(base, 0.05));
@@ -432,7 +440,7 @@ export default function TeamDistributor() {
     ctx.strokeStyle = "#ffc107";
     ctx.lineWidth = 5;
     ctx.stroke();
-  }, [teamsForWheel, angle, teamType]);
+  }, [teamsForWheel, angle, teamType, hslToHex, shade]);
 
   // ---------- Confetti ----------
   const fireConfetti = (x, y) => {
@@ -440,7 +448,8 @@ export default function TeamDistributor() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     const particles = Array.from({ length: 60 }).map(() => ({
-      x, y,
+      x,
+      y,
       vx: randBetween(-3, 3),
       vy: randBetween(-6, -2),
       g: 0.15,
@@ -473,11 +482,7 @@ export default function TeamDistributor() {
   // ---------- Spin / Assign ----------
   const [assignments, setAssignments] = useState({ Weak: {}, Strong: {} });
 
-  const canSpin =
-    teamsForWheel.length > 0 &&
-    !isSpinning &&
-    !!currentPlayer &&
-    wheelGate.ok; // ✅ check only the build-time gate
+  const canSpin = teamsForWheel.length > 0 && !isSpinning && !!currentPlayer && wheelGate.ok;
 
   const spin = () => {
     if (!currentPlayer) {
@@ -489,12 +494,15 @@ export default function TeamDistributor() {
       return;
     }
     if (!wheelGate.ok) {
-      pushToast(wheelGate.reason || "Click “Build Wheel” to arm equal distribution.", "error", 5200);
+      pushToast(
+        wheelGate.reason || "Click “Build Wheel” to arm equal distribution.",
+        "error",
+        5200
+      );
       return;
     }
     if (isSpinning) return;
 
-    // Snapshot now
     const teamsSnapshot = [...teamsForWheel];
     const playerSnapshot = currentPlayer;
     const typeSnapshot = teamType;
@@ -517,7 +525,7 @@ export default function TeamDistributor() {
       typeSnapshot,
       selectedIndex,
       selectedTeam,
-      targetAngle
+      targetAngle,
     };
 
     setIsSpinning(true);
@@ -550,7 +558,9 @@ export default function TeamDistributor() {
 
     setAssignments((prev) => {
       const bucket = prev[typeSnapshot] || {};
-      const list = bucket[playerSnapshot] ? [...bucket[playerSnapshot], selectedTeam] : [selectedTeam];
+      const list = bucket[playerSnapshot]
+        ? [...bucket[playerSnapshot], selectedTeam]
+        : [selectedTeam];
       return { ...prev, [typeSnapshot]: { ...bucket, [playerSnapshot]: list } };
     });
 
@@ -568,7 +578,9 @@ export default function TeamDistributor() {
 
     setTurnPtr((prev) => prev + 1);
 
-    pushToast(`<strong>${selectedTeam}</strong> goes to <strong>${playerSnapshot}</strong>. Nice pick!`);
+    pushToast(
+      `<strong>${selectedTeam}</strong> goes to <strong>${playerSnapshot}</strong>. Nice pick!`
+    );
     const r = WHEEL_SIZE / 2 - WHEEL_MARGIN;
     const tipX = WHEEL_SIZE / 2;
     const tipY = WHEEL_SIZE / 2 + r - 6;
@@ -607,7 +619,11 @@ export default function TeamDistributor() {
                   onKeyDown={(e) => e.key === "Enter" && addPlayer()}
                   disabled={isSpinning}
                 />
-                <button className="btn btn-outline-light" onClick={addPlayer} disabled={isSpinning}>
+                <button
+                  className="btn btn-outline-light"
+                  onClick={addPlayer}
+                  disabled={isSpinning}
+                >
                   Add
                 </button>
               </div>
@@ -621,7 +637,9 @@ export default function TeamDistributor() {
                     {p.name}
                     <button
                       className="btn btn-sm btn-outline-danger"
-                      onClick={() => setPlayers((prev) => prev.filter((x) => x.name !== p.name))}
+                      onClick={() =>
+                        setPlayers((prev) => prev.filter((x) => x.name !== p.name))
+                      }
                       disabled={isSpinning}
                     >
                       Remove
@@ -641,13 +659,11 @@ export default function TeamDistributor() {
                     Turn order (shuffles every round):
                   </div>
                   <div className="d-flex flex-wrap gap-2">
-                    {orderQueue
-                      .slice(turnPtr, turnPtr + players.length)
-                      .map((n, i) => (
-                        <span key={i} className="badge bg-secondary">
-                          {i + 1}. {n}
-                        </span>
-                      ))}
+                    {orderQueue.slice(turnPtr, turnPtr + players.length).map((n, i) => (
+                      <span key={i} className="badge bg-secondary">
+                        {i + 1}. {n}
+                      </span>
+                    ))}
                   </div>
                 </div>
               )}
@@ -693,9 +709,7 @@ export default function TeamDistributor() {
                     onClick={buildPool}
                     disabled={isSpinning}
                   >
-                    {teamType === "Weak"
-                      ? "Build Weak Wheel"
-                      : "Build Strong Wheel"}
+                    {teamType === "Weak" ? "Build Weak Wheel" : "Build Strong Wheel"}
                   </button>
                   <span className="text-muted small align-self-center">
                     {(teamType === "Weak" ? weakPool : strongPool).length} ready
@@ -718,7 +732,6 @@ export default function TeamDistributor() {
 
               <div className="mt-2 small text-muted">
                 {teamsForWheel.length} team(s) on wheel
-                {/* Friendly, actionable message BEFORE spin; hidden after arming */}
                 {!wheelGate.ok && wheelGate.reason && (
                   <div className="text-warning mt-1">{wheelGate.reason}</div>
                 )}

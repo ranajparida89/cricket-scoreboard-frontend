@@ -1,3 +1,4 @@
+// src/components/UserCricketStatsDashboardV2.js
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../services/auth";
@@ -302,12 +303,42 @@ export default function UserCricketStatsDashboardV2() {
           <div className="dashboard-error">{cardError}</div>
         ) : cardStats ? (
           <div className="stat-grid">
-            <StatCard color={CARD_COLORS.played} label="Matches Played" value={cardStats.matches_played} icon="🏏" />
-            <StatCard color={CARD_COLORS.won}    label="Matches Won"    value={cardStats.matches_won}    icon="🏆" />
-            <StatCard color={CARD_COLORS.lost}   label="Matches Lost"   value={cardStats.matches_lost}   icon="❌" />
-            <StatCard color={CARD_COLORS.draw}   label="Matches Draw"   value={cardStats.matches_draw}   icon="🤝" />
-            <StatCard color={CARD_COLORS.runs}   label="Total Runs"     value={cardStats.total_runs}     icon="🔢" />
-            <StatCard color={CARD_COLORS.wickets}label="Total Wickets"  value={cardStats.total_wickets}  icon="🎯" />
+            <StatCard
+              color={CARD_COLORS.played}
+              label="Matches Played"
+              value={cardStats.matches_played}
+              icon="🏏"
+            />
+            <StatCard
+              color={CARD_COLORS.won}
+              label="Matches Won"
+              value={cardStats.matches_won}
+              icon="🏆"
+            />
+            <StatCard
+              color={CARD_COLORS.lost}
+              label="Matches Lost"
+              value={cardStats.matches_lost}
+              icon="❌"
+            />
+            <StatCard
+              color={CARD_COLORS.draw}
+              label="Matches Draw"
+              value={cardStats.matches_draw}
+              icon="🤝"
+            />
+            <StatCard
+              color={CARD_COLORS.runs}
+              label="Total Runs"
+              value={cardStats.total_runs}
+              icon="🔢"
+            />
+            <StatCard
+              color={CARD_COLORS.wickets}
+              label="Total Wickets"
+              value={cardStats.total_wickets}
+              icon="🎯"
+            />
           </div>
         ) : (
           <div className="dashboard-info">No card stats found.</div>
@@ -341,10 +372,13 @@ function StatCard({ color, label, value, icon }) {
   return (
     <div
       className="stat-card-3d"
-      style={{ ["--bg"]: color }}
+      // ✅ no unnecessary computed key
+      style={{ "--bg": color }}
     >
       <div className="stat-top">
-        <span className="stat-ico" aria-hidden="true">{icon}</span>
+        <span className="stat-ico" aria-hidden="true">
+          {icon}
+        </span>
         <span className="stat-label">{label}</span>
       </div>
       <div className="stat-value">{value}</div>

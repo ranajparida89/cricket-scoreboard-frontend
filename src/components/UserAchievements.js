@@ -1,3 +1,4 @@
+// src/components/UserAchievements.js
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { FaCrown, FaTrophy, FaMedal, FaStar, FaUsers } from "react-icons/fa";
@@ -35,7 +36,6 @@ export default function UserAchievements({
     setLoading(true);
     setApiError("");
 
-    // Build params cleanly, omit empty filters
     const params = { user_id: userId, match_type: matchType };
     if (tournamentName) params.tournament_name = tournamentName;
     if (seasonYear) params.season_year = Number(seasonYear);
@@ -53,9 +53,17 @@ export default function UserAchievements({
     };
   }, [userId, matchType, tournamentName, seasonYear]);
 
-  const achievements = data?.achievements || {};
-  const topRatings = data?.top_ratings || {};
+  // ✅ memoize these so they don't become a new object on every render
+  const achievements = useMemo(
+    () => (data?.achievements ? data.achievements : {}),
+    [data]
+  );
+  const topRatings = useMemo(
+    () => (data?.top_ratings ? data.top_ratings : {}),
+    [data]
+  );
 
+  // your cards now depend on a stable `achievements`
   const cards = useMemo(
     () => [
       {
