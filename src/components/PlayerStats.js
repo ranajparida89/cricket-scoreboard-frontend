@@ -546,20 +546,23 @@ const PlayerStats = () => {
       )}
 
       {/* ===== Info modal (for i buttons) ===== */}
-      {infoModal.open && (
-        <div className="info-modal-overlay" onClick={closeInfo}>
-          <div
-            className="info-modal-content"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button className="info-modal-close" onClick={closeInfo}>
-              ✖
-            </button>
-            <h3 className="info-modal-title">{infoModal.title}</h3>
-            <p className="info-modal-body">{infoModal.body}</p>
-          </div>
-        </div>
-      )}
+ {infoModal.open && (
+  <div className="info-modal-overlay" onClick={closeInfo}>
+    <div
+      className="info-modal-content"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="info-modal-header">
+        <h3 className="info-modal-title">{infoModal.title}</h3>
+        <button className="info-modal-close" onClick={closeInfo}>
+          ✖
+        </button>
+      </div>
+      <p className="info-modal-body">{infoModal.body}</p>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };
