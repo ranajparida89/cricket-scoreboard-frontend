@@ -13,29 +13,31 @@ const PlayerStats = () => {
   const [performances, setPerformances] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // filters for match-wise table (1st table)
+  // 1st table filters
   const [filters, setFilters] = useState({
     playerName: "",
     teamName: "",
     matchType: "ALL",
   });
 
-  // search for 3rd table (combined-all-formats only)
+  // 3rd table search
   const [combinedSearch, setCombinedSearch] = useState("");
+
+  // 3rd table sort
+  // runs = default (what your global rank is based on)
+  const [combinedSort, setCombinedSort] = useState("runs"); // "runs" | "wkts" | "rpm"
 
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
-  // info modal (for the small "i" buttons)
+  // info modal for small "i"
   const [infoModal, setInfoModal] = useState({
     open: false,
     title: "",
     body: "",
   });
 
-  const openInfo = (title, body) => {
-    setInfoModal({ open: true, title, body });
-  };
+  const openInfo = (title, body) => setInfoModal({ open: true, title, body });
   const closeInfo = () => setInfoModal({ open: false, title: "", body: "" });
 
   // fetch once
@@ -91,9 +93,7 @@ const PlayerStats = () => {
           player_name: perf.player_name,
           team_name: perf.team_name,
           match_type: perf.match_type,
-          total_matches: Number(
-            perf.total_matches || perf.match_count || 0
-          ),
+          total_matches: Number(perf.total_matches || perf.match_count || 0),
           total_runs: 0,
           total_wickets: 0,
           total_fifties: 0,
@@ -144,7 +144,7 @@ const PlayerStats = () => {
       acc.total_double_hundreds += dh;
     }
 
-    // sort once, assign global rank
+    // sort once by total_runs, assign global rank (the REAL rank)
     const arr = Array.from(map.values());
     arr.sort((a, b) => b.total_runs - a.total_runs);
     arr.forEach((p, idx) => {
@@ -153,14 +153,56 @@ const PlayerStats = () => {
     return arr;
   }, [rows]);
 
-  // 3b) apply search to table 3 only — keep original rank
+  // 3a) build highlights from the global combined array
+  const combinedHighlights = useMemo(() => {
+    if (!combinedAllFormats.length) return null;
+    const topRuns = combinedAllFormats[0];
+
+    // top wickets
+    const topWkts = [...combinedAllFormats].sort(
+      (a, b) => b.total_wickets - a.total_wickets
+    )[0];
+
+    // best runs per match
+    const bestRpm = [...combinedAllFormats]
+      .filter((p) => p.total_matches > 0)
+      .sort(
+        (a, b) =>
+          b.total_runs / b.total_matches - a.total_runs / a.total_matches
+      )[0];
+
+    return {
+      topRuns,
+      topWkts,
+      bestRpm,
+    };
+  }, [combinedAllFormats]);
+
+  // 3b) apply search + sort to table 3 (but DO NOT change displayed rank)
   const filteredCombinedAllFormats = useMemo(() => {
     const q = combinedSearch.trim().toLowerCase();
-    if (!q) return combinedAllFormats;
-    return combinedAllFormats.filter((p) =>
-      p.player_name.toLowerCase().includes(q)
-    );
-  }, [combinedAllFormats, combinedSearch]);
+    let base = combinedAllFormats;
+    if (q) {
+      base = combinedAllFormats.filter((p) =>
+        p.player_name.toLowerCase().includes(q)
+      );
+    }
+
+    // sort view-only
+    if (combinedSort === "wkts") {
+      return [...base].sort((a, b) => b.total_wickets - a.total_wickets);
+    }
+    if (combinedSort === "rpm") {
+      return [...base].sort((a, b) => {
+        const aRpm = a.total_matches ? a.total_runs / a.total_matches : 0;
+        const bRpm = b.total_matches ? b.total_runs / b.total_matches : 0;
+        return bRpm - aRpm;
+      });
+    }
+
+    // "runs" -> keep original run order to match rank
+    return base;
+  }, [combinedAllFormats, combinedSearch, combinedSort]);
 
   if (loading) {
     return (
@@ -251,9 +293,7 @@ const PlayerStats = () => {
               <div className="ps-empty">No matching records.</div>
             )}
             {rows.map((r, idx) => {
-              const notOut = String(
-                r.dismissed_status || r.dismissed || ""
-              )
+              const notOut = String(r.dismissed_status || r.dismissed || "")
                 .toLowerCase()
                 .includes("not");
               const runsDisp = notOut ? `${r.run_scored}*` : r.run_scored;
@@ -304,9 +344,7 @@ const PlayerStats = () => {
       {combined.length > 0 && (
         <div className="ps-card mt-4">
           <div className="ps-header ps-header--mini">
-            <h4 className="ps-title-small">
-              Player Overall Performance Summary
-            </h4>
+            <h4 className="ps-title-small">Player Overall Performance Summary</h4>
             <button
               type="button"
               className="ps-info"
@@ -395,7 +433,7 @@ const PlayerStats = () => {
             onClick={() =>
               openInfo(
                 "Player Combined (All Formats)",
-                "This table shows exactly 1 row per player. It adds ODI + T20 + Test for that player from the filtered list above. Use the search below to find a specific player."
+                "This table shows exactly 1 row per player. It adds ODI + T20 + Test for that player from the filtered list above. Use the search and the sort to explore different leaders."
               )
             }
           >
@@ -403,14 +441,63 @@ const PlayerStats = () => {
           </button>
         </div>
 
-        {/* search just for table 3 */}
-        <div className="ps-filters ps-filters--compact">
-          <input
-            className="ps-input"
-            placeholder="Search player in combined table..."
-            value={combinedSearch}
-            onChange={(e) => setCombinedSearch(e.target.value)}
-          />
+        {/* Highlights bar */}
+        {combinedHighlights && (
+          <div className="ps-combined-highlights">
+            <div className="ps-h-item">
+              <span className="ps-h-label">Top Runs</span>
+              <span className="ps-h-value">
+                {combinedHighlights.topRuns?.player_name} •{" "}
+                {combinedHighlights.topRuns?.total_runs}
+              </span>
+            </div>
+            <div className="ps-h-item">
+              <span className="ps-h-label">Top Wkts</span>
+              <span className="ps-h-value">
+                {combinedHighlights.topWkts?.player_name} •{" "}
+                {combinedHighlights.topWkts?.total_wickets}
+              </span>
+            </div>
+            <div className="ps-h-item">
+              <span className="ps-h-label">Best Runs/Match</span>
+              <span className="ps-h-value">
+                {combinedHighlights.bestRpm?.player_name} •{" "}
+                {combinedHighlights.bestRpm?.total_matches
+                  ? (
+                      combinedHighlights.bestRpm.total_runs /
+                      combinedHighlights.bestRpm.total_matches
+                    ).toFixed(1)
+                  : "0"}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* search + sort toolbar for table 3 */}
+        <div className="ps-combined-toolbar">
+          <div className="ps-filters ps-filters--compact">
+            <input
+              className="ps-input"
+              placeholder="Search player in combined table..."
+              value={combinedSearch}
+              onChange={(e) => setCombinedSearch(e.target.value)}
+            />
+          </div>
+          <div className="ps-combined-sort-wrap">
+            <label className="ps-combined-sort-label" htmlFor="sortCombined">
+              Sort by
+            </label>
+            <select
+              id="sortCombined"
+              className="ps-combined-sort"
+              value={combinedSort}
+              onChange={(e) => setCombinedSort(e.target.value)}
+            >
+              <option value="runs">Total Runs (default)</option>
+              <option value="wkts">Total Wickets</option>
+              <option value="rpm">Runs per Match</option>
+            </select>
+          </div>
         </div>
 
         <div className="ps-grid-combined" role="table">
@@ -431,7 +518,6 @@ const PlayerStats = () => {
             )}
 
             {filteredCombinedAllFormats.map((p) => {
-              // use GLOBAL rank, not filtered index
               const top =
                 p.rank === 1
                   ? "gold"
@@ -449,31 +535,39 @@ const PlayerStats = () => {
                   ? "🥉"
                   : null;
 
+              const runsPerMatch = p.total_matches
+                ? (p.total_runs / p.total_matches).toFixed(1)
+                : "0.0";
+              const wktsPerMatch = p.total_matches
+                ? (p.total_wickets / p.total_matches).toFixed(2)
+                : "0.00";
+
               return (
                 <div
-                    className={`ps-row-combined ${top}`}
-                    role="row"
-                    key={p.player_name}
-                  >
-                    <div className="cell num">
-                      <span className={`medal ${top || ""}`}>{medal}</span>
-                      {p.rank}
-                    </div>
-                    <div className="cell">
-                      <button
-                        className="player-link"
-                        onClick={() => handlePlayerClick(p.player_name)}
-                      >
-                        {p.player_name}
-                      </button>
-                    </div>
-                    <div className="cell num">{p.total_matches}</div>
-                    <div className="cell num">{p.total_runs}</div>
-                    <div className="cell num">{p.total_wickets}</div>
-                    <div className="cell num">{p.total_fifties}</div>
-                    <div className="cell num">{p.total_hundreds}</div>
-                    <div className="cell num">{p.total_double_hundreds}</div>
+                  className={`ps-row-combined ${top}`}
+                  role="row"
+                  key={p.player_name}
+                  title={`Runs/Match: ${runsPerMatch} • Wkts/Match: ${wktsPerMatch}`}
+                >
+                  <div className="cell num">
+                    <span className={`medal ${top || ""}`}>{medal}</span>
+                    {p.rank}
                   </div>
+                  <div className="cell">
+                    <button
+                      className="player-link"
+                      onClick={() => handlePlayerClick(p.player_name)}
+                    >
+                      {p.player_name}
+                    </button>
+                  </div>
+                  <div className="cell num">{p.total_matches}</div>
+                  <div className="cell num">{p.total_runs}</div>
+                  <div className="cell num">{p.total_wickets}</div>
+                  <div className="cell num">{p.total_fifties}</div>
+                  <div className="cell num">{p.total_hundreds}</div>
+                  <div className="cell num">{p.total_double_hundreds}</div>
+                </div>
               );
             })}
           </div>
@@ -552,13 +646,10 @@ const PlayerStats = () => {
         </div>
       )}
 
-      {/* ===== Info modal for the "i" buttons ===== */}
+      {/* ===== Info modal for "i" buttons ===== */}
       {infoModal.open && (
         <div className="ps-info-modal-overlay" onClick={closeInfo}>
-          <div
-            className="ps-info-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="ps-info-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ps-info-modal-header">
               <h3 className="ps-info-modal-title">{infoModal.title}</h3>
               <button className="ps-info-modal-close" onClick={closeInfo}>
