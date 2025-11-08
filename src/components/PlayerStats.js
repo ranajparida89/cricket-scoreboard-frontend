@@ -1,4 +1,4 @@
-// ✅ src/components/PlayerStats.js — original layout + extra combined table
+// ✅ src/components/PlayerStats.js — original layout + extra combined table + search + info modals
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
@@ -12,15 +12,32 @@ const PlayerStats = () => {
   const [performances, setPerformances] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // filters for match-wise table (1st table)
   const [filters, setFilters] = useState({
     playerName: "",
     teamName: "",
-    matchType: "ALL", // ALL | ODI | T20 | TEST
+    matchType: "ALL",
   });
+
+  // search for 3rd table (combined-all-formats only)
+  const [combinedSearch, setCombinedSearch] = useState("");
 
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
+  // info modal (for small "i" buttons)
+  const [infoModal, setInfoModal] = useState({
+    open: false,
+    title: "",
+    body: "",
+  });
+
+  const openInfo = (title, body) => {
+    setInfoModal({ open: true, title, body });
+  };
+  const closeInfo = () => setInfoModal({ open: false, title: "", body: "" });
+
+  // fetch once
   useEffect(() => {
     (async () => {
       try {
@@ -45,7 +62,7 @@ const PlayerStats = () => {
   const sr = (runs, balls) =>
     Number(balls) > 0 ? (Number(runs) / Number(balls)) * 100 : 0;
 
-  // 1) filtered match-wise rows (your original table uses this)
+  // 1) filtered match-wise rows (table 1)
   const rows = useMemo(() => {
     const pQ = filters.playerName.trim().toLowerCase();
     const tQ = filters.teamName.trim().toLowerCase();
@@ -60,7 +77,7 @@ const PlayerStats = () => {
     });
   }, [performances, filters]);
 
-  // 2) your EXISTING overall summary logic (player + team + type)
+  // 2) existing overall summary (table 2)
   const combined = useMemo(() => {
     const acc = [];
     for (const perf of rows) {
@@ -92,7 +109,7 @@ const PlayerStats = () => {
     return acc.sort((a, b) => b.total_runs - a.total_runs);
   }, [rows]);
 
-  // 3) NEW: true combined per player (ALL formats together)
+  // 3) true combined per player (table 3)
   const combinedAllFormats = useMemo(() => {
     const map = new Map();
 
@@ -119,7 +136,6 @@ const PlayerStats = () => {
       acc.total_fifties += Number(perf.fifties || 0);
       acc.total_hundreds += Number(perf.hundreds || 0);
 
-      // if backend sent it, use it; otherwise derive
       const dh =
         perf.double_hundreds !== undefined
           ? Number(perf.double_hundreds)
@@ -131,6 +147,15 @@ const PlayerStats = () => {
     arr.sort((a, b) => b.total_runs - a.total_runs);
     return arr;
   }, [rows]);
+
+  // 3b) apply search to table 3 only
+  const filteredCombinedAllFormats = useMemo(() => {
+    const q = combinedSearch.trim().toLowerCase();
+    if (!q) return combinedAllFormats;
+    return combinedAllFormats.filter((p) =>
+      p.player_name.toLowerCase().includes(q)
+    );
+  }, [combinedAllFormats, combinedSearch]);
 
   if (loading) {
     return (
@@ -144,7 +169,7 @@ const PlayerStats = () => {
     <div className="container mt-4 text-white">
       <ToastContainer position="top-center" />
 
-      {/* ===== Match-wise table (UNCHANGED STRUCTURE) ===== */}
+      {/* ===== 1) Match-wise table ===== */}
       <div className="ps-card">
         <div className="ps-header">
           <h3 className="ps-title">
@@ -156,8 +181,12 @@ const PlayerStats = () => {
           <button
             type="button"
             className="ps-info"
-            aria-label="About this table"
-            data-tip="Each row is a single match. Filter by player, team, or format."
+            onClick={() =>
+              openInfo(
+                "Player Performance Stats",
+                "This table shows every match entry. Each row = one match for one player. Use the filters to narrow by player, team, or format."
+              )
+            }
           >
             i
           </button>
@@ -266,16 +295,22 @@ const PlayerStats = () => {
         </div>
       </div>
 
-      {/* ===== Existing Overall Summary (UNCHANGED) ===== */}
+      {/* ===== 2) Existing Overall Summary ===== */}
       {combined.length > 0 && (
         <div className="ps-card mt-4">
           <div className="ps-header ps-header--mini">
-            <h4 className="ps-title-small">Player Overall Performance Summary</h4>
+            <h4 className="ps-title-small">
+              Player Overall Performance Summary
+            </h4>
             <button
               type="button"
               className="ps-info"
-              aria-label="About this table"
-              data-tip="Totals per player within the current filters. Ranked by total runs. Medals mark the top 3."
+              onClick={() =>
+                openInfo(
+                  "Player Overall Performance Summary",
+                  "This table groups by player + team + match type. So the same player can appear multiple times (ODI / T20 / Test). It shows totals for that combination only."
+                )
+              }
             >
               i
             </button>
@@ -345,19 +380,35 @@ const PlayerStats = () => {
         </div>
       )}
 
-      {/* ===== NEW: Player Combined (All Formats) ===== */}
-      {combinedAllFormats.length > 0 && (
+      {/* ===== 3) Player Combined (All Formats) ===== */}
+      {filteredCombinedAllFormats.length > 0 && (
         <div className="ps-card mt-4">
           <div className="ps-header ps-header--mini">
-            <h4 className="ps-title-small">Player Combined (All Formats)</h4>
+            <h4 className="ps-title-small">
+              Player Combined (All Formats)
+            </h4>
             <button
               type="button"
               className="ps-info"
-              aria-label="About this table"
-              data-tip="This table shows 1 row per player. ODI + T20 + Test totals combined."
+              onClick={() =>
+                openInfo(
+                  "Player Combined (All Formats)",
+                  "This table shows exactly 1 row per player. It adds ODI + T20 + Test for that player from the filtered list above. Use the search below to find a specific player."
+                )
+              }
             >
               i
             </button>
+          </div>
+
+          {/* search just for table 3 */}
+          <div className="ps-filters ps-filters--compact">
+            <input
+              className="ps-input"
+              placeholder="Search player in combined table..."
+              value={combinedSearch}
+              onChange={(e) => setCombinedSearch(e.target.value)}
+            />
           </div>
 
           <div className="ps-grid-combined" role="table">
@@ -373,7 +424,7 @@ const PlayerStats = () => {
             </div>
 
             <div className="ps-body" role="rowgroup">
-              {combinedAllFormats.map((p, i) => {
+              {filteredCombinedAllFormats.map((p, i) => {
                 const top =
                   i === 0
                     ? "gold"
@@ -417,7 +468,7 @@ const PlayerStats = () => {
         </div>
       )}
 
-      {/* Modal stays same */}
+      {/* ===== Match details modal (unchanged) ===== */}
       {showDetailsModal && selectedPlayer && (
         <div className="player-modal-overlay">
           <div className="player-modal-content">
@@ -485,6 +536,22 @@ const PlayerStats = () => {
                   </li>
                 ))}
             </ul>
+          </div>
+        </div>
+      )}
+
+      {/* ===== Info modal (for i buttons) ===== */}
+      {infoModal.open && (
+        <div className="info-modal-overlay" onClick={closeInfo}>
+          <div
+            className="info-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="info-modal-close" onClick={closeInfo}>
+              ✖
+            </button>
+            <h3 className="info-modal-title">{infoModal.title}</h3>
+            <p className="info-modal-body">{infoModal.body}</p>
           </div>
         </div>
       )}

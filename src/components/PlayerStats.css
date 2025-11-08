@@ -460,3 +460,62 @@
 .ps-grid-combined .ps-row-combined.bronze .medal {
   filter: drop-shadow(0 0 3px rgba(0,0,0,.15));
 }
+/* compact filters for the 3rd table */
+.ps-filters.ps-filters--compact {
+  margin-bottom: 10px;
+}
+.ps-filters.ps-filters--compact .ps-input {
+  flex: 0 0 280px;
+}
+
+/* info modal for 'i' buttons */
+.info-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.info-modal-content {
+  background: #0f1722;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  max-width: 460px;
+  width: min(460px, 95vw);
+  padding: 18px 20px 16px;
+  color: #eaf6ff;
+  box-shadow: 0 20px 55px rgba(0,0,0,0.4);
+  position: relative;
+}
+
+.info-modal-title {
+  font-weight: 800;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.info-modal-body {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #d1e4ff;
+}
+
+.info-modal-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* since we're now using click-modal, disable old tooltip behavior for .ps-info */
+.ps-info[data-tip]::after {
+  display: none;
+}
