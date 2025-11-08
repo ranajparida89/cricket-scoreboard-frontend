@@ -1,36 +1,5 @@
 /* =========================
-   LAYOUT
-   ========================= */
-.player-stats-layout {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-  width: min(1300px, 98vw);
-  margin: 20px auto 40px;
-}
-
-/* left takes remaining width */
-.player-stats-left {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-/* right is fixed panel */
-.player-stats-right {
-  width: 360px;
-  flex: 0 0 360px;
-}
-
-/* make right panel sticky */
-.ps-card--sticky {
-  position: sticky;
-  top: 80px;
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-/* =========================
-   CARD BASE
+   CARD BASE / GENERAL
    ========================= */
 .ps-card {
   position: relative;
@@ -87,7 +56,7 @@
   letter-spacing: 0.2px;
 }
 
-/* Info button */
+/* Info button (circle "i") */
 .ps-info {
   position: absolute;
   top: 10px;
@@ -106,28 +75,9 @@
 .ps-info:hover {
   filter: brightness(1.1);
 }
+/* disable old tooltip style */
 .ps-info[data-tip]::after {
-  content: attr(data-tip);
-  position: absolute;
-  right: 28px;
-  top: 50%;
-  transform: translateY(-50%);
-  max-width: 340px;
-  background: #08131f;
-  color: #dfeffc;
-  font-size: 12.5px;
-  line-height: 1.35;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  padding: 8px 10px;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-}
-.ps-info:hover::after,
-.ps-info:focus::after {
-  opacity: 1;
+  display: none;
 }
 
 /* Filters */
@@ -162,6 +112,12 @@
   background: #0f1b28;
   color: #eaf6ff;
 }
+.ps-filters.ps-filters--compact {
+  margin-bottom: 10px;
+}
+.ps-filters.ps-filters--compact .ps-input {
+  flex: 0 0 280px;
+}
 
 /* =========================
    MATCH-WISE TABLE
@@ -192,7 +148,7 @@
   flex-direction: column;
   gap: 8px;
   margin-top: 8px;
-  max-height: 540px; /* <-- compact vertical scroll */
+  max-height: 540px;
   overflow-y: auto;
 }
 .ps-row {
@@ -241,7 +197,7 @@
   border-radius: 12px;
 }
 
-/* responsive column hiding (same as before) */
+/* responsive hiding */
 @media (max-width: 980px) {
   .ps-head .cell:nth-last-child(-n + 1),
   .ps-row .cell:nth-last-child(-n + 1) {
@@ -255,12 +211,6 @@
   }
 }
 @media (max-width: 720px) {
-  .player-stats-layout {
-    flex-direction: column;
-  }
-  .player-stats-right {
-    width: 100%;
-  }
   .ps-head .cell:nth-last-child(-n + 6),
   .ps-row .cell:nth-last-child(-n + 6) {
     display: none;
@@ -268,15 +218,11 @@
 }
 
 /* =========================
-   SUMMARY TABLE (RIGHT)
+   SUMMARY TABLE (2nd table)
    ========================= */
 .ps-grid-sum {
   --sum-cols: 0.7fr 1.4fr 0.9fr 1fr 0.9fr 0.8fr 0.8fr 0.8fr;
   font-variant-numeric: tabular-nums;
-}
-.ps-grid-sum--compact .ps-body-sum {
-  max-height: 58vh;
-  overflow-y: auto;
 }
 .ps-head-sum,
 .ps-row-sum {
@@ -306,8 +252,6 @@
 .ps-row-sum .cell.num {
   justify-content: flex-end;
 }
-
-/* medals same as before */
 .medal {
   margin-right: 6px;
   filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.25));
@@ -326,7 +270,81 @@
 }
 
 /* =========================
-   MODAL (unchanged)
+   3rd TABLE: Player Combined (All Formats)
+   ========================= */
+.ps-grid-combined {
+  --comb-cols: 0.6fr 1.3fr 0.8fr 1fr 0.9fr 0.8fr 0.8fr 0.8fr;
+  font-variant-numeric: tabular-nums;
+}
+.ps-head-combined,
+.ps-row-combined {
+  display: grid;
+  grid-template-columns: var(--comb-cols);
+  align-items: center;
+}
+.ps-head-combined {
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.ps-row-combined {
+  padding: 10px 12px;
+  border-radius: 12px;
+  margin-top: 8px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0.008));
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+.ps-row-combined .cell {
+  padding: 6px 8px;
+}
+.ps-row-combined .cell.num {
+  justify-content: flex-end;
+}
+.ps-card .ps-grid-combined .ps-body {
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+/* pastel top 3 */
+.ps-grid-combined .ps-row-combined.gold {
+  background: linear-gradient(180deg, #fef6d9 0%, #f9ebbd 100%);
+  border: 1px solid rgba(247, 190, 80, 0.35);
+  box-shadow: 0 6px 18px rgba(247, 190, 80, 0.18);
+  color: #2f2f2f;
+}
+.ps-grid-combined .ps-row-combined.silver {
+  background: linear-gradient(180deg, #edf3ff 0%, #dfe6f2 100%);
+  border: 1px solid rgba(184, 198, 223, 0.45);
+  box-shadow: 0 6px 18px rgba(184, 198, 223, 0.18);
+  color: #273047;
+}
+.ps-grid-combined .ps-row-combined.bronze {
+  background: linear-gradient(180deg, #ffe8d9 0%, #f4d1b9 100%);
+  border: 1px solid rgba(244, 178, 120, 0.4);
+  box-shadow: 0 6px 18px rgba(244, 178, 120, 0.18);
+  color: #322824;
+}
+.ps-grid-combined .ps-row-combined.gold .cell,
+.ps-grid-combined .ps-row-combined.gold .player-link {
+  color: #1f2933;
+}
+.ps-grid-combined .ps-row-combined.silver .cell,
+.ps-grid-combined .ps-row-combined.silver .player-link {
+  color: #243046;
+}
+.ps-grid-combined .ps-row-combined.bronze .cell,
+.ps-grid-combined .ps-row-combined.bronze .player-link {
+  color: #3a2a24;
+}
+.ps-grid-combined .medal {
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.12));
+}
+
+/* =========================
+   MATCH DETAILS MODAL
    ========================= */
 .player-modal-overlay {
   position: fixed;
@@ -368,159 +386,11 @@
   padding: 12px;
   margin-bottom: 10px;
 }
-/* extra table for "Player Combined (All Formats)" */
-.ps-grid-combined {
-  --comb-cols: 0.6fr 1.3fr 0.8fr 1fr 0.9fr 0.8fr 0.8fr 0.8fr;
-  font-variant-numeric: tabular-nums;
-}
 
-.ps-head-combined,
-.ps-row-combined {
-  display: grid;
-  grid-template-columns: var(--comb-cols);
-  align-items: center;
-}
-
-.ps-head-combined {
-  padding: 10px 12px;
-  border-radius: 12px;
-  font-weight: 800;
-  font-size: 14px;
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-  border: 1px solid rgba(255,255,255,.08);
-}
-
-.ps-row-combined {
-  padding: 10px 12px;
-  border-radius: 12px;
-  margin-top: 8px;
-  background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.02));
-  border: 1px solid rgba(255,255,255,.08);
-}
-
-.ps-row-combined .cell { padding: 6px 8px; }
-.ps-row-combined .cell.num { justify-content: flex-end; }
-
-/* optional: keep it from growing too tall like the first table */
-.ps-card .ps-grid-combined .ps-body {
-  max-height: 420px;
-  overflow-y: auto;
-}
-/* Soft pastel medals only for the combined table */
-.ps-grid-combined .ps-row-combined.gold {
-  background: linear-gradient(180deg, #fef6d9 0%, #f9ebbd 100%);
-  border: 1px solid rgba(247, 190, 80, 0.35);
-  box-shadow: 0 6px 18px rgba(247, 190, 80, 0.18);
-  color: #2f2f2f;
-}
-
-.ps-grid-combined .ps-row-combined.silver {
-  background: linear-gradient(180deg, #edf3ff 0%, #dfe6f2 100%);
-  border: 1px solid rgba(184, 198, 223, 0.45);
-  box-shadow: 0 6px 18px rgba(184, 198, 223, 0.18);
-  color: #273047;
-}
-
-.ps-grid-combined .ps-row-combined.bronze {
-  background: linear-gradient(180deg, #ffe8d9 0%, #f4d1b9 100%);
-  border: 1px solid rgba(244, 178, 120, 0.4);
-  box-shadow: 0 6px 18px rgba(244, 178, 120, 0.18);
-  color: #322824;
-}
-
-/* keep non-top rows subtle */
-.ps-grid-combined .ps-row-combined {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0.008));
-  border: 1px solid rgba(255, 255, 255, 0.03);
-}
-
-/* medal emoji look better on light backgrounds */
-.ps-grid-combined .medal {
-  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.12));
-}
-/* make text readable on the light pastel rows */
-.ps-grid-combined .ps-row-combined.gold .cell,
-.ps-grid-combined .ps-row-combined.gold .player-link {
-  color: #1f2933; /* dark slate */
-}
-
-.ps-grid-combined .ps-row-combined.silver .cell,
-.ps-grid-combined .ps-row-combined.silver .player-link {
-  color: #243046; /* slightly bluish dark */
-}
-
-.ps-grid-combined .ps-row-combined.bronze .cell,
-.ps-grid-combined .ps-row-combined.bronze .player-link {
-  color: #3a2a24; /* warm dark */
-}
-
-/* keep the medal icon visible */
-.ps-grid-combined .ps-row-combined.gold .medal,
-.ps-grid-combined .ps-row-combined.silver .medal,
-.ps-grid-combined .ps-row-combined.bronze .medal {
-  filter: drop-shadow(0 0 3px rgba(0,0,0,.15));
-}
-/* compact filters for the 3rd table */
-.ps-filters.ps-filters--compact {
-  margin-bottom: 10px;
-}
-.ps-filters.ps-filters--compact .ps-input {
-  flex: 0 0 280px;
-}
-
-/* info modal for 'i' buttons */
-.info-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.55);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-}
-
-.info-modal-content {
-  background: #0f1722;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px;
-  max-width: 460px;
-  width: min(460px, 95vw);
-  padding: 18px 20px 16px;
-  color: #eaf6ff;
-  box-shadow: 0 20px 55px rgba(0,0,0,0.4);
-  position: relative;
-}
-
-.info-modal-title {
-  font-weight: 800;
-  font-size: 18px;
-  margin-bottom: 10px;
-}
-
-.info-modal-body {
-  font-size: 14px;
-  line-height: 1.4;
-  color: #d1e4ff;
-}
-
-.info-modal-close {
-  position: absolute;
-  top: 8px;
-  right: 10px;
-  background: transparent;
-  border: none;
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-/* since we're now using click-modal, disable old tooltip behavior for .ps-info */
-.ps-info[data-tip]::after {
-  display: none;
-}
-/* ===== INFO MODAL (for the little "i" buttons) ===== */
-.info-modal-overlay {
+/* =========================
+   INFO MODAL (for "i")
+   ========================= */
+.ps-info-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
@@ -531,7 +401,7 @@
   padding: 18px;
 }
 
-.info-modal-content {
+.ps-info-modal {
   width: min(620px, 95vw);
   background: linear-gradient(180deg, #0f1925 0%, #0a1119 100%);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -544,20 +414,20 @@
   gap: 14px;
 }
 
-.info-modal-header {
+.ps-info-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
 }
 
-.info-modal-title {
-  font-size: 1.2rem;
+.ps-info-modal-title {
+  font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: 0.02em;
 }
 
-.info-modal-close {
+.ps-info-modal-close {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   width: 28px;
@@ -571,13 +441,13 @@
   justify-content: center;
 }
 
-.info-modal-close:hover {
+.ps-info-modal-close:hover {
   background: rgba(255, 255, 255, 0.12);
 }
 
-.info-modal-body {
-  font-size: 0.95rem;
-  line-height: 1.5;
+.ps-info-modal-body {
+  font-size: 0.97rem;
+  line-height: 1.55;
   background: rgba(3, 14, 24, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.015);
   border-radius: 14px;
@@ -586,13 +456,13 @@
 }
 
 @media (max-width: 520px) {
-  .info-modal-content {
+  .ps-info-modal {
     width: 100%;
   }
-  .info-modal-title {
+  .ps-info-modal-title {
     font-size: 1.05rem;
   }
-  .info-modal-body {
+  .ps-info-modal-body {
     font-size: 0.9rem;
   }
 }

@@ -1,4 +1,5 @@
-// ✅ src/components/PlayerStats.js — original layout + extra combined table + search + info modals + fixed ranks
+// ✅ src/components/PlayerStats.js
+// match-wise table + grouped table + combined-all-formats table
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
@@ -25,7 +26,7 @@ const PlayerStats = () => {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
-  // info modal (for small "i" buttons)
+  // info modal (for the small "i" buttons)
   const [infoModal, setInfoModal] = useState({
     open: false,
     title: "",
@@ -77,7 +78,7 @@ const PlayerStats = () => {
     });
   }, [performances, filters]);
 
-  // 2) existing overall summary (table 2)
+  // 2) grouped by player+team+match_type (table 2)
   const combined = useMemo(() => {
     const acc = [];
     for (const perf of rows) {
@@ -109,7 +110,7 @@ const PlayerStats = () => {
     return acc.sort((a, b) => b.total_runs - a.total_runs);
   }, [rows]);
 
-  // 3) true combined per player (table 3)
+  // 3) true combined per player (ALL formats together) – table 3
   const combinedAllFormats = useMemo(() => {
     const map = new Map();
 
@@ -143,16 +144,16 @@ const PlayerStats = () => {
       acc.total_double_hundreds += dh;
     }
 
-    // turn map -> array, sort once, and assign GLOBAL rank
+    // sort once, assign global rank
     const arr = Array.from(map.values());
     arr.sort((a, b) => b.total_runs - a.total_runs);
     arr.forEach((p, idx) => {
-      p.rank = idx + 1; // 👈 fixed, global rank
+      p.rank = idx + 1;
     });
     return arr;
   }, [rows]);
 
-  // 3b) apply search to table 3 only — but KEEP original rank
+  // 3b) apply search to table 3 only — keep original rank
   const filteredCombinedAllFormats = useMemo(() => {
     const q = combinedSearch.trim().toLowerCase();
     if (!q) return combinedAllFormats;
@@ -440,40 +441,46 @@ const PlayerStats = () => {
                   ? "bronze"
                   : "";
               const medal =
-                p.rank === 1 ? "🥇" : p.rank === 2 ? "🥈" : p.rank === 3 ? "🥉" : null;
+                p.rank === 1
+                  ? "🥇"
+                  : p.rank === 2
+                  ? "🥈"
+                  : p.rank === 3
+                  ? "🥉"
+                  : null;
 
               return (
                 <div
-                  className={`ps-row-combined ${top}`}
-                  role="row"
-                  key={p.player_name}
-                >
-                  <div className="cell num">
-                    <span className={`medal ${top || ""}`}>{medal}</span>
-                    {p.rank}
+                    className={`ps-row-combined ${top}`}
+                    role="row"
+                    key={p.player_name}
+                  >
+                    <div className="cell num">
+                      <span className={`medal ${top || ""}`}>{medal}</span>
+                      {p.rank}
+                    </div>
+                    <div className="cell">
+                      <button
+                        className="player-link"
+                        onClick={() => handlePlayerClick(p.player_name)}
+                      >
+                        {p.player_name}
+                      </button>
+                    </div>
+                    <div className="cell num">{p.total_matches}</div>
+                    <div className="cell num">{p.total_runs}</div>
+                    <div className="cell num">{p.total_wickets}</div>
+                    <div className="cell num">{p.total_fifties}</div>
+                    <div className="cell num">{p.total_hundreds}</div>
+                    <div className="cell num">{p.total_double_hundreds}</div>
                   </div>
-                  <div className="cell">
-                    <button
-                      className="player-link"
-                      onClick={() => handlePlayerClick(p.player_name)}
-                    >
-                      {p.player_name}
-                    </button>
-                  </div>
-                  <div className="cell num">{p.total_matches}</div>
-                  <div className="cell num">{p.total_runs}</div>
-                  <div className="cell num">{p.total_wickets}</div>
-                  <div className="cell num">{p.total_fifties}</div>
-                  <div className="cell num">{p.total_hundreds}</div>
-                  <div className="cell num">{p.total_double_hundreds}</div>
-                </div>
               );
             })}
           </div>
         </div>
       </div>
 
-      {/* ===== Match details modal (unchanged) ===== */}
+      {/* ===== Match details modal ===== */}
       {showDetailsModal && selectedPlayer && (
         <div className="player-modal-overlay">
           <div className="player-modal-content">
@@ -545,24 +552,23 @@ const PlayerStats = () => {
         </div>
       )}
 
-      {/* ===== Info modal (for i buttons) ===== */}
- {infoModal.open && (
-  <div className="info-modal-overlay" onClick={closeInfo}>
-    <div
-      className="info-modal-content"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <div className="info-modal-header">
-        <h3 className="info-modal-title">{infoModal.title}</h3>
-        <button className="info-modal-close" onClick={closeInfo}>
-          ✖
-        </button>
-      </div>
-      <p className="info-modal-body">{infoModal.body}</p>
-    </div>
-  </div>
-)}
-
+      {/* ===== Info modal for the "i" buttons ===== */}
+      {infoModal.open && (
+        <div className="ps-info-modal-overlay" onClick={closeInfo}>
+          <div
+            className="ps-info-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="ps-info-modal-header">
+              <h3 className="ps-info-modal-title">{infoModal.title}</h3>
+              <button className="ps-info-modal-close" onClick={closeInfo}>
+                ✖
+              </button>
+            </div>
+            <p className="ps-info-modal-body">{infoModal.body}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
