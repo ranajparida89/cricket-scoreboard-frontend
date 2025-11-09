@@ -1,6 +1,7 @@
 // src/components/TestRanking.js
-// Fixed: UI now respects "wins first, then points" like backend
-// New: sort toggle + info button + working single close button (old removed)
+// Fixed: wins-first sorting
+// New: sort toggle + info button + single visible close button
+// Extra: hide outer/modal-provided close button if present
 
 import React, {
   useEffect,
@@ -157,6 +158,7 @@ const TestRanking = () => {
 
   const wrapRef = useRef(null);
   const bodyRefs = useRef([]);
+  const closeBtnRef = useRef(null);
   bodyRefs.current = [];
   const addRowRef = (el) => {
     if (el && !bodyRefs.current.includes(el)) bodyRefs.current.push(el);
@@ -194,6 +196,38 @@ const TestRanking = () => {
         setLoading(false);
       }
     })();
+  }, []);
+
+  // 💡 hide outer modal close if present
+  useEffect(() => {
+    // our container
+    const card = wrapRef.current;
+    if (!card) return;
+
+    // go up a bit to the modal wrapper
+    const modalRoot = card.parentElement; // usually the popup wrapper
+    if (!modalRoot) return;
+
+    // find all clickable "x" buttons there
+    const buttons = modalRoot.querySelectorAll("button");
+    buttons.forEach((btn) => {
+      // skip ours
+      if (btn.dataset.trfxClose === "true") return;
+
+      const text = (btn.textContent || "").trim();
+      const isX = text === "✕" || text === "×" || text === "X";
+
+      // some libraries give it a close icon class
+      const looksLikeClose =
+        isX ||
+        btn.className.toLowerCase().includes("close") ||
+        btn.getAttribute("aria-label")?.toLowerCase().includes("close");
+
+      // if it's NOT ours and looks like a close → hide it
+      if (looksLikeClose) {
+        btn.style.display = "none";
+      }
+    });
   }, []);
 
   const sortedRows = useMemo(() => {
@@ -270,8 +304,10 @@ const TestRanking = () => {
             i
           </button>
 
-          {/* ✅ SINGLE close button only */}
+          {/* our single close */}
           <button
+            ref={closeBtnRef}
+            data-trfx-close="true"
             className="trfx-close-btn"
             onClick={() => setVisible(false)}
             title="Close"
@@ -280,7 +316,6 @@ const TestRanking = () => {
           </button>
         </div>
 
-        {/* sort bar */}
         <div className="trfx-sortbar">
           <span className="label">Sort by:</span>
           <button
@@ -328,9 +363,15 @@ const TestRanking = () => {
             <tbody>
               {loading ? (
                 <>
-                  <tr className="skeleton"><td colSpan="7" /></tr>
-                  <tr className="skeleton"><td colSpan="7" /></tr>
-                  <tr className="skeleton"><td colSpan="7" /></tr>
+                  <tr className="skeleton">
+                    <td colSpan="7" />
+                  </tr>
+                  <tr className="skeleton">
+                    <td colSpan="7" />
+                  </tr>
+                  <tr className="skeleton">
+                    <td colSpan="7" />
+                  </tr>
                 </>
               ) : sortedRows.length === 0 ? (
                 <tr>
