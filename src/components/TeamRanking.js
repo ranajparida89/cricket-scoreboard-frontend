@@ -232,6 +232,14 @@ const TeamRanking = () => {
             <span className="page-subtext">
               Pulled from match history of CrickEdge
             </span>
+            {/* ✅ info button */}
+            <button
+              type="button"
+              className="tr-info-btn"
+              title="How this ranking is calculated"
+            >
+              i
+            </button>
           </div>
           <h2 className="tr-title">International Team Rankings</h2>
           <p className="tr-desc">
