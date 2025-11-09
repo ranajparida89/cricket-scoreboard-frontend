@@ -1,3 +1,4 @@
+// App.js
 import "./App.css";
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
@@ -35,14 +36,9 @@ import MatchStory from "./components/MatchStory";
 import H2HRecords from "./components/H2HRecords";
 import SmartAnalyzer from "./components/SmartAnalyzer";
 import FavoritesManager from "./components/FavoritesManager";
-// ⛔ removed unused:
-// import UserCricketStatsDashboard from "./components/UserCricketStatsDashboard";
 import UserCricketStatsDashboardV2 from "./components/UserCricketStatsDashboardV2";
-// ⛔ removed unused:
-// import WinLossTrendDashboard from "./components/WinLossTrendDashboard";
 import AdminPromptModal from "./components/AdminPromptModal";
 import PendingMatches from "./components/Admin/PendingMatches";
-
 import { useAuth } from "./services/auth";
 import UserDashboardV2Page from "./components/UserDashboardV2Page";
 import ManageAdmins from "./components/Admin/ManageAdmins";
@@ -51,10 +47,7 @@ import Footer from "./components/Footer";
 import DownloadAppButton from "./components/DownloadAppButton";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import DeleteAccount from "./components/DeleteAccount";
-
 import SchedulerPage from "./components/SchedulerPage";
-
-import "bootstrap/dist/css/bootstrap.min.css";
 import TeamDistributor from "./components/TeamDistributor";
 import AllBoardsView from "./components/AllBoardsView";
 import BoardRegistrationForm from "./components/BoardRegistrationForm";
@@ -63,18 +56,19 @@ import TournamentPoints from "./components/TournamentPoints";
 
 // 🔥 NEW
 import PitchRandomizer from "./components/PitchRandomizer";
-import MoMInsights from "./components/MoMInsights"; // ✅ MoM 04/11/2025
+import MoMInsights from "./components/MoMInsights";
 
-// ✅ NEW: Home highlights carousel (Most Runs, Most Wickets, etc.)
+// ✅ NEW: Home highlights carousel
 import HomeHighlights from "./components/HomeHighlights";
 
 // ✅ NEW: FAQ page
 import FaqPage from "./components/FaqPage";
 
+import "bootstrap/dist/css/bootstrap.min.css";
+
 function HomePage() {
   return (
     <div className="container mt-4">
-      {/* ✅ highlights on landing page */}
       <HomeHighlights />
 
       <div className="mb-5">
@@ -100,7 +94,6 @@ function App() {
   const [theme, setTheme] = useState("dark");
   const [checkedAdmin, setCheckedAdmin] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [waitingWorker, setWaitingWorker] = useState(null);
 
@@ -155,6 +148,9 @@ function App() {
 
   return (
     <div className={theme}>
+      {/* ✅ golden slanted watermark background */}
+      <div className="crickedge-bg" aria-hidden="true"></div>
+
       <Router>
         <AppNavbar onAuthClick={() => setShowAuthModal(true)} toggleTheme={toggleTheme} theme={theme} />
 
@@ -191,12 +187,10 @@ function App() {
         <DownloadAppButton />
         <MatchTicker />
         <AuthModal show={showAuthModal} onClose={() => setShowAuthModal(false)} />
-        {/* your sidebar, now with Squad / Lineup */}
         <SidebarMenu isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         <Routes>
           <Route path="/" element={<HomePage />} />
-
           <Route
             path="/add-match"
             element={
@@ -205,7 +199,6 @@ function App() {
               </PageWrapper>
             }
           />
-
           <Route
             path="/add-test-match"
             element={
@@ -214,7 +207,6 @@ function App() {
               </PageWrapper>
             }
           />
-
           <Route
             path="/test-history"
             element={
@@ -225,7 +217,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/leaderboard"
             element={
@@ -234,7 +225,6 @@ function App() {
               </PageWrapper>
             }
           />
-
           <Route
             path="/match-history"
             element={
@@ -245,7 +235,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/graphs"
             element={
@@ -256,7 +245,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/all-boards"
             element={
@@ -267,7 +255,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/boards/analytics"
             element={
@@ -278,8 +265,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-          {/* ✅ NEW: Pitch Randomizer */}
           <Route
             path="/pitch-randomizer"
             element={
@@ -290,10 +275,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-          {/* old alias */}
           <Route path="/create-board" element={<Navigate to="/register-board" replace />} />
-
           <Route
             path="/register-board"
             element={
@@ -304,7 +286,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/teams"
             element={
@@ -313,7 +294,6 @@ function App() {
               </PageWrapper>
             }
           />
-
           <Route
             path="/teams/:teamName"
             element={
@@ -322,7 +302,6 @@ function App() {
               </PageWrapper>
             }
           />
-
           <Route
             path="/about"
             element={
@@ -331,8 +310,6 @@ function App() {
               </PageWrapper>
             }
           />
-
-          {/* ✅ FAQ */}
           <Route
             path="/faq"
             element={
@@ -341,7 +318,6 @@ function App() {
               </PageWrapper>
             }
           />
-
           <Route
             path="/contact"
             element={
@@ -350,7 +326,6 @@ function App() {
               </PageWrapper>
             }
           />
-
           <Route
             path="/points"
             element={
@@ -361,9 +336,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route path="/matches" element={<HomePage />} />
-
           <Route
             path="/ranking"
             element={
@@ -374,7 +347,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/test-ranking"
             element={
@@ -385,7 +357,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/add-player"
             element={
@@ -402,7 +373,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/player-stats"
             element={
@@ -411,7 +381,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/player-performance"
             element={
@@ -426,7 +395,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/squad-lineup"
             element={
@@ -437,9 +405,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route path="/qualification-scenario" element={<QualificationScenario />} />
-
           <Route
             path="/add-upcoming-match"
             element={
@@ -454,7 +420,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/upcoming-matches"
             element={
@@ -463,23 +428,14 @@ function App() {
               </PageWrapper>
             }
           />
-
           <Route path="/player-rankings" element={<PlayerRankings />} />
           <Route path="/match-story" element={<MatchStory />} />
           <Route path="/h2h-records" element={<H2HRecords />} />
           <Route path="/smart-analyzer" element={<SmartAnalyzer />} />
-
           <Route
             path="/my-dashboard"
-            element={
-              currentUser ? (
-                <UserCricketStatsDashboardV2 />
-              ) : (
-                <div>Please log in to view your dashboard.</div>
-              )
-            }
+            element={currentUser ? <UserCricketStatsDashboardV2 /> : <div>Please log in to view your dashboard.</div>}
           />
-
           <Route
             path="/manage-favorites"
             element={
@@ -490,7 +446,6 @@ function App() {
               )
             }
           />
-
           <Route path="/dashboard-v2" element={<UserDashboardV2Page />} />
           <Route path="/admin/manage" element={<ManageAdmins />} />
           <Route path="/admin/pending" element={<PendingMatches />} />
@@ -506,7 +461,6 @@ function App() {
               </PageWrapper>
             }
           />
-          {/* ✅ Man of the Match Insights */}
           <Route
             path="/mom-insights"
             element={
