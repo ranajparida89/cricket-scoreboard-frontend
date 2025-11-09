@@ -1,6 +1,6 @@
 // src/components/TestRanking.js
 // Fixed: UI now respects "wins first, then points" like backend
-// New: sort toggle + info button + working close button
+// New: sort toggle + info button + working single close button (old removed)
 
 import React, {
   useEffect,
@@ -151,9 +151,9 @@ const TestRow = forwardRef(({ index, row, maxPoints }, ref) => {
 const TestRanking = () => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortMode, setSortMode] = useState("wins"); // "wins" | "points"
+  const [sortMode, setSortMode] = useState("wins");
   const [showInfo, setShowInfo] = useState(false);
-  const [visible, setVisible] = useState(true); // ✅ for the close button
+  const [visible, setVisible] = useState(true);
 
   const wrapRef = useRef(null);
   const bodyRefs = useRef([]);
@@ -196,7 +196,6 @@ const TestRanking = () => {
     })();
   }, []);
 
-  // apply sorting exactly like backend (wins desc, points desc) by default
   const sortedRows = useMemo(() => {
     const arr = [...rows];
     if (sortMode === "wins") {
@@ -223,7 +222,6 @@ const TestRanking = () => {
     [sortedRows]
   );
 
-  // GSAP row reveal
   useEffect(() => {
     if (!inView || !bodyRefs.current.length) return;
     gsap.fromTo(
@@ -238,21 +236,8 @@ const TestRanking = () => {
         ease: "power2.out",
       }
     );
-    if (bodyRefs.current[0]) {
-      gsap.fromTo(
-        bodyRefs.current[0],
-        { boxShadow: "0 0 0 rgba(0,255,170,0)" },
-        {
-          boxShadow: "0 0 22px rgba(0,255,170,.35)",
-          duration: 1.1,
-          repeat: 1,
-          yoyo: true,
-        }
-      );
-    }
   }, [inView, sortedRows]);
 
-  // if user clicked X, don't render
   if (!visible) return null;
 
   return (
@@ -280,24 +265,22 @@ const TestRanking = () => {
           <button
             className="trfx-info-btn"
             onClick={() => setShowInfo((p) => !p)}
-            aria-label="About Test Rankings"
             title="About this page"
           >
             i
           </button>
 
-          {/* ✅ Close button inside the card */}
+          {/* ✅ SINGLE close button only */}
           <button
             className="trfx-close-btn"
             onClick={() => setVisible(false)}
-            aria-label="Close rankings"
             title="Close"
           >
             ✕
           </button>
         </div>
 
-        {/* sort toggle */}
+        {/* sort bar */}
         <div className="trfx-sortbar">
           <span className="label">Sort by:</span>
           <button
@@ -318,18 +301,12 @@ const TestRanking = () => {
           <div className="trfx-info-panel">
             <h4>How this ranking works</h4>
             <ul>
-              <li>Primary order: teams with more Test wins come first.</li>
-              <li>If wins are same, team with higher Test points comes first.</li>
+              <li>Primary order: Teams with more Test wins come first.</li>
+              <li>If wins are equal, points determine ranking.</li>
+              <li>Win = 12 pts, Draw = 4 pts, Loss = 6 pts.</li>
               <li>
-                Points are computed on server: Win = 12, Draw = 4, Loss = 6 (your
-                board logic).
-              </li>
-              <li>
-                Drawn matches give points to both sides, so low-win teams may still
-                have points.
-              </li>
-              <li>
-                Use the toggle above to temporarily view by points instead of wins.
+                Drawn matches give both sides points, so low-win teams may still
+                rank higher on points.
               </li>
             </ul>
           </div>
@@ -349,29 +326,19 @@ const TestRanking = () => {
               </tr>
             </thead>
             <tbody>
-              {loading && (
+              {loading ? (
                 <>
-                  <tr className="skeleton">
-                    <td colSpan="7" />
-                  </tr>
-                  <tr className="skeleton">
-                    <td colSpan="7" />
-                  </tr>
-                  <tr className="skeleton">
-                    <td colSpan="7" />
-                  </tr>
+                  <tr className="skeleton"><td colSpan="7" /></tr>
+                  <tr className="skeleton"><td colSpan="7" /></tr>
+                  <tr className="skeleton"><td colSpan="7" /></tr>
                 </>
-              )}
-
-              {!loading && sortedRows.length === 0 && (
+              ) : sortedRows.length === 0 ? (
                 <tr>
-                  <td className="trfx-empty" colSpan="7">
+                  <td colSpan="7" className="trfx-empty">
                     No Test ranking data available.
                   </td>
                 </tr>
-              )}
-
-              {!loading &&
+              ) : (
                 sortedRows.map((r, i) => (
                   <TestRow
                     key={`${r.team_name}-${i}`}
@@ -380,7 +347,8 @@ const TestRanking = () => {
                     row={r}
                     maxPoints={maxPoints}
                   />
-                ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>
