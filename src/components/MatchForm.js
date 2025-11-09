@@ -73,6 +73,37 @@ function buildMatchName(tournamentName, seasonYear, team1, team2) {
   return `${base} ${seasonYear} : ${t1} vs ${t2}`;
 }
 
+// ✅ helper: try to extract the full winner name from the backend message
+function extractWinnerName(message = "", team1 = "", team2 = "") {
+  const msg = message.trim();
+  if (!msg) return "";
+
+  const lower = msg.toLowerCase();
+
+  // pattern like: "New Zealand won the match" or "Sri Lanka won the match by 5 runs"
+  const wonIdx = lower.indexOf("won the match");
+  if (wonIdx !== -1) {
+    // take everything before "won the match"
+    const winnerRaw = msg.slice(0, wonIdx).trim();
+    // sometimes backend might send "🏆 New Zealand won the match"
+    return winnerRaw.replace(/^[🏆\-\s]+/, "").trim();
+  }
+
+  // pattern like: "Match is drawn." or "Match drawn"
+  if (lower.includes("match is drawn") || lower.includes("match drawn") || lower.includes("draw")) {
+    return "Match Drawn";
+  }
+
+  // fallback: if message contains full team names, return that
+  const t1 = normalizeTeamName(team1);
+  const t2 = normalizeTeamName(team2);
+  if (t1 && lower.includes(t1.toLowerCase())) return t1;
+  if (t2 && lower.includes(t2.toLowerCase())) return t2;
+
+  // last fallback: return original message first word
+  return msg.split(" ")[0];
+}
+
 export default function MatchForm() {
   const { width, height } = useWindowSize();
 
@@ -267,10 +298,13 @@ export default function MatchForm() {
       };
 
       const result = await submitMatchResult(payload);
-      setResultMsg(result.message || "Match submitted.");
+      const msg = result.message || "Match submitted.";
+      setResultMsg(msg);
 
-      const winner = (result.message || "").split(" ")[0];
+      // ✅ use smart extractor so "New Zealand won the match" stays whole
+      const winner = extractWinnerName(msg, t1, t2);
       setWinnerTeam(winner);
+
       playSound("celebration");
       setShowPopup(true);
       setTimeout(() => setShowPopup(false), 4000);
@@ -286,7 +320,11 @@ export default function MatchForm() {
       {showPopup && (
         <Confetti width={width} height={height} numberOfPieces={300} recycle={false} />
       )}
-      {showPopup && <div className="celebration-banner">🎉 Congratulations {winnerTeam}!</div>}
+      {showPopup && (
+        <div className="celebration-banner">
+          🎉 Congratulations {winnerTeam}!
+        </div>
+      )}
 
       <div className="card shadow p-4">
         <h3 className="text-center mb-4 text-primary">🏏 Enter Match Details</h3>
