@@ -1,5 +1,4 @@
-// ✅ TeamRanking.js — Neutral glass table + tiny top-3 badges (no colored rows)
-
+// ✅ TeamRanking.js — Professional ranking view with fallback for 0 ratings
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import "./TeamRanking.css";
@@ -11,7 +10,7 @@ const getFlagData = (teamName = "") => {
   const EMOJI = {
     india: "🇮🇳",
     australia: "🇦🇺",
-    england: "🏴",             // St George’s Cross
+    england: "🏴", // St George’s Cross
     "new zealand": "🇳🇿",
     pakistan: "🇵🇰",
     "south africa": "🇿🇦",
@@ -23,7 +22,7 @@ const getFlagData = (teamName = "") => {
     afghanistan: "🇦🇫",
     zimbabwe: "🇿🇼",
     netherlands: "🇳🇱",
-    scotland: "🏴",            // Saltire
+    scotland: "🏴", // Saltire
     nepal: "🇳🇵",
     oman: "🇴🇲",
     uae: "🇦🇪",
@@ -36,9 +35,11 @@ const getFlagData = (teamName = "") => {
     png: "🇵🇬",
   };
 
+  // West Indies special
   if (/(^|\b)west indies(\b|$)|\bwi\b/.test(n)) {
     return { type: "img", src: "/flags/wi.svg", alt: "West Indies" };
   }
+
   const emoji = EMOJI[n];
   return emoji
     ? { type: "emoji", value: emoji, alt: teamName }
@@ -76,11 +77,11 @@ const RankBadge = ({ idx }) => {
   return <span className={`rank-badge ${cls}`}>{text}</span>;
 };
 
-/* ---------- Component ---------- */
 const TeamRanking = () => {
   const [rankings, setRankings] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // fetch
   useEffect(() => {
     (async () => {
       try {
@@ -97,6 +98,7 @@ const TeamRanking = () => {
     })();
   }, []);
 
+  // group ODI / T20
   const grouped = useMemo(() => {
     const out = { ODI: [], T20: [] };
     if (!Array.isArray(rankings)) return out;
@@ -107,6 +109,7 @@ const TeamRanking = () => {
     return out;
   }, [rankings]);
 
+  // sort by rating then points
   const sortRankList = (list) =>
     [...list].sort((a, b) => {
       const ar = parseFloat(a?.rating) || 0;
@@ -117,10 +120,8 @@ const TeamRanking = () => {
       return bp - ap;
     });
 
-  const Row = ({ team, idx, maxRating }) => {
-    const rating = Math.max(0, parseFloat(team?.rating) || 0);
-    const pct = maxRating > 0 ? Math.min(100, (rating / maxRating) * 100) : 0;
-
+  // row component
+  const Row = ({ team, idx, barPct, showRating, ratingVal }) => {
     return (
       <div className="tr-row">
         <div className="td rank">
@@ -133,14 +134,16 @@ const TeamRanking = () => {
           <span className="name">{team?.team_name || "-"}</span>
         </div>
 
-        <div className="td">{team?.matches ?? 0}</div>
-        <div className="td">{team?.points ?? 0}</div>
+        <div className="td td-center">{team?.matches ?? 0}</div>
+        <div className="td td-center">{team?.points ?? 0}</div>
 
-        <div className="td">
+        <div className="td rating-td">
           <div className="rating-wrap">
             <div className="rating-track" />
-            <div className="rating-bar" style={{ width: `${pct}%` }} />
-            <div className="rating-num">{Number(rating).toFixed(2)}</div>
+            <div className="rating-bar" style={{ width: `${barPct}%` }} />
+          </div>
+          <div className="rating-num">
+            {showRating ? Number(ratingVal).toFixed(2) : "—"}
           </div>
         </div>
       </div>
@@ -149,19 +152,35 @@ const TeamRanking = () => {
 
   const Section = ({ type, data }) => {
     const sorted = sortRankList(data);
-    const maxRating = Math.max(...sorted.map((r) => parseFloat(r?.rating) || 0), 0);
+
+    // check if EVERY rating is 0 → if yes, we will use points for bar
+    const allRatingZero = sorted.every(
+      (r) => !r?.rating || Number(r.rating) === 0
+    );
+
+    // get max for chosen metric
+    const maxMetric = allRatingZero
+      ? Math.max(...sorted.map((r) => Number(r.points) || 0), 0)
+      : Math.max(...sorted.map((r) => Number(r.rating) || 0), 0);
 
     return (
       <section className="tr-section">
-        <h4 className="tr-subhead">{type} Rankings</h4>
+        <div className="tr-section-head">
+          <h4 className="tr-subhead">{type} Rankings</h4>
+          <p className="tr-small-note">
+            {allRatingZero
+              ? "Rating data not available — showing relative strength by points."
+              : "Teams are ordered by rating, then points."}
+          </p>
+        </div>
 
         <div className="tr-table">
           <div className="tr-thead">
             <div className="th">Rank</div>
-            <div className="th">Team</div>
-            <div className="th">Matches</div>
-            <div className="th">Points</div>
-            <div className="th">Rating</div>
+            <div className="th th-team">Team</div>
+            <div className="th th-center">Matches</div>
+            <div className="th th-center">Points</div>
+            <div className="th th-right">Rating</div>
           </div>
 
           <div className="tr-tbody">
@@ -172,18 +191,31 @@ const TeamRanking = () => {
                 <div className="skeleton-row" />
               </>
             )}
+
             {!loading && sorted.length === 0 && (
               <div className="tr-empty">No {type} rankings available.</div>
             )}
+
             {!loading &&
-              sorted.map((team, idx) => (
-                <Row
-                  key={`${type}-${team?.team_name}-${idx}`}
-                  team={team}
-                  idx={idx}
-                  maxRating={maxRating}
-                />
-              ))}
+              sorted.map((team, idx) => {
+                const ratingVal = Number(team?.rating) || 0;
+                const metric = allRatingZero
+                  ? Number(team?.points) || 0
+                  : ratingVal;
+                const barPct =
+                  maxMetric > 0 ? Math.min(100, (metric / maxMetric) * 100) : 0;
+
+                return (
+                  <Row
+                    key={`${type}-${team?.team_name}-${idx}`}
+                    team={team}
+                    idx={idx}
+                    barPct={barPct}
+                    showRating={!allRatingZero}
+                    ratingVal={ratingVal}
+                  />
+                );
+              })}
           </div>
         </div>
       </section>
@@ -193,13 +225,51 @@ const TeamRanking = () => {
   return (
     <div className="tr-wrap">
       <div className="tr-card">
+        {/* page intro / explanation */}
         <header className="tr-header">
-          <h2 className="tr-title">🌍 ODI and T20 Team Rankings</h2>
-          <div className="tr-sub">Live table with subtle badges for the top 3</div>
+          <div className="tr-header-topline">
+            <span className="page-pill">Rankings</span>
+            <span className="page-subtext">
+              Pulled from match history of CrickEdge
+            </span>
+          </div>
+          <h2 className="tr-title">International Team Rankings</h2>
+          <p className="tr-desc">
+            This page compares ODI &amp; T20 teams by their rating and points.
+            Top 3 get highlighted. If rating data is not available for a format,
+            we display a points-based bar so you can still compare teams.
+          </p>
+
+          <div className="tr-metric-row">
+            <div className="metric-box">
+              <span className="metric-label">Formats</span>
+              <span className="metric-value">
+                {grouped.ODI?.length > 0 && grouped.T20?.length > 0
+                  ? "ODI & T20"
+                  : "Live"}
+              </span>
+            </div>
+            <div className="metric-box">
+              <span className="metric-label">Total Teams</span>
+              <span className="metric-value">{rankings.length}</span>
+            </div>
+            <div className="metric-box">
+              <span className="metric-label">Last refresh</span>
+              <span className="metric-value">real-time</span>
+            </div>
+          </div>
         </header>
 
         {grouped.ODI?.length > 0 && <Section type="ODI" data={grouped.ODI} />}
         {grouped.T20?.length > 0 && <Section type="T20" data={grouped.T20} />}
+
+        {!loading &&
+          grouped.ODI?.length === 0 &&
+          grouped.T20?.length === 0 && (
+            <div className="tr-empty tr-empty-global">
+              No team ranking data found.
+            </div>
+          )}
       </div>
     </div>
   );
