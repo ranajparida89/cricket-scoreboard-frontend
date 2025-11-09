@@ -64,44 +64,74 @@ function buildMatchName(tournamentName, seasonYear, team1, team2) {
   const t2 = normalizeTeamName(team2);
   if (!tournamentName || !seasonYear || !t1 || !t2) return "";
 
-  // strip any 19xx/20xx year tokens already present in the tournament text
   const base = tournamentName
-    .replace(/\b(19|20)\d{2}\b/g, "") // remove any year
-    .replace(/\s{2,}/g, " ") // collapse spaces
+    .replace(/\b(19|20)\d{2}\b/g, "")
+    .replace(/\s{2,}/g, " ")
     .trim();
 
   return `${base} ${seasonYear} : ${t1} vs ${t2}`;
 }
 
-// ✅ helper: try to extract the full winner name from the backend message
+/**
+ * ✅ extractWinnerName
+ * Handles:
+ *  - "New Zealand won the match!"
+ *  - "New won the match!"
+ *  - "🏆 West Indies won the match!"
+ *  - "Match is drawn."
+ *  - and expands partials using submitted team1/team2
+ */
 function extractWinnerName(message = "", team1 = "", team2 = "") {
   const msg = message.trim();
+  const t1 = normalizeTeamName(team1);
+  const t2 = normalizeTeamName(team2);
+
   if (!msg) return "";
 
   const lower = msg.toLowerCase();
 
-  // pattern like: "New Zealand won the match" or "Sri Lanka won the match by 5 runs"
+  // 1) common pattern from your backend
   const wonIdx = lower.indexOf("won the match");
   if (wonIdx !== -1) {
-    // take everything before "won the match"
-    const winnerRaw = msg.slice(0, wonIdx).trim();
-    // sometimes backend might send "🏆 New Zealand won the match"
-    return winnerRaw.replace(/^[🏆\-\s]+/, "").trim();
+    let winnerRaw = msg.slice(0, wonIdx).trim();
+    // strip emojis / leading decorations
+    winnerRaw = winnerRaw.replace(/^[🏆\-\s]+/, "").trim();
+
+    // 🔥 if backend sent only first word, expand it from the submitted team names
+    if (
+      winnerRaw &&
+      winnerRaw.split(" ").length === 1 // "New", "West", "Sri", "South", "United"
+    ) {
+      if (t1 && t1.toLowerCase().startsWith(winnerRaw.toLowerCase())) {
+        return t1;
+      }
+      if (t2 && t2.toLowerCase().startsWith(winnerRaw.toLowerCase())) {
+        return t2;
+      }
+    }
+
+    return winnerRaw;
   }
 
-  // pattern like: "Match is drawn." or "Match drawn"
-  if (lower.includes("match is drawn") || lower.includes("match drawn") || lower.includes("draw")) {
+  // 2) draw-ish
+  if (
+    lower.includes("match is drawn") ||
+    lower.includes("match drawn") ||
+    lower.includes("draw")
+  ) {
     return "Match Drawn";
   }
 
-  // fallback: if message contains full team names, return that
-  const t1 = normalizeTeamName(team1);
-  const t2 = normalizeTeamName(team2);
+  // 3) message contains full team names
   if (t1 && lower.includes(t1.toLowerCase())) return t1;
   if (t2 && lower.includes(t2.toLowerCase())) return t2;
 
-  // last fallback: return original message first word
-  return msg.split(" ")[0];
+  // 4) final fallback: expand first word using team1/team2
+  const first = msg.split(" ")[0];
+  if (t1 && t1.toLowerCase().startsWith(first.toLowerCase())) return t1;
+  if (t2 && t2.toLowerCase().startsWith(first.toLowerCase())) return t2;
+
+  return first;
 }
 
 export default function MatchForm() {
@@ -183,7 +213,7 @@ export default function MatchForm() {
         if (cancelled) return;
         const yrs = Array.isArray(data?.years) ? data.years : [];
         setYearOptions(yrs);
-        if (yrs.length) setSeasonYear(yrs[0]); // newest first (API orders DESC)
+        if (yrs.length) setSeasonYear(yrs[0]);
       })
       .catch(() => !cancelled && setYearOptions([]));
     return () => {
@@ -256,7 +286,6 @@ export default function MatchForm() {
     }
     if (!validateTournament()) return;
 
-    // 🛑 MoM validation
     if (!momPlayer.trim()) {
       alert("❌ Man of the Match is required.");
       return;
@@ -292,7 +321,6 @@ export default function MatchForm() {
         tournament_name: tournamentName.trim(),
         season_year: Number(seasonYear),
         match_date: matchDate,
-        // 🆕 MoM data
         mom_player: momPlayer.trim(),
         mom_reason: momReason.trim(),
       };
@@ -301,7 +329,7 @@ export default function MatchForm() {
       const msg = result.message || "Match submitted.";
       setResultMsg(msg);
 
-      // ✅ use smart extractor so "New Zealand won the match" stays whole
+      // 👇 this is the important line
       const winner = extractWinnerName(msg, t1, t2);
       setWinnerTeam(winner);
 
