@@ -1,6 +1,6 @@
 // src/components/TestRanking.js
 // Fixed: UI now respects "wins first, then points" like backend
-// New: sort toggle + info button for this page
+// New: sort toggle + info button + working close button
 
 import React, {
   useEffect,
@@ -153,6 +153,7 @@ const TestRanking = () => {
   const [loading, setLoading] = useState(true);
   const [sortMode, setSortMode] = useState("wins"); // "wins" | "points"
   const [showInfo, setShowInfo] = useState(false);
+  const [visible, setVisible] = useState(true); // ✅ for the close button
 
   const wrapRef = useRef(null);
   const bodyRefs = useRef([]);
@@ -185,7 +186,6 @@ const TestRanking = () => {
                 ),
           points: Number(t.points) || 0,
         }));
-        // 🔒 DO NOT sort by points here – we will sort below based on sortMode
         setRows(clean);
       } catch (e) {
         console.error("Test rankings load failed:", e?.message || e);
@@ -201,12 +201,17 @@ const TestRanking = () => {
     const arr = [...rows];
     if (sortMode === "wins") {
       arr.sort(
-        (a, b) => b.wins - a.wins || b.points - a.points || a.team_name.localeCompare(b.team_name)
+        (a, b) =>
+          b.wins - a.wins ||
+          b.points - a.points ||
+          a.team_name.localeCompare(b.team_name)
       );
     } else {
-      // secondary view – by points
       arr.sort(
-        (a, b) => b.points - a.points || b.wins - a.wins || a.team_name.localeCompare(b.team_name)
+        (a, b) =>
+          b.points - a.points ||
+          b.wins - a.wins ||
+          a.team_name.localeCompare(b.team_name)
       );
     }
     return arr;
@@ -247,6 +252,9 @@ const TestRanking = () => {
     }
   }, [inView, sortedRows]);
 
+  // if user clicked X, don't render
+  if (!visible) return null;
+
   return (
     <div className="trfx-shell">
       <Particles
@@ -268,6 +276,7 @@ const TestRanking = () => {
       <div ref={wrapRef} className="trfx-glass">
         <div className="trfx-header">
           <span className="trfx-title">World Test Match Team Rankings</span>
+
           <button
             className="trfx-info-btn"
             onClick={() => setShowInfo((p) => !p)}
@@ -276,9 +285,19 @@ const TestRanking = () => {
           >
             i
           </button>
+
+          {/* ✅ Close button inside the card */}
+          <button
+            className="trfx-close-btn"
+            onClick={() => setVisible(false)}
+            aria-label="Close rankings"
+            title="Close"
+          >
+            ✕
+          </button>
         </div>
 
-        {/* NEW: sort toggle bar */}
+        {/* sort toggle */}
         <div className="trfx-sortbar">
           <span className="label">Sort by:</span>
           <button
@@ -300,20 +319,17 @@ const TestRanking = () => {
             <h4>How this ranking works</h4>
             <ul>
               <li>Primary order: teams with more Test wins come first.</li>
+              <li>If wins are same, team with higher Test points comes first.</li>
               <li>
-                If wins are same, team with higher Test points comes first.
+                Points are computed on server: Win = 12, Draw = 4, Loss = 6 (your
+                board logic).
               </li>
               <li>
-                Points are computed on server: Win = 12, Draw = 4, Loss = 6
-                (your board logic).
+                Drawn matches give points to both sides, so low-win teams may still
+                have points.
               </li>
               <li>
-                Drawn matches are counted for both teams; that’s why some teams
-                have points even with fewer wins.
-              </li>
-              <li>
-                Use the toggle above to temporarily view by points instead of
-                wins.
+                Use the toggle above to temporarily view by points instead of wins.
               </li>
             </ul>
           </div>

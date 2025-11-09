@@ -31,9 +31,11 @@
 .trfx-header {
   display: flex;
   justify-content: center;
-  gap: 10px;
   align-items: center;
+  gap: 10px;
   margin-bottom: 10px;
+  position: relative;
+  padding-right: 50px; /* ✅ leave space for close btn */
 }
 .trfx-title {
   font-weight: 800;
@@ -60,7 +62,29 @@
   border-color: rgba(0, 255, 170, 0.4);
 }
 
-/* NEW: sort bar */
+/* ✅ close button inside header */
+.trfx-close-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 137, 176, 0.35);
+  background: rgba(17, 10, 16, 0.3);
+  color: #ffd6e5;
+  font-weight: 700;
+  cursor: pointer;
+  z-index: 20;
+  transition: 0.15s ease;
+}
+.trfx-close-btn:hover {
+  background: rgba(255, 85, 140, 0.4);
+  border-color: rgba(255, 148, 190, 0.7);
+}
+
+/* sort bar */
 .trfx-sortbar {
   display: flex;
   align-items: center;
@@ -95,7 +119,7 @@
   background: rgba(0, 255, 170, 0.05);
 }
 
-/* NEW: info panel */
+/* info panel */
 .trfx-info-panel {
   background: rgba(8, 18, 26, 0.65);
   border: 1px solid rgba(191, 252, 255, 0.15);
@@ -117,6 +141,7 @@
   gap: 3px;
 }
 
+/* table */
 .trfx-table-wrap {
   overflow-x: auto;
   padding: 0 6px;
@@ -164,7 +189,11 @@
 }
 
 .trfx-row {
-  background: linear-gradient(180deg, rgba(17, 32, 48, 0.65), rgba(10, 23, 35, 0.55));
+  background: linear-gradient(
+    180deg,
+    rgba(17, 32, 48, 0.65),
+    rgba(10, 23, 35, 0.55)
+  );
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 12px;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
@@ -196,6 +225,7 @@
   color: #ffc2c2;
 }
 
+/* points bar */
 .trfx-points {
   position: relative;
   height: 34px;
