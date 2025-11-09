@@ -160,6 +160,7 @@ const TestRanking = () => {
   const bodyRefs = useRef([]);
   const closeBtnRef = useRef(null);
   bodyRefs.current = [];
+
   const addRowRef = (el) => {
     if (el && !bodyRefs.current.includes(el)) bodyRefs.current.push(el);
   };
@@ -168,6 +169,7 @@ const TestRanking = () => {
     await loadFull(engine);
   };
 
+  // ========== 1️⃣ Fetch rankings ==========
   useEffect(() => {
     (async () => {
       try {
@@ -198,38 +200,36 @@ const TestRanking = () => {
     })();
   }, []);
 
-  // 💡 hide outer modal close if present
+  // ========== 2️⃣ Force-hide duplicate close buttons ==========
   useEffect(() => {
-    // our container
-    const card = wrapRef.current;
-    if (!card) return;
-
-    // go up a bit to the modal wrapper
-    const modalRoot = card.parentElement; // usually the popup wrapper
+    // Look for possible modal containers
+    const modalRoot = document.querySelector(
+      ".ReactModalPortal, .popup-container, .modal-overlay, .modal-root, .dialog-overlay"
+    );
     if (!modalRoot) return;
 
-    // find all clickable "x" buttons there
     const buttons = modalRoot.querySelectorAll("button");
     buttons.forEach((btn) => {
-      // skip ours
-      if (btn.dataset.trfxClose === "true") return;
+      // Skip our own internal close
+      if (btn.classList.contains("trfx-close-btn")) return;
 
+      const label = (btn.getAttribute("aria-label") || "").toLowerCase();
       const text = (btn.textContent || "").trim();
-      const isX = text === "✕" || text === "×" || text === "X";
-
-      // some libraries give it a close icon class
       const looksLikeClose =
-        isX ||
+        label.includes("close") ||
         btn.className.toLowerCase().includes("close") ||
-        btn.getAttribute("aria-label")?.toLowerCase().includes("close");
+        text === "✕" ||
+        text === "×" ||
+        text === "X";
 
-      // if it's NOT ours and looks like a close → hide it
       if (looksLikeClose) {
         btn.style.display = "none";
+        btn.disabled = true;
       }
     });
   }, []);
 
+  // ========== 3️⃣ Sorting + animations ==========
   const sortedRows = useMemo(() => {
     const arr = [...rows];
     if (sortMode === "wins") {
@@ -304,7 +304,7 @@ const TestRanking = () => {
             i
           </button>
 
-          {/* our single close */}
+          {/* ✅ Single internal close button */}
           <button
             ref={closeBtnRef}
             data-trfx-close="true"
