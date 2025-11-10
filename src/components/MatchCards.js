@@ -1,7 +1,8 @@
 // ✅ src/components/MatchCards.js
-// now with front-end match detail modal
+// front-end only, with dynamic commentary, readable date & confetti
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import Confetti from "react-confetti";
 import { getMatchHistory, getTestMatches } from "../services/api";
 import "./MatchCards.css";
 
@@ -67,9 +68,23 @@ const formatMatchTitle = (raw = "") => {
   return s.replace(/^(\w)/, (m) => m.toUpperCase());
 };
 
+/* readable date */
+const formatReadableDate = (v) => {
+  if (!v) return "Not recorded";
+  const d = new Date(v);
+  if (String(d) === "Invalid Date") return v;
+  return d.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 /* time + ids */
 const getWhen = (m) => {
-  const tried = m?.match_time || m?.created_at || m?.updated_at;
+  const tried = m?.match_time || m?.match_date || m?.created_at || m?.updated_at;
   const t = tried ? Date.parse(tried) : NaN;
   return Number.isNaN(t) ? null : t;
 };
@@ -100,9 +115,7 @@ const ACCENTS = {
 };
 const pickAccent = (team) => ACCENTS[getTeamCode(team)] || "#5fd0c7";
 
-/* ---------- MODAL: narration builder ---------- */
-
-// simple points rule: win=2, loss=0, draw/tie=1
+/* ---------- points rule ---------- */
 const calcPoints = (winner, team) => {
   if (!winner) return 1;
   const lower = winner.toLowerCase();
@@ -111,91 +124,148 @@ const calcPoints = (winner, team) => {
   return 0;
 };
 
+/* ---------- small seed so commentary is stable per match ---------- */
+const makeSeed = (m) => {
+  const s = `${m.match_name || ""}${m.team1 || ""}${m.team2 || ""}`;
+  return [...s].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+};
+const pickFrom = (arr, seed) => arr[seed % arr.length];
+
+/* ---------- result phrasing for ODI/T20 ---------- */
+const describeLOIResult = (m) => {
+  const { runs1 = 0, runs2 = 0, wickets2 = 10, wickets1 = 10, winner = "" } = m;
+  const t1 = m.team1;
+  const t2 = m.team2;
+
+  // if stored sentence already good, reuse
+  if (winner && winner.toLowerCase().includes("won the match")) {
+    return winner;
+  }
+
+  // figure winner
+  if (runs1 > runs2) {
+    const margin = runs1 - runs2;
+    return `${t1} won by ${margin} run${margin === 1 ? "" : "s"}.`;
+  }
+  if (runs2 > runs1) {
+    const wkts = Math.max(1, 10 - (wickets2 || 0));
+    return `${t2} chased it down by ${wkts} wicket${wkts === 1 ? "" : "s"}.`;
+  }
+  // maybe all out both same
+  if (winner) return winner;
+  return "Match result recorded.";
+};
+
+/* ---------- dynamic narratives ---------- */
 const buildLimitedNarrative = (m) => {
-  const team1 = m.team1;
-  const team2 = m.team2;
-  const w = m.winner || "";
-  const t1code = getTeamCode(team1);
-  const t2code = getTeamCode(team2);
-
-  const lines = [];
-
-  // who won
-  if (!w) {
-    lines.push(
-      `This ${m.match_type || "ODI"} fixture between ${team1} and ${team2} is recorded without a final result.`
-    );
-  } else if (w.toLowerCase().includes("won")) {
-    lines.push(`${w} It was a solid finish to the game.`);
-  } else {
-    lines.push(`Result: ${w}.`);
-  }
-
-  // batting wrap
-  lines.push(
-    `${t1code} posted ${m.runs1}/${m.wickets1} in ${formatOvers(
-      m.overs1
-    )} overs, while ${t2code} replied with ${m.runs2}/${m.wickets2} off ${formatOvers(
-      m.overs2
-    )} overs.`
+  const seed = makeSeed(m);
+  const opener = pickFrom(
+    [
+      "What a finish that was.",
+      "Crowd would’ve loved this one.",
+      "A smart, controlled white-ball performance.",
+      "Clinical stuff, especially in the closing overs.",
+      "Momentum swung, but the winners kept their nerve.",
+    ],
+    seed
   );
 
-  // flavour
-  lines.push(
-    `The match data comes from CrickEdge submissions, so totals, overs and the winning line all reflect what was entered for this game.`
+  const resultLine = describeLOIResult(m);
+
+  const t1code = getTeamCode(m.team1);
+  const t2code = getTeamCode(m.team2);
+
+  const inningsLine = `${t1code} put up ${m.runs1}/${m.wickets1} in ${formatOvers(
+    m.overs1
+  )} overs, and ${t2code} replied with ${m.runs2}/${m.wickets2} off ${formatOvers(
+    m.overs2
+  )} overs.`;
+
+  const flavour = pickFrom(
+    [
+      "Tempo of the game felt right from ball one.",
+      "Key partnerships in the middle overs made the difference.",
+      "Fielding standards were sharp — very little given away.",
+      "Death bowling sealed it in style.",
+      "You could tell both captains came in with good plans.",
+    ],
+    seed + 1
   );
 
-  // man of match
-  if (m.mom_player) {
-    lines.push(
-      `Player of the Match was ${m.mom_player}${
-        m.mom_reason ? ` — ${m.mom_reason}.` : "."
-      }`
-    );
-  }
+  const mom =
+    m.mom_player &&
+    `Player of the Match: ${m.mom_player}${
+      m.mom_reason ? ` — ${m.mom_reason}.` : "."
+    }`;
 
-  return lines;
+  return [resultLine, opener, inningsLine, flavour, mom].filter(Boolean);
 };
 
 const buildTestNarrative = (m) => {
-  const team1 = m.team1;
-  const team2 = m.team2;
-  const t1code = getTeamCode(team1);
-  const t2code = getTeamCode(team2);
+  const seed = makeSeed(m);
+  const opener = pickFrom(
+    [
+      "A proper Test match grind.",
+      "This one needed patience and discipline.",
+      "Long spells, tight fields — classic red-ball cricket.",
+      "Momentum changed almost every session.",
+      "Both sides kept the game alive till late.",
+    ],
+    seed
+  );
+
   const w = m.winner || "";
+  const t1code = getTeamCode(m.team1);
+  const t2code = getTeamCode(m.team2);
 
-  const lines = [];
-  if (w.toLowerCase().includes("won")) {
-    lines.push(`${w} A good outcome in a multi-day contest.`);
-  } else if (w.toLowerCase().includes("draw")) {
-    lines.push(`The match ended in a draw — both ${t1code} and ${t2code} stayed in the fight.`);
+  let resultLine = "";
+  if (w.toLowerCase().includes("draw")) {
+    resultLine = "It finished as a draw — neither side fully broke through.";
+  } else if (w) {
+    resultLine = `${w} It was earned over multiple sessions.`;
   } else {
-    lines.push(`Result recorded: ${w || "not available"}.`);
+    resultLine = "Result recorded for this fixture.";
   }
 
-  lines.push(
-    `${t1code} had totals of ${m.runs1}/${m.wickets1} (${formatOvers(
-      m.overs1
-    )} ov) and ${m.runs1_2}/${m.wickets1_2} (${formatOvers(
-      m.overs1_2
-    )} ov). ${t2code} answered with ${m.runs2}/${m.wickets2} (${formatOvers(
-      m.overs2
-    )} ov) and ${m.runs2_2}/${m.wickets2_2} (${formatOvers(m.overs2_2)} ov).`
+  const inningsLine = `${t1code} scored ${m.runs1}/${m.wickets1} (${formatOvers(
+    m.overs1
+  )} ov) and ${m.runs1_2}/${m.wickets1_2} (${formatOvers(
+    m.overs1_2
+  )} ov). ${t2code} answered with ${m.runs2}/${m.wickets2} (${formatOvers(
+    m.overs2
+  )} ov) and ${m.runs2_2}/${m.wickets2_2} (${formatOvers(m.overs2_2)} ov).`;
+
+  const flavour = pickFrom(
+    [
+      "Lower order runs turned out to be useful.",
+      "Seamers got help on and off through the day.",
+      "Spinners came into the game nicely on the final stretch.",
+      "Captaincy calls were brave and mostly spot on.",
+      "Plenty of little battles inside the bigger contest.",
+    ],
+    seed + 1
   );
 
-  if (m.mom_player) {
-    lines.push(
-      `Player of the Match: ${m.mom_player}${
-        m.mom_reason ? ` — ${m.mom_reason}.` : "."
-      }`
-    );
-  }
+  const mom =
+    m.mom_player &&
+    `Player of the Match: ${m.mom_player}${
+      m.mom_reason ? ` — ${m.mom_reason}.` : "."
+    }`;
 
-  lines.push(
-    `All innings details above are pulled directly from the Test match results table for this fixture.`
-  );
+  return [resultLine, opener, inningsLine, flavour, mom].filter(Boolean);
+};
 
-  return lines;
+/* ---------- tiny hook for confetti size ---------- */
+const useWindowSize = () => {
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  useEffect(() => {
+    const update = () =>
+      setSize({ width: window.innerWidth, height: window.innerHeight });
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+  return size;
 };
 
 /* ---------- card shell (ripple + tilt) ---------- */
@@ -270,7 +340,9 @@ const MatchCards = () => {
   const [tab, setTab] = useState("ODI");
 
   // modal state
-  const [selectedMatch, setSelectedMatch] = useState(null); // { type: 'LOI'|'Test', data: {...} }
+  const [selectedMatch, setSelectedMatch] = useState(null); // { type, data }
+  const [showConfetti, setShowConfetti] = useState(false);
+  const { width, height } = useWindowSize();
 
   const MAX_SHOW = 10;
 
@@ -289,6 +361,7 @@ const MatchCards = () => {
     })();
   }, []);
 
+  // lists
   const odiMatches = useMemo(() => {
     const list = matches.filter((m) => m.match_type === "ODI");
     const anyTime = list.some(getWhen);
@@ -316,6 +389,7 @@ const MatchCards = () => {
     return sorted.slice(0, MAX_SHOW);
   }, [testMatches]);
 
+  // recent marker
   const recentUID = useMemo(() => {
     const pick = (list) => {
       if (!list.length) return null;
@@ -357,6 +431,7 @@ const MatchCards = () => {
       type: "LOI",
       data: m,
     });
+    setShowConfetti(!!m.winner);
   };
 
   const openTestModal = (m) => {
@@ -364,9 +439,13 @@ const MatchCards = () => {
       type: "Test",
       data: m,
     });
+    setShowConfetti(!!m.winner);
   };
 
-  const closeModal = () => setSelectedMatch(null);
+  const closeModal = () => {
+    setSelectedMatch(null);
+    setShowConfetti(false);
+  };
 
   const renderLOICard = (m) => {
     const live = isLiveRow(m);
@@ -412,14 +491,7 @@ const MatchCards = () => {
 
         {!live && (
           <div className="result-line winner-banner">
-            <strong>
-              🏆{" "}
-              {m.winner === "Draw"
-                ? "Match is drawn."
-                : (m.winner || "").toLowerCase().includes("won the match")
-                ? m.winner
-                : `${m.winner} won the match!`}
-            </strong>
+            <strong>{describeLOIResult(m)}</strong>
           </div>
         )}
       </RippleCard>
@@ -473,12 +545,9 @@ const MatchCards = () => {
         {!live && (
           <div className="result-line winner-banner">
             <strong>
-              🏆{" "}
-              {m.winner === "Draw"
-                ? "Match is drawn."
-                : (m.winner || "").toLowerCase().includes("won the match")
+              {m.winner
                 ? m.winner
-                : `${m.winner} won the match!`}
+                : "Result recorded for this Test."}
             </strong>
           </div>
         )}
@@ -489,7 +558,6 @@ const MatchCards = () => {
   return (
     <>
       <div className="container mt-4 mc-container">
-        {/* Sticky format toggle */}
         <div className="format-toggle">
           <button
             className={`format-btn odi ${tab === "ODI" ? "active" : ""}`}
@@ -525,16 +593,32 @@ const MatchCards = () => {
         )}
       </div>
 
-      {/* Modal */}
       {selectedMatch && (
         <div className="mc-detail-overlay" onClick={closeModal}>
           <div
-            className="mc-detail-modal"
+            className="mc-detail-modal mc-detail-glass"
             onClick={(e) => e.stopPropagation()}
           >
-            <button className="mc-detail-close" onClick={closeModal} aria-label="Close">
+            <button
+              className="mc-detail-close"
+              onClick={closeModal}
+              aria-label="Close"
+            >
               ✕
             </button>
+
+            {/* confetti on top, very slow */}
+            {showConfetti && width > 0 && (
+              <Confetti
+                width={width}
+                height={height}
+                numberOfPieces={140}
+                gravity={0.12}
+                tweenDuration={6000}
+                recycle={false}
+                style={{ pointerEvents: "none", zIndex: 9999 }}
+              />
+            )}
 
             <div className="mc-detail-head">
               <span className="mc-badge-format">
@@ -550,12 +634,16 @@ const MatchCards = () => {
               </p>
             </div>
 
-            {/* score panel */}
             <div className="mc-detail-scorewrap">
               {selectedMatch.type === "LOI" ? (
                 <>
-                  <div className="mc-team-score" data-code={getTeamCode(selectedMatch.data.team1)}>
-                    <div className="mc-team-name">{selectedMatch.data.team1}</div>
+                  <div
+                    className="mc-team-score"
+                    data-code={getTeamCode(selectedMatch.data.team1)}
+                  >
+                    <div className="mc-team-name">
+                      {selectedMatch.data.team1}
+                    </div>
                     <div className="mc-team-runs">
                       {selectedMatch.data.runs1}/{selectedMatch.data.wickets1}
                     </div>
@@ -570,8 +658,13 @@ const MatchCards = () => {
                       )}
                     </div>
                   </div>
-                  <div className="mc-team-score" data-code={getTeamCode(selectedMatch.data.team2)}>
-                    <div className="mc-team-name">{selectedMatch.data.team2}</div>
+                  <div
+                    className="mc-team-score"
+                    data-code={getTeamCode(selectedMatch.data.team2)}
+                  >
+                    <div className="mc-team-name">
+                      {selectedMatch.data.team2}
+                    </div>
                     <div className="mc-team-runs">
                       {selectedMatch.data.runs2}/{selectedMatch.data.wickets2}
                     </div>
@@ -589,15 +682,21 @@ const MatchCards = () => {
                 </>
               ) : (
                 <>
-                  {/* team 1 test */}
-                  <div className="mc-team-score" data-code={getTeamCode(selectedMatch.data.team1)}>
-                    <div className="mc-team-name">{selectedMatch.data.team1}</div>
+                  <div
+                    className="mc-team-score"
+                    data-code={getTeamCode(selectedMatch.data.team1)}
+                  >
+                    <div className="mc-team-name">
+                      {selectedMatch.data.team1}
+                    </div>
                     <div className="mc-team-meta">
-                      1st: {selectedMatch.data.runs1}/{selectedMatch.data.wickets1} (
+                      1st: {selectedMatch.data.runs1}/
+                      {selectedMatch.data.wickets1} (
                       {formatOvers(selectedMatch.data.overs1)} ov)
                     </div>
                     <div className="mc-team-meta">
-                      2nd: {selectedMatch.data.runs1_2}/{selectedMatch.data.wickets1_2} (
+                      2nd: {selectedMatch.data.runs1_2}/
+                      {selectedMatch.data.wickets1_2} (
                       {formatOvers(selectedMatch.data.overs1_2)} ov)
                     </div>
                     <div className="mc-team-points">
@@ -608,15 +707,21 @@ const MatchCards = () => {
                       )}
                     </div>
                   </div>
-                  {/* team 2 test */}
-                  <div className="mc-team-score" data-code={getTeamCode(selectedMatch.data.team2)}>
-                    <div className="mc-team-name">{selectedMatch.data.team2}</div>
+                  <div
+                    className="mc-team-score"
+                    data-code={getTeamCode(selectedMatch.data.team2)}
+                  >
+                    <div className="mc-team-name">
+                      {selectedMatch.data.team2}
+                    </div>
                     <div className="mc-team-meta">
-                      1st: {selectedMatch.data.runs2}/{selectedMatch.data.wickets2} (
+                      1st: {selectedMatch.data.runs2}/
+                      {selectedMatch.data.wickets2} (
                       {formatOvers(selectedMatch.data.overs2)} ov)
                     </div>
                     <div className="mc-team-meta">
-                      2nd: {selectedMatch.data.runs2_2}/{selectedMatch.data.wickets2_2} (
+                      2nd: {selectedMatch.data.runs2_2}/
+                      {selectedMatch.data.wickets2_2} (
                       {formatOvers(selectedMatch.data.overs2_2)} ov)
                     </div>
                     <div className="mc-team-points">
@@ -631,7 +736,6 @@ const MatchCards = () => {
               )}
             </div>
 
-            {/* narrative */}
             <div className="mc-detail-body">
               <h4 className="mc-detail-block-title">Match story</h4>
               <div className="mc-detail-text">
@@ -648,15 +752,18 @@ const MatchCards = () => {
                 <div>
                   <span className="mc-label">Winner</span>
                   <span className="mc-value">
-                    {selectedMatch.data.winner || "Not recorded"}
+                    {selectedMatch.data.winner
+                      ? selectedMatch.data.winner
+                      : "Not recorded"}
                   </span>
                 </div>
                 <div>
                   <span className="mc-label">Match date</span>
                   <span className="mc-value">
-                    {selectedMatch.data.match_date ||
-                      selectedMatch.data.match_time ||
-                      "Not recorded"}
+                    {formatReadableDate(
+                      selectedMatch.data.match_date ||
+                        selectedMatch.data.match_time
+                    )}
                   </span>
                 </div>
                 {selectedMatch.data.mom_player && (
