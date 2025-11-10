@@ -79,12 +79,28 @@ const InfoModal = ({ onClose }) => {
   return (
     <div className="tr-info-overlay" onClick={onClose}>
       <div className="tr-info-modal" onClick={(e) => e.stopPropagation()}>
-        <h3>How rankings are calculated</h3>
+        <h3>What this page shows</h3>
         <p>
-          We order teams by <b>rating</b> when it’s available. If every team in
-          that format has rating 0, we fall back to <b>points</b> so the table
-          still looks meaningful. Data is pulled from CrickEdge match history.
+          This table lists ODI and T20 teams in the order we think they’re
+          performing right now.
         </p>
+        <p>
+          For most formats we show a <b>rating</b>. The rating is calculated
+          from the data we already have:
+        </p>
+        <p className="tr-info-formula">
+          <code>rating = (points ÷ matches) × 10</code>
+        </p>
+        <p>
+          So a team that earned more points in fewer matches will get a higher
+          rating.
+        </p>
+        <p>
+          If every team in that format has a rating of 0 (for example, rating
+          data wasn’t sent from the backend), we just sort by <b>points</b> so
+          the table still makes sense.
+        </p>
+        <p>All numbers are pulled from matches saved in CrickEdge.</p>
         <button className="tr-info-close-btn" onClick={onClose}>
           Close
         </button>
@@ -92,6 +108,7 @@ const InfoModal = ({ onClose }) => {
     </div>
   );
 };
+
 
 const TeamRanking = () => {
   const [rankings, setRankings] = useState([]);

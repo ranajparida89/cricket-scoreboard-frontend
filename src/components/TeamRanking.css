@@ -375,6 +375,16 @@ button[title="Close and return to home"] {
   font-size: 13px;
   line-height: 1.5;
 }
+.tr-info-formula code {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+  padding: 4px 14px 5px;
+  display: inline-block;
+  font-size: 12px;
+  color: #bfe8ff;
+}
+
 .tr-info-close-btn {
   margin-top: 16px;
   background: #00b4ff;
