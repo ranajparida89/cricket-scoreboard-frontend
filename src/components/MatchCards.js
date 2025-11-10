@@ -1,6 +1,5 @@
-// ✅ src/components/MatchCards.js — capped to latest 10 per format
-// - Keeps all UI from your version
-// - After sorting, we show only the latest 10 ODI, 10 T20, 10 Test
+// ✅ src/components/MatchCards.js
+// now with front-end match detail modal
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getMatchHistory, getTestMatches } from "../services/api";
@@ -51,10 +50,10 @@ const getTeamCode = (teamName = "") => {
 
 /* ---------- helpers ---------- */
 const formatOvers = (decimalOvers = 0) => {
-  const fullOvers = Math.floor(decimalOvers || 0);
-  const balls = Math.round(((decimalOvers || 0) - fullOvers) * 6);
+  const full = Math.floor(decimalOvers || 0);
+  const balls = Math.round(((decimalOvers || 0) - full) * 6);
   const clamped = isFinite(balls) ? Math.max(0, Math.min(5, balls)) : 0;
-  return `${fullOvers}.${clamped}`;
+  return `${full}.${clamped}`;
 };
 
 const formatMatchTitle = (raw = "") => {
@@ -101,8 +100,106 @@ const ACCENTS = {
 };
 const pickAccent = (team) => ACCENTS[getTeamCode(team)] || "#5fd0c7";
 
+/* ---------- MODAL: narration builder ---------- */
+
+// simple points rule: win=2, loss=0, draw/tie=1
+const calcPoints = (winner, team) => {
+  if (!winner) return 1;
+  const lower = winner.toLowerCase();
+  if (lower.includes("draw") || lower.includes("no result")) return 1;
+  if (lower.includes((team || "").toLowerCase())) return 2;
+  return 0;
+};
+
+const buildLimitedNarrative = (m) => {
+  const team1 = m.team1;
+  const team2 = m.team2;
+  const w = m.winner || "";
+  const t1code = getTeamCode(team1);
+  const t2code = getTeamCode(team2);
+
+  const lines = [];
+
+  // who won
+  if (!w) {
+    lines.push(
+      `This ${m.match_type || "ODI"} fixture between ${team1} and ${team2} is recorded without a final result.`
+    );
+  } else if (w.toLowerCase().includes("won")) {
+    lines.push(`${w} It was a solid finish to the game.`);
+  } else {
+    lines.push(`Result: ${w}.`);
+  }
+
+  // batting wrap
+  lines.push(
+    `${t1code} posted ${m.runs1}/${m.wickets1} in ${formatOvers(
+      m.overs1
+    )} overs, while ${t2code} replied with ${m.runs2}/${m.wickets2} off ${formatOvers(
+      m.overs2
+    )} overs.`
+  );
+
+  // flavour
+  lines.push(
+    `The match data comes from CrickEdge submissions, so totals, overs and the winning line all reflect what was entered for this game.`
+  );
+
+  // man of match
+  if (m.mom_player) {
+    lines.push(
+      `Player of the Match was ${m.mom_player}${
+        m.mom_reason ? ` — ${m.mom_reason}.` : "."
+      }`
+    );
+  }
+
+  return lines;
+};
+
+const buildTestNarrative = (m) => {
+  const team1 = m.team1;
+  const team2 = m.team2;
+  const t1code = getTeamCode(team1);
+  const t2code = getTeamCode(team2);
+  const w = m.winner || "";
+
+  const lines = [];
+  if (w.toLowerCase().includes("won")) {
+    lines.push(`${w} A good outcome in a multi-day contest.`);
+  } else if (w.toLowerCase().includes("draw")) {
+    lines.push(`The match ended in a draw — both ${t1code} and ${t2code} stayed in the fight.`);
+  } else {
+    lines.push(`Result recorded: ${w || "not available"}.`);
+  }
+
+  lines.push(
+    `${t1code} had totals of ${m.runs1}/${m.wickets1} (${formatOvers(
+      m.overs1
+    )} ov) and ${m.runs1_2}/${m.wickets1_2} (${formatOvers(
+      m.overs1_2
+    )} ov). ${t2code} answered with ${m.runs2}/${m.wickets2} (${formatOvers(
+      m.overs2
+    )} ov) and ${m.runs2_2}/${m.wickets2_2} (${formatOvers(m.overs2_2)} ov).`
+  );
+
+  if (m.mom_player) {
+    lines.push(
+      `Player of the Match: ${m.mom_player}${
+        m.mom_reason ? ` — ${m.mom_reason}.` : "."
+      }`
+    );
+  }
+
+  lines.push(
+    `All innings details above are pulled directly from the Test match results table for this fixture.`
+  );
+
+  return lines;
+};
+
 /* ---------- card shell (ripple + tilt) ---------- */
-function RippleCard({ children, live, recent, accent }) {
+function RippleCard({ children, live, recent, accent, onClick }) {
   const ref = useRef(null);
 
   const onPointerDown = (e) => {
@@ -150,6 +247,7 @@ function RippleCard({ children, live, recent, accent }) {
       onPointerDown={onPointerDown}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
+      onClick={onClick}
       style={{ ["--accent"]: accent }}
     >
       <div className="status-badges">
@@ -165,13 +263,15 @@ function RippleCard({ children, live, recent, accent }) {
   );
 }
 
-/* ---------- component ---------- */
+/* ---------- main component ---------- */
 const MatchCards = () => {
   const [matches, setMatches] = useState([]);
   const [testMatches, setTestMatches] = useState([]);
   const [tab, setTab] = useState("ODI");
 
-  // how many we want to show per format
+  // modal state
+  const [selectedMatch, setSelectedMatch] = useState(null); // { type: 'LOI'|'Test', data: {...} }
+
   const MAX_SHOW = 10;
 
   useEffect(() => {
@@ -189,43 +289,33 @@ const MatchCards = () => {
     })();
   }, []);
 
-  // ODI: sort newest → oldest, then take latest 10
   const odiMatches = useMemo(() => {
     const list = matches.filter((m) => m.match_type === "ODI");
     const anyTime = list.some(getWhen);
     const sorted = anyTime
-      ? [...list].sort(
-          (a, b) => (getWhen(b) ?? 0) - (getWhen(a) ?? 0)
-        )
+      ? [...list].sort((a, b) => (getWhen(b) ?? 0) - (getWhen(a) ?? 0))
       : list;
     return sorted.slice(0, MAX_SHOW);
   }, [matches]);
 
-  // T20: sort newest → oldest, then take latest 10
   const t20Matches = useMemo(() => {
     const list = matches.filter((m) => m.match_type === "T20");
     const anyTime = list.some(getWhen);
     const sorted = anyTime
-      ? [...list].sort(
-          (a, b) => (getWhen(b) ?? 0) - (getWhen(a) ?? 0)
-        )
+      ? [...list].sort((a, b) => (getWhen(b) ?? 0) - (getWhen(a) ?? 0))
       : list;
     return sorted.slice(0, MAX_SHOW);
   }, [matches]);
 
-  // Test: sort newest → oldest, then take latest 10
   const testList = useMemo(() => {
     const list = Array.isArray(testMatches) ? testMatches : [];
     const anyTime = list.some(getWhen);
     const sorted = anyTime
-      ? [...list].sort(
-          (a, b) => (getWhen(b) ?? 0) - (getWhen(a) ?? 0)
-        )
+      ? [...list].sort((a, b) => (getWhen(b) ?? 0) - (getWhen(a) ?? 0))
       : list;
     return sorted.slice(0, MAX_SHOW);
   }, [testMatches]);
 
-  // "recent" marker should also work on the sliced lists (the newest is still first)
   const recentUID = useMemo(() => {
     const pick = (list) => {
       if (!list.length) return null;
@@ -262,6 +352,22 @@ const MatchCards = () => {
     </>
   );
 
+  const openLimitedModal = (m) => {
+    setSelectedMatch({
+      type: "LOI",
+      data: m,
+    });
+  };
+
+  const openTestModal = (m) => {
+    setSelectedMatch({
+      type: "Test",
+      data: m,
+    });
+  };
+
+  const closeModal = () => setSelectedMatch(null);
+
   const renderLOICard = (m) => {
     const live = isLiveRow(m);
     const recent = recentUID[m.match_type] === getUid(m);
@@ -274,11 +380,15 @@ const MatchCards = () => {
     );
 
     return (
-      <RippleCard live={live} recent={recent} accent={accent}>
+      <RippleCard
+        live={live}
+        recent={recent}
+        accent={accent}
+        onClick={() => openLimitedModal(m)}
+      >
         <div className="match-title">{formatMatchTitle(m.match_name)}</div>
 
         <div className="teams-row">
-          {/* LEFT */}
           <div className="team" data-code={getTeamCode(m.team1)}>
             <div className="rowline">
               <div className="name">{getTeamCode(m.team1)}</div>
@@ -289,11 +399,7 @@ const MatchCards = () => {
             <div className="meta">Overs: {formatOvers(m.overs1)}</div>
           </div>
 
-          {/* RIGHT */}
-          <div
-            className="team team--right"
-            data-code={getTeamCode(m.team2)}
-          >
+          <div className="team team--right" data-code={getTeamCode(m.team2)}>
             <div className="rowline">
               <div className="name">{getTeamCode(m.team2)}</div>
               <div className="score">
@@ -310,9 +416,7 @@ const MatchCards = () => {
               🏆{" "}
               {m.winner === "Draw"
                 ? "Match is drawn."
-                : (m.winner || "")
-                    .toLowerCase()
-                    .includes("won the match")
+                : (m.winner || "").toLowerCase().includes("won the match")
                 ? m.winner
                 : `${m.winner} won the match!`}
             </strong>
@@ -334,7 +438,12 @@ const MatchCards = () => {
     );
 
     return (
-      <RippleCard live={live} recent={recent} accent={accent}>
+      <RippleCard
+        live={live}
+        recent={recent}
+        accent={accent}
+        onClick={() => openTestModal(m)}
+      >
         <div className="match-title">{formatMatchTitle(m.match_name)}</div>
 
         <div className="team-block" data-code={getTeamCode(m.team1)}>
@@ -343,8 +452,7 @@ const MatchCards = () => {
             1st Innings: {m.runs1}/{m.wickets1} ({formatOvers(m.overs1)} ov)
           </div>
           <div className="meta">
-            2nd Innings: {m.runs1_2}/{m.wickets1_2} (
-            {formatOvers(m.overs1_2)} ov)
+            2nd Innings: {m.runs1_2}/{m.wickets1_2} ({formatOvers(m.overs1_2)} ov)
           </div>
         </div>
 
@@ -358,8 +466,7 @@ const MatchCards = () => {
             1st Innings: {m.runs2}/{m.wickets2} ({formatOvers(m.overs2)} ov)
           </div>
           <div className="meta">
-            2nd Innings: {m.runs2_2}/{m.wickets2_2} (
-            {formatOvers(m.overs2_2)} ov)
+            2nd Innings: {m.runs2_2}/{m.wickets2_2} ({formatOvers(m.overs2_2)} ov)
           </div>
         </div>
 
@@ -369,9 +476,7 @@ const MatchCards = () => {
               🏆{" "}
               {m.winner === "Draw"
                 ? "Match is drawn."
-                : (m.winner || "")
-                    .toLowerCase()
-                    .includes("won the match")
+                : (m.winner || "").toLowerCase().includes("won the match")
                 ? m.winner
                 : `${m.winner} won the match!`}
             </strong>
@@ -382,54 +487,195 @@ const MatchCards = () => {
   };
 
   return (
-    <div className="container mt-4 mc-container">
-      {/* Sticky format toggle */}
-      <div className="format-toggle">
-        <button
-          className={`format-btn odi ${tab === "ODI" ? "active" : ""}`}
-          onClick={() => setTab("ODI")}
-          type="button"
-        >
-          🏏 ODI
-        </button>
-        <button
-          className={`format-btn t20 ${tab === "T20" ? "active" : ""}`}
-          onClick={() => setTab("T20")}
-          type="button"
-        >
-          🔥 T20
-        </button>
-        <button
-          className={`format-btn test ${tab === "Test" ? "active" : ""}`}
-          onClick={() => setTab("Test")}
-          type="button"
-        >
-          🧪 Test
-        </button>
+    <>
+      <div className="container mt-4 mc-container">
+        {/* Sticky format toggle */}
+        <div className="format-toggle">
+          <button
+            className={`format-btn odi ${tab === "ODI" ? "active" : ""}`}
+            onClick={() => setTab("ODI")}
+            type="button"
+          >
+            🏏 ODI
+          </button>
+          <button
+            className={`format-btn t20 ${tab === "T20" ? "active" : ""}`}
+            onClick={() => setTab("T20")}
+            type="button"
+          >
+            🔥 T20
+          </button>
+          <button
+            className={`format-btn test ${tab === "Test" ? "active" : ""}`}
+            onClick={() => setTab("Test")}
+            type="button"
+          >
+            🧪 Test
+          </button>
+        </div>
+
+        {tab === "ODI" && (
+          <Section title="ODI Matches" list={odiMatches} render={renderLOICard} />
+        )}
+        {tab === "T20" && (
+          <Section title="T20 Matches" list={t20Matches} render={renderLOICard} />
+        )}
+        {tab === "Test" && (
+          <Section title="Test Matches" list={testList} render={renderTestCard} />
+        )}
       </div>
 
-      {tab === "ODI" && (
-        <Section
-          title="ODI Matches"
-          list={odiMatches}
-          render={renderLOICard}
-        />
+      {/* Modal */}
+      {selectedMatch && (
+        <div className="mc-detail-overlay" onClick={closeModal}>
+          <div
+            className="mc-detail-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="mc-detail-close" onClick={closeModal} aria-label="Close">
+              ✕
+            </button>
+
+            <div className="mc-detail-head">
+              <span className="mc-badge-format">
+                {selectedMatch.type === "LOI"
+                  ? selectedMatch.data.match_type || "Match"
+                  : "Test"}
+              </span>
+              <h2 className="mc-detail-title">
+                {formatMatchTitle(selectedMatch.data.match_name)}
+              </h2>
+              <p className="mc-detail-sub">
+                {selectedMatch.data.team1} vs {selectedMatch.data.team2}
+              </p>
+            </div>
+
+            {/* score panel */}
+            <div className="mc-detail-scorewrap">
+              {selectedMatch.type === "LOI" ? (
+                <>
+                  <div className="mc-team-score" data-code={getTeamCode(selectedMatch.data.team1)}>
+                    <div className="mc-team-name">{selectedMatch.data.team1}</div>
+                    <div className="mc-team-runs">
+                      {selectedMatch.data.runs1}/{selectedMatch.data.wickets1}
+                    </div>
+                    <div className="mc-team-meta">
+                      Overs {formatOvers(selectedMatch.data.overs1)}
+                    </div>
+                    <div className="mc-team-points">
+                      Points:{" "}
+                      {calcPoints(
+                        selectedMatch.data.winner,
+                        selectedMatch.data.team1
+                      )}
+                    </div>
+                  </div>
+                  <div className="mc-team-score" data-code={getTeamCode(selectedMatch.data.team2)}>
+                    <div className="mc-team-name">{selectedMatch.data.team2}</div>
+                    <div className="mc-team-runs">
+                      {selectedMatch.data.runs2}/{selectedMatch.data.wickets2}
+                    </div>
+                    <div className="mc-team-meta">
+                      Overs {formatOvers(selectedMatch.data.overs2)}
+                    </div>
+                    <div className="mc-team-points">
+                      Points:{" "}
+                      {calcPoints(
+                        selectedMatch.data.winner,
+                        selectedMatch.data.team2
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* team 1 test */}
+                  <div className="mc-team-score" data-code={getTeamCode(selectedMatch.data.team1)}>
+                    <div className="mc-team-name">{selectedMatch.data.team1}</div>
+                    <div className="mc-team-meta">
+                      1st: {selectedMatch.data.runs1}/{selectedMatch.data.wickets1} (
+                      {formatOvers(selectedMatch.data.overs1)} ov)
+                    </div>
+                    <div className="mc-team-meta">
+                      2nd: {selectedMatch.data.runs1_2}/{selectedMatch.data.wickets1_2} (
+                      {formatOvers(selectedMatch.data.overs1_2)} ov)
+                    </div>
+                    <div className="mc-team-points">
+                      Points:{" "}
+                      {calcPoints(
+                        selectedMatch.data.winner,
+                        selectedMatch.data.team1
+                      )}
+                    </div>
+                  </div>
+                  {/* team 2 test */}
+                  <div className="mc-team-score" data-code={getTeamCode(selectedMatch.data.team2)}>
+                    <div className="mc-team-name">{selectedMatch.data.team2}</div>
+                    <div className="mc-team-meta">
+                      1st: {selectedMatch.data.runs2}/{selectedMatch.data.wickets2} (
+                      {formatOvers(selectedMatch.data.overs2)} ov)
+                    </div>
+                    <div className="mc-team-meta">
+                      2nd: {selectedMatch.data.runs2_2}/{selectedMatch.data.wickets2_2} (
+                      {formatOvers(selectedMatch.data.overs2_2)} ov)
+                    </div>
+                    <div className="mc-team-points">
+                      Points:{" "}
+                      {calcPoints(
+                        selectedMatch.data.winner,
+                        selectedMatch.data.team2
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* narrative */}
+            <div className="mc-detail-body">
+              <h4 className="mc-detail-block-title">Match story</h4>
+              <div className="mc-detail-text">
+                {(selectedMatch.type === "LOI"
+                  ? buildLimitedNarrative(selectedMatch.data)
+                  : buildTestNarrative(selectedMatch.data)
+                ).map((line, idx) => (
+                  <p key={idx}>{line}</p>
+                ))}
+              </div>
+
+              <h4 className="mc-detail-block-title">Extra info</h4>
+              <div className="mc-detail-grid">
+                <div>
+                  <span className="mc-label">Winner</span>
+                  <span className="mc-value">
+                    {selectedMatch.data.winner || "Not recorded"}
+                  </span>
+                </div>
+                <div>
+                  <span className="mc-label">Match date</span>
+                  <span className="mc-value">
+                    {selectedMatch.data.match_date ||
+                      selectedMatch.data.match_time ||
+                      "Not recorded"}
+                  </span>
+                </div>
+                {selectedMatch.data.mom_player && (
+                  <div className="mc-detail-mom">
+                    <span className="mc-label">Player of the match</span>
+                    <span className="mc-value">
+                      {selectedMatch.data.mom_player}
+                      {selectedMatch.data.mom_reason
+                        ? ` — ${selectedMatch.data.mom_reason}`
+                        : ""}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
-      {tab === "T20" && (
-        <Section
-          title="T20 Matches"
-          list={t20Matches}
-          render={renderLOICard}
-        />
-      )}
-      {tab === "Test" && (
-        <Section
-          title="Test Matches"
-          list={testList}
-          render={renderTestCard}
-        />
-      )}
-    </div>
+    </>
   );
 };
 
