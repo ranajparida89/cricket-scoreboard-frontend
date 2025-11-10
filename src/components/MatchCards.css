@@ -182,7 +182,7 @@
 }
 .team .meta{ font-size:.9rem; color:#d7e7f5; opacity:.9; font-variant-numeric:tabular-nums; }
 
-/* ===== Test cards: watermark too ===== */
+/* ===== Test cards ===== */
 .team-block{ position: relative; }
 .team-block::before{
   content: attr(data-code);
@@ -292,14 +292,14 @@
 }
 
 /* =========================
-   GLASSY match detail modal
+   MODAL (flat, no slant, X works)
    ========================= */
 .mc-detail-overlay {
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at top, rgba(3, 7, 12, 0.95), rgba(3, 7, 12, 0.65));
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(2, 6, 12, 0.78);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -309,43 +309,27 @@
 }
 @keyframes mcFadeIn { from { opacity:0; } to { opacity:1; } }
 
-/* clean glass */
 .mc-detail-modal.mc-detail-glass {
   position: relative;
   width: min(1050px, 96vw);
   max-height: min(94vh, 920px);
   overflow-y: auto;
   border-radius: 20px;
-  background: rgba(11, 17, 25, 0.25);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0b1118; /* <- solid, no glass, no angled shape */
+  border: 1px solid rgba(255,255,255,0.04);
   box-shadow: 0 20px 50px rgba(0,0,0,.55);
   padding: 22px 22px 18px;
   animation: mcPop .22s ease;
 }
 @keyframes mcPop { from { transform: translateY(6px); opacity:0; } to { transform: translateY(0); opacity:1; } }
 
-/* animated multicolour border */
-.mc-detail-modal.mc-detail-glass::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: 20px;
-  background: linear-gradient(120deg, #52ffe0, #86b3ff, #f6de9d, #52ffe0);
-  background-size: 280% 280%;
-  animation: mc-border-move 14s ease infinite;
-  opacity: 0.4;
-  pointer-events: none;
-  mix-blend-mode: screen;
-}
-@keyframes mc-border-move {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+/* kill old watermark/slanted text */
+.mc-detail-has-watermark::before,
+.mc-detail-has-watermark::after {
+  content: none !important;
 }
 
-/* bigger close button */
+/* X button – big and on top */
 .mc-detail-close {
   position: absolute;
   top: 10px;
@@ -353,7 +337,7 @@
   width: 36px;
   height: 36px;
   border-radius: 999px;
-  background: rgba(0,0,0,.25);
+  background: rgba(0,0,0,.4);
   border: 1px solid rgba(255,255,255,.15);
   color: #fff;
   cursor: pointer;
@@ -362,50 +346,21 @@
   align-items: center;
   justify-content: center;
   line-height: 1;
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   transition: transform .15s ease, background .15s ease;
+  z-index: 20;
+  pointer-events: auto;
 }
 .mc-detail-close:hover {
   transform: scale(1.04);
-  background: rgba(0,0,0,.45);
-}
-
-/* head + body above watermark */
-.mc-detail-head,
-.mc-detail-scorewrap,
-.mc-mom-banner,
-.mc-detail-body {
-  position: relative;
-  z-index: 2;
-}
-
-/* watermark */
-.mc-detail-has-watermark::before,
-.mc-detail-has-watermark::after {
-  position: absolute;
-  top: 40%;
-  font-size: clamp(110px, 16vw, 180px);
-  font-weight: 800;
-  letter-spacing: .04em;
-  color: rgba(255,255,255,0.018);
-  pointer-events: none;
-  text-transform: uppercase;
-  z-index: 0;
-}
-.mc-detail-has-watermark::before {
-  content: attr(data-leftcode);
-  left: -8px;
-  transform: rotate(-10deg);
-}
-.mc-detail-has-watermark::after {
-  content: attr(data-rightcode);
-  right: -14px;
-  transform: rotate(10deg);
+  background: rgba(0,0,0,.6);
 }
 
 /* header/details */
 .mc-detail-head {
   padding-right: 40px;
+  position: relative;
+  z-index: 1;
 }
 .mc-badge-format {
   background: rgba(95, 208, 199, 0.12);
@@ -444,22 +399,13 @@
 }
 .mc-team-score {
   position: relative;
-  background: radial-gradient(circle at bottom, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0));
+  background: rgba(255, 255, 255, 0.012);
   border: 1px solid rgba(255, 255, 255, 0.015);
   border-radius: 14px;
   padding: 14px 14px 12px;
   overflow: hidden;
 }
-.mc-team-score::before {
-  content: attr(data-code);
-  position: absolute;
-  inset: auto -8px -12px auto;
-  font-size: clamp(40px, 7vw, 76px);
-  color: rgba(255, 255, 255, 0.03);
-  font-weight: 800;
-  pointer-events: none;
-  transform: rotate(6deg);
-}
+.mc-team-score::before { content: none; } /* no extra overlays */
 .mc-team-name {
   color: #fff;
   font-weight: 700;
@@ -485,14 +431,13 @@
   color: #edfbff;
 }
 
-/* Player of the match crown / glow */
+/* Player of the match */
 .mc-mom-banner {
   margin-top: 16px;
-  background: radial-gradient(circle at top, rgba(255, 186, 84, 0.18), rgba(0,0,0,0));
-  border: 1px solid rgba(255, 186, 84, 0.55);
+  background: rgba(255, 186, 84, 0.05);
+  border: 1px solid rgba(255, 186, 84, 0.35);
   border-radius: 14px;
   padding: 10px 14px 12px;
-  box-shadow: 0 6px 28px rgba(255, 186, 84, 0.3);
 }
 .mc-mom-tag {
   display: inline-block;
@@ -553,13 +498,6 @@
   font-size: 0.8rem;
   margin-top: 3px;
 }
-.mc-detail-mom {
-  grid-column: 1 / -1;
-  background: radial-gradient(circle at top, rgba(255, 180, 0, 0.11), rgba(255, 180, 0, 0));
-  border: 1px solid rgba(255, 180, 0, 0.24);
-  border-radius: 12px;
-  padding: 7px 9px 8px;
-}
 
 /* mobile */
 @media (max-width: 720px) {
@@ -575,10 +513,5 @@
   .mc-detail-close {
     top: 14px;
     right: 14px;
-  }
-  .mc-detail-has-watermark::before,
-  .mc-detail-has-watermark::after {
-    font-size: 120px;
-    top: 55%;
   }
 }
