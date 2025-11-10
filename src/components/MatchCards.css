@@ -290,6 +290,7 @@
     background: radial-gradient(circle, rgba(255,255,255,.25), rgba(232,202,164,.18) 60%, transparent 70%) !important;
   }
 }
+
 /* =========================
    GLASSY match detail modal
    ========================= */
@@ -308,11 +309,12 @@
 }
 @keyframes mcFadeIn { from { opacity:0; } to { opacity:1; } }
 
+/* base glass */
 .mc-detail-modal.mc-detail-glass {
   background:
     linear-gradient(145deg, rgba(12, 19, 28, 0.35), rgba(6, 11, 17, 0.12)),
     radial-gradient(circle at top, rgba(97, 212, 202, 0.04), rgba(0,0,0,0));
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 20px;
   width: min(1050px, 96vw);
   max-height: min(94vh, 920px);
@@ -325,6 +327,25 @@
   animation: mcPop .22s ease;
 }
 @keyframes mcPop { from { transform: translateY(6px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+
+/* ============ multicolour border ============ */
+.mc-detail-modal.mc-detail-glass::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 20px;
+  background: linear-gradient(120deg, #52ffe0, #86b3ff, #f6de9d, #52ffe0);
+  background-size: 280% 280%;
+  animation: mc-border-move 14s ease infinite;
+  opacity: 0.4;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+@keyframes mc-border-move {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
 .mc-detail-close {
   position: absolute;
@@ -345,6 +366,195 @@
   background: rgba(255,255,255,.15);
 }
 
+.mc-detail-head {
+  padding-right: 40px;
+  position: relative;
+  z-index: 2;
+}
+.mc-badge-format {
+  background: rgba(95, 208, 199, 0.12);
+  border: 1px solid rgba(95, 208, 199, 0.35);
+  border-radius: 999px;
+  padding: 3px 11px 4px;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-block;
+  color: #dffffe;
+  margin-bottom: 6px;
+}
+.mc-detail-title {
+  color: #fff;
+  font-size: clamp(1.35rem, 3vw, 1.7rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.mc-detail-sub {
+  color: #8ba8c7;
+  font-size: 0.85rem;
+}
+.mc-detail-intro {
+  margin-top: 6px;
+  color: #a9c4db;
+  font-size: .78rem;
+}
+
+/* score blocks inside modal */
+.mc-detail-scorewrap {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+  position: relative;
+  z-index: 2;
+}
+.mc-team-score {
+  position: relative;
+  background: radial-gradient(circle at bottom, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0));
+  border: 1px solid rgba(255, 255, 255, 0.015);
+  border-radius: 14px;
+  padding: 14px 14px 12px;
+  overflow: hidden;
+}
+.mc-team-score::before {
+  content: attr(data-code);
+  position: absolute;
+  inset: auto -8px -12px auto;
+  font-size: clamp(40px, 7vw, 76px);
+  color: rgba(255, 255, 255, 0.03);
+  font-weight: 800;
+  pointer-events: none;
+  transform: rotate(6deg);
+}
+.mc-team-name {
+  color: #fff;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.mc-team-runs {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #fff;
+}
+.mc-team-meta {
+  color: #c8d8ec;
+  font-size: 0.78rem;
+}
+.mc-team-points {
+  margin-top: 5px;
+  background: rgba(0, 180, 255, 0.1);
+  border: 1px solid rgba(0, 180, 255, 0.16);
+  border-radius: 999px;
+  display: inline-block;
+  padding: 2px 10px 4px;
+  font-size: 0.7rem;
+  color: #edfbff;
+}
+
+/* Player of the match crown / glow */
+.mc-mom-banner {
+  margin-top: 16px;
+  background: radial-gradient(circle at top, rgba(255, 186, 84, 0.18), rgba(0,0,0,0));
+  border: 1px solid rgba(255, 186, 84, 0.55);
+  border-radius: 14px;
+  padding: 10px 14px 12px;
+  box-shadow: 0 6px 28px rgba(255, 186, 84, 0.3);
+  position: relative;
+  z-index: 2;
+}
+.mc-mom-tag {
+  display: inline-block;
+  background: rgba(21, 25, 32, 0.55);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 999px;
+  padding: 3px 10px 4px;
+  font-size: .6rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.mc-mom-title {
+  font-weight: 700;
+  color: #fff;
+  font-size: .85rem;
+}
+.mc-mom-reason {
+  color: #fde0b3;
+  font-size: .72rem;
+  margin-top: 2px;
+}
+
+.mc-detail-body {
+  margin-top: 18px;
+  position: relative;
+  z-index: 2;
+}
+.mc-detail-block-title {
+  color: #fff;
+  font-weight: 700;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+.mc-detail-text p {
+  margin-bottom: 6px;
+  color: #ceddf0;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.mc-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+.mc-label {
+  font-size: 0.67rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #90a1b6;
+}
+.mc-value {
+  display: block;
+  color: #ecf4ff;
+  font-weight: 600;
+  font-size: 0.8rem;
+  margin-top: 3px;
+}
+.mc-detail-mom {
+  grid-column: 1 / -1;
+  background: radial-gradient(circle at top, rgba(255, 180, 0, 0.11), rgba(255, 180, 0, 0));
+  border: 1px solid rgba(255, 180, 0, 0.24);
+  border-radius: 12px;
+  padding: 7px 9px 8px;
+}
+
+/* ====== watermark in modal (like screenshot) ====== */
+.mc-detail-has-watermark::after,
+.mc-detail-has-watermark::before {
+  position: absolute;
+  top: 40%;
+  font-size: clamp(110px, 16vw, 180px);
+  font-weight: 800;
+  letter-spacing: .04em;
+  color: rgba(255,255,255,0.02);
+  pointer-events: none;
+  text-transform: uppercase;
+  z-index: 0;
+}
+.mc-detail-has-watermark::before {
+  content: attr(data-leftcode);
+  left: -8px;
+  transform: rotate(-10deg);
+}
+.mc-detail-has-watermark::after {
+  content: attr(data-rightcode);
+  right: -14px;
+  transform: rotate(10deg);
+}
+
 /* mobile */
 @media (max-width: 720px) {
   .mc-detail-modal.mc-detail-glass {
@@ -362,5 +572,10 @@
   .mc-detail-close {
     top: 16px;
     right: 16px;
+  }
+  .mc-detail-has-watermark::before,
+  .mc-detail-has-watermark::after {
+    font-size: 120px;
+    top: 55%;
   }
 }

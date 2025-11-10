@@ -1,12 +1,12 @@
 // ✅ src/components/MatchCards.js
-// front-end only, with dynamic commentary, readable date & confetti
+// front-end only, with better commentary, glassy modal, crowned MOM, clean spacing
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Confetti from "react-confetti";
 import { getMatchHistory, getTestMatches } from "../services/api";
 import "./MatchCards.css";
 
-/* ---------- team codes ---------- */
+/* ========== helpers already similar to yours ========== */
 const getTeamCode = (teamName = "") => {
   const n = String(teamName).trim().toLowerCase();
   const MAP = {
@@ -49,7 +49,6 @@ const getTeamCode = (teamName = "") => {
   return (letters.slice(0, 3) || "UNK").toUpperCase();
 };
 
-/* ---------- helpers ---------- */
 const formatOvers = (decimalOvers = 0) => {
   const full = Math.floor(decimalOvers || 0);
   const balls = Math.round(((decimalOvers || 0) - full) * 6);
@@ -68,11 +67,10 @@ const formatMatchTitle = (raw = "") => {
   return s.replace(/^(\w)/, (m) => m.toUpperCase());
 };
 
-/* readable date */
 const formatReadableDate = (v) => {
   if (!v) return "Not recorded";
   const d = new Date(v);
-  if (String(d) === "Invalid Date") return v;
+  if (`${d}` === "Invalid Date") return v;
   return d.toLocaleString("en-GB", {
     day: "2-digit",
     month: "short",
@@ -82,7 +80,7 @@ const formatReadableDate = (v) => {
   });
 };
 
-/* time + ids */
+/* ids & time */
 const getWhen = (m) => {
   const tried = m?.match_time || m?.match_date || m?.created_at || m?.updated_at;
   const t = tried ? Date.parse(tried) : NaN;
@@ -92,12 +90,12 @@ const getUid = (m) =>
   m?.match_id ??
   `${m?.match_name || ""}|${m?.team1 || ""}|${m?.team2 || ""}|${m?.runs1 || ""}|${m?.runs2 || ""}|${m?.created_at || ""}`;
 
-/* live */
+/* live rows */
 const LIVE_RE = /\b(live|in progress|stumps|day\s*\d|session)\b/i;
 const isLiveRow = (m) =>
   m?.is_live === true || !(m?.winner) || LIVE_RE.test(m?.winner || "");
 
-/* accent (UI only) */
+/* accent per team */
 const ACCENTS = {
   IND: "#4cc9f0",
   AUS: "#f9c74f",
@@ -115,7 +113,7 @@ const ACCENTS = {
 };
 const pickAccent = (team) => ACCENTS[getTeamCode(team)] || "#5fd0c7";
 
-/* ---------- points rule ---------- */
+/* basic points */
 const calcPoints = (winner, team) => {
   if (!winner) return 1;
   const lower = winner.toLowerCase();
@@ -124,72 +122,67 @@ const calcPoints = (winner, team) => {
   return 0;
 };
 
-/* ---------- small seed so commentary is stable per match ---------- */
+/* seed so match ⇒ same copy */
 const makeSeed = (m) => {
   const s = `${m.match_name || ""}${m.team1 || ""}${m.team2 || ""}`;
-  return [...s].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  return [...s].reduce((a, c) => a + c.charCodeAt(0), 0);
 };
 const pickFrom = (arr, seed) => arr[seed % arr.length];
 
-/* ---------- result phrasing for ODI/T20 ---------- */
+/* better ODI/T20 result sentence */
 const describeLOIResult = (m) => {
-  const { runs1 = 0, runs2 = 0, wickets2 = 10, wickets1 = 10, winner = "" } = m;
+  const { runs1 = 0, runs2 = 0, wickets1 = 10, wickets2 = 10 } = m;
   const t1 = m.team1;
   const t2 = m.team2;
 
-  // if stored sentence already good, reuse
-  if (winner && winner.toLowerCase().includes("won the match")) {
-    return winner;
-  }
+  // if they already typed it in backend, respect it
+  if (m.winner && m.winner.toLowerCase().includes("won")) return m.winner;
 
-  // figure winner
+  // compute
   if (runs1 > runs2) {
     const margin = runs1 - runs2;
-    return `${t1} won by ${margin} run${margin === 1 ? "" : "s"}.`;
+    return `${t1} sealed it by ${margin} run${margin === 1 ? "" : "s"}.`;
   }
   if (runs2 > runs1) {
+    // wickets left
     const wkts = Math.max(1, 10 - (wickets2 || 0));
-    return `${t2} chased it down by ${wkts} wicket${wkts === 1 ? "" : "s"}.`;
+    return `${t2} chased it with ${wkts} wicket${wkts === 1 ? "" : "s"} in hand.`;
   }
-  // maybe all out both same
-  if (winner) return winner;
-  return "Match result recorded.";
+  return "Result recorded for this game.";
 };
 
-/* ---------- dynamic narratives ---------- */
+/* ODI/T20 narrative */
 const buildLimitedNarrative = (m) => {
   const seed = makeSeed(m);
   const opener = pickFrom(
     [
-      "What a finish that was.",
-      "Crowd would’ve loved this one.",
-      "A smart, controlled white-ball performance.",
-      "Clinical stuff, especially in the closing overs.",
-      "Momentum swung, but the winners kept their nerve.",
+      "This one had white-ball energy right through.",
+      "It felt like a proper modern ODI/T20 – sharp, fast, ruthless.",
+      "Momentum changed a couple of times before it settled.",
+      "Both sides came in with plans, but one executed cleaner.",
+      "Pace off, smart batting, and a tidy finish.",
     ],
     seed
   );
-
   const resultLine = describeLOIResult(m);
 
-  const t1code = getTeamCode(m.team1);
-  const t2code = getTeamCode(m.team2);
-
-  const inningsLine = `${t1code} put up ${m.runs1}/${m.wickets1} in ${formatOvers(
+  const t1 = getTeamCode(m.team1);
+  const t2 = getTeamCode(m.team2);
+  const inningsLine = `${t1} stacked up ${m.runs1}/${m.wickets1} in ${formatOvers(
     m.overs1
-  )} overs, and ${t2code} replied with ${m.runs2}/${m.wickets2} off ${formatOvers(
+  )} overs, and ${t2} replied with ${m.runs2}/${m.wickets2} off ${formatOvers(
     m.overs2
   )} overs.`;
 
   const flavour = pickFrom(
     [
-      "Tempo of the game felt right from ball one.",
-      "Key partnerships in the middle overs made the difference.",
-      "Fielding standards were sharp — very little given away.",
-      "Death bowling sealed it in style.",
-      "You could tell both captains came in with good plans.",
+      "Middle-overs control was the real difference.",
+      "Fielders saved plenty – the scoreboard could’ve looked bigger.",
+      "The finishing burst got the crowd on their feet.",
+      "Captaincy calls at the death were on point.",
+      "You could sense the confidence in the chase.",
     ],
-    seed + 1
+    seed + 5
   );
 
   const mom =
@@ -201,49 +194,50 @@ const buildLimitedNarrative = (m) => {
   return [resultLine, opener, inningsLine, flavour, mom].filter(Boolean);
 };
 
+/* Test narrative */
 const buildTestNarrative = (m) => {
   const seed = makeSeed(m);
   const opener = pickFrom(
     [
-      "A proper Test match grind.",
-      "This one needed patience and discipline.",
-      "Long spells, tight fields — classic red-ball cricket.",
-      "Momentum changed almost every session.",
-      "Both sides kept the game alive till late.",
+      "A proper old-school Test battle.",
+      "This match was earned session by session.",
+      "Plenty of mini battles inside the bigger contest.",
+      "Patience and discipline were rewarded here.",
+      "Both sides had moments; one side cashed in harder.",
     ],
     seed
   );
 
-  const w = m.winner || "";
-  const t1code = getTeamCode(m.team1);
-  const t2code = getTeamCode(m.team2);
-
-  let resultLine = "";
-  if (w.toLowerCase().includes("draw")) {
-    resultLine = "It finished as a draw — neither side fully broke through.";
-  } else if (w) {
-    resultLine = `${w} It was earned over multiple sessions.`;
+  let resultLine;
+  if (m.winner && m.winner.toLowerCase().includes("draw")) {
+    resultLine = "It finished as a draw – neither side fully broke away.";
+  } else if (m.winner) {
+    resultLine = `${m.winner} took the honours after a long slog.`;
   } else {
     resultLine = "Result recorded for this fixture.";
   }
 
-  const inningsLine = `${t1code} scored ${m.runs1}/${m.wickets1} (${formatOvers(
+  const t1 = getTeamCode(m.team1);
+  const t2 = getTeamCode(m.team2);
+  const inningsLine = `${t1} posted ${m.runs1}/${m.wickets1} (${formatOvers(
     m.overs1
   )} ov) and ${m.runs1_2}/${m.wickets1_2} (${formatOvers(
     m.overs1_2
-  )} ov). ${t2code} answered with ${m.runs2}/${m.wickets2} (${formatOvers(
+  )} ov). ${t2} answered with ${m.runs2}/${m.wickets2} (${formatOvers(
     m.overs2
-  )} ov) and ${m.runs2_2}/${m.wickets2_2} (${formatOvers(m.overs2_2)} ov).`;
+  )} ov) and ${m.runs2_2}/${m.wickets2_2} (${formatOvers(
+    m.overs2_2
+  )} ov).`;
 
   const flavour = pickFrom(
     [
-      "Lower order runs turned out to be useful.",
-      "Seamers got help on and off through the day.",
-      "Spinners came into the game nicely on the final stretch.",
-      "Captaincy calls were brave and mostly spot on.",
-      "Plenty of little battles inside the bigger contest.",
+      "Seamers found just enough all through the day.",
+      "Lower-order resistance mattered more than it looked.",
+      "Spinners were used smartly when the surface slowed.",
+      "Every declaration / follow-on call looked tactical.",
+      "It was tough run-scoring, so every milestone counted.",
     ],
-    seed + 1
+    seed + 7
   );
 
   const mom =
@@ -255,7 +249,7 @@ const buildTestNarrative = (m) => {
   return [resultLine, opener, inningsLine, flavour, mom].filter(Boolean);
 };
 
-/* ---------- tiny hook for confetti size ---------- */
+/* window size for confetti */
 const useWindowSize = () => {
   const [size, setSize] = useState({ width: 0, height: 0 });
   useEffect(() => {
@@ -268,7 +262,7 @@ const useWindowSize = () => {
   return size;
 };
 
-/* ---------- card shell (ripple + tilt) ---------- */
+/* ---------- card shell ---------- */
 function RippleCard({ children, live, recent, accent, onClick }) {
   const ref = useRef(null);
 
@@ -333,13 +327,12 @@ function RippleCard({ children, live, recent, accent, onClick }) {
   );
 }
 
-/* ---------- main component ---------- */
+/* ============== main component ============== */
 const MatchCards = () => {
   const [matches, setMatches] = useState([]);
   const [testMatches, setTestMatches] = useState([]);
   const [tab, setTab] = useState("ODI");
 
-  // modal state
   const [selectedMatch, setSelectedMatch] = useState(null); // { type, data }
   const [showConfetti, setShowConfetti] = useState(false);
   const { width, height } = useWindowSize();
@@ -361,7 +354,7 @@ const MatchCards = () => {
     })();
   }, []);
 
-  // lists
+  /* filtered lists */
   const odiMatches = useMemo(() => {
     const list = matches.filter((m) => m.match_type === "ODI");
     const anyTime = list.some(getWhen);
@@ -389,7 +382,7 @@ const MatchCards = () => {
     return sorted.slice(0, MAX_SHOW);
   }, [testMatches]);
 
-  // recent marker
+  /* recent */
   const recentUID = useMemo(() => {
     const pick = (list) => {
       if (!list.length) return null;
@@ -406,6 +399,21 @@ const MatchCards = () => {
     };
   }, [odiMatches, t20Matches, testList]);
 
+  /* open/close */
+  const openLimitedModal = (m) => {
+    setSelectedMatch({ type: "LOI", data: m });
+    setShowConfetti(!!m.winner);
+  };
+  const openTestModal = (m) => {
+    setSelectedMatch({ type: "Test", data: m });
+    setShowConfetti(!!m.winner);
+  };
+  const closeModal = () => {
+    setSelectedMatch(null);
+    setShowConfetti(false);
+  };
+
+  /* small section component */
   const Section = ({ title, list, render }) => (
     <>
       <h3 className="section-heading">{title}</h3>
@@ -414,10 +422,7 @@ const MatchCards = () => {
           <p className="text-white mt-1">No {title} available.</p>
         ) : (
           list.map((match, i) => (
-            <div
-              key={`${getUid(match)}-${i}`}
-              className="col-sm-6 col-lg-4 mc-col-snap"
-            >
+            <div key={`${getUid(match)}-${i}`} className="col-sm-6 col-lg-4 mc-col-snap">
               {render(match, i)}
             </div>
           ))
@@ -426,27 +431,7 @@ const MatchCards = () => {
     </>
   );
 
-  const openLimitedModal = (m) => {
-    setSelectedMatch({
-      type: "LOI",
-      data: m,
-    });
-    setShowConfetti(!!m.winner);
-  };
-
-  const openTestModal = (m) => {
-    setSelectedMatch({
-      type: "Test",
-      data: m,
-    });
-    setShowConfetti(!!m.winner);
-  };
-
-  const closeModal = () => {
-    setSelectedMatch(null);
-    setShowConfetti(false);
-  };
-
+  /* card renderers */
   const renderLOICard = (m) => {
     const live = isLiveRow(m);
     const recent = recentUID[m.match_type] === getUid(m);
@@ -457,7 +442,6 @@ const MatchCards = () => {
         ? m?.team2
         : m?.team1
     );
-
     return (
       <RippleCard
         live={live}
@@ -466,7 +450,6 @@ const MatchCards = () => {
         onClick={() => openLimitedModal(m)}
       >
         <div className="match-title">{formatMatchTitle(m.match_name)}</div>
-
         <div className="teams-row">
           <div className="team" data-code={getTeamCode(m.team1)}>
             <div className="rowline">
@@ -477,7 +460,6 @@ const MatchCards = () => {
             </div>
             <div className="meta">Overs: {formatOvers(m.overs1)}</div>
           </div>
-
           <div className="team team--right" data-code={getTeamCode(m.team2)}>
             <div className="rowline">
               <div className="name">{getTeamCode(m.team2)}</div>
@@ -488,7 +470,6 @@ const MatchCards = () => {
             <div className="meta">Overs: {formatOvers(m.overs2)}</div>
           </div>
         </div>
-
         {!live && (
           <div className="result-line winner-banner">
             <strong>{describeLOIResult(m)}</strong>
@@ -508,7 +489,6 @@ const MatchCards = () => {
         ? m?.team2
         : m?.team1
     );
-
     return (
       <RippleCard
         live={live}
@@ -517,7 +497,6 @@ const MatchCards = () => {
         onClick={() => openTestModal(m)}
       >
         <div className="match-title">{formatMatchTitle(m.match_name)}</div>
-
         <div className="team-block" data-code={getTeamCode(m.team1)}>
           <div className="name">{getTeamCode(m.team1)}</div>
           <div className="meta">
@@ -527,12 +506,7 @@ const MatchCards = () => {
             2nd Innings: {m.runs1_2}/{m.wickets1_2} ({formatOvers(m.overs1_2)} ov)
           </div>
         </div>
-
-        <div
-          className="team-block team-block--right"
-          data-code={getTeamCode(m.team2)}
-          style={{ marginTop: 6 }}
-        >
+        <div className="team-block team-block--right" data-code={getTeamCode(m.team2)} style={{ marginTop: 6 }}>
           <div className="name">{getTeamCode(m.team2)}</div>
           <div className="meta">
             1st Innings: {m.runs2}/{m.wickets2} ({formatOvers(m.overs2)} ov)
@@ -541,20 +515,16 @@ const MatchCards = () => {
             2nd Innings: {m.runs2_2}/{m.wickets2_2} ({formatOvers(m.overs2_2)} ov)
           </div>
         </div>
-
         {!live && (
           <div className="result-line winner-banner">
-            <strong>
-              {m.winner
-                ? m.winner
-                : "Result recorded for this Test."}
-            </strong>
+            <strong>{m.winner ? m.winner : "Result recorded for this Test."}</strong>
           </div>
         )}
       </RippleCard>
     );
   };
 
+  /* ===== render ===== */
   return (
     <>
       <div className="container mt-4 mc-container">
@@ -593,27 +563,26 @@ const MatchCards = () => {
         )}
       </div>
 
+      {/* Modal */}
       {selectedMatch && (
         <div className="mc-detail-overlay" onClick={closeModal}>
           <div
-            className="mc-detail-modal mc-detail-glass"
+            className="mc-detail-modal mc-detail-glass mc-detail-has-watermark"
             onClick={(e) => e.stopPropagation()}
+            data-leftcode={getTeamCode(selectedMatch.data.team1)}
+            data-rightcode={getTeamCode(selectedMatch.data.team2)}
           >
-            <button
-              className="mc-detail-close"
-              onClick={closeModal}
-              aria-label="Close"
-            >
+            <button className="mc-detail-close" onClick={closeModal} aria-label="Close">
               ✕
             </button>
 
-            {/* confetti on top, very slow */}
+            {/* slow confetti */}
             {showConfetti && width > 0 && (
               <Confetti
                 width={width}
                 height={height}
                 numberOfPieces={140}
-                gravity={0.12}
+                gravity={0.1}
                 tweenDuration={6000}
                 recycle={false}
                 style={{ pointerEvents: "none", zIndex: 9999 }}
@@ -632,18 +601,19 @@ const MatchCards = () => {
               <p className="mc-detail-sub">
                 {selectedMatch.data.team1} vs {selectedMatch.data.team2}
               </p>
+              <p className="mc-detail-intro">
+                {selectedMatch.type === "LOI"
+                  ? `A ${selectedMatch.data.match_type} played between ${selectedMatch.data.team1} and ${selectedMatch.data.team2}.`
+                  : `A Test match contested by ${selectedMatch.data.team1} and ${selectedMatch.data.team2}.`}
+              </p>
             </div>
 
+            {/* score panel */}
             <div className="mc-detail-scorewrap">
               {selectedMatch.type === "LOI" ? (
                 <>
-                  <div
-                    className="mc-team-score"
-                    data-code={getTeamCode(selectedMatch.data.team1)}
-                  >
-                    <div className="mc-team-name">
-                      {selectedMatch.data.team1}
-                    </div>
+                  <div className="mc-team-score" data-code={getTeamCode(selectedMatch.data.team1)}>
+                    <div className="mc-team-name">{selectedMatch.data.team1}</div>
                     <div className="mc-team-runs">
                       {selectedMatch.data.runs1}/{selectedMatch.data.wickets1}
                     </div>
@@ -658,13 +628,8 @@ const MatchCards = () => {
                       )}
                     </div>
                   </div>
-                  <div
-                    className="mc-team-score"
-                    data-code={getTeamCode(selectedMatch.data.team2)}
-                  >
-                    <div className="mc-team-name">
-                      {selectedMatch.data.team2}
-                    </div>
+                  <div className="mc-team-score" data-code={getTeamCode(selectedMatch.data.team2)}>
+                    <div className="mc-team-name">{selectedMatch.data.team2}</div>
                     <div className="mc-team-runs">
                       {selectedMatch.data.runs2}/{selectedMatch.data.wickets2}
                     </div>
@@ -682,21 +647,14 @@ const MatchCards = () => {
                 </>
               ) : (
                 <>
-                  <div
-                    className="mc-team-score"
-                    data-code={getTeamCode(selectedMatch.data.team1)}
-                  >
-                    <div className="mc-team-name">
-                      {selectedMatch.data.team1}
-                    </div>
+                  <div className="mc-team-score" data-code={getTeamCode(selectedMatch.data.team1)}>
+                    <div className="mc-team-name">{selectedMatch.data.team1}</div>
                     <div className="mc-team-meta">
-                      1st: {selectedMatch.data.runs1}/
-                      {selectedMatch.data.wickets1} (
+                      1st: {selectedMatch.data.runs1}/{selectedMatch.data.wickets1} (
                       {formatOvers(selectedMatch.data.overs1)} ov)
                     </div>
                     <div className="mc-team-meta">
-                      2nd: {selectedMatch.data.runs1_2}/
-                      {selectedMatch.data.wickets1_2} (
+                      2nd: {selectedMatch.data.runs1_2}/{selectedMatch.data.wickets1_2} (
                       {formatOvers(selectedMatch.data.overs1_2)} ov)
                     </div>
                     <div className="mc-team-points">
@@ -707,21 +665,14 @@ const MatchCards = () => {
                       )}
                     </div>
                   </div>
-                  <div
-                    className="mc-team-score"
-                    data-code={getTeamCode(selectedMatch.data.team2)}
-                  >
-                    <div className="mc-team-name">
-                      {selectedMatch.data.team2}
-                    </div>
+                  <div className="mc-team-score" data-code={getTeamCode(selectedMatch.data.team2)}>
+                    <div className="mc-team-name">{selectedMatch.data.team2}</div>
                     <div className="mc-team-meta">
-                      1st: {selectedMatch.data.runs2}/
-                      {selectedMatch.data.wickets2} (
+                      1st: {selectedMatch.data.runs2}/{selectedMatch.data.wickets2} (
                       {formatOvers(selectedMatch.data.overs2)} ov)
                     </div>
                     <div className="mc-team-meta">
-                      2nd: {selectedMatch.data.runs2_2}/
-                      {selectedMatch.data.wickets2_2} (
+                      2nd: {selectedMatch.data.runs2_2}/{selectedMatch.data.wickets2_2} (
                       {formatOvers(selectedMatch.data.overs2_2)} ov)
                     </div>
                     <div className="mc-team-points">
@@ -736,6 +687,20 @@ const MatchCards = () => {
               )}
             </div>
 
+            {/* Player of the match – crown + glow */}
+            {selectedMatch.data.mom_player && (
+              <div className="mc-mom-banner">
+                <div className="mc-mom-tag">🏆 Congratulations</div>
+                <div className="mc-mom-title">
+                  👑 Player of the Match — {selectedMatch.data.mom_player}
+                </div>
+                {selectedMatch.data.mom_reason && (
+                  <div className="mc-mom-reason">{selectedMatch.data.mom_reason}</div>
+                )}
+              </div>
+            )}
+
+            {/* narrative */}
             <div className="mc-detail-body">
               <h4 className="mc-detail-block-title">Match story</h4>
               <div className="mc-detail-text">
@@ -752,9 +717,7 @@ const MatchCards = () => {
                 <div>
                   <span className="mc-label">Winner</span>
                   <span className="mc-value">
-                    {selectedMatch.data.winner
-                      ? selectedMatch.data.winner
-                      : "Not recorded"}
+                    {selectedMatch.data.winner || "Not recorded"}
                   </span>
                 </div>
                 <div>
@@ -766,17 +729,14 @@ const MatchCards = () => {
                     )}
                   </span>
                 </div>
-                {selectedMatch.data.mom_player && (
-                  <div className="mc-detail-mom">
-                    <span className="mc-label">Player of the match</span>
-                    <span className="mc-value">
-                      {selectedMatch.data.mom_player}
-                      {selectedMatch.data.mom_reason
-                        ? ` — ${selectedMatch.data.mom_reason}`
-                        : ""}
-                    </span>
-                  </div>
-                )}
+                <div>
+                  <span className="mc-label">Format</span>
+                  <span className="mc-value">
+                    {selectedMatch.type === "LOI"
+                      ? selectedMatch.data.match_type
+                      : "Test"}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
