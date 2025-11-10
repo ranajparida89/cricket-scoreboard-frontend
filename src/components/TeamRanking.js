@@ -33,7 +33,6 @@ const getFlagData = (teamName = "") => {
     png: "🇵🇬",
   };
 
-  // West Indies
   if (/(^|\b)west indies(\b|$)|\bwi\b/.test(n)) {
     return { type: "img", src: "/flags/wi.svg", alt: "West Indies" };
   }
@@ -75,18 +74,18 @@ const RankBadge = ({ idx }) => {
   return <span className={`rank-badge ${cls}`}>{text}</span>;
 };
 
-/* ---------- Info Popup ---------- */
+/* ---------- Info Popup (namespaced) ---------- */
 const InfoModal = ({ onClose }) => {
   return (
-    <div className="info-overlay" onClick={onClose}>
-      <div className="info-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="tr-info-overlay" onClick={onClose}>
+      <div className="tr-info-modal" onClick={(e) => e.stopPropagation()}>
         <h3>How rankings are calculated</h3>
         <p>
-          We order teams by <b>rating</b> (when available) and fall back to{" "}
-          <b>points</b> if rating is 0 for all teams in that format. Data is
-          pulled from CrickEdge match history.
+          We order teams by <b>rating</b> when it’s available. If every team in
+          that format has rating 0, we fall back to <b>points</b> so the table
+          still looks meaningful. Data is pulled from CrickEdge match history.
         </p>
-        <button className="info-close-btn" onClick={onClose}>
+        <button className="tr-info-close-btn" onClick={onClose}>
           Close
         </button>
       </div>
@@ -113,27 +112,6 @@ const TeamRanking = () => {
         setLoading(false);
       }
     })();
-  }, []);
-
-  // attach handler to EXISTING top-right X (outside this component)
-  useEffect(() => {
-    const closeBtn = document.querySelector(
-      'button[title="Close and return to home"]'
-    );
-    const handler = () => {
-      // close the page
-      if (window.history.length > 1) {
-        window.history.back();
-      } else {
-        window.location.href = "/"; // fallback
-      }
-    };
-    if (closeBtn) {
-      closeBtn.addEventListener("click", handler);
-    }
-    return () => {
-      if (closeBtn) closeBtn.removeEventListener("click", handler);
-    };
   }, []);
 
   // group by match type

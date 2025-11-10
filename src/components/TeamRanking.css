@@ -20,20 +20,13 @@
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   position: relative;
-  overflow: hidden; /* clip inner stuff */
+  overflow: hidden;
 }
 
 /* =========================================================
-   KILL OUTER GLOW BUTTON (page-level X)
+   FORCE-HIDE THE PAGE'S ORIGINAL TOP-RIGHT X (with glow)
    ========================================================= */
-/* this targets the existing top-right button your layout renders */
 button[title="Close and return to home"] {
-  box-shadow: none !important;
-  background: rgba(7, 11, 18, 0.001) !important;
-  filter: none !important;
-}
-button[title="Close and return to home"]::before,
-button[title="Close and return to home"]::after {
   display: none !important;
 }
 
@@ -340,53 +333,60 @@ button[title="Close and return to home"]::after {
 }
 
 /* =========================================================
-   INFO MODAL
+   INFO MODAL (namespaced, centered, glass)
    ========================================================= */
-.info-overlay {
+.tr-info-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 999;
-  animation: fadeIn 0.3s ease;
+  backdrop-filter: blur(3px);
+  animation: tr-fadeIn 0.25s ease;
 }
-@keyframes fadeIn {
+@keyframes tr-fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-.info-modal {
-  background: #0b1018;
-  color: #e0ecff;
-  border-radius: 12px;
-  padding: 24px;
-  max-width: 420px;
-  text-align: center;
+.tr-info-modal {
+  background: rgba(11, 17, 27, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
-  animation: slideUp 0.3s ease;
+  border-radius: 16px;
+  padding: 22px 22px 18px;
+  max-width: 420px;
+  width: min(420px, 92vw);
+  text-align: center;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  animation: tr-pop 0.22s ease;
 }
-@keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
+@keyframes tr-pop {
+  from { transform: translateY(10px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
-.info-modal h3 {
-  margin-bottom: 12px;
-  color: #8cd1ff;
+.tr-info-modal h3 {
+  margin-bottom: 10px;
+  color: #e5f3ff;
+  font-size: 18px;
 }
-.info-close-btn {
+.tr-info-modal p {
+  color: #cbd5f5;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.tr-info-close-btn {
+  margin-top: 16px;
   background: #00b4ff;
   border: none;
-  border-radius: 8px;
+  border-radius: 999px;
   color: #fff;
-  padding: 8px 16px;
-  margin-top: 16px;
-  cursor: pointer;
   font-weight: 600;
+  padding: 7px 20px 8px;
+  cursor: pointer;
   transition: background 0.2s;
 }
-.info-close-btn:hover {
+.tr-info-close-btn:hover {
   background: #0091d9;
 }
 
