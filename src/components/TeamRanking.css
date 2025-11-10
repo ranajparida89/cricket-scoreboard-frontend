@@ -20,7 +20,21 @@
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   position: relative;
-  overflow: hidden; /* ✅ hides any glow */
+  overflow: hidden; /* clip inner stuff */
+}
+
+/* =========================================================
+   KILL OUTER GLOW BUTTON (page-level X)
+   ========================================================= */
+/* this targets the existing top-right button your layout renders */
+button[title="Close and return to home"] {
+  box-shadow: none !important;
+  background: rgba(7, 11, 18, 0.001) !important;
+  filter: none !important;
+}
+button[title="Close and return to home"]::before,
+button[title="Close and return to home"]::after {
+  display: none !important;
 }
 
 /* =========================================================
@@ -73,26 +87,6 @@
 .tr-info-btn:hover {
   background: rgba(148, 163, 184, 0.14);
   transform: scale(1.05);
-}
-
-/* Close Button (X) */
-.tr-close-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  border-radius: 50%;
-  color: #fff;
-  font-size: 16px;
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
-  transition: background 0.2s;
-  z-index: 5;
-}
-.tr-close-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
 }
 
 .tr-title {
@@ -168,7 +162,7 @@
 }
 
 /* =========================================================
-   TABLE DESIGN
+   TABLE
    ========================================================= */
 .tr-table {
   width: 100%;
@@ -183,7 +177,7 @@
   display: grid;
   grid-template-columns: 80px 1.5fr 100px 100px 1.15fr;
   align-items: center;
-  min-width: 700px; /* ✅ helps mobile scroll */
+  min-width: 700px;
 }
 .tr-thead {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0));
@@ -208,7 +202,6 @@
 .th-right {
   text-align: right;
 }
-
 .tr-tbody {
   display: flex;
   flex-direction: column;
@@ -216,7 +209,7 @@
 }
 
 /* =========================================================
-   ROWS & EFFECTS
+   ROWS
    ========================================================= */
 .tr-row {
   background: radial-gradient(circle at top, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
@@ -232,7 +225,6 @@
   border: 1px solid rgba(131, 246, 255, 0.12);
   background: rgba(4, 9, 16, 0.86);
 }
-
 .td {
   display: flex;
   align-items: center;
@@ -281,7 +273,7 @@
 }
 
 /* =========================================================
-   RATING BAR
+   RATING
    ========================================================= */
 .rating-td {
   justify-content: flex-end;
@@ -331,7 +323,6 @@
 .tr-empty-global {
   margin-top: 14px;
 }
-
 .skeleton-row {
   height: 54px;
   border-radius: 12px;
@@ -400,12 +391,9 @@
 }
 
 /* =========================================================
-   RESPONSIVE FIXES
+   RESPONSIVE
    ========================================================= */
 @media (max-width: 760px) {
-  .tr-header {
-    text-align: left;
-  }
   .tr-thead,
   .tr-row {
     grid-template-columns: 62px 1.45fr 90px 90px 1.1fr;
@@ -436,11 +424,5 @@
   }
   .tr-small-note {
     display: none;
-  }
-  .tr-close-btn {
-    top: 8px;
-    right: 8px;
-    width: 28px;
-    height: 28px;
   }
 }

@@ -33,9 +33,11 @@ const getFlagData = (teamName = "") => {
     png: "🇵🇬",
   };
 
+  // West Indies
   if (/(^|\b)west indies(\b|$)|\bwi\b/.test(n)) {
     return { type: "img", src: "/flags/wi.svg", alt: "West Indies" };
   }
+
   const emoji = EMOJI[n];
   return emoji
     ? { type: "emoji", value: emoji, alt: teamName }
@@ -78,12 +80,11 @@ const InfoModal = ({ onClose }) => {
   return (
     <div className="info-overlay" onClick={onClose}>
       <div className="info-modal" onClick={(e) => e.stopPropagation()}>
-        <h3>How Rankings Are Calculated</h3>
+        <h3>How rankings are calculated</h3>
         <p>
-          Rankings are computed based on the team’s <b>rating</b> and{" "}
-          <b>points</b> accumulated from the match history in CrickEdge. Points
-          depend on match results, while ratings adjust dynamically based on the
-          opponent’s strength and performance.
+          We order teams by <b>rating</b> (when available) and fall back to{" "}
+          <b>points</b> if rating is 0 for all teams in that format. Data is
+          pulled from CrickEdge match history.
         </p>
         <button className="info-close-btn" onClick={onClose}>
           Close
@@ -114,7 +115,28 @@ const TeamRanking = () => {
     })();
   }, []);
 
-  // group by type
+  // attach handler to EXISTING top-right X (outside this component)
+  useEffect(() => {
+    const closeBtn = document.querySelector(
+      'button[title="Close and return to home"]'
+    );
+    const handler = () => {
+      // close the page
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = "/"; // fallback
+      }
+    };
+    if (closeBtn) {
+      closeBtn.addEventListener("click", handler);
+    }
+    return () => {
+      if (closeBtn) closeBtn.removeEventListener("click", handler);
+    };
+  }, []);
+
+  // group by match type
   const grouped = useMemo(() => {
     const out = { ODI: [], T20: [] };
     if (!Array.isArray(rankings)) return out;
@@ -125,6 +147,7 @@ const TeamRanking = () => {
     return out;
   }, [rankings]);
 
+  // sorting
   const sortRankList = (list) =>
     [...list].sort((a, b) => {
       const ar = parseFloat(a?.rating) || 0;
@@ -223,12 +246,6 @@ const TeamRanking = () => {
   return (
     <div className="tr-wrap">
       <div className="tr-card">
-        {/* Close Button */}
-        <button className="tr-close-btn" onClick={() => window.history.back()}>
-          ✕
-        </button>
-
-        {/* Header */}
         <header className="tr-header">
           <div className="tr-header-topline">
             <span className="page-pill">Rankings</span>
@@ -239,15 +256,16 @@ const TeamRanking = () => {
               type="button"
               className="tr-info-btn"
               onClick={() => setShowInfo(true)}
+              title="More about this page"
             >
               i
             </button>
           </div>
           <h2 className="tr-title">International Team Rankings</h2>
           <p className="tr-desc">
-            This page compares ODI & T20 teams by rating and points. Top 3 get
-            highlighted. If rating data is not available, a points-based bar is
-            shown for fair comparison.
+            This page compares ODI &amp; T20 teams by rating and points. Top 3
+            get highlighted. If rating data is not available, we switch to a
+            points-based bar so you can still compare teams.
           </p>
 
           <div className="tr-metric-row">
@@ -282,7 +300,6 @@ const TeamRanking = () => {
           )}
       </div>
 
-      {/* Info popup */}
       {showInfo && <InfoModal onClose={() => setShowInfo(false)} />}
     </div>
   );
