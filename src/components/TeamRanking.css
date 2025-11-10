@@ -1,4 +1,6 @@
-/* ✅ Professional Team Ranking layout */
+/* =========================================================
+   TEAM RANKING – PROFESSIONAL DARK THEME
+   ========================================================= */
 
 .tr-wrap {
   position: relative;
@@ -17,11 +19,13 @@
   padding: 18px 18px 28px;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  position: relative;   /* ✅ so we can clip inside */
-  overflow: hidden;     /* ✅ hides that glowing thing on the right */
+  position: relative;
+  overflow: hidden; /* ✅ hides any glow */
 }
 
-/* Header / intro */
+/* =========================================================
+   HEADER / INTRO
+   ========================================================= */
 .tr-header {
   text-align: left;
   margin-bottom: 14px;
@@ -50,6 +54,7 @@
   color: #94a3b8;
 }
 
+/* Info Button */
 .tr-info-btn {
   margin-left: auto;
   width: 26px;
@@ -63,10 +68,31 @@
   cursor: pointer;
   display: grid;
   place-items: center;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, transform 0.2s;
 }
 .tr-info-btn:hover {
   background: rgba(148, 163, 184, 0.14);
+  transform: scale(1.05);
+}
+
+/* Close Button (X) */
+.tr-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 16px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  transition: background 0.2s;
+  z-index: 5;
+}
+.tr-close-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .tr-title {
@@ -86,7 +112,9 @@
   line-height: 1.5;
 }
 
-/* small metric strip */
+/* =========================================================
+   METRIC STRIP
+   ========================================================= */
 .tr-metric-row {
   display: flex;
   gap: 14px;
@@ -112,7 +140,9 @@
   margin-top: 2px;
 }
 
-/* sections */
+/* =========================================================
+   TABLE SECTIONS
+   ========================================================= */
 .tr-section {
   margin-top: 14px;
 }
@@ -137,19 +167,23 @@
   line-height: 1.4;
 }
 
-/* table */
+/* =========================================================
+   TABLE DESIGN
+   ========================================================= */
 .tr-table {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-top: 6px;
+  overflow-x: auto;
 }
 .tr-thead,
 .tr-row {
   display: grid;
   grid-template-columns: 80px 1.5fr 100px 100px 1.15fr;
   align-items: center;
+  min-width: 700px; /* ✅ helps mobile scroll */
 }
 .tr-thead {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0));
@@ -181,28 +215,9 @@
   gap: 8px;
 }
 
-/* skeleton */
-.skeleton-row {
-  height: 54px;
-  border-radius: 12px;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.02),
-    rgba(255, 255, 255, 0.07),
-    rgba(255, 255, 255, 0.02)
-  );
-  animation: shimmer 1.4s linear infinite;
-}
-@keyframes shimmer {
-  0% {
-    background-position: -240px 0;
-  }
-  100% {
-    background-position: 240px 0;
-  }
-}
-
-/* rows */
+/* =========================================================
+   ROWS & EFFECTS
+   ========================================================= */
 .tr-row {
   background: radial-gradient(circle at top, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
   border: 1px solid rgba(255, 255, 255, 0.015);
@@ -237,7 +252,9 @@
   letter-spacing: 0.01em;
 }
 
-/* badges */
+/* =========================================================
+   BADGES
+   ========================================================= */
 .rank-badge {
   display: inline-flex;
   align-items: center;
@@ -263,7 +280,9 @@
   border-color: rgba(255, 176, 124, 0.4);
 }
 
-/* rating block */
+/* =========================================================
+   RATING BAR
+   ========================================================= */
 .rating-td {
   justify-content: flex-end;
   gap: 10px;
@@ -297,7 +316,9 @@
   color: #cbd5f5;
 }
 
-/* empty */
+/* =========================================================
+   EMPTY / SKELETON
+   ========================================================= */
 .tr-empty {
   text-align: center;
   color: #94a3b8;
@@ -311,17 +332,86 @@
   margin-top: 14px;
 }
 
-/* responsive */
+.skeleton-row {
+  height: 54px;
+  border-radius: 12px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.02),
+    rgba(255, 255, 255, 0.07),
+    rgba(255, 255, 255, 0.02)
+  );
+  animation: shimmer 1.4s linear infinite;
+}
+@keyframes shimmer {
+  0% { background-position: -240px 0; }
+  100% { background-position: 240px 0; }
+}
+
+/* =========================================================
+   INFO MODAL
+   ========================================================= */
+.info-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.info-modal {
+  background: #0b1018;
+  color: #e0ecff;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 420px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.info-modal h3 {
+  margin-bottom: 12px;
+  color: #8cd1ff;
+}
+.info-close-btn {
+  background: #00b4ff;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  padding: 8px 16px;
+  margin-top: 16px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.info-close-btn:hover {
+  background: #0091d9;
+}
+
+/* =========================================================
+   RESPONSIVE FIXES
+   ========================================================= */
 @media (max-width: 760px) {
+  .tr-header {
+    text-align: left;
+  }
   .tr-thead,
   .tr-row {
     grid-template-columns: 62px 1.45fr 90px 90px 1.1fr;
   }
   .rating-wrap {
     width: 105px;
-  }
-  .tr-header {
-    text-align: left;
   }
   .tr-small-note {
     max-width: 50%;
@@ -331,6 +421,9 @@
   .tr-thead,
   .tr-row {
     grid-template-columns: 54px 1.4fr 78px 78px 1.05fr;
+  }
+  .tr-table {
+    overflow-x: auto;
   }
   .tr-desc {
     font-size: 12px;
@@ -343,5 +436,11 @@
   }
   .tr-small-note {
     display: none;
+  }
+  .tr-close-btn {
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
   }
 }

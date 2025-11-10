@@ -1,4 +1,3 @@
-// ✅ TeamRanking.js — Professional ranking view with fallback for 0 ratings
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import "./TeamRanking.css";
@@ -6,11 +5,10 @@ import "./TeamRanking.css";
 /* ---------- Flags ---------- */
 const getFlagData = (teamName = "") => {
   const n = String(teamName).trim().toLowerCase();
-
   const EMOJI = {
     india: "🇮🇳",
     australia: "🇦🇺",
-    england: "🏴", // St George’s Cross
+    england: "🏴",
     "new zealand": "🇳🇿",
     pakistan: "🇵🇰",
     "south africa": "🇿🇦",
@@ -22,7 +20,7 @@ const getFlagData = (teamName = "") => {
     afghanistan: "🇦🇫",
     zimbabwe: "🇿🇼",
     netherlands: "🇳🇱",
-    scotland: "🏴", // Saltire
+    scotland: "🏴",
     nepal: "🇳🇵",
     oman: "🇴🇲",
     uae: "🇦🇪",
@@ -35,11 +33,9 @@ const getFlagData = (teamName = "") => {
     png: "🇵🇬",
   };
 
-  // West Indies special
   if (/(^|\b)west indies(\b|$)|\bwi\b/.test(n)) {
     return { type: "img", src: "/flags/wi.svg", alt: "West Indies" };
   }
-
   const emoji = EMOJI[n];
   return emoji
     ? { type: "emoji", value: emoji, alt: teamName }
@@ -65,7 +61,7 @@ const Flag = ({ team }) => {
   );
 };
 
-/* ---------- Small rank badge for top-3 ---------- */
+/* ---------- Small rank badge ---------- */
 const RankBadge = ({ idx }) => {
   if (idx > 2) return null;
   const map = [
@@ -77,11 +73,32 @@ const RankBadge = ({ idx }) => {
   return <span className={`rank-badge ${cls}`}>{text}</span>;
 };
 
+/* ---------- Info Popup ---------- */
+const InfoModal = ({ onClose }) => {
+  return (
+    <div className="info-overlay" onClick={onClose}>
+      <div className="info-modal" onClick={(e) => e.stopPropagation()}>
+        <h3>How Rankings Are Calculated</h3>
+        <p>
+          Rankings are computed based on the team’s <b>rating</b> and{" "}
+          <b>points</b> accumulated from the match history in CrickEdge. Points
+          depend on match results, while ratings adjust dynamically based on the
+          opponent’s strength and performance.
+        </p>
+        <button className="info-close-btn" onClick={onClose}>
+          Close
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const TeamRanking = () => {
   const [rankings, setRankings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showInfo, setShowInfo] = useState(false);
 
-  // fetch
+  // fetch rankings
   useEffect(() => {
     (async () => {
       try {
@@ -91,14 +108,13 @@ const TeamRanking = () => {
         setRankings(Array.isArray(res.data) ? res.data : []);
       } catch (e) {
         console.error("Error fetching rankings:", e);
-        setRankings([]);
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  // group ODI / T20
+  // group by type
   const grouped = useMemo(() => {
     const out = { ODI: [], T20: [] };
     if (!Array.isArray(rankings)) return out;
@@ -109,7 +125,6 @@ const TeamRanking = () => {
     return out;
   }, [rankings]);
 
-  // sort by rating then points
   const sortRankList = (list) =>
     [...list].sort((a, b) => {
       const ar = parseFloat(a?.rating) || 0;
@@ -120,45 +135,35 @@ const TeamRanking = () => {
       return bp - ap;
     });
 
-  // row component
-  const Row = ({ team, idx, barPct, showRating, ratingVal }) => {
-    return (
-      <div className="tr-row">
-        <div className="td rank">
-          <span className="pos">{idx + 1}</span>
+  const Row = ({ team, idx, barPct, showRating, ratingVal }) => (
+    <div className="tr-row">
+      <div className="td rank">
+        <span className="pos">{idx + 1}</span>
+      </div>
+      <div className="td team">
+        <RankBadge idx={idx} />
+        <Flag team={team?.team_name} />
+        <span className="name">{team?.team_name || "-"}</span>
+      </div>
+      <div className="td td-center">{team?.matches ?? 0}</div>
+      <div className="td td-center">{team?.points ?? 0}</div>
+      <div className="td rating-td">
+        <div className="rating-wrap">
+          <div className="rating-track" />
+          <div className="rating-bar" style={{ width: `${barPct}%` }} />
         </div>
-
-        <div className="td team">
-          <RankBadge idx={idx} />
-          <Flag team={team?.team_name} />
-          <span className="name">{team?.team_name || "-"}</span>
-        </div>
-
-        <div className="td td-center">{team?.matches ?? 0}</div>
-        <div className="td td-center">{team?.points ?? 0}</div>
-
-        <div className="td rating-td">
-          <div className="rating-wrap">
-            <div className="rating-track" />
-            <div className="rating-bar" style={{ width: `${barPct}%` }} />
-          </div>
-          <div className="rating-num">
-            {showRating ? Number(ratingVal).toFixed(2) : "—"}
-          </div>
+        <div className="rating-num">
+          {showRating ? Number(ratingVal).toFixed(2) : "—"}
         </div>
       </div>
-    );
-  };
+    </div>
+  );
 
   const Section = ({ type, data }) => {
     const sorted = sortRankList(data);
-
-    // check if EVERY rating is 0 → if yes, we will use points for bar
     const allRatingZero = sorted.every(
       (r) => !r?.rating || Number(r.rating) === 0
     );
-
-    // get max for chosen metric
     const maxMetric = allRatingZero
       ? Math.max(...sorted.map((r) => Number(r.points) || 0), 0)
       : Math.max(...sorted.map((r) => Number(r.rating) || 0), 0);
@@ -173,7 +178,6 @@ const TeamRanking = () => {
               : "Teams are ordered by rating, then points."}
           </p>
         </div>
-
         <div className="tr-table">
           <div className="tr-thead">
             <div className="th">Rank</div>
@@ -182,21 +186,15 @@ const TeamRanking = () => {
             <div className="th th-center">Points</div>
             <div className="th th-right">Rating</div>
           </div>
-
           <div className="tr-tbody">
-            {loading && (
+            {loading ? (
               <>
                 <div className="skeleton-row" />
                 <div className="skeleton-row" />
-                <div className="skeleton-row" />
               </>
-            )}
-
-            {!loading && sorted.length === 0 && (
+            ) : sorted.length === 0 ? (
               <div className="tr-empty">No {type} rankings available.</div>
-            )}
-
-            {!loading &&
+            ) : (
               sorted.map((team, idx) => {
                 const ratingVal = Number(team?.rating) || 0;
                 const metric = allRatingZero
@@ -204,7 +202,6 @@ const TeamRanking = () => {
                   : ratingVal;
                 const barPct =
                   maxMetric > 0 ? Math.min(100, (metric / maxMetric) * 100) : 0;
-
                 return (
                   <Row
                     key={`${type}-${team?.team_name}-${idx}`}
@@ -215,7 +212,8 @@ const TeamRanking = () => {
                     ratingVal={ratingVal}
                   />
                 );
-              })}
+              })
+            )}
           </div>
         </div>
       </section>
@@ -225,27 +223,31 @@ const TeamRanking = () => {
   return (
     <div className="tr-wrap">
       <div className="tr-card">
-        {/* page intro / explanation */}
+        {/* Close Button */}
+        <button className="tr-close-btn" onClick={() => window.history.back()}>
+          ✕
+        </button>
+
+        {/* Header */}
         <header className="tr-header">
           <div className="tr-header-topline">
             <span className="page-pill">Rankings</span>
             <span className="page-subtext">
               Pulled from match history of CrickEdge
             </span>
-            {/* ✅ info button */}
             <button
               type="button"
               className="tr-info-btn"
-              title="How this ranking is calculated"
+              onClick={() => setShowInfo(true)}
             >
               i
             </button>
           </div>
           <h2 className="tr-title">International Team Rankings</h2>
           <p className="tr-desc">
-            This page compares ODI &amp; T20 teams by their rating and points.
-            Top 3 get highlighted. If rating data is not available for a format,
-            we display a points-based bar so you can still compare teams.
+            This page compares ODI & T20 teams by rating and points. Top 3 get
+            highlighted. If rating data is not available, a points-based bar is
+            shown for fair comparison.
           </p>
 
           <div className="tr-metric-row">
@@ -279,6 +281,9 @@ const TeamRanking = () => {
             </div>
           )}
       </div>
+
+      {/* Info popup */}
+      {showInfo && <InfoModal onClose={() => setShowInfo(false)} />}
     </div>
   );
 };
