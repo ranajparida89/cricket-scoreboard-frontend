@@ -253,7 +253,6 @@
   cursor: pointer;
   font-size: 0.82rem;
 }
-
 .ce-add-match-item:hover {
   background: rgba(95, 208, 199, 0.12);
   color: #fff;

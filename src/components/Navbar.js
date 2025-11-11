@@ -344,5 +344,4 @@ const AppNavbar = ({ onAuthClick }) => {
     </Navbar>
   );
 };
-
 export default AppNavbar;
