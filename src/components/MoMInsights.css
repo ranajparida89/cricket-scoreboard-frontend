@@ -21,7 +21,8 @@
   justify-content: center;
   margin-bottom: 20px;
 }
-.filters input, .filters select {
+.filters input,
+.filters select {
   padding: 8px 12px;
   border-radius: 8px;
   border: 1px solid #00ffaa55;
@@ -37,7 +38,9 @@
   font-weight: 600;
   transition: background 0.3s;
 }
-.filters button:hover { background: #00ddaa; }
+.filters button:hover {
+  background: #00ddaa;
+}
 
 .error-box {
   background: #330000;
@@ -62,7 +65,9 @@
   transition: transform 0.25s ease;
   position: relative;
 }
-.summary-card:hover { transform: scale(1.05); }
+.summary-card:hover {
+  transform: scale(1.05);
+}
 .rank-badge {
   position: absolute;
   top: -10px;
@@ -70,26 +75,82 @@
   background: #00ffaa;
   color: #000;
   border-radius: 50%;
-  width: 30px; height: 30px;
-  display: flex; align-items: center; justify-content: center;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 700;
 }
-.summary-card.rank-1 { box-shadow: 0 0 20px gold; }
-.summary-card.rank-2 { box-shadow: 0 0 20px silver; }
-.summary-card.rank-3 { box-shadow: 0 0 20px #cd7f32; }
+.summary-card.rank-1 {
+  box-shadow: 0 0 20px gold;
+}
+.summary-card.rank-2 {
+  box-shadow: 0 0 20px silver;
+}
+.summary-card.rank-3 {
+  box-shadow: 0 0 20px #cd7f32;
+}
 
-.mom-table {
+/* -----------------------------
+   Pro table styling
+   ----------------------------- */
+.mom-table-wrapper {
   width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 15px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
-.mom-table th, .mom-table td {
-  border-bottom: 1px solid #00ffaa33;
-  padding: 8px;
-  text-align: center;
-}
-.mom-table th { color: #00ffaa; }
 
+.mom-table-pro {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  border-spacing: 0;
+  background: rgba(232, 202, 164, 0.08); /* soft gold tint */
+  border: 1px solid rgba(232, 202, 164, 0.25);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.mom-table-pro thead th {
+  background: #ffffff;
+  color: #0b141a;
+  font-weight: 700;
+  padding: 14px 10px;
+  text-align: center;
+  font-size: 0.88rem;
+  letter-spacing: 0.01em;
+  border-bottom: 2px solid rgba(232, 202, 164, 0.4);
+}
+
+.mom-table-pro tbody tr {
+  background: rgba(232, 202, 164, 0.03);
+  backdrop-filter: blur(3px);
+}
+.mom-table-pro tbody tr:nth-child(even) {
+  background: rgba(232, 202, 164, 0.08);
+}
+
+.mom-table-pro td {
+  padding: 12px 10px;
+  text-align: center;
+  border-bottom: 1px solid rgba(232, 202, 164, 0.08);
+  color: #f5f5f5;
+  font-size: 0.85rem;
+}
+.mom-table-pro tbody tr:hover {
+  background: rgba(232, 202, 164, 0.16);
+  transition: background 0.15s ease-in-out;
+}
+
+/* date cell can be a little tighter */
+.mom-date-cell {
+  white-space: nowrap;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* pagination */
 .pagination {
   display: flex;
   justify-content: center;
@@ -105,21 +166,19 @@
   color: #000;
   font-weight: 600;
 }
-.pagination button:disabled { background: #777; cursor: not-allowed; }
-
-.loading { text-align: center; color: #00ffaa; font-weight: 600; }
-.no-data { text-align: center; color: #ccc; }
-/* make table scrollable on small screens */
-.mom-table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+.pagination button:disabled {
+  background: #777;
+  cursor: not-allowed;
 }
 
-.mom-table {
-  width: 100%;
-  min-width: 680px; /* table can be wider than screen; wrapper will scroll */
-  border-collapse: collapse;
+.loading {
+  text-align: center;
+  color: #00ffaa;
+  font-weight: 600;
+}
+.no-data {
+  text-align: center;
+  color: #ccc;
 }
 
 /* filters should wrap on mobile */
@@ -139,10 +198,10 @@
   .mom-container {
     padding: 0.75rem;
   }
-  .filters {
-    flex-direction: row;
-  }
   .summary-grid {
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+  .mom-table-pro {
+    min-width: 650px;
   }
 }

@@ -17,7 +17,7 @@ export default function MoMInsights() {
   const [records, setRecords] = useState([]);
   const [summary, setSummary] = useState([]);
 
-  // 🔽 dropdown data from backend
+  // dropdown data from backend
   const [matchTypes, setMatchTypes] = useState([]);
   const [tournaments, setTournaments] = useState([]);
   const [seasons, setSeasons] = useState([]);
@@ -34,6 +34,20 @@ export default function MoMInsights() {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const perPage = 10;
+
+  // 👉 helper: make ISO strings pretty
+  const formatDate = (value) => {
+    if (!value) return "—";
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return value; // fallback if backend sends weird thing
+    return d.toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }); // e.g. 10 Nov 2025, 00:00
+  };
 
   const fetchMeta = async () => {
     try {
@@ -94,7 +108,7 @@ export default function MoMInsights() {
     <div className="mom-container">
       <h2 className="title">🏆 Man of the Match Insights</h2>
 
-      {/* 🔽 Filter row */}
+      {/* Filters */}
       <div className="filters">
         <select
           name="match_type"
@@ -197,12 +211,11 @@ export default function MoMInsights() {
             <p className="no-data">No records found for selected filters.</p>
           ) : (
             <>
-              {/* ✅ responsive wrapper for mobile */}
               <div className="mom-table-wrapper">
-                <table className="mom-table">
+                <table className="mom-table mom-table-pro">
                   <thead>
                     <tr>
-                      <th>Date</th>
+                      <th>Date &amp; Time</th>
                       <th>Match Name</th>
                       <th>Player</th>
                       <th>Reason</th>
@@ -214,7 +227,9 @@ export default function MoMInsights() {
                   <tbody>
                     {paginatedRecords.map((r, i) => (
                       <tr key={i}>
-                        <td>{r.match_date || "—"}</td>
+                        <td className="mom-date-cell">
+                          {formatDate(r.match_date)}
+                        </td>
                         <td>{r.match_name}</td>
                         <td>{r.player_name}</td>
                         <td>{r.reason}</td>
