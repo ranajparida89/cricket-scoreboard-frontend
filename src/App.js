@@ -63,6 +63,7 @@ import HomeHighlights from "./components/HomeHighlights";
 
 // ✅ NEW: FAQ page
 import FaqPage from "./components/FaqPage";
+import PastMatchesHub from "./pages/PastMatchesHub";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -453,6 +454,7 @@ function App() {
           <Route path="/privacy/delete-account" element={<DeleteAccount />} />
           <Route path="/scheduler" element={<SchedulerPage />} />
           <Route path="/team-distributor" element={<TeamDistributor />} />
+          <Route path="/past-matches" element={<PastMatchesHub />} />
           <Route
             path="/tournament-points"
             element={

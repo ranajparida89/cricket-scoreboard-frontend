@@ -1,8 +1,7 @@
 // ✅ src/components/Navbar.js — Slumber-themed navbar
-// ✅ Single "Add Match Details" button → 2 dark/gold options with drop animation
-// ✅ Brand wrapped in gold capsule
-// ✅ Left square → pure hamburger icon (3 lines)
-// ✅ "Add Test Match" text fixed
+// ✅ Brand in gold capsule, real hamburger, glassy "More"
+// ✅ Single "Add Match Details" button → dropdown
+// ✅ "Matches" now goes to /past-matches
 
 import React, { useEffect, useRef, useState } from "react";
 import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
@@ -94,25 +93,23 @@ const AppNavbar = ({ onAuthClick }) => {
       style={{ zIndex: 1030 }}
     >
       <Container fluid>
-        {/* Hamburger (pure icon, no square) */}
-        <button
-          type="button"
-          className="slumber-hamburger-btn me-2"
+        {/* ✅ real hamburger, left of brand */}
+        <Button
+          variant="dark"
+          className="p-0 me-2 slumber-icon-btn"
           aria-label="Toggle sidebar"
           onClick={() => window.dispatchEvent(new CustomEvent("toggleSidebar"))}
         >
-          <span />
-          <span />
-          <span />
-        </button>
+          <i className="fas fa-bars" />
+        </Button>
 
-        {/* Brand in gold capsule */}
+        {/* ✅ Brand inside light-gold capsule */}
         <Navbar.Brand
-          as={Link}
-          to="/"
-          className="slumber-brand-pill hover-slide-emoji"
-          onClick={() => playSound("click")}
-          onMouseEnter={() => playSound("hover")}
+            as={Link}
+            to="/"
+            className="slumber-brand hover-slide-emoji slumber-brand-pill"
+            onClick={() => playSound("click")}
+            onMouseEnter={() => playSound("hover")}
         >
           <span className="slumber-brand-word">Crick</span>
           <span className="slumber-brand-accent">Edge</span>
@@ -127,9 +124,10 @@ const AppNavbar = ({ onAuthClick }) => {
         <Navbar.Collapse id="navbarScroll" style={{ overflow: "visible" }}>
           {/* ----- MAIN LINKS ----- */}
           <Nav className="me-auto my-2 my-lg-0" navbarScroll>
+            {/* ✅ now goes to our new page */}
             <Nav.Link
               as={Link}
-              to="/matches"
+              to="/past-matches"
               className="slumber-link hover-slide-emoji"
               onClick={() => playSound("click")}
               onMouseEnter={() => playSound("hover")}
@@ -172,7 +170,7 @@ const AppNavbar = ({ onAuthClick }) => {
               title="More"
               id="navbarScrollingDropdown"
               menuVariant="dark"
-              className="more-dropdown slumber-dropdown slumber-more-glass"
+              className="more-dropdown slumber-dropdown slumber-glassy-menu"
               onMouseEnter={() => playSound("hover")}
             >
               <NavDropdown.Item
@@ -336,7 +334,7 @@ const AppNavbar = ({ onAuthClick }) => {
                   className="ce-add-match-item"
                   onClick={handleAddTest}
                 >
-                  Add Test Match
+                  Add Test Match Details
                 </button>
               </div>
             )}
