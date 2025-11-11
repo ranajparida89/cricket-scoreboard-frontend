@@ -1,10 +1,9 @@
 // ✅ src/components/Navbar.js — Slumber-themed navbar (with FAQ link added)
-// ✅ Keeps: PWA install, sounds, auth badge, Logout, More menu, action buttons
-// ✅ New: FAQ under More → after About CrickEdge, before Contact/Feedback
+// ✅ Now: single "Add Match Details" button that shows 2 options (ODI/T20, Test)
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { playSound } from "../utils/playSound";
 import "../styles/theme.css";
 
@@ -48,6 +47,41 @@ const AppNavbar = ({ onAuthClick }) => {
       setLoggedInUser(u.first_name || u.email?.split("@")[0]);
     }
   }, []);
+
+  // ----- new: add-match dropdown -----
+  const [showAddMenu, setShowAddMenu] = useState(false);
+  const addBtnRef = useRef(null);
+  const addMenuRef = useRef(null);
+  const navigate = useNavigate();
+
+  // close on click outside
+  useEffect(() => {
+    const handler = (e) => {
+      if (
+        !addBtnRef.current ||
+        !addMenuRef.current ||
+        addBtnRef.current.contains(e.target) ||
+        addMenuRef.current.contains(e.target)
+      ) {
+        return;
+      }
+      setShowAddMenu(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleAddOdiT20 = () => {
+    playSound("click");
+    setShowAddMenu(false);
+    navigate("/add-match");
+  };
+
+  const handleAddTest = () => {
+    playSound("click");
+    setShowAddMenu(false);
+    navigate("/add-test-match");
+  };
 
   return (
     <Navbar
@@ -183,7 +217,6 @@ const AppNavbar = ({ onAuthClick }) => {
                 Graphs & Charts
               </NavDropdown.Item>
 
-              {/* About stays first in info group */}
               <NavDropdown.Item
                 as={Link}
                 to="/about"
@@ -193,7 +226,7 @@ const AppNavbar = ({ onAuthClick }) => {
                 About CrickEdge
               </NavDropdown.Item>
 
-              {/* ✅ NEW: FAQ — placed AFTER About and BEFORE Contact */}
+              {/* FAQ */}
               <NavDropdown.Item
                 as={Link}
                 to="/faq"
@@ -255,7 +288,10 @@ const AppNavbar = ({ onAuthClick }) => {
           )}
 
           {/* ----- Actions ----- */}
-          <div className="navbar-actions-group ms-auto d-flex flex-row align-items-center gap-2">
+          <div
+            className="navbar-actions-group ms-auto d-flex flex-row align-items-center gap-2"
+            style={{ position: "relative" }} // so the dropdown can be absolute inside
+          >
             <Button
               onClick={handleInstallClick}
               className="btn slumber-ghost-btn hover-slide-emoji"
@@ -265,25 +301,43 @@ const AppNavbar = ({ onAuthClick }) => {
               📥 Get App
             </Button>
 
+            {/* ✅ new single button */}
             <Button
-              as={Link}
-              to="/add-match"
-              className="navbar-action-btn hover-slide-emoji slumber-ghost-btn"
-              onClick={() => playSound("click")}
+              ref={addBtnRef}
+              className="navbar-action-btn hover-slide-emoji slumber-ghost-btn ce-add-match-trigger"
+              onClick={() => {
+                playSound("click");
+                setShowAddMenu((v) => !v);
+              }}
               onMouseEnter={() => playSound("hover")}
             >
-              + Add Match
+              + Add Match Details
+              <span className="ms-1" style={{ fontSize: "0.65rem", opacity: 0.7 }}>
+                ▼
+              </span>
             </Button>
 
-            <Button
-              as={Link}
-              to="/add-test-match"
-              className="navbar-action-btn hover-slide-emoji slumber-ghost-btn"
-              onClick={() => playSound("click")}
-              onMouseEnter={() => playSound("hover")}
-            >
-              + Test Match
-            </Button>
+            {showAddMenu && (
+              <div
+                ref={addMenuRef}
+                className="ce-add-match-menu"
+              >
+                <button
+                  type="button"
+                  className="ce-add-match-item"
+                  onClick={handleAddOdiT20}
+                >
+                  Add ODI / T20 Details
+                </button>
+                <button
+                  type="button"
+                  className="ce-add-match-item"
+                  onClick={handleAddTest}
+                >
+                  Add Test Match
+                </button>
+              </div>
+            )}
           </div>
         </Navbar.Collapse>
       </Container>

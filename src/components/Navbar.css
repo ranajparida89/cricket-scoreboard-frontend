@@ -220,3 +220,42 @@
     box-shadow: 0 4px 10px rgba(0,0,0,.2) !important;
   }
 }
+/* --- Add Match Details button style --- */
+.ce-add-match-trigger {
+  position: relative;
+  border-bottom: 1px solid rgba(232, 202, 164, 0.45) !important; /* thin line */
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.28);
+}
+
+/* dropdown panel right under the button */
+.ce-add-match-menu {
+  position: absolute;
+  right: 0;
+  top: 110%;
+  background: linear-gradient(180deg, #0f1b28, #08121c);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.35);
+  min-width: 195px;
+  padding: 0.35rem;
+  z-index: 2000;
+}
+
+.ce-add-match-item {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #dbeeff;
+  text-align: left;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.ce-add-match-item:hover {
+  background: rgba(95, 208, 199, 0.12);
+  color: #fff;
+}
+
