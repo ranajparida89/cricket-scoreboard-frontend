@@ -331,7 +331,7 @@ const AppNavbar = ({ onAuthClick }) => {
                   className="ce-add-match-item"
                   onClick={handleAddTest}
                 >
-                  Add Test Match
+                  Add Test Match Details
                 </button>
               </div>
             )}
