@@ -434,6 +434,7 @@ h2, h3, h4 {
   color: var(--slumber-teal-strong) !important;
   background: rgba(95,208,199,.12);
 }
+
 /* === Pull-to-refresh restore (global) ================================ */
 /* Paste this at the very bottom of theme.css */
 html, body {
@@ -450,4 +451,82 @@ html, body {
   height: auto !important;
   overflow: visible !important;
   overscroll-behavior: auto !important;
+}
+
+/* ------------------------------------------------------------------
+   Add Match Details – button + dropdown (dark + light gold)
+   (appended at the very end so it wins over older styles)
+   ------------------------------------------------------------------ */
+.ce-add-match-trigger {
+  position: relative;
+  /* override the earlier .navbar-action-btn border/background */
+  border: 1px solid rgba(232, 202, 164, 0.7) !important;
+  background: rgba(11, 17, 26, 0.35) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #f3efe9 !important;
+  min-width: auto; /* let it hug the text */
+}
+.ce-add-match-trigger:hover,
+.ce-add-match-trigger.is-open {
+  background: rgba(232, 202, 164, 0.08) !important;
+  border-color: rgba(232, 202, 164, 0.95) !important;
+}
+.ce-add-caret {
+  font-size: 0.6rem;
+  opacity: 0.7;
+  line-height: 1;
+}
+
+/* dropdown panel right under the button */
+.ce-add-match-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background:
+    radial-gradient(circle at top, rgba(232, 202, 164, 0.08), transparent 45%),
+    linear-gradient(180deg, #0c131a, #060a0f);
+  border: 1px solid rgba(232, 202, 164, 0.36);
+  border-radius: 12px;
+  box-shadow: 0 18px 35px rgba(0, 0, 0, 0.5);
+  min-width: 205px;
+  padding: 0.35rem;
+  z-index: 99999; /* above navbar */
+  animation: ceDrop 0.18s ease-out;
+  backdrop-filter: blur(6px);
+}
+
+@keyframes ceDrop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ce-add-match-item {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #f5f2ea;
+  text-align: left;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ce-add-match-item:hover {
+  background: rgba(232, 202, 164, 0.12);
+  color: #ffffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
