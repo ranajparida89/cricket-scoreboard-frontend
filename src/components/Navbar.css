@@ -163,6 +163,7 @@
   .ce-link{ padding:.55rem .8rem; }
   .ce-link::after{ bottom:0; }
 }
+
 /* === Mobile/touch stability fixes (Android/iOS) === */
 @media (max-width: 900px), (pointer: coarse) {
   /* 1) Turn off heavy blur on sticky nav to avoid flicker */
@@ -176,6 +177,7 @@
   /* 2) Disable the live-updating progress bar on mobile (big repaint source) */
   .ce-navbar::after{ content:none !important; }
 }
+
 /* === Mobile Compositing Hardening v3 — MatchCards === */
 @media (max-width: 900px), (pointer: coarse) {
   /* DO NOT promote cards to a new layer on phones */
@@ -220,11 +222,29 @@
     box-shadow: 0 4px 10px rgba(0,0,0,.2) !important;
   }
 }
-/* --- Add Match Details button style --- */
+
+/* ------------------------------------------------------------------
+   Add Match Details – button + dropdown (dark + light gold)
+   ------------------------------------------------------------------ */
 .ce-add-match-trigger {
   position: relative;
-  border-bottom: 1px solid rgba(232, 202, 164, 0.45) !important; /* thin line */
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(232, 202, 164, 0.45) !important; /* thin gold */
+  background: rgba(11, 17, 26, 0.35) !important;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.ce-add-match-trigger:hover,
+.ce-add-match-trigger.is-open {
+  background: rgba(232, 202, 164, 0.08) !important;
+  border-color: rgba(232, 202, 164, 0.85) !important;
+}
+.ce-add-caret {
+  font-size: 0.6rem;
+  opacity: 0.7;
+  line-height: 1;
 }
 
 /* dropdown panel right under the button */
@@ -232,29 +252,46 @@
   position: absolute;
   right: 0;
   top: 110%;
-  background: linear-gradient(180deg, #0f1b28, #08121c);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.35);
-  min-width: 195px;
+  background: radial-gradient(circle at top, rgba(232, 202, 164, 0.08), transparent 45%),
+    linear-gradient(180deg, #0c131a, #060a0f);
+  border: 1px solid rgba(232, 202, 164, 0.36);
+  border-radius: 12px;
+  box-shadow: 0 18px 35px rgba(0, 0, 0, 0.5);
+  min-width: 205px;
   padding: 0.35rem;
   z-index: 2000;
+  animation: ceDrop 0.18s ease-out;
+  backdrop-filter: blur(6px);
+}
+
+@keyframes ceDrop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .ce-add-match-item {
   width: 100%;
   background: transparent;
   border: none;
-  color: #dbeeff;
+  color: #f5f2ea;
   text-align: left;
   padding: 0.45rem 0.55rem;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .ce-add-match-item:hover {
-  background: rgba(95, 208, 199, 0.12);
-  color: #fff;
+  background: rgba(232, 202, 164, 0.12);
+  color: #ffffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
-

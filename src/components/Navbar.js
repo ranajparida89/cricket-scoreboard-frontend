@@ -1,5 +1,5 @@
-// ✅ src/components/Navbar.js — Slumber-themed navbar (with FAQ link added)
-// ✅ Now: single "Add Match Details" button that shows 2 options (ODI/T20, Test)
+// ✅ src/components/Navbar.js — Slumber-themed navbar
+// ✅ Single "Add Match Details" button → 2 dark/gold options with drop animation
 
 import React, { useEffect, useRef, useState } from "react";
 import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
@@ -226,7 +226,6 @@ const AppNavbar = ({ onAuthClick }) => {
                 About CrickEdge
               </NavDropdown.Item>
 
-              {/* FAQ */}
               <NavDropdown.Item
                 as={Link}
                 to="/faq"
@@ -290,7 +289,7 @@ const AppNavbar = ({ onAuthClick }) => {
           {/* ----- Actions ----- */}
           <div
             className="navbar-actions-group ms-auto d-flex flex-row align-items-center gap-2"
-            style={{ position: "relative" }} // so the dropdown can be absolute inside
+            style={{ position: "relative" }}
           >
             <Button
               onClick={handleInstallClick}
@@ -301,10 +300,13 @@ const AppNavbar = ({ onAuthClick }) => {
               📥 Get App
             </Button>
 
-            {/* ✅ new single button */}
+            {/* ✅ Single "Add Match Details" button */}
             <Button
               ref={addBtnRef}
-              className="navbar-action-btn hover-slide-emoji slumber-ghost-btn ce-add-match-trigger"
+              className={
+                "navbar-action-btn hover-slide-emoji slumber-ghost-btn ce-add-match-trigger" +
+                (showAddMenu ? " is-open" : "")
+              }
               onClick={() => {
                 playSound("click");
                 setShowAddMenu((v) => !v);
@@ -312,16 +314,11 @@ const AppNavbar = ({ onAuthClick }) => {
               onMouseEnter={() => playSound("hover")}
             >
               + Add Match Details
-              <span className="ms-1" style={{ fontSize: "0.65rem", opacity: 0.7 }}>
-                ▼
-              </span>
+              <span className="ms-1 ce-add-caret">▼</span>
             </Button>
 
             {showAddMenu && (
-              <div
-                ref={addMenuRef}
-                className="ce-add-match-menu"
-              >
+              <div ref={addMenuRef} className="ce-add-match-menu">
                 <button
                   type="button"
                   className="ce-add-match-item"
@@ -344,4 +341,5 @@ const AppNavbar = ({ onAuthClick }) => {
     </Navbar>
   );
 };
+
 export default AppNavbar;
