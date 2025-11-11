@@ -93,33 +93,32 @@ const AppNavbar = ({ onAuthClick }) => {
       style={{ zIndex: 1030 }}
     >
       <Container fluid>
-        {/* ✅ real hamburger, left of brand */}
-        <Button
-          variant="dark"
-          className="p-0 me-2 slumber-icon-btn"
+        {/* ✅ pure-CSS hamburger, no FontAwesome */}
+        <button
+          type="button"
+          className="slumber-hamburger-btn me-2"
           aria-label="Toggle sidebar"
           onClick={() => window.dispatchEvent(new CustomEvent("toggleSidebar"))}
         >
-          <i className="fas fa-bars" />
-        </Button>
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
 
         {/* ✅ Brand inside light-gold capsule */}
         <Navbar.Brand
-            as={Link}
-            to="/"
-            className="slumber-brand hover-slide-emoji slumber-brand-pill"
-            onClick={() => playSound("click")}
-            onMouseEnter={() => playSound("hover")}
+          as={Link}
+          to="/"
+          className="slumber-brand hover-slide-emoji slumber-brand-pill"
+          onClick={() => playSound("click")}
+          onMouseEnter={() => playSound("hover")}
         >
           <span className="slumber-brand-word">Crick</span>
           <span className="slumber-brand-accent">Edge</span>
           <span className="slumber-brand-dot">.in</span>
         </Navbar.Brand>
 
-        <Navbar.Toggle
-          aria-controls="navbarScroll"
-          className="slumber-toggler"
-        />
+        <Navbar.Toggle aria-controls="navbarScroll" className="slumber-toggler" />
 
         <Navbar.Collapse id="navbarScroll" style={{ overflow: "visible" }}>
           {/* ----- MAIN LINKS ----- */}

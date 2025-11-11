@@ -283,3 +283,16 @@
     flex-direction: column;
   }
 }
+/* bigger insight pills for hero messages */
+.pm-insight-pill-lg {
+  font-size: 0.78rem;
+  padding: 0.45rem 1.1rem;
+  background: radial-gradient(circle at top, rgba(232, 202, 164, 0.13), rgba(2, 4, 5, 0));
+  border: 1px solid rgba(232, 202, 164, 0.4);
+}
+
+/* make recharts tooltips sit above dark bg */
+.recharts-default-tooltip {
+  border-radius: 10px;
+  font-size: 0.65rem;
+}
