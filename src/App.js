@@ -63,7 +63,7 @@ import HomeHighlights from "./components/HomeHighlights";
 
 // ✅ NEW: FAQ page
 import FaqPage from "./components/FaqPage";
-import PastMatchesHub from "./pages/PastMatchesHub";
+import PastMatchesHub from "./components/PastMatchesHub";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
