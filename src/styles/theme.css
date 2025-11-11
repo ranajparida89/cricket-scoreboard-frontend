@@ -19,13 +19,18 @@ body {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* 🧾 Match Form Headings
-   (UPDATED: headings use Josefin Sans for the screenshot vibe) */
-h1, h2, h3, .page-title, .tcpro-title {
-  font-family: "Josefin Sans", "Karla", sans-serif; /* UPDATED */
-  letter-spacing: .02em;                             /* UPDATED */
+/* 🧾 Match Form Headings */
+h1,
+h2,
+h3,
+.page-title,
+.tcpro-title {
+  font-family: "Josefin Sans", "Karla", sans-serif;
+  letter-spacing: 0.02em;
 }
-h2, h3, h4 {
+h2,
+h3,
+h4 {
   color: #00d2ff;
   margin-bottom: 15px;
   font-weight: bold;
@@ -70,7 +75,7 @@ h2, h3, h4 {
   margin-left: 8px;
   margin-right: 0;
   transition: background 0.2s, box-shadow 0.2s, color 0.2s;
-  box-shadow: 0 2px 12px rgba(0,255,255,0.05);
+  box-shadow: 0 2px 12px rgba(0, 255, 255, 0.05);
   min-width: 120px;
   letter-spacing: 0.5px;
 }
@@ -81,7 +86,7 @@ h2, h3, h4 {
   box-shadow: 0 0 18px #0ff2, 0 1px 8px #008da3;
 }
 
-/* 🏆 Enhanced Table Styling - [Ranaj Parida - 2025-04-12] */
+/* 🏆 Enhanced Table Styling */
 .table {
   background-color: #112233;
   color: #f0f0f0;
@@ -91,14 +96,14 @@ h2, h3, h4 {
   width: 100%;
 }
 
-/* ✅ Scrollable Container for Sticky Headers - [Ranaj Parida - 2025-04-13 | 11:15 AM] */
+/* ✅ Scrollable Container for Sticky Headers */
 .table-responsive {
   max-height: 500px;
   overflow-y: auto;
   position: relative;
 }
 
-/* ✅ Sticky Headers for Tables - [Ranaj Parida - 2025-04-13 | 10:40 AM] */
+/* ✅ Sticky Headers for Tables */
 .table thead th {
   background-color: #1b2a3c;
   color: #ffe57f;
@@ -129,7 +134,7 @@ h2, h3, h4 {
   color: #ffffff;
 }
 
-/* 🥇 Medal Rank Rows - [Ranaj Parida - 2025-04-12] */
+/* 🥇 Medal Rank Rows */
 .table tbody tr:nth-child(1) {
   background-color: #ffd700 !important;
   color: #000 !important;
@@ -146,10 +151,16 @@ h2, h3, h4 {
   font-weight: bold;
 }
 
-/* ✅ Color-Coded Match Type Rows - [Ranaj Parida - 2025-04-13 | 10:40 AM] */
-.table tbody tr.odi-row { background-color: #102f47 !important; }
-.table tbody tr.t20-row { background-color: #3b2d3e !important; }
-.table tbody tr.test-row { background-color: #1a3d2f !important; }
+/* ✅ Color-Coded Match Type Rows */
+.table tbody tr.odi-row {
+  background-color: #102f47 !important;
+}
+.table tbody tr.t20-row {
+  background-color: #3b2d3e !important;
+}
+.table tbody tr.test-row {
+  background-color: #1a3d2f !important;
+}
 
 /* ✨ Match Card Styles */
 .match-card {
@@ -161,9 +172,17 @@ h2, h3, h4 {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: transform 0.2s ease;
 }
-.match-card:hover { transform: scale(1.01); }
-.match-card .score { font-size: 20px; font-weight: bold; }
-.match-card .result { font-size: 14px; color: #90caf9; }
+.match-card:hover {
+  transform: scale(1.01);
+}
+.match-card .score {
+  font-size: 20px;
+  font-weight: bold;
+}
+.match-card .result {
+  font-size: 14px;
+  color: #90caf9;
+}
 
 /* 🇮🇳 Flag and Layout Support */
 .flag-icon {
@@ -172,17 +191,28 @@ h2, h3, h4 {
   object-fit: contain;
   margin-right: 6px;
 }
-.flex-align { display: flex; align-items: center; }
+.flex-align {
+  display: flex;
+  align-items: center;
+}
 
 /* 📱 Responsive Adjustments */
 @media (max-width: 768px) {
-  .card { margin: 15px; padding: 20px; }
-  .btn-success { width: 100%; }
-  .table th, .table td { font-size: 13px; padding: 8px; }
+  .card {
+    margin: 15px;
+    padding: 20px;
+  }
+  .btn-success {
+    width: 100%;
+  }
+  .table th,
+  .table td {
+    font-size: 13px;
+    padding: 8px;
+  }
 }
 
-/* 🌐 Navbar (SCOPED)
-   UPDATED: apply the old dark-blue navbar only to navbars that are NOT the new Slumber navbar. */
+/* 🌐 Navbar (SCOPED) */
 .navbar:not(.slumber-nav) {
   background-color: #0c1c2c;
   border-bottom: 1px solid #00d2ff;
@@ -192,9 +222,11 @@ h2, h3, h4 {
   color: #ffffff !important;
   font-weight: 500;
 }
-.nav-link:hover { color: #00d2ff !important; }
+.nav-link:hover {
+  color: #00d2ff !important;
+}
 
-/* 👉 Navbar Action Button Group (custom, for +Add Match/+Test Match) */
+/* 👉 Navbar Action Button Group */
 .navbar-actions-group {
   margin-left: auto;
   display: flex;
@@ -213,10 +245,14 @@ h2, h3, h4 {
 }
 
 /* 📌 Utility */
-.text-center { text-align: center; }
-.text-light  { color: #e0e0e0 !important; }
+.text-center {
+  text-align: center;
+}
+.text-light {
+  color: #e0e0e0 !important;
+}
 
-/* ✅ Medal Row Animations - [Ranaj Parida - 2025-04-13 | 11:55 PM] */
+/* ✅ Medal Row Animations */
 .gold {
   background-color: #ffd700 !important;
   color: #000 !important;
@@ -236,39 +272,62 @@ h2, h3, h4 {
   animation: pulseBronze 2s infinite;
 }
 
-/* ✨ Keyframe Animations - [Ranaj Parida - 2025-04-13 | 11:55 PM] */
 @keyframes pulseGold {
-  0%, 100% { box-shadow: 0 0 10px #ffe066, 0 0 20px #ffd700; }
-  50%      { box-shadow: 0 0 20px #ffcc00, 0 0 30px #ffea00; }
+  0%,
+  100% {
+    box-shadow: 0 0 10px #ffe066, 0 0 20px #ffd700;
+  }
+  50% {
+    box-shadow: 0 0 20px #ffcc00, 0 0 30px #ffea00;
+  }
 }
 @keyframes pulseSilver {
-  0%, 100% { box-shadow: 0 0 10px #e0e0e0, 0 0 20px #c0c0c0; }
-  50%      { box-shadow: 0 0 20px #d6d6d6, 0 0 30px #f5f5f5; }
+  0%,
+  100% {
+    box-shadow: 0 0 10px #e0e0e0, 0 0 20px #c0c0c0;
+  }
+  50% {
+    box-shadow: 0 0 20px #d6d6d6, 0 0 30px #f5f5f5;
+  }
 }
 @keyframes pulseBronze {
-  0%, 100% { box-shadow: 0 0 10px #cd7f32, 0 0 20px #a0522d; }
-  50%      { box-shadow: 0 0 20px #b87333, 0 0 30px #d2691e; }
+  0%,
+  100% {
+    box-shadow: 0 0 10px #cd7f32, 0 0 20px #a0522d;
+  }
+  50% {
+    box-shadow: 0 0 20px #b87333, 0 0 30px #d2691e;
+  }
 }
 
-/* ✅ Medal Emoji Sparkle Animation - [Ranaj Parida - 2025-04-13 | 11:59 PM] */
+/* ✅ Medal Emoji Sparkle Animation */
 .medal-emoji {
   animation: glow 1.8s infinite ease-in-out;
   font-size: 1.2em;
 }
 @keyframes glow {
-  0%   { text-shadow: 0 0 5px #ffd700; transform: scale(1); }
-  50%  { text-shadow: 0 0 15px #fff176; transform: scale(1.2); }
-  100% { text-shadow: 0 0 5px #ffd700; transform: scale(1); }
+  0% {
+    text-shadow: 0 0 5px #ffd700;
+    transform: scale(1);
+  }
+  50% {
+    text-shadow: 0 0 15px #fff176;
+    transform: scale(1.2);
+  }
+  100% {
+    text-shadow: 0 0 5px #ffd700;
+    transform: scale(1);
+  }
 }
 
-/* ✅ 🏏 Navbar Emoji Slide Animation - [Ranaj Parida - 2025-04-17 | 10:20 PM] */
+/* ✅ 🏏 Navbar Emoji Slide Animation */
 .hover-slide-emoji {
   position: relative;
   display: inline-block;
   overflow: hidden;
 }
 .hover-slide-emoji::after {
-  content: '🏏';
+  content: "🏏";
   position: absolute;
   right: -22px;
   top: 50%;
@@ -277,9 +336,12 @@ h2, h3, h4 {
   transition: right 0.3s ease, opacity 0.3s ease;
   font-size: 1rem;
 }
-.hover-slide-emoji:hover::after { right: 0px; opacity: 1; }
+.hover-slide-emoji:hover::after {
+  right: 0px;
+  opacity: 1;
+}
 
-/* ✅ Dark Theme for "More" Dropdown - [Ranaj Parida - 2025-04-18 | Final Fix] */
+/* ======= OLD More dropdown (we'll override below for glass) ======= */
 .more-dropdown .dropdown-menu {
   background-color: #132c45 !important;
   border: 1px solid #00bfff;
@@ -299,7 +361,7 @@ h2, h3, h4 {
   color: #00d2ff;
 }
 
-/* ✅ Prevent Navbar Collapse from Clipping Dropdowns (Mobile Fix) - [Ranaj Parida | 2025-04-18] */
+/* ✅ Prevent Navbar Collapse from Clipping Dropdowns */
 .navbar,
 .navbar-collapse,
 .navbar-nav {
@@ -328,46 +390,76 @@ h2, h3, h4 {
 
 /* ==== Slumber theme add-on (navbar) =================================== */
 :root {
-  --slumber-deep: #081722;       /* deep space blue */
-  --slumber-deeper: #07131d;     /* slightly darker */
-  --slumber-teal: #5fd0c7;       /* menu link color */
+  --slumber-deep: #081722;
+  --slumber-deeper: #07131d;
+  --slumber-teal: #5fd0c7;
   --slumber-teal-strong: #38c7bb;
-  --slumber-gold: #e8caa4;       /* warm gold headings */
+  --slumber-gold: #e8caa4;
   --slumber-gold-strong: #f2d7b7;
-  --slumber-faint: rgba(255,255,255,.06);
+  --slumber-faint: rgba(255, 255, 255, 0.06);
 }
 
 /* Navbar container */
 .slumber-nav {
-  background:
-    radial-gradient(1100px 420px at 50% -20%, rgba(95,208,199,.12), transparent 60%),
+  background: radial-gradient(
+      1100px 420px at 50% -20%,
+      rgba(95, 208, 199, 0.12),
+      transparent 60%
+    ),
     linear-gradient(180deg, var(--slumber-deep), var(--slumber-deeper));
-  border-bottom: 1px solid rgba(232,202,164,.25); /* thin gold divider */
-  box-shadow: 0 18px 40px rgba(0,0,0,.45);
-  font-family: "Karla", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+  border-bottom: 1px solid rgba(232, 202, 164, 0.25);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  font-family: "Karla", system-ui, -apple-system, Segoe UI, Roboto,
+    "Helvetica Neue", Arial, sans-serif;
 }
 
-/* Hamburger, toggler */
-.slumber-icon-btn {
-  background: transparent !important;
-  border: none !important;
-  color: var(--slumber-teal) !important;
-  font-size: 22px;
-}
-.slumber-toggler { border-color: var(--slumber-faint) !important; }
-
-/* Brand */
-.slumber-brand {
-  font-family: "Josefin Sans", "Karla", system-ui, sans-serif;
-  font-size: 28px;
-  letter-spacing: .5px;
+/* NEW: hamburger button (no square) */
+.slumber-hamburger-btn {
+  background: transparent;
+  border: none;
+  width: 34px;
+  height: 28px;
   display: inline-flex;
-  align-items: center;
-  gap: 2px;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 2px 4px;
 }
-.slumber-brand-word { color: var(--slumber-gold); font-weight: 700; }
-.slumber-brand-accent { color: var(--slumber-teal); font-weight: 700; }
-.slumber-brand-dot { color: #fff; font-weight: 700; }
+.slumber-hamburger-btn span {
+  display: block;
+  height: 3px;
+  background: #dbe7ef;
+  border-radius: 10px;
+  transition: transform 0.2s ease;
+}
+.slumber-hamburger-btn:hover span {
+  background: #ffffff;
+}
+
+/* Brand capsule */
+.slumber-brand-pill {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 14px 5px 14px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at top, rgba(232, 202, 164, 0.16), transparent 55%),
+    rgba(7, 21, 29, 0.18);
+  border: 1px solid rgba(232, 202, 164, 0.6);
+  box-shadow: 0 4px 14px rgba(232, 202, 164, 0.12);
+}
+.slumber-brand-word {
+  color: var(--slumber-gold);
+  font-weight: 700;
+}
+.slumber-brand-accent {
+  color: var(--slumber-teal);
+  font-weight: 700;
+}
+.slumber-brand-dot {
+  color: #fff;
+  font-weight: 700;
+}
 
 /* Links */
 .slumber-link,
@@ -375,7 +467,7 @@ h2, h3, h4 {
 .slumber-dropdown .dropdown-toggle {
   color: var(--slumber-teal) !important;
   font-weight: 600;
-  letter-spacing: .2px;
+  letter-spacing: 0.2px;
 }
 .slumber-link:hover,
 .slumber-dropdown .dropdown-toggle:hover {
@@ -383,23 +475,26 @@ h2, h3, h4 {
   text-decoration: none;
 }
 
-/* Dropdown menu */
+/* Dropdown menu base (we’ll override to glass for .slumber-more-glass) */
 .slumber-dropdown .dropdown-menu {
   background: #0c1c29;
   border: 1px solid var(--slumber-faint);
-  box-shadow: 0 10px 30px rgba(0,0,0,.45);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
 }
 .slumber-dropdown .dropdown-item {
   color: #dbe7ef;
   font-weight: 600;
 }
 .slumber-dropdown .dropdown-item:hover {
-  background: rgba(95,208,199,.12);
+  background: rgba(95, 208, 199, 0.12);
   color: #fff;
 }
 
 /* Right-side user + buttons */
-.slumber-user { color: #dfeffc; font-weight: 700; }
+.slumber-user {
+  color: #dfeffc;
+  font-weight: 700;
+}
 .slumber-ghost-btn {
   background: transparent !important;
   border: 1px solid var(--slumber-faint) !important;
@@ -413,18 +508,21 @@ h2, h3, h4 {
 .slumber-cta {
   background: linear-gradient(180deg, #1f4d58, #163b45) !important;
   color: #dbe7ef !important;
-  border: 1px solid rgba(95,208,199,.35) !important;
+  border: 1px solid rgba(95, 208, 199, 0.35) !important;
   font-weight: 800 !important;
-  letter-spacing: .03em;
-  box-shadow: 0 6px 18px rgba(0,0,0,.35);
+  letter-spacing: 0.03em;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
 }
 .slumber-cta:hover {
   filter: brightness(1.05);
-  box-shadow: 0 8px 22px rgba(0,0,0,.45);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
 }
 
-/* Limit font override to the Slumber navbar only (UPDATED) */
-.slumber-nav, .slumber-nav * { font-family: inherit; } /* UPDATED: was `.navbar, .navbar *` */
+/* Limit font override to the Slumber navbar only */
+.slumber-nav,
+.slumber-nav * {
+  font-family: inherit;
+}
 /* Make 'More' dropdown items match navbar link color */
 .slumber-dropdown .dropdown-item {
   color: var(--slumber-teal) !important;
@@ -432,21 +530,31 @@ h2, h3, h4 {
 }
 .slumber-dropdown .dropdown-item:hover {
   color: var(--slumber-teal-strong) !important;
-  background: rgba(95,208,199,.12);
+  background: rgba(95, 208, 199, 0.12);
+}
+
+/* GLASSY version for the More dropdown */
+.slumber-more-glass .dropdown-menu {
+  background: rgba(6, 14, 18, 0.35) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(232, 202, 164, 0.25) !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
 }
 
 /* === Pull-to-refresh restore (global) ================================ */
-/* Paste this at the very bottom of theme.css */
-html, body {
+html,
+body {
   height: auto !important;
-  overflow-y: auto !important;          /* allow root to scroll */
-  overscroll-behavior-y: auto !important;/* enable Chrome Android pull-to-refresh */
-  touch-action: pan-y !important;        /* don't block vertical pan */
-  -webkit-overflow-scrolling: touch;     /* smooth inertial scroll on iOS */
+  overflow-y: auto !important;
+  overscroll-behavior-y: auto !important;
+  touch-action: pan-y !important;
+  -webkit-overflow-scrolling: touch;
 }
-
-/* If any app shell wrapper was trapping scroll, release it */
-#root, .App, .page-wrapper, .content-wrapper {
+#root,
+.App,
+.page-wrapper,
+.content-wrapper {
   max-height: none !important;
   height: auto !important;
   overflow: visible !important;
@@ -455,11 +563,9 @@ html, body {
 
 /* ------------------------------------------------------------------
    Add Match Details – button + dropdown (dark + light gold)
-   (appended at the very end so it wins over older styles)
    ------------------------------------------------------------------ */
 .ce-add-match-trigger {
   position: relative;
-  /* override the earlier .navbar-action-btn border/background */
   border: 1px solid rgba(232, 202, 164, 0.7) !important;
   background: rgba(11, 17, 26, 0.35) !important;
   border-radius: 14px !important;
@@ -468,7 +574,7 @@ html, body {
   align-items: center;
   gap: 4px;
   color: #f3efe9 !important;
-  min-width: auto; /* let it hug the text */
+  min-width: auto;
 }
 .ce-add-match-trigger:hover,
 .ce-add-match-trigger.is-open {
@@ -480,25 +586,25 @@ html, body {
   opacity: 0.7;
   line-height: 1;
 }
-
-/* dropdown panel right under the button */
 .ce-add-match-menu {
   position: absolute;
   right: 0;
   top: calc(100% + 6px);
-  background:
-    radial-gradient(circle at top, rgba(232, 202, 164, 0.08), transparent 45%),
+  background: radial-gradient(
+      circle at top,
+      rgba(232, 202, 164, 0.08),
+      transparent 45%
+    ),
     linear-gradient(180deg, #0c131a, #060a0f);
   border: 1px solid rgba(232, 202, 164, 0.36);
   border-radius: 12px;
   box-shadow: 0 18px 35px rgba(0, 0, 0, 0.5);
   min-width: 205px;
   padding: 0.35rem;
-  z-index: 99999; /* above navbar */
+  z-index: 99999;
   animation: ceDrop 0.18s ease-out;
   backdrop-filter: blur(6px);
 }
-
 @keyframes ceDrop {
   from {
     opacity: 0;
@@ -509,7 +615,6 @@ html, body {
     transform: translateY(0);
   }
 }
-
 .ce-add-match-item {
   width: 100%;
   background: transparent;

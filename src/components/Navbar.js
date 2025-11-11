@@ -1,5 +1,8 @@
 // ✅ src/components/Navbar.js — Slumber-themed navbar
 // ✅ Single "Add Match Details" button → 2 dark/gold options with drop animation
+// ✅ Brand wrapped in gold capsule
+// ✅ Left square → pure hamburger icon (3 lines)
+// ✅ "Add Test Match" text fixed
 
 import React, { useEffect, useRef, useState } from "react";
 import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
@@ -91,21 +94,23 @@ const AppNavbar = ({ onAuthClick }) => {
       style={{ zIndex: 1030 }}
     >
       <Container fluid>
-        {/* Hamburger */}
-        <Button
-          variant="dark"
-          className="p-0 me-2 slumber-icon-btn"
+        {/* Hamburger (pure icon, no square) */}
+        <button
+          type="button"
+          className="slumber-hamburger-btn me-2"
           aria-label="Toggle sidebar"
           onClick={() => window.dispatchEvent(new CustomEvent("toggleSidebar"))}
         >
-          <i className="fas fa-bars" />
-        </Button>
+          <span />
+          <span />
+          <span />
+        </button>
 
-        {/* Brand */}
+        {/* Brand in gold capsule */}
         <Navbar.Brand
           as={Link}
           to="/"
-          className="fw-bold slumber-brand hover-slide-emoji"
+          className="slumber-brand-pill hover-slide-emoji"
           onClick={() => playSound("click")}
           onMouseEnter={() => playSound("hover")}
         >
@@ -162,12 +167,12 @@ const AppNavbar = ({ onAuthClick }) => {
               Ranking
             </Nav.Link>
 
-            {/* ----- More Dropdown ----- */}
+            {/* ----- More Dropdown (glassy) ----- */}
             <NavDropdown
               title="More"
               id="navbarScrollingDropdown"
               menuVariant="dark"
-              className="more-dropdown slumber-dropdown"
+              className="more-dropdown slumber-dropdown slumber-more-glass"
               onMouseEnter={() => playSound("hover")}
             >
               <NavDropdown.Item
@@ -331,7 +336,7 @@ const AppNavbar = ({ onAuthClick }) => {
                   className="ce-add-match-item"
                   onClick={handleAddTest}
                 >
-                  Add Test Match Details
+                  Add Test Match
                 </button>
               </div>
             )}
