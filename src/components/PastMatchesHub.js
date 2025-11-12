@@ -14,6 +14,7 @@ import "./past-matches.css";
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
 
+/** ---------- helpers ---------- */
 const formatDateTime = (raw) => {
   if (!raw) return "—";
   const d = new Date(raw);
@@ -26,6 +27,25 @@ const formatDateTime = (raw) => {
     minute: "2-digit",
   });
 };
+
+/** Normalize tournament naming for UI consistency & filtering.
+ *  - Converts any whole-word "series" (any case) → "Series"
+ *  - Trims extra spaces
+ *  - Leaves other words intact (doesn't force full title case)
+ */
+const normalizeTournament = (name) => {
+  if (!name) return "";
+  return String(name)
+    .trim()
+    // whole-word "series" → "Series"
+    .replace(/\bseries\b/gi, "Series")
+    // collapse multiple spaces
+    .replace(/\s{2,}/g, " ");
+};
+
+/** Case-insensitive equality helper using normalized forms */
+const eqNorm = (a, b) =>
+  normalizeTournament(a).toLowerCase() === normalizeTournament(b).toLowerCase();
 
 const PastMatchesHub = () => {
   const [loading, setLoading] = useState(true);
@@ -49,8 +69,19 @@ const PastMatchesHub = () => {
           axios.get(`${API_BASE}/past-matches/odi-t20`),
           axios.get(`${API_BASE}/past-matches/test`),
         ]);
-        setOdiT20(limitedRes.data || []);
-        setTests(testRes.data || []);
+
+        // keep original data, but attach a normalized tournament field for easy use
+        const withNormLimited = (limitedRes.data || []).map((m) => ({
+          ...m,
+          tournament_norm: normalizeTournament(m.tournament_name),
+        }));
+        const withNormTests = (testRes.data || []).map((m) => ({
+          ...m,
+          tournament_norm: normalizeTournament(m.tournament_name),
+        }));
+
+        setOdiT20(withNormLimited);
+        setTests(withNormTests);
       } catch (err) {
         console.error("PastMatchesHub fetch error:", err);
         setError("Could not load past matches.");
@@ -69,10 +100,11 @@ const PastMatchesHub = () => {
     return Array.from(years).sort((a, b) => b.localeCompare(a));
   }, [odiT20, tests]);
 
+  // Build a de-duplicated list of tournaments using the normalized names
   const allTournaments = useMemo(() => {
     const t = new Set();
     [...odiT20, ...tests].forEach((m) => {
-      if (m.tournament_name) t.add(m.tournament_name);
+      if (m.tournament_norm) t.add(m.tournament_norm);
     });
     return Array.from(t).sort();
   }, [odiT20, tests]);
@@ -150,6 +182,8 @@ const PastMatchesHub = () => {
 
   const applyFilters = (list) => {
     let out = [...list];
+
+    // team/winner search (already case-insensitive)
     if (filters.team.trim()) {
       const q = filters.team.trim().toLowerCase();
       out = out.filter(
@@ -159,12 +193,18 @@ const PastMatchesHub = () => {
           m.winner?.toLowerCase().includes(q)
       );
     }
+
+    // tournament filter (uses normalized values + case-insensitive compare)
     if (filters.tournament) {
-      out = out.filter((m) => m.tournament_name === filters.tournament);
+      out = out.filter((m) => eqNorm(m.tournament_norm, filters.tournament));
     }
+
+    // year filter
     if (filters.year) {
       out = out.filter((m) => m.season_year && String(m.season_year) === filters.year);
     }
+
+    // sorting
     if (filters.sort === "latest") {
       out.sort(
         (a, b) =>
@@ -267,7 +307,9 @@ const PastMatchesHub = () => {
           />
           <select
             value={filters.tournament}
-            onChange={(e) => setFilters((f) => ({ ...f, tournament: e.target.value }))}
+            onChange={(e) =>
+              setFilters((f) => ({ ...f, tournament: e.target.value }))
+            }
           >
             <option value="">All Tournaments</option>
             {allTournaments.map((t) => (
@@ -303,7 +345,9 @@ const PastMatchesHub = () => {
         <div className="pm-loading">Loading matches…</div>
       ) : activeTab === "limited" ? (
         <div className="pm-grid">
-          {filteredLimited.length === 0 && <p className="pm-empty">No ODI/T20 matches found.</p>}
+          {filteredLimited.length === 0 && (
+            <p className="pm-empty">No ODI/T20 matches found.</p>
+          )}
           {filteredLimited.map((m) => {
             const score1 =
               m.runs1 != null
@@ -322,9 +366,9 @@ const PastMatchesHub = () => {
                   </span>
                 </div>
                 <h3 className="pm-title">{m.match_name}</h3>
-                {(m.tournament_name || m.season_year) && (
+                {(m.tournament_norm || m.season_year) && (
                   <p className="pm-tournament">
-                    {m.tournament_name || "Tournament"}{" "}
+                    {m.tournament_norm || "Tournament"}{" "}
                     {m.season_year ? `• ${m.season_year}` : ""}
                   </p>
                 )}
@@ -374,9 +418,9 @@ const PastMatchesHub = () => {
                   </span>
                 </div>
                 <h3 className="pm-title">{m.match_name}</h3>
-                {(m.tournament_name || m.season_year) && (
+                {(m.tournament_norm || m.season_year) && (
                   <p className="pm-tournament">
-                    {m.tournament_name || "Tournament"}{" "}
+                    {m.tournament_norm || "Tournament"}{" "}
                     {m.season_year ? `• ${m.season_year}` : ""}
                   </p>
                 )}
