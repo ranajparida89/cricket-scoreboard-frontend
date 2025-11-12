@@ -36,6 +36,73 @@ const TEAM_MAP = {
   ZIM: "Zimbabwe",
 };
 
+/* ---------------- Tournament name formatter ----------------
+ * - InitCap/Camel-case words
+ * - Keeps acronyms (ODI, T20, ICC, WTC, BCCI, UAE, USA) uppercase
+ * - Forces common suffix words: Series, Trophy, Cup, League, Championship
+ * - Handles hyphenated words (e.g., home-away → Home-Away)
+ * - Trims/condenses spaces
+ */
+const ACRONYMS = new Set([
+  "ODI",
+  "T20",
+  "ICC",
+  "WTC",
+  "BCCI",
+  "UAE",
+  "USA",
+  "WBBL",
+  "BBL",
+  "PSL",
+  "IPL",
+]);
+
+const MINOR_LOWER = new Set([
+  "of", "and", "or", "the", "a", "an", "for", "to", "in", "on", "at", "by", "vs"
+]);
+
+const FORCE_PROPER = new Set([
+  "series", "trophy", "cup", "league", "championship", "championships"
+]);
+
+const titleWord = (w, index, last) => {
+  if (!w) return w;
+  // handle apostrophes and hyphens: Word's, Home-Away
+  const parts = w.split("-").map((seg) => {
+    const clean = seg.replace(/[^A-Za-z0-9']/g, "");
+    if (!clean) return seg;
+
+    // acronym?
+    if (ACRONYMS.has(clean.toUpperCase())) return clean.toUpperCase();
+
+    const lower = clean.toLowerCase();
+
+    // force proper on suffix/common nouns
+    if (FORCE_PROPER.has(lower)) return lower.charAt(0).toUpperCase() + lower.slice(1);
+
+    // keep minor words lower unless first/last
+    if (MINOR_LOWER.has(lower) && index !== 0 && index !== last) return lower;
+
+    // regular title case
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  });
+  return parts
+    .map((p, i) => (i ? (p ? p : "") : (p ? p : "")))
+    .join("-");
+};
+
+const formatTournamentName = (raw) => {
+  if (!raw) return "";
+  const s = String(raw).replace(/\s+/g, " ").trim();
+  if (!s) return "";
+  const tokens = s.split(" ");
+  const last = tokens.length - 1;
+  const out = tokens.map((t, i) => titleWord(t, i, last)).join(" ");
+
+  // Post-fix: ensure whole-word "Series" is “Series”
+  return out.replace(/\bSeries\b/gi, "Series");
+};
+
 const normalizeTeamName = (input) => {
   if (!input) return "";
   const upper = input.toUpperCase().trim();
@@ -64,7 +131,7 @@ function buildMatchName(tournamentName, seasonYear, team1, team2) {
   const t2 = normalizeTeamName(team2);
   if (!tournamentName || !seasonYear || !t1 || !t2) return "";
 
-  const base = tournamentName
+  const base = formatTournamentName(tournamentName)
     .replace(/\b(19|20)\d{2}\b/g, "")
     .replace(/\s{2,}/g, " ")
     .trim();
@@ -72,48 +139,23 @@ function buildMatchName(tournamentName, seasonYear, team1, team2) {
   return `${base} ${seasonYear} : ${t1} vs ${t2}`;
 }
 
-/**
- * ✅ extractWinnerName
- * Handles:
- *  - "New Zealand won the match!"
- *  - "New won the match!"
- *  - "🏆 West Indies won the match!"
- *  - "Match is drawn."
- *  - and expands partials using submitted team1/team2
- */
+/** Winner text helper (unchanged logic) */
 function extractWinnerName(message = "", team1 = "", team2 = "") {
   const msg = message.trim();
   const t1 = normalizeTeamName(team1);
   const t2 = normalizeTeamName(team2);
-
   if (!msg) return "";
-
   const lower = msg.toLowerCase();
-
-  // 1) common pattern from your backend
   const wonIdx = lower.indexOf("won the match");
   if (wonIdx !== -1) {
     let winnerRaw = msg.slice(0, wonIdx).trim();
-    // strip emojis / leading decorations
     winnerRaw = winnerRaw.replace(/^[🏆\-\s]+/, "").trim();
-
-    // 🔥 if backend sent only first word, expand it from the submitted team names
-    if (
-      winnerRaw &&
-      winnerRaw.split(" ").length === 1 // "New", "West", "Sri", "South", "United"
-    ) {
-      if (t1 && t1.toLowerCase().startsWith(winnerRaw.toLowerCase())) {
-        return t1;
-      }
-      if (t2 && t2.toLowerCase().startsWith(winnerRaw.toLowerCase())) {
-        return t2;
-      }
+    if (winnerRaw && winnerRaw.split(" ").length === 1) {
+      if (t1 && t1.toLowerCase().startsWith(winnerRaw.toLowerCase())) return t1;
+      if (t2 && t2.toLowerCase().startsWith(winnerRaw.toLowerCase())) return t2;
     }
-
     return winnerRaw;
   }
-
-  // 2) draw-ish
   if (
     lower.includes("match is drawn") ||
     lower.includes("match drawn") ||
@@ -121,16 +163,11 @@ function extractWinnerName(message = "", team1 = "", team2 = "") {
   ) {
     return "Match Drawn";
   }
-
-  // 3) message contains full team names
   if (t1 && lower.includes(t1.toLowerCase())) return t1;
   if (t2 && lower.includes(t2.toLowerCase())) return t2;
-
-  // 4) final fallback: expand first word using team1/team2
   const first = msg.split(" ")[0];
   if (t1 && t1.toLowerCase().startsWith(first.toLowerCase())) return t1;
   if (t2 && t2.toLowerCase().startsWith(first.toLowerCase())) return t2;
-
   return first;
 }
 
@@ -181,6 +218,9 @@ export default function MatchForm() {
   const [newTourName, setNewTourName] = useState("");
   const [newTourYear, setNewTourYear] = useState(seasonDefault);
 
+  // Derived: live preview of formatted name in modal
+  const formattedPreview = formatTournamentName(newTourName);
+
   // Load tournaments (ODI/T20 scope=limited)
   useEffect(() => {
     let cancelled = false;
@@ -189,7 +229,8 @@ export default function MatchForm() {
       .get(`${API_BASE}/match/tournaments`, { params: { scope: "limited" } })
       .then(({ data }) => {
         if (cancelled) return;
-        setTournaments(Array.isArray(data?.tournaments) ? data.tournaments : []);
+        const list = Array.isArray(data?.tournaments) ? data.tournaments : [];
+        setTournaments(list);
       })
       .catch(() => !cancelled && setTournaments([]))
       .finally(() => !cancelled && setTournamentsLoading(false));
@@ -207,6 +248,7 @@ export default function MatchForm() {
     }
     axios
       .get(`${API_BASE}/match/tournaments/years`, {
+        // IMPORTANT: pass the value as-is (existing tournaments come from API)
         params: { scope: "limited", tournament_name: tournamentName },
       })
       .then(({ data }) => {
@@ -258,10 +300,18 @@ export default function MatchForm() {
 
   const addNewTournament = (e) => {
     e.preventDefault();
-    const nm = newTourName.trim();
-    if (!nm) return;
-    if (!tournaments.includes(nm)) setTournaments((prev) => [...prev, nm].sort());
-    setTournamentName(nm);
+    const raw = newTourName.trim();
+    if (!raw) return;
+    const fm = formatTournamentName(raw);
+
+    // de-dupe case-insensitively against existing list
+    const exists = (tournaments || []).some(
+      (t) => formatTournamentName(t).toLowerCase() === fm.toLowerCase()
+    );
+    if (!exists) {
+      setTournaments((prev) => [...prev, fm].sort((a, b) => a.localeCompare(b)));
+    }
+    setTournamentName(fm);
     setSeasonYear(Number(newTourYear) || seasonDefault);
     setAddOpen(false);
     setNewTourName("");
@@ -318,7 +368,8 @@ export default function MatchForm() {
         overs2: parseFloat(overs2 || 0),
         wickets2: parseInt(wickets2 || 0, 10),
         user_id: userId,
-        tournament_name: tournamentName.trim(),
+        // ✅ Send formatted tournament name to keep DB clean
+        tournament_name: formatTournamentName(tournamentName.trim()),
         season_year: Number(seasonYear),
         match_date: matchDate,
         mom_player: momPlayer.trim(),
@@ -328,8 +379,6 @@ export default function MatchForm() {
       const result = await submitMatchResult(payload);
       const msg = result.message || "Match submitted.";
       setResultMsg(msg);
-
-      // 👇 this is the important line
       const winner = extractWinnerName(msg, t1, t2);
       setWinnerTeam(winner);
 
@@ -371,7 +420,7 @@ export default function MatchForm() {
               required
             />
             <small id="matchNameHelp" className="text-muted d-block mt-1">
-              Name will auto-populate from Tournament, Season Year and Teams.
+              Name auto-populates from Tournament, Season Year and Teams.
             </small>
           </div>
 
@@ -390,7 +439,7 @@ export default function MatchForm() {
                   </option>
                   {tournaments.map((t) => (
                     <option key={t} value={t}>
-                      {t}
+                      {formatTournamentName(t)}
                     </option>
                   ))}
                 </select>
@@ -457,6 +506,9 @@ export default function MatchForm() {
                     value={newTourName}
                     onChange={(e) => setNewTourName(e.target.value)}
                   />
+                  <small className="text-muted d-block mt-1">
+                    We’ll save this as: <strong>{formattedPreview || "—"}</strong>
+                  </small>
                 </div>
                 <div className="mb-3">
                   <label className="form-label">Season Year</label>
@@ -477,6 +529,9 @@ export default function MatchForm() {
                     Cancel
                   </button>
                 </div>
+                <small className="text-info d-block mt-2">
+                  Tip: We format tournament names to Camel case (e.g., “Azar Mehemood Ali Trophy”).
+                </small>
               </div>
             </div>
           )}
@@ -595,7 +650,7 @@ export default function MatchForm() {
           <textarea
             className="form-control mb-3"
             rows={2}
-            placeholder="Reason for Man of the Match (e.g. 85(45) + 1 wicket in a tight chase)"
+            placeholder="Reason for MoM (e.g. 85(45) + 1 wicket in a tight chase)"
             value={momReason}
             onChange={(e) => setMomReason(e.target.value)}
             required
