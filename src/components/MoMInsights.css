@@ -111,27 +111,6 @@
   justify-content: center;
 }
 
-/* Legend Text (fix invisible labels) */
-.recharts-legend-item-text {
-  color: #ffffff !important;
-  fill: #ffffff !important;
-  font-size: 0.9rem;
-}
-
-/* Tooltip dark mode fix */
-.recharts-default-tooltip {
-  background: #0b141a !important;
-  border-radius: 10px;
-  border: 1px solid #00ffaa88 !important;
-  color: #ffffff !important;
-  padding: 8px 10px !important;
-}
-
-/* Tooltip label color */
-.recharts-tooltip-label {
-  color: #ffffff !important;
-}
-
 /* -----------------------------
    Table Styling
 ----------------------------- */
@@ -213,7 +192,7 @@
 }
 
 /* -----------------------------
-   Responsive
+   Misc / Responsive
 ----------------------------- */
 .loading {
   text-align: center;
@@ -241,4 +220,38 @@
   .mom-table-pro {
     min-width: 650px;
   }
+}
+
+/* -------------------------------------------------
+   HARD OVERRIDES FOR RECHARTS TEXT ON DARK BG
+-------------------------------------------------- */
+
+/* Legend text */
+.mom-container .recharts-legend-item-text {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+  font-size: 0.9rem;
+}
+
+/* Tooltip container */
+.mom-container .recharts-default-tooltip {
+  background: #0b141a !important;
+  border-radius: 10px;
+  border: 1px solid #00ffaa88 !important;
+  color: #ffffff !important;
+  padding: 8px 10px !important;
+}
+
+/* Tooltip label + items */
+.mom-container .recharts-tooltip-label,
+.mom-container .recharts-tooltip-item,
+.mom-container .recharts-tooltip-item-name,
+.mom-container .recharts-tooltip-item-value {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* Any SVG text drawn by Recharts (axis, labels, etc.) */
+.mom-container .recharts-surface text {
+  fill: #ffffff !important;
 }
