@@ -1,17 +1,28 @@
-import React, { useEffect, useState } from "react";
+// src/components/MoMInsights.js
+
+import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
+  PieChart,
+  Pie,
+  Cell,
   Tooltip,
+  Legend,
   ResponsiveContainer,
-  CartesianGrid,
 } from "recharts";
 import "./MoMInsights.css";
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
+
+// nice neon-ish colors for slices
+const MOM_COLORS = [
+  "#00ffaa",
+  "#ffd43b",
+  "#ff6b6b",
+  "#4dabf7",
+  "#e599f7",
+  "#ffa94d",
+];
 
 export default function MoMInsights() {
   const [records, setRecords] = useState([]);
@@ -39,14 +50,14 @@ export default function MoMInsights() {
   const formatDate = (value) => {
     if (!value) return "—";
     const d = new Date(value);
-    if (isNaN(d.getTime())) return value; // fallback if backend sends weird thing
+    if (isNaN(d.getTime())) return value;
     return d.toLocaleString("en-GB", {
       day: "2-digit",
       month: "short",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    }); // e.g. 10 Nov 2025, 00:00
+    });
   };
 
   const fetchMeta = async () => {
@@ -103,6 +114,43 @@ export default function MoMInsights() {
 
   const paginatedRecords = records.slice((page - 1) * perPage, page * perPage);
   const totalPages = Math.ceil(records.length / perPage) || 1;
+
+  // =========================
+  //   Donut chart data
+  // =========================
+  const donutData = useMemo(() => {
+    if (!summary || summary.length === 0) return [];
+
+    // sort by count desc just to be safe
+    const sorted = [...summary].sort((a, b) => (b.count || 0) - (a.count || 0));
+
+    const top5 = sorted.slice(0, 5);
+    const others = sorted.slice(5);
+
+    const othersCount = others.reduce(
+      (sum, s) => sum + (s.count || 0),
+      0
+    );
+
+    const baseData = top5.map((s) => ({
+      name: s.player,
+      value: s.count || 0,
+    }));
+
+    if (othersCount > 0) {
+      baseData.push({
+        name: "Others",
+        value: othersCount,
+      });
+    }
+
+    return baseData;
+  }, [summary]);
+
+  const totalAwards = useMemo(
+    () => donutData.reduce((sum, d) => sum + d.value, 0),
+    [donutData]
+  );
 
   return (
     <div className="mom-container">
@@ -181,26 +229,42 @@ export default function MoMInsights() {
                 ))}
               </div>
 
-              <h3 className="subtitle">📊 MoM Count by Player</h3>
+              {/* 🔁 NEW: Donut chart instead of crowded bar chart */}
+              <h3 className="subtitle">🎯 MoM Share (Top Players vs Others)</h3>
               <div className="chart-wrapper">
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart
-                    data={summary.slice(0, 10)}
-                    margin={{ top: 10, right: 20, bottom: 20, left: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                    <XAxis
-                      dataKey="player"
-                      tick={{ fill: "#ccc", fontSize: 12 }}
-                      interval={0}
-                      angle={-20}
-                      textAnchor="end"
-                      height={60}
+                <ResponsiveContainer width="100%" height={320}>
+                  <PieChart>
+                    <Pie
+                      data={donutData}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={70}
+                      outerRadius={120}
+                      paddingAngle={3}
+                      stroke="#0b141a"
+                    >
+                      {donutData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={MOM_COLORS[index % MOM_COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value, name) => {
+                        const percent =
+                          totalAwards > 0
+                            ? ((value / totalAwards) * 100).toFixed(1) + "%"
+                            : "0%";
+                        return [`${value} awards (${percent})`, name];
+                      }}
                     />
-                    <YAxis tick={{ fill: "#ccc" }} />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#00ffaa" radius={[8, 8, 0, 0]} />
-                  </BarChart>
+                    <Legend
+                      verticalAlign="bottom"
+                      align="center"
+                      wrapperStyle={{ color: "#fff", fontSize: 12 }}
+                    />
+                  </PieChart>
                 </ResponsiveContainer>
               </div>
             </>
