@@ -1,6 +1,6 @@
 // src/components/PlayerRankings.js
-// CrickEdge Player Rankings with MoM bonus + CSV/PDF export
-// Updated: MoM column + MoM count visible everywhere
+// CrickEdge Player Rankings with MoM bonus + CSV/PDF export + Search
+// Updated: MoM column working, "Index" → "Impact %", search bar
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
@@ -19,6 +19,7 @@ const PlayerRankings = () => {
   const [rankingData, setRankingData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [searchText, setSearchText] = useState(""); // 🔍 search
 
   const [isScrolling, setIsScrolling] = useState(false);
   const tableWrapRef = useRef(null);
@@ -36,6 +37,7 @@ const PlayerRankings = () => {
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
+  // fetch rankings (final rating already contains MoM bonus)
   useEffect(() => {
     (async () => {
       try {
@@ -43,7 +45,6 @@ const PlayerRankings = () => {
         const url = `https://cricket-scoreboard-backend.onrender.com/api/rankings/players?type=${activeTab}&match_type=${matchType}`;
         const res = await axios.get(url);
         const data = Array.isArray(res.data) ? res.data : [];
-
         setRankingData(
           [...data].sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0))
         );
@@ -65,7 +66,7 @@ const PlayerRankings = () => {
         "Player",
         "Team",
         "Rating (Final)",
-        "Index%",
+        "Impact %",            // 🔁 renamed from Index%
         "MoM Awards",
         "MoM Bonus Points",
         "Base Rating",
@@ -94,7 +95,8 @@ const PlayerRankings = () => {
 
     const csv = rows
       .map((r) =>
-        r.map(String)
+        r
+          .map(String)
           .map((s) => `"${s.replace(/"/g, '""')}"`)
           .join(",")
       )
@@ -177,6 +179,17 @@ const PlayerRankings = () => {
   const topRating = Number(sorted[0]?.rating || 0);
   const top3 = sorted.slice(0, 3);
 
+  // 🔍 Search filter (player or team)
+  const filtered = useMemo(() => {
+    const q = searchText.trim().toLowerCase();
+    if (!q) return sorted;
+    return sorted.filter((p) => {
+      const name = (p.player_name || "").toLowerCase();
+      const team = (p.team_name || "").toLowerCase();
+      return name.includes(q) || team.includes(q);
+    });
+  }, [sorted, searchText]);
+
   return (
     <div className="pr-wrap">
       {/* Header */}
@@ -217,6 +230,16 @@ const PlayerRankings = () => {
               {f}
             </button>
           ))}
+        </div>
+
+        {/* 🔍 Search bar */}
+        <div className="pr-search">
+          <input
+            type="text"
+            placeholder="Search player or team..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
         </div>
 
         <div className="tools">
@@ -265,14 +288,13 @@ const PlayerRankings = () => {
         className={`lb-wrap ${isScrolling ? "is-scrolling" : ""}`}
         ref={tableWrapRef}
       >
-        {/* ⭐ ADDED MoM Column */}
         <div className="lb-head">
           <div className="cell head num">Pos</div>
           <div className="cell head">Player</div>
           <div className="cell head">Team</div>
           <div className="cell head num">Rating</div>
-          <div className="cell head num">MoM</div> {/* ⭐ NEW */}
-          <div className="cell head">Index</div>
+          <div className="cell head num">MoM</div>
+          <div className="cell head">Impact %</div> {/* 🔁 Index → Impact % */}
         </div>
 
         <div className="lb-body">
@@ -280,18 +302,29 @@ const PlayerRankings = () => {
             ? [...Array(10)].map((_, i) => (
                 <div className="lb-row sk" key={i}>
                   <div className="cell num">—</div>
-                  <div className="cell"><span className="skbar w160" /></div>
-                  <div className="cell"><span className="skbar w120" /></div>
-                  <div className="cell num"><span className="skbar w60" /></div>
-                  <div className="cell num"><span className="skbar w60" /></div>
-                  <div className="cell"><span className="skbar w60" /></div>
+                  <div className="cell">
+                    <span className="skbar w160" />
+                  </div>
+                  <div className="cell">
+                    <span className="skbar w120" />
+                  </div>
+                  <div className="cell num">
+                    <span className="skbar w60" />
+                  </div>
+                  <div className="cell num">
+                    <span className="skbar w60" />
+                  </div>
+                  <div className="cell">
+                    <span className="skbar w60" />
+                  </div>
                 </div>
               ))
-            : sorted.map((p, i) => {
-                const pct =
-                  topRating > 0 ? Math.round((p.rating / topRating) * 100) : 0;
+            : filtered.map((p, i) => {
+                const rating = Number(p.rating || 0);
                 const momAwards = Number(p.mom_awards || 0);
                 const momBonus = Number(p.mom_bonus || 0);
+                const pct =
+                  topRating > 0 ? Math.round((rating / topRating) * 100) : 0;
 
                 return (
                   <div
@@ -304,17 +337,13 @@ const PlayerRankings = () => {
                     </div>
                     <div className="cell">{p.team_name}</div>
 
-                    {/* Rating Cell */}
                     <div className="cell num">
-                      {p.rating}
+                      {rating}
                       {momBonus > 0 && (
-                        <span className="mom-chip">
-                          +{momBonus}
-                        </span>
+                        <span className="mom-chip">+{momBonus}</span>
                       )}
                     </div>
 
-                    {/* ⭐ NEW: MoM Column */}
                     <div className="cell num">
                       {momAwards > 0 ? momAwards : "—"}
                     </div>
@@ -335,7 +364,10 @@ const PlayerRankings = () => {
       {showInfo && (
         <div className="pr-modal">
           <div className="pr-modal-card">
-            <button className="pr-modal-close" onClick={() => setShowInfo(false)}>
+            <button
+              className="pr-modal-close"
+              onClick={() => setShowInfo(false)}
+            >
               ✖
             </button>
             <h3>About Rankings & MoM Bonus</h3>
@@ -359,8 +391,9 @@ const PlayerRankings = () => {
             </ul>
 
             <p>
-              In the leaderboard, the “MoM” column shows how many awards a
-              player earned.
+              The <b>MoM</b> column shows how many Man of the Match awards a
+              player has. The <b>Impact %</b> bar shows the rating as a
+              percentage of the current #1 player.
             </p>
           </div>
         </div>
