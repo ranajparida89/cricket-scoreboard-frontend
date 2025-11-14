@@ -14,6 +14,9 @@
   margin-bottom: 25px;
 }
 
+/* -----------------------------
+   Filters
+----------------------------- */
 .filters {
   display: flex;
   flex-wrap: wrap;
@@ -51,6 +54,9 @@
   margin-bottom: 15px;
 }
 
+/* -----------------------------
+   Summary Cards
+----------------------------- */
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -68,6 +74,7 @@
 .summary-card:hover {
   transform: scale(1.05);
 }
+
 .rank-badge {
   position: absolute;
   top: -10px;
@@ -93,8 +100,41 @@
 }
 
 /* -----------------------------
-   Pro table styling
-   ----------------------------- */
+   Donut Chart Styling
+----------------------------- */
+.chart-wrapper {
+  width: 100%;
+  height: 320px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Legend Text (fix invisible labels) */
+.recharts-legend-item-text {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+  font-size: 0.9rem;
+}
+
+/* Tooltip dark mode fix */
+.recharts-default-tooltip {
+  background: #0b141a !important;
+  border-radius: 10px;
+  border: 1px solid #00ffaa88 !important;
+  color: #ffffff !important;
+  padding: 8px 10px !important;
+}
+
+/* Tooltip label color */
+.recharts-tooltip-label {
+  color: #ffffff !important;
+}
+
+/* -----------------------------
+   Table Styling
+----------------------------- */
 .mom-table-wrapper {
   width: 100%;
   overflow-x: auto;
@@ -106,7 +146,7 @@
   min-width: 760px;
   border-collapse: collapse;
   border-spacing: 0;
-  background: rgba(232, 202, 164, 0.08); /* soft gold tint */
+  background: rgba(232, 202, 164, 0.08);
   border: 1px solid rgba(232, 202, 164, 0.25);
   border-radius: 16px;
   overflow: hidden;
@@ -143,14 +183,15 @@
   transition: background 0.15s ease-in-out;
 }
 
-/* date cell can be a little tighter */
 .mom-date-cell {
   white-space: nowrap;
   font-weight: 600;
   color: #ffffff;
 }
 
-/* pagination */
+/* -----------------------------
+   Pagination
+----------------------------- */
 .pagination {
   display: flex;
   justify-content: center;
@@ -171,6 +212,9 @@
   cursor: not-allowed;
 }
 
+/* -----------------------------
+   Responsive
+----------------------------- */
 .loading {
   text-align: center;
   color: #00ffaa;
@@ -179,13 +223,6 @@
 .no-data {
   text-align: center;
   color: #ccc;
-}
-
-/* filters should wrap on mobile */
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
 }
 
 .filters select,
@@ -204,27 +241,4 @@
   .mom-table-pro {
     min-width: 650px;
   }
-}
-.chart-wrapper {
-  width: 100%;
-  height: 320px;
-  margin-bottom: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-/* ✅ Make legend text visible on dark background */
-.recharts-legend-item-text {
-  color: #ffffff !important;
-  fill: #ffffff !important;
-  font-size: 0.9rem;
-}
-
-/* Optional: style tooltip to match dark theme nicely */
-.recharts-default-tooltip {
-  background: #0b141a !important;
-  border-radius: 10px;
-  border: 1px solid #00ffaa88;
-  color: #ffffff !important;
-  padding: 8px 10px;
 }
