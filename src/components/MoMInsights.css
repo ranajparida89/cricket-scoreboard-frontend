@@ -213,3 +213,18 @@
   align-items: center;
   justify-content: center;
 }
+/* ✅ Make legend text visible on dark background */
+.recharts-legend-item-text {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+  font-size: 0.9rem;
+}
+
+/* Optional: style tooltip to match dark theme nicely */
+.recharts-default-tooltip {
+  background: #0b141a !important;
+  border-radius: 10px;
+  border: 1px solid #00ffaa88;
+  color: #ffffff !important;
+  padding: 8px 10px;
+}
