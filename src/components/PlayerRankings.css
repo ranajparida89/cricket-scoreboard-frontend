@@ -48,14 +48,16 @@
 /* Controls */
 .pr-controls{
   display:grid;
-  grid-template-columns: 1.2fr auto auto;
+  grid-template-columns: auto auto minmax(240px, 1.2fr) auto;
   gap:10px;
   align-items:center;
   margin-bottom: 14px;
 }
 
 .seg{
-  display:flex; gap:6px; padding:4px; border-radius:12px;
+  display:inline-flex;
+  gap:6px; padding:4px 6px;
+  border-radius:12px;
   background: linear-gradient(180deg,var(--panel),#0a1520);
   border: 1px solid rgba(255,255,255,.08);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
@@ -63,6 +65,7 @@
 .seg-btn{
   padding:8px 12px; border-radius:10px; border:1px solid transparent;
   background: transparent; color:#cfe7f8; font-weight:800; letter-spacing:.2px; cursor:pointer;
+  white-space:nowrap;
 }
 .seg-btn.active{
   background: linear-gradient(180deg,#1f4d58,#163b45);
@@ -74,14 +77,14 @@
 .chip{
   padding:8px 12px; border-radius:999px;
   background:var(--panel); color:#9fc9d8; border:1px solid rgba(255,255,255,.08);
-  font-weight:900; cursor:pointer; letter-spacing:.3px;
+  font-weight:900; cursor:pointer; letter-spacing:.3px; white-space:nowrap;
 }
 .chip.active{
   color:#041014; background: linear-gradient(180deg,#1f4d58,#163b45);
   border-color:var(--gold); box-shadow:0 6px 18px rgba(232,202,164,.20);
 }
 
-/* 🔎 Search bar (optional; use if you add a search box in controls) */
+/* 🔎 Search bar */
 .pr-search{
   display:flex;
   align-items:center;
@@ -101,12 +104,24 @@
   background:transparent;
   color:#eaf6ff;
   font-size:13px;
-  min-width:160px;
+  min-width:140px;
 }
 .pr-search input::placeholder{
   color:#7c96aa;
 }
+.pr-search-btn{
+  border:none;
+  outline:none;
+  border-radius:999px;
+  padding:4px 10px;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  background:linear-gradient(180deg,#1f4d58,#163b45);
+  color:#eaf6ff;
+}
 
+/* Tools */
 .tools{ display:flex; gap:8px; justify-content:flex-end; }
 .tool{
   padding:8px 12px; border-radius:10px; font-weight:800; letter-spacing:.2px; cursor:pointer;
@@ -119,7 +134,7 @@
 }
 .tool.cta:hover{ filter:brightness(1.06); }
 
-/* ========= Podium (dark subtle tints) ========= */
+/* ========= Podium ========= */
 .podium{
   display:grid; grid-template-columns: repeat(3,1fr); gap:12px; margin: 6px 0 12px;
 }
@@ -173,116 +188,7 @@
 .podium-card.silver { box-shadow: inset 0 0 0 1px rgba(206,219,233,.20), 0 16px 40px rgba(0,0,0,.35); }
 .podium-card.bronze { box-shadow: inset 0 0 0 1px rgba(238,168,114,.20), 0 16px 40px rgba(0,0,0,.35); }
 
-/* ========= (old table styles kept just in case) ========= */
-.rk-table-wrap{
-  overflow-x:auto;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.06);
-  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-  perspective: 1200px;
-}
-.rk-table-wrap.is-scrolling tbody tr{
-  transform: translateZ(0.0001px) scale(1.002);
-}
-
-.ranking-table{
-  width:100%; border-collapse:separate; border-spacing:0;
-  font-variant-numeric: tabular-nums;
-}
-.ranking-table thead th{
-  position:sticky; top:0; z-index:2;
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-  color:#dff2ff; font-weight:800; padding:12px; border-bottom:1px solid rgba(255,255,255,.08);
-  text-align:left;
-}
-.ranking-table thead th.num{ text-align:right; }
-.ranking-table thead th.bar{ width:220px; }
-
-.ranking-table tbody tr{
-  background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.015));
-  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
-}
-.ranking-table tbody tr + tr td{ border-top:1px solid rgba(255,255,255,.06); }
-
-.ranking-table tbody tr:hover{
-  transform: translateY(-3px) scale(1.006);
-  box-shadow: 0 10px 24px rgba(0,0,0,.28), inset 0 0 0 1px rgba(232,202,164,.16);
-  background: linear-gradient(180deg, rgba(232,202,164,.07), rgba(255,255,255,.02));
-}
-
-.ranking-table td{ padding:12px; text-align:left; }
-.ranking-table td.num{ text-align:right; }
-.ranking-table td.bar{ width:220px; }
-
-.cell-player{ display:flex; align-items:center; gap:8px; min-width: 180px; }
-.mini-medal{ filter: drop-shadow(0 0 6px rgba(0,0,0,.3)); }
-
-.toprow{
-  box-shadow: inset 0 0 0 1px rgba(232,202,164,.22);
-  background: linear-gradient(180deg, rgba(232,202,164,.08), rgba(232,202,164,.02));
-}
-
-/* Index/impact bar */
-.rating-bar{
-  position:relative; height:12px; border-radius:999px;
-  background:rgba(255,255,255,.08); overflow:hidden;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
-}
-.rating-bar > span{
-  display:block; height:100%;
-  background: linear-gradient(90deg, #00e5ff, #7b61ff);
-  border-radius:999px;
-  animation: growIn .5s ease;
-}
-.rating-bar > em{
-  position:absolute; right:8px; top:50%;
-  transform: translateY(-50%); font-style:normal; font-weight:900;
-  font-size:12px; color:#dff2ff; text-shadow:0 0 6px rgba(0,0,0,.5);
-  pointer-events:none;
-}
-@keyframes growIn { from{ width:0 } }
-
-.empty{ text-align:center; color:#9fb6cc; padding:18px 0; }
-
-/* Loading skeleton */
-.sk-row .sk{
-  display:inline-block; background: linear-gradient(90deg,#27495e,#1b3243,#27495e);
-  background-size: 220% 100%; animation: sk 1.2s infinite linear;
-  border-radius:6px; height:12px; width: 160px;
-}
-.sk-row .sk-num{ width:60px; }
-.sk-row .sk-bar{ width:180px; height:10px; }
-@keyframes sk { 0%{ background-position:0 0 } 100%{ background-position:220% 0 } }
-
-/* Modal */
-.pr-modal{
-  position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:9999;
-}
-.pr-modal-card{
-  width:min(780px, 92vw); background:#0e1a28; color:#eaf6ff;
-  border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:18px;
-  box-shadow:0 18px 60px rgba(0,0,0,.5);
-}
-.pr-modal-close{
-  float:right; background:transparent; border:none; color:#fff; font-size:18px; cursor:pointer;
-}
-.pr-modal-card h3{ margin:0 0 6px; color:var(--gold); }
-.modal-bullets{ margin:8px 0 0 18px; }
-
-/* Responsive */
-@media (max-width: 980px){
-  .pr-controls{
-    grid-template-columns: 1fr 1fr;
-    grid-auto-rows: auto;
-  }
-  .tools{ grid-column: 1 / -1; justify-content:flex-end; }
-}
-@media (max-width: 760px){
-  .podium{ grid-template-columns: 1fr; }
-  .ranking-table thead th.bar, .ranking-table td.bar{ width:160px; }
-}
-
-/* ===== Leaderboard-style GRID (PlayerRankings main layout) ===== */
+/* ========= Leaderboard-style GRID (PlayerRankings main layout) ===== */
 .lb-wrap{
   /* layout: Pos | Player | Team | Rating | MoM */
   --c-pos:.5fr;
@@ -344,7 +250,6 @@
 .lb-wrap .cell.num{ justify-content:flex-end; }
 .lb-wrap .cell.head{ font-weight:800; }
 .lb-wrap .cell.player strong{ font-weight:900; }
-.lb-wrap .mini-medal{ filter: drop-shadow(0 0 6px rgba(0,0,0,.3)); }
 
 /* ⭐ small MoM chip next to rating */
 .mom-chip{
@@ -358,24 +263,6 @@
   border:1px solid rgba(232,202,164,.55);
 }
 
-/* index/impact bar inside last cell */
-.lb-wrap .rating-bar{
-  position:relative; width:100%; height:12px; border-radius:999px;
-  background:rgba(255,255,255,.08); overflow:hidden;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
-}
-.lb-wrap .rating-bar > span{
-  display:block; height:100%;
-  background: linear-gradient(90deg, #00e5ff, #7b61ff);
-  border-radius:999px; animation: growIn .5s ease;
-}
-.lb-wrap .rating-bar > em{
-  position:absolute; right:8px; top:50%;
-  transform: translateY(-50%); font-style:normal; font-weight:900;
-  font-size:12px; color:#dff2ff; text-shadow:0 0 6px rgba(0,0,0,.5);
-  pointer-events:none;
-}
-
 /* loading skeleton */
 .lb-wrap .lb-row.sk{ opacity:.7; }
 .lb-wrap .skbar{
@@ -386,3 +273,32 @@
 .lb-wrap .skbar.w160{ width:160px; }
 .lb-wrap .skbar.w120{ width:120px; }
 .lb-wrap .skbar.w60{ width:60px; }
+
+/* Modal */
+.pr-modal{
+  position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:9999;
+}
+.pr-modal-card{
+  width:min(780px, 92vw); background:#0e1a28; color:#eaf6ff;
+  border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:18px;
+  box-shadow:0 18px 60px rgba(0,0,0,.5);
+}
+.pr-modal-close{
+  float:right; background:transparent; border:none; color:#fff; font-size:18px; cursor:pointer;
+}
+.pr-modal-card h3{ margin:0 0 6px; color:var(--gold); }
+.modal-bullets{ margin:8px 0 0 18px; }
+
+/* Responsive */
+@media (max-width: 980px){
+  .pr-controls{
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: auto;
+  }
+  .chips{ justify-content:flex-start; }
+  .pr-search{ grid-column: 1 / -1; }
+  .tools{ grid-column: 1 / -1; justify-content:flex-end; }
+}
+@media (max-width: 760px){
+  .podium{ grid-template-columns: 1fr; }
+}
