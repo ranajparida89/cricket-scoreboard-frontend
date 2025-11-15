@@ -1,6 +1,6 @@
 // src/components/PlayerRankings.js
-// CrickEdge Player Rankings with MoM bonus + CSV/PDF export + Search
-// Updated: Impact column removed, MoM text, compact tabs, search button
+// CrickEdge Player Rankings with MoM bonus + CSV/PDF export + Search + MoM filter
+// Updated: Impact column removed, MoM text, compact tabs, search button, MoM-only toggle
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
@@ -20,6 +20,7 @@ const PlayerRankings = () => {
   const [loading, setLoading] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [searchText, setSearchText] = useState(""); // 🔍 search
+  const [momOnly, setMomOnly] = useState(false);    // ⭐ MoM-only filter
 
   const [isScrolling, setIsScrolling] = useState(false);
   const tableWrapRef = useRef(null);
@@ -43,7 +44,9 @@ const PlayerRankings = () => {
     (async () => {
       try {
         setLoading(true);
-        const url = `https://cricket-scoreboard-backend.onrender.com/api/rankings/players?type=${activeTab}&match_type=${matchType}`;
+        const url = `https://cricket-scoreboard-backend.onrender.com/api/rankings/players?type=${activeTab}&match_type=${matchType}&mom_only=${
+          momOnly ? "true" : "false"
+        }`;
         const res = await axios.get(url);
         const data = Array.isArray(res.data) ? res.data : [];
         setRankingData(
@@ -55,7 +58,7 @@ const PlayerRankings = () => {
         setLoading(false);
       }
     })();
-  }, [activeTab, matchType]);
+  }, [activeTab, matchType, momOnly]);
 
   /* =========================================================
      CSV EXPORT  (Impact removed)
@@ -249,8 +252,16 @@ const PlayerRankings = () => {
           </button>
         </div>
 
-        {/* tools */}
+        {/* tools + MoM-only toggle */}
         <div className="tools">
+          <label className="mom-toggle">
+            <input
+              type="checkbox"
+              checked={momOnly}
+              onChange={(e) => setMomOnly(e.target.checked)}
+            />
+            <span>MoM players only</span>
+          </label>
           <button className="tool ghost" onClick={() => window.location.reload()}>
             ⟳ Refresh
           </button>
