@@ -8,6 +8,7 @@ import useWindowSize from "react-use/lib/useWindowSize";
 import "./MatchForm.css";
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
+const API_PLAYERS = "https://cricket-scoreboard-backend.onrender.com/api/players";
 
 const TEAM_MAP = {
   IND: "India",
@@ -58,11 +59,28 @@ const ACRONYMS = new Set([
 ]);
 
 const MINOR_LOWER = new Set([
-  "of", "and", "or", "the", "a", "an", "for", "to", "in", "on", "at", "by", "vs"
+  "of",
+  "and",
+  "or",
+  "the",
+  "a",
+  "an",
+  "for",
+  "to",
+  "in",
+  "on",
+  "at",
+  "by",
+  "vs",
 ]);
 
 const FORCE_PROPER = new Set([
-  "series", "trophy", "cup", "league", "championship", "championships"
+  "series",
+  "trophy",
+  "cup",
+  "league",
+  "championship",
+  "championships",
 ]);
 
 const titleWord = (w, index, last) => {
@@ -78,7 +96,8 @@ const titleWord = (w, index, last) => {
     const lower = clean.toLowerCase();
 
     // force proper on suffix/common nouns
-    if (FORCE_PROPER.has(lower)) return lower.charAt(0).toUpperCase() + lower.slice(1);
+    if (FORCE_PROPER.has(lower))
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
 
     // keep minor words lower unless first/last
     if (MINOR_LOWER.has(lower) && index !== 0 && index !== last) return lower;
@@ -87,7 +106,7 @@ const titleWord = (w, index, last) => {
     return lower.charAt(0).toUpperCase() + lower.slice(1);
   });
   return parts
-    .map((p, i) => (i ? (p ? p : "") : (p ? p : "")))
+    .map((p, i) => (i ? (p ? p : "") : p ? p : ""))
     .join("-");
 };
 
@@ -151,8 +170,10 @@ function extractWinnerName(message = "", team1 = "", team2 = "") {
     let winnerRaw = msg.slice(0, wonIdx).trim();
     winnerRaw = winnerRaw.replace(/^[🏆\-\s]+/, "").trim();
     if (winnerRaw && winnerRaw.split(" ").length === 1) {
-      if (t1 && t1.toLowerCase().startsWith(winnerRaw.toLowerCase())) return t1;
-      if (t2 && t2.toLowerCase().startsWith(winnerRaw.toLowerCase())) return t2;
+      if (t1 && t1.toLowerCase().startsWith(winnerRaw.toLowerCase()))
+        return t1;
+      if (t2 && t2.toLowerCase().startsWith(winnerRaw.toLowerCase()))
+        return t2;
     }
     return winnerRaw;
   }
@@ -178,7 +199,10 @@ export default function MatchForm() {
   const [matchName, setMatchName] = useState("");
   const [tournamentName, setTournamentName] = useState("");
   const [matchDate, setMatchDate] = useState(todayISO());
-  const seasonDefault = useMemo(() => new Date(matchDate).getFullYear(), [matchDate]);
+  const seasonDefault = useMemo(
+    () => new Date(matchDate).getFullYear(),
+    [matchDate]
+  );
   const [seasonYear, setSeasonYear] = useState(seasonDefault);
 
   const [matchType, setMatchType] = useState("T20");
@@ -197,9 +221,14 @@ export default function MatchForm() {
   const [wickets1Error, setWickets1Error] = useState("");
   const [wickets2Error, setWickets2Error] = useState("");
 
-  // 🆕 MoM fields
-  const [momPlayer, setMomPlayer] = useState("");
+  // 🆕 MoM fields (Approach C: use ID from players table)
+  const [momPlayerId, setMomPlayerId] = useState("");
   const [momReason, setMomReason] = useState("");
+
+  // 🆕 All players (for MoM dropdown)
+  const [players, setPlayers] = useState([]);
+  const [playersLoading, setPlayersLoading] = useState(false);
+  const [playersError, setPlayersError] = useState("");
 
   const [resultMsg, setResultMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -221,7 +250,7 @@ export default function MatchForm() {
   // Derived: live preview of formatted name in modal
   const formattedPreview = formatTournamentName(newTourName);
 
-  // Load tournaments (ODI/T20 scope=limited)
+  // 🔄 Load tournaments (ODI/T20 scope=limited)
   useEffect(() => {
     let cancelled = false;
     setTournamentsLoading(true);
@@ -239,7 +268,7 @@ export default function MatchForm() {
     };
   }, []);
 
-  // Load years when a tournament is chosen; default to newest
+  // 🔄 Load years when a tournament is chosen; default to newest
   useEffect(() => {
     let cancelled = false;
     if (!tournamentName) {
@@ -263,6 +292,33 @@ export default function MatchForm() {
     };
   }, [tournamentName]);
 
+  // 🆕 Load players for MoM dropdown (once)
+  useEffect(() => {
+    let cancelled = false;
+    const fetchPlayers = async () => {
+      try {
+        setPlayersLoading(true);
+        setPlayersError("");
+        const res = await axios.get(API_PLAYERS);
+        if (cancelled) return;
+        const list = Array.isArray(res.data) ? res.data : [];
+        setPlayers(list);
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Failed to load players for MoM dropdown:", err);
+          setPlayersError("Could not load players. Please retry or refresh.");
+          setPlayers([]);
+        }
+      } finally {
+        if (!cancelled) setPlayersLoading(false);
+      }
+    };
+    fetchPlayers();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // 🔁 Auto compose match name (read-only target)
   useEffect(() => {
     setMatchName(buildMatchName(tournamentName?.trim(), seasonYear, team1, team2));
@@ -271,7 +327,11 @@ export default function MatchForm() {
   const handleOversChange = (val, setOvers, setError, teamName) => {
     setOvers(val);
     const valid = isValidOver(val) && parseFloat(val) <= maxOvers;
-    setError(valid ? "" : `❌ Invalid overs for ${normalizeTeamName(teamName) || "Team"}`);
+    setError(
+      valid
+        ? ""
+        : `❌ Invalid overs for ${normalizeTeamName(teamName) || "Team"}`
+    );
   };
 
   const handleWicketsChange = (val, setWickets, setError) => {
@@ -317,13 +377,42 @@ export default function MatchForm() {
     setNewTourName("");
   };
 
+  // 🆕 Derived: MoM options split into (Team1/Team2 players) + others
+  const { xiPlayers, otherPlayers } = useMemo(() => {
+    const norm = (name) => normalizeTeamName(name).toLowerCase();
+    const t1 = norm(team1);
+    const t2 = norm(team2);
+
+    const xi = [];
+    const others = [];
+
+    (players || []).forEach((p) => {
+      const team = (p.team_name || "").toLowerCase();
+      if (team && (team === t1 || team === t2)) {
+        xi.push(p);
+      } else {
+        others.push(p);
+      }
+    });
+
+    // sort by name for nicer dropdown
+    xi.sort((a, b) => (a.player_name || "").localeCompare(b.player_name || ""));
+    others.sort((a, b) =>
+      (a.player_name || "").localeCompare(b.player_name || "")
+    );
+
+    return { xiPlayers: xi, otherPlayers: others };
+  }, [players, team1, team2]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const t1 = normalizeTeamName(team1);
     const t2 = normalizeTeamName(team2);
 
     if (!matchName) {
-      alert("❌ Match Name will auto-generate once Tournament, Year and both teams are set.");
+      alert(
+        "❌ Match Name will auto-generate once Tournament, Year and both teams are set."
+      );
       return;
     }
     if (t1.toLowerCase() === t2.toLowerCase()) {
@@ -336,8 +425,16 @@ export default function MatchForm() {
     }
     if (!validateTournament()) return;
 
-    if (!momPlayer.trim()) {
-      alert("❌ Man of the Match is required.");
+    // ✅ New: MoM must be selected from dropdown (by player_id)
+    if (!momPlayerId) {
+      alert("❌ Man of the Match is required. Please select a player.");
+      return;
+    }
+    const selectedMom = (players || []).find(
+      (p) => String(p.id) === String(momPlayerId)
+    );
+    if (!selectedMom) {
+      alert("❌ Selected MoM player not found. Please re-select.");
       return;
     }
     if (!momReason.trim()) {
@@ -372,7 +469,10 @@ export default function MatchForm() {
         tournament_name: formatTournamentName(tournamentName.trim()),
         season_year: Number(seasonYear),
         match_date: matchDate,
-        mom_player: momPlayer.trim(),
+
+        // ✅ NEW: send both MoM ID + name
+        mom_player_id: selectedMom.id,
+        mom_player: selectedMom.player_name,
         mom_reason: momReason.trim(),
       };
 
@@ -398,9 +498,7 @@ export default function MatchForm() {
         <Confetti width={width} height={height} numberOfPieces={300} recycle={false} />
       )}
       {showPopup && (
-        <div className="celebration-banner">
-          🎉 Congratulations {winnerTeam}!
-        </div>
+        <div className="celebration-banner">🎉 Congratulations {winnerTeam}!</div>
       )}
 
       <div className="card shadow p-4">
@@ -496,7 +594,10 @@ export default function MatchForm() {
           {/* Add-new modal */}
           {addOpen && (
             <div className="addtour-backdrop" onClick={() => setAddOpen(false)}>
-              <div className="addtour-modal" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="addtour-modal"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="addtour-header">➕ Add Tournament</div>
                 <div className="mb-2">
                   <label className="form-label">Tournament Name</label>
@@ -507,7 +608,8 @@ export default function MatchForm() {
                     onChange={(e) => setNewTourName(e.target.value)}
                   />
                   <small className="text-muted d-block mt-1">
-                    We’ll save this as: <strong>{formattedPreview || "—"}</strong>
+                    We’ll save this as:{" "}
+                    <strong>{formattedPreview || "—"}</strong>
                   </small>
                 </div>
                 <div className="mb-3">
@@ -522,15 +624,22 @@ export default function MatchForm() {
                   />
                 </div>
                 <div className="d-flex gap-2">
-                  <button className="btn btn-primary flex-fill" onClick={addNewTournament}>
+                  <button
+                    className="btn btn-primary flex-fill"
+                    onClick={addNewTournament}
+                  >
                     Add
                   </button>
-                  <button className="btn btn-secondary flex-fill" onClick={() => setAddOpen(false)}>
+                  <button
+                    className="btn btn-secondary flex-fill"
+                    onClick={() => setAddOpen(false)}
+                  >
                     Cancel
                   </button>
                 </div>
                 <small className="text-info d-block mt-2">
-                  Tip: We format tournament names to Camel case (e.g., “Azar Mehemood Ali Trophy”).
+                  Tip: We format tournament names to Camel case (e.g., “Azar
+                  Mehemood Ali Trophy”).
                 </small>
               </div>
             </div>
@@ -576,10 +685,17 @@ export default function MatchForm() {
                 placeholder="Overs"
                 value={overs1}
                 onChange={(e) =>
-                  handleOversChange(e.target.value, setOvers1, setOvers1Error, team1)
+                  handleOversChange(
+                    e.target.value,
+                    setOvers1,
+                    setOvers1Error,
+                    team1
+                  )
                 }
               />
-              {overs1Error && <small className="text-danger">{overs1Error}</small>}
+              {overs1Error && (
+                <small className="text-danger">{overs1Error}</small>
+              )}
             </div>
             <div className="col">
               <input
@@ -587,9 +703,17 @@ export default function MatchForm() {
                 className="form-control mb-2"
                 placeholder="Wickets"
                 value={wickets1}
-                onChange={(e) => handleWicketsChange(e.target.value, setWickets1, setWickets1Error)}
+                onChange={(e) =>
+                  handleWicketsChange(
+                    e.target.value,
+                    setWickets1,
+                    setWickets1Error
+                  )
+                }
               />
-              {wickets1Error && <small className="text-danger">{wickets1Error}</small>}
+              {wickets1Error && (
+                <small className="text-danger">{wickets1Error}</small>
+              )}
             </div>
           </div>
 
@@ -620,10 +744,17 @@ export default function MatchForm() {
                 placeholder="Overs"
                 value={overs2}
                 onChange={(e) =>
-                  handleOversChange(e.target.value, setOvers2, setOvers2Error, team2)
+                  handleOversChange(
+                    e.target.value,
+                    setOvers2,
+                    setOvers2Error,
+                    team2
+                  )
                 }
               />
-              {overs2Error && <small className="text-danger">{overs2Error}</small>}
+              {overs2Error && (
+                <small className="text-danger">{overs2Error}</small>
+              )}
             </div>
             <div className="col">
               <input
@@ -631,22 +762,63 @@ export default function MatchForm() {
                 className="form-control mb-2"
                 placeholder="Wickets"
                 value={wickets2}
-                onChange={(e) => handleWicketsChange(e.target.value, setWickets2, setWickets2Error)}
+                onChange={(e) =>
+                  handleWicketsChange(
+                    e.target.value,
+                    setWickets2,
+                    setWickets2Error
+                  )
+                }
               />
-              {wickets2Error && <small className="text-danger">{wickets2Error}</small>}
+              {wickets2Error && (
+                <small className="text-danger">{wickets2Error}</small>
+              )}
             </div>
           </div>
 
-          {/* 🆕 MoM section */}
+          {/* 🆕 Man of the Match (ID-based) */}
           <h5 className="mt-4">Man of the Match</h5>
-          <input
-            type="text"
-            className="form-control mb-2"
-            placeholder="Player name (e.g. Virat Kohli)"
-            value={momPlayer}
-            onChange={(e) => setMomPlayer(e.target.value)}
-            required
-          />
+          <div className="mb-2">
+            <label className="form-label">Select Player:</label>
+            <select
+              className="form-select"
+              value={momPlayerId}
+              onChange={(e) => setMomPlayerId(e.target.value)}
+              required
+            >
+              <option value="">
+                {playersLoading
+                  ? "Loading players…"
+                  : "Select Man of the Match"}
+              </option>
+
+              {xiPlayers.length > 0 && (
+                <optgroup label="Players from selected teams">
+                  {xiPlayers.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.player_name} {p.team_name ? `(${p.team_name})` : ""}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+
+              {otherPlayers.length > 0 && (
+                <optgroup label="Other registered players">
+                  {otherPlayers.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.player_name} {p.team_name ? `(${p.team_name})` : ""}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+            </select>
+            {playersError && (
+              <small className="text-danger d-block mt-1">
+                {playersError}
+              </small>
+            )}
+          </div>
+
           <textarea
             className="form-control mb-3"
             rows={2}
@@ -663,7 +835,11 @@ export default function MatchForm() {
           </div>
         </form>
 
-        {resultMsg && <div className="alert alert-success mt-3 text-center">{resultMsg}</div>}
+        {resultMsg && (
+          <div className="alert alert-success mt-3 text-center">
+            {resultMsg}
+          </div>
+        )}
       </div>
     </div>
   );

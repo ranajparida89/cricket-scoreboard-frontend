@@ -10,11 +10,45 @@ import { useAuth } from "../services/auth";
 import "./TestMatchForm.css";
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
+const API_PLAYERS = "https://cricket-scoreboard-backend.onrender.com/api/players";
 
 /* ---- same formatter as MatchForm ---- */
-const ACRONYMS = new Set(["ODI","T20","ICC","WTC","BCCI","UAE","USA","WBBL","BBL","PSL","IPL"]);
-const MINOR_LOWER = new Set(["of","and","or","the","a","an","for","to","in","on","at","by","vs"]);
-const FORCE_PROPER = new Set(["series","trophy","cup","league","championship","championships"]);
+const ACRONYMS = new Set([
+  "ODI",
+  "T20",
+  "ICC",
+  "WTC",
+  "BCCI",
+  "UAE",
+  "USA",
+  "WBBL",
+  "BBL",
+  "PSL",
+  "IPL",
+]);
+const MINOR_LOWER = new Set([
+  "of",
+  "and",
+  "or",
+  "the",
+  "a",
+  "an",
+  "for",
+  "to",
+  "in",
+  "on",
+  "at",
+  "by",
+  "vs",
+]);
+const FORCE_PROPER = new Set([
+  "series",
+  "trophy",
+  "cup",
+  "league",
+  "championship",
+  "championships",
+]);
 
 const titleWord = (w, index, last) => {
   if (!w) return w;
@@ -23,7 +57,8 @@ const titleWord = (w, index, last) => {
     if (!clean) return seg;
     if (ACRONYMS.has(clean.toUpperCase())) return clean.toUpperCase();
     const lower = clean.toLowerCase();
-    if (FORCE_PROPER.has(lower)) return lower.charAt(0).toUpperCase() + lower.slice(1);
+    if (FORCE_PROPER.has(lower))
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
     if (MINOR_LOWER.has(lower) && index !== 0 && index !== last) return lower;
     return lower.charAt(0).toUpperCase() + lower.slice(1);
   });
@@ -106,7 +141,10 @@ export default function TestMatchForm() {
   const [matchName, setMatchName] = useState("");
   const [tournamentName, setTournamentName] = useState("");
   const [matchDate, setMatchDate] = useState(todayISO());
-  const seasonDefault = useMemo(() => new Date(matchDate).getFullYear(), [matchDate]);
+  const seasonDefault = useMemo(
+    () => new Date(matchDate).getFullYear(),
+    [matchDate]
+  );
   const [seasonYear, setSeasonYear] = useState(seasonDefault);
 
   const [team1, setTeam1] = useState("");
@@ -135,9 +173,14 @@ export default function TestMatchForm() {
     t2i2: { runs: "", overs: "", wickets: "", error: "" },
   });
 
-  // 🆕 Man of the Match fields
-  const [momPlayer, setMomPlayer] = useState("");
+  // 🆕 MoM fields (ID-based)
+  const [momPlayerId, setMomPlayerId] = useState("");
   const [momReason, setMomReason] = useState("");
+
+  // 🆕 All players for dropdown
+  const [players, setPlayers] = useState([]);
+  const [playersLoading, setPlayersLoading] = useState(false);
+  const [playersError, setPlayersError] = useState("");
 
   const maxOvers = 450;
 
@@ -151,7 +194,9 @@ export default function TestMatchForm() {
       .get(`${API_BASE}/match/tournaments`, { params: { scope: "test" } })
       .then(({ data }) => {
         if (!cancelled)
-          setTournaments(Array.isArray(data?.tournaments) ? data.tournaments : []);
+          setTournaments(
+            Array.isArray(data?.tournaments) ? data.tournaments : []
+          );
       })
       .catch(() => !cancelled && setTournaments([]))
       .finally(() => !cancelled && setTournamentsLoading(false));
@@ -183,6 +228,33 @@ export default function TestMatchForm() {
     };
   }, [tournamentName]);
 
+  // 🆕 Load players for MoM dropdown
+  useEffect(() => {
+    let cancelled = false;
+    const fetchPlayers = async () => {
+      try {
+        setPlayersLoading(true);
+        setPlayersError("");
+        const res = await axios.get(API_PLAYERS);
+        if (cancelled) return;
+        const list = Array.isArray(res.data) ? res.data : [];
+        setPlayers(list);
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Failed to load players for Test MoM dropdown:", err);
+          setPlayersError("Could not load players. Please refresh or retry.");
+          setPlayers([]);
+        }
+      } finally {
+        if (!cancelled) setPlayersLoading(false);
+      }
+    };
+    fetchPlayers();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const updateInning = (key, field, value) => {
     setInnings((prev) => {
       const updated = { ...prev[key], [field]: value };
@@ -196,7 +268,8 @@ export default function TestMatchForm() {
             const v = parseFloat(k === key ? value || 0 : inn.overs || 0);
             return acc + (isNaN(v) ? 0 : v);
           }, 0);
-          if (total > maxOvers) error = `Input overs exceed remaining (${maxOvers})`;
+          if (total > maxOvers)
+            error = `Input overs exceed remaining (${maxOvers})`;
         }
       }
 
@@ -220,7 +293,9 @@ export default function TestMatchForm() {
 
   // 🔁 Auto compose read-only match name
   useEffect(() => {
-    setMatchName(buildMatchName(tournamentName?.trim(), seasonYear, team1, team2));
+    setMatchName(
+      buildMatchName(tournamentName?.trim(), seasonYear, team1, team2)
+    );
   }, [tournamentName, seasonYear, team1, team2]);
 
   const calculateResult = () => {
@@ -273,6 +348,32 @@ export default function TestMatchForm() {
     return true;
   };
 
+  // 🆕 MoM dropdown grouping (players from selected teams first)
+  const { xiPlayers, otherPlayers } = useMemo(() => {
+    const norm = (name) => normalizeTeamName(name).toLowerCase();
+    const t1 = norm(team1);
+    const t2 = norm(team2);
+
+    const xi = [];
+    const others = [];
+
+    (players || []).forEach((p) => {
+      const team = (p.team_name || "").toLowerCase();
+      if (team && (team === t1 || team === t2)) {
+        xi.push(p);
+      } else {
+        others.push(p);
+      }
+    });
+
+    xi.sort((a, b) => (a.player_name || "").localeCompare(b.player_name || ""));
+    others.sort((a, b) =>
+      (a.player_name || "").localeCompare(b.player_name || "")
+    );
+
+    return { xiPlayers: xi, otherPlayers: others };
+  }, [players, team1, team2]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const t1 = normalizeTeamName(team1);
@@ -286,8 +387,19 @@ export default function TestMatchForm() {
       return alert("❌ Please fix validation errors.");
     if (!validateTournament()) return;
 
-    if (!momPlayer.trim()) return alert("❌ Man of the Match is required.");
-    if (!momReason.trim()) return alert("❌ Reason for MoM is required.");
+    // ✅ MoM must be selected from dropdown (by player_id)
+    if (!momPlayerId) {
+      return alert("❌ Man of the Match is required. Please select a player.");
+    }
+    const selectedMom = (players || []).find(
+      (p) => String(p.id) === String(momPlayerId)
+    );
+    if (!selectedMom) {
+      return alert("❌ Selected MoM player not found. Please re-select.");
+    }
+    if (!momReason.trim()) {
+      return alert("❌ Reason for MoM is required.");
+    }
 
     try {
       setIsSubmitting(true);
@@ -323,7 +435,10 @@ export default function TestMatchForm() {
         season_year: Number(seasonYear),
         match_date: matchDate,
         match_name: matchName,
-        mom_player: momPlayer.trim(),
+
+        // ✅ NEW: MoM ID + name
+        mom_player_id: selectedMom.id,
+        mom_player: selectedMom.player_name,
         mom_reason: momReason.trim(),
       };
 
@@ -350,7 +465,8 @@ export default function TestMatchForm() {
   const isDuplicateTeam =
     team1.trim() &&
     team2.trim() &&
-    normalizeTeamName(team1).toLowerCase() === normalizeTeamName(team2).toLowerCase();
+    normalizeTeamName(team1).toLowerCase() ===
+      normalizeTeamName(team2).toLowerCase();
 
   return (
     <div className="container mt-4">
@@ -452,7 +568,10 @@ export default function TestMatchForm() {
 
           {addOpen && (
             <div className="addtour-backdrop" onClick={() => setAddOpen(false)}>
-              <div className="addtour-modal" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="addtour-modal"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="addtour-header">➕ Add Tournament</div>
                 <div className="mb-2">
                   <label className="form-label">Tournament Name</label>
@@ -463,7 +582,8 @@ export default function TestMatchForm() {
                     onChange={(e) => setNewTourName(e.target.value)}
                   />
                   <small className="text-muted d-block mt-1">
-                    We’ll save this as: <strong>{formattedPreview || "—"}</strong>
+                    We’ll save this as:{" "}
+                    <strong>{formattedPreview || "—"}</strong>
                   </small>
                 </div>
                 <div className="mb-3">
@@ -478,15 +598,22 @@ export default function TestMatchForm() {
                   />
                 </div>
                 <div className="d-flex gap-2">
-                  <button className="btn btn-primary flex-fill" onClick={addNewTournament}>
+                  <button
+                    className="btn btn-primary flex-fill"
+                    onClick={addNewTournament}
+                  >
                     Add
                   </button>
-                  <button className="btn btn-secondary flex-fill" onClick={() => setAddOpen(false)}>
+                  <button
+                    className="btn btn-secondary flex-fill"
+                    onClick={() => setAddOpen(false)}
+                  >
                     Cancel
                   </button>
                 </div>
                 <small className="text-info d-block mt-2">
-                  Tip: We format tournament names to Camel case (e.g., “Border Gavaskar Series”).
+                  Tip: We format tournament names to Camel case (e.g., “Border
+                  Gavaskar Series”).
                 </small>
               </div>
             </div>
@@ -515,33 +642,43 @@ export default function TestMatchForm() {
             </div>
           </div>
 
-          {team1.trim() &&
-            team2.trim() &&
-            normalizeTeamName(team1).toLowerCase() === normalizeTeamName(team2).toLowerCase() && (
-              <div className="alert alert-danger text-center py-2">
-                ❌ Team names must be different!
-              </div>
-            )}
+          {isDuplicateTeam && (
+            <div className="alert alert-danger text-center py-2">
+              ❌ Team names must be different!
+            </div>
+          )}
 
           {/* Info row */}
           <div className="mb-3 row">
             <div className="col">
               <label className="muted-label">🗓️ Total Days</label>
-              <input className="form-control form-control-static" value="5" disabled />
+              <input
+                className="form-control form-control-static"
+                value="5"
+                disabled
+              />
             </div>
             <div className="col">
               <label className="muted-label">🎯 Overs/Day</label>
-              <input className="form-control form-control-static" value="90" disabled />
+              <input
+                className="form-control form-control-static"
+                value="90"
+                disabled
+              />
             </div>
             <div className="col">
               <label className="muted-label">🧮 Total Overs</label>
-              <input className="form-control form-control-static" value="450" disabled />
+              <input
+                className="form-control form-control-static"
+                value="450"
+                disabled
+              />
             </div>
             <div className="col">
               <label className="muted-label">⏳ Overs Remaining</label>
               <input
                 className="form-control form-control-static"
-                value={Math.max(0, (450 - (Object.values(innings).reduce((a, inn) => a + (parseFloat(inn.overs || 0) || 0), 0))).toFixed(1))}
+                value={remainingOvers()}
                 disabled
               />
             </div>
@@ -565,7 +702,12 @@ export default function TestMatchForm() {
                     className="form-control"
                     placeholder="Runs"
                     value={innings[key].runs}
-                    onChange={(e) => setInnings((p) => ({ ...p, [key]: { ...p[key], runs: e.target.value } }))}
+                    onChange={(e) =>
+                      setInnings((p) => ({
+                        ...p,
+                        [key]: { ...p[key], runs: e.target.value },
+                      }))
+                    }
                   />
                 </div>
                 <div className="col">
@@ -574,7 +716,12 @@ export default function TestMatchForm() {
                     className="form-control"
                     placeholder="Overs"
                     value={innings[key].overs}
-                    onChange={(e) => setInnings((p) => ({ ...p, [key]: { ...p[key], overs: e.target.value } }))}
+                    onChange={(e) =>
+                      setInnings((p) => ({
+                        ...p,
+                        [key]: { ...p[key], overs: e.target.value },
+                      }))
+                    }
                   />
                 </div>
                 <div className="col">
@@ -583,7 +730,12 @@ export default function TestMatchForm() {
                     className="form-control"
                     placeholder="Wickets"
                     value={innings[key].wickets}
-                    onChange={(e) => setInnings((p) => ({ ...p, [key]: { ...p[key], wickets: e.target.value } }))}
+                    onChange={(e) =>
+                      setInnings((p) => ({
+                        ...p,
+                        [key]: { ...p[key], wickets: e.target.value },
+                      }))
+                    }
                   />
                 </div>
               </div>
@@ -593,16 +745,49 @@ export default function TestMatchForm() {
             </div>
           ))}
 
-          {/* 🆕 Man of the Match Section */}
+          {/* 🆕 Man of the Match Section (ID-based) */}
           <h5 className="mt-4">Man of the Match</h5>
-          <input
-            type="text"
-            className="form-control mb-2"
-            placeholder="Player name (e.g. Virat Kohli)"
-            value={momPlayer}
-            onChange={(e) => setMomPlayer(e.target.value)}
-            required
-          />
+          <div className="mb-2">
+            <label className="form-label">Select Player:</label>
+            <select
+              className="form-select"
+              value={momPlayerId}
+              onChange={(e) => setMomPlayerId(e.target.value)}
+              required
+            >
+              <option value="">
+                {playersLoading
+                  ? "Loading players…"
+                  : "Select Man of the Match"}
+              </option>
+
+              {xiPlayers.length > 0 && (
+                <optgroup label="Players from selected teams">
+                  {xiPlayers.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.player_name} {p.team_name ? `(${p.team_name})` : ""}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+
+              {otherPlayers.length > 0 && (
+                <optgroup label="Other registered players">
+                  {otherPlayers.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.player_name} {p.team_name ? `(${p.team_name})` : ""}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+            </select>
+            {playersError && (
+              <small className="text-danger d-block mt-1">
+                {playersError}
+              </small>
+            )}
+          </div>
+
           <textarea
             className="form-control mb-3"
             rows={2}
