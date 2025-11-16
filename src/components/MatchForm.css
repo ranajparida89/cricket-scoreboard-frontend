@@ -141,8 +141,13 @@
   padding:14px 22px; border-radius:12px; z-index:1200;
   animation: mfIn .6s ease, mfOut .8s ease 3.6s forwards;
 }
-@keyframes mfIn{from{opacity:0; transform:translateX(-50%) scale(.92);}to{opacity:1; transform:translateX(-50%) scale(1);} }
-@keyframes mfOut{to{opacity:0; transform:translateX(-50%) scale(.88);} }
+@keyframes mfIn{
+  from{opacity:0; transform:translateX(-50%) scale(.92);}
+  to{opacity:1; transform:translateX(-50%) scale(1);}
+}
+@keyframes mfOut{
+  to{opacity:0; transform:translateX(-50%) scale(.88);}
+}
 
 /* Utility (if you use any static/disabled summary fields) */
 .form-control-static{
@@ -151,4 +156,60 @@
   border:1px dashed rgba(247,201,72,.28) !important;
   box-shadow:none !important;
 }
-.muted-label{ color:#ffe082; font-weight:800; }
+.muted-label{
+  color:#ffe082;
+  font-weight:800;
+}
+
+/* -------------------------------------------------------
+   🏅 Man of the Match dropdown enhancements
+   - Search bar styling
+   - Custom select arrow so user knows it’s a dropdown
+--------------------------------------------------------*/
+
+/* Search bar above MoM select */
+.card:has(h3.text-center.text-primary) .mom-search-input{
+  background: var(--mf-bg-800) !important;
+  border-radius: 10px !important;
+  border:1px solid rgba(255,255,255,.09) !important;
+  font-size:.9rem;
+  padding-inline: 0.75rem;
+}
+.card:has(h3.text-center.text-primary) .mom-search-input::placeholder{
+  color: var(--mf-muted);
+}
+.card:has(h3.text-center.text-primary) .mom-search-input:focus{
+  border-color: var(--mf-accent) !important;
+  box-shadow: var(--mf-ring) !important;
+}
+
+/* Wrapper to host custom arrow */
+.card:has(h3.text-center.text-primary) .mom-select-wrapper{
+  position:relative;
+  display:block;
+}
+
+/* Remove native arrow + add padding on right */
+.card:has(h3.text-center.text-primary) .mom-select{
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+  padding-right: 2.25rem;
+}
+
+/* Soft-gold arrow icon */
+.card:has(h3.text-center.text-primary) .mom-select-arrow{
+  position:absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events:none;
+  font-size:.9rem;
+  color: var(--mf-accent-2);
+  text-shadow: 0 0 4px rgba(0,0,0,.8);
+}
+
+/* Slight hover feedback on select */
+.card:has(h3.text-center.text-primary) .mom-select:hover{
+  border-color: rgba(247,201,72,.45) !important;
+}
