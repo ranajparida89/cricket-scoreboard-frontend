@@ -1,9 +1,5 @@
-/* ===== MatchForm.css — Royal Gold theme for ODI/ODI =====
-   Matches the Test form’s soft-gold look (glows, dashed read-only border)
-   Drop-in replacement: no component changes needed.
-*/
+/* ===== MatchForm.css — Royal Gold theme for ODI/ODI ===== */
 
-/* Palette + shadows */
 :root{
   --mf-bg-900:#0b0f18;
   --mf-bg-850:#0d1320;
@@ -18,7 +14,7 @@
   --mf-glow:0 18px 48px -22px rgba(247,201,72,.45);
 }
 
-/* Card shell (target your Match form card via the primary title class) */
+/* Card shell */
 .card.shadow.p-4:has(h3.text-center.text-primary){
   background:
     radial-gradient(1000px 520px at 85% -12%, rgba(247,201,72,.08), transparent 40%),
@@ -62,7 +58,7 @@
   background:#0d1424; color: var(--mf-ink);
 }
 
-/* Read-only “Match Name” (auto-generated) */
+/* Read-only match name */
 .card:has(h3.text-center.text-primary) .form-control[readonly]{
   background:#0f192a !important;
   border-style:dashed !important;
@@ -74,7 +70,7 @@
   color:#ffe6a6; opacity:.95;
 }
 
-/* Primary button -> gold */
+/* Primary button */
 .card:has(h3.text-center.text-primary) .btn.btn-primary{
   background: linear-gradient(180deg, rgba(247,201,72,.22), rgba(247,201,72,.16)) !important;
   color:#fff7d6 !important;
@@ -87,14 +83,14 @@
   background: linear-gradient(180deg, rgba(247,201,72,.28), rgba(247,201,72,.2)) !important;
 }
 
-/* Success alert (subtle) */
+/* Success alert */
 .card:has(h3.text-center.text-primary) .alert-success{
   background: rgba(247,201,72,.08);
   border-color: rgba(247,201,72,.35);
   color:#fff2c0;
 }
 
-/* “+ Add tournament” button beside dropdown */
+/* “+ Add tournament” button */
 .card:has(h3.text-center.text-primary) .btn-add-gold{
   width:40px; height:40px; border-radius:10px;
   display:inline-flex; align-items:center; justify-content:center;
@@ -110,7 +106,7 @@
   background: linear-gradient(180deg, rgba(247,201,72,.28), rgba(247,201,72,.16));
 }
 
-/* Lightweight “Add Tournament” modal (gold edge) */
+/* Add Tournament modal */
 .addtour-backdrop{
   position:fixed; inset:0; backdrop-filter: blur(6px) saturate(120%);
   background: radial-gradient(80% 100% at 50% 0, rgba(10,12,16,.65), rgba(0,0,0,.6));
@@ -131,7 +127,7 @@
   color: var(--mf-accent);
 }
 
-/* Celebration banner — gold */
+/* Celebration banner */
 .celebration-banner{
   position: fixed; top: 18%; left: 50%; transform: translateX(-50%);
   background:#0c1c2c; color: var(--mf-accent);
@@ -149,7 +145,7 @@
   to{opacity:0; transform:translateX(-50%) scale(.88);}
 }
 
-/* Utility (if you use any static/disabled summary fields) */
+/* Utility */
 .form-control-static{
   background:#0f192a !important;
   color:#fff4c2 !important;
@@ -162,54 +158,106 @@
 }
 
 /* -------------------------------------------------------
-   🏅 Man of the Match dropdown enhancements
-   - Search bar styling
-   - Custom select arrow so user knows it’s a dropdown
+   🏅 Man of the Match custom dropdown
 --------------------------------------------------------*/
+.card:has(h3.text-center.text-primary) .mom-combobox{
+  position:relative;
+  width:100%;
+}
 
-/* Search bar above MoM select */
-.card:has(h3.text-center.text-primary) .mom-search-input{
-  background: var(--mf-bg-800) !important;
-  border-radius: 10px !important;
-  border:1px solid rgba(255,255,255,.09) !important;
+.card:has(h3.text-center.text-primary) .mom-combobox-control{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0.55rem 0.9rem;
+  border-radius:12px;
+  background: var(--mf-bg-800);
+  border:1px solid rgba(255,255,255,.08);
+  cursor:pointer;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.card:has(h3.text-center.text-primary) .mom-combobox.open .mom-combobox-control{
+  border-color: var(--mf-accent);
+  box-shadow: var(--mf-ring);
+}
+
+.card:has(h3.text-center.text-primary) .mom-value{
+  font-size:0.95rem;
+}
+
+.card:has(h3.text-center.text-primary) .mom-placeholder{
+  color:var(--mf-muted);
+}
+
+/* Arrow */
+.card:has(h3.text-center.text-primary) .mom-select-arrow{
+  margin-left:0.5rem;
   font-size:.9rem;
-  padding-inline: 0.75rem;
+  color: var(--mf-accent-2);
+  text-shadow:0 0 4px rgba(0,0,0,.8);
 }
-.card:has(h3.text-center.text-primary) .mom-search-input::placeholder{
-  color: var(--mf-muted);
+
+/* Dropdown panel */
+.card:has(h3.text-center.text-primary) .mom-dropdown-panel{
+  position:absolute;
+  left:0;
+  right:0;
+  margin-top:4px;
+  background: #0e1524;
+  border-radius:12px;
+  border:1px solid rgba(247,201,72,.35);
+  box-shadow: var(--mf-glow);
+  z-index:1100;
+  padding:8px 8px 6px;
 }
-.card:has(h3.text-center.text-primary) .mom-search-input:focus{
+
+/* Search inside dropdown */
+.card:has(h3.text-center.text-primary) .mom-dropdown-panel .mom-search-input{
+  border-radius:10px !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+  font-size:.9rem;
+  padding-inline:0.75rem;
+  background: var(--mf-bg-800) !important;
+  margin-bottom:6px;
+}
+.card:has(h3.text-center.text-primary) .mom-dropdown-panel .mom-search-input::placeholder{
+  color:var(--mf-muted);
+}
+.card:has(h3.text-center.text-primary) .mom-dropdown-panel .mom-search-input:focus{
   border-color: var(--mf-accent) !important;
   box-shadow: var(--mf-ring) !important;
 }
 
-/* Wrapper to host custom arrow */
-.card:has(h3.text-center.text-primary) .mom-select-wrapper{
-  position:relative;
-  display:block;
+/* Options list */
+.card:has(h3.text-center.text-primary) .mom-options-list{
+  max-height:260px;
+  overflow-y:auto;
+  padding-right:2px;
 }
 
-/* Remove native arrow + add padding on right */
-.card:has(h3.text-center.text-primary) .mom-select{
-  appearance:none;
-  -webkit-appearance:none;
-  -moz-appearance:none;
-  padding-right: 2.25rem;
+.card:has(h3.text-center.text-primary) .mom-group-label{
+  font-size:0.75rem;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  color:var(--mf-muted);
+  margin:4px 2px 2px;
 }
 
-/* Soft-gold arrow icon */
-.card:has(h3.text-center.text-primary) .mom-select-arrow{
-  position:absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events:none;
-  font-size:.9rem;
-  color: var(--mf-accent-2);
-  text-shadow: 0 0 4px rgba(0,0,0,.8);
+.card:has(h3.text-center.text-primary) .mom-option{
+  padding:6px 8px;
+  border-radius:8px;
+  font-size:0.9rem;
+  cursor:pointer;
 }
-
-/* Slight hover feedback on select */
-.card:has(h3.text-center.text-primary) .mom-select:hover{
-  border-color: rgba(247,201,72,.45) !important;
+.card:has(h3.text-center.text-primary) .mom-option:hover{
+  background:rgba(247,201,72,.09);
+}
+.card:has(h3.text-center.text-primary) .mom-option.selected{
+  background:rgba(247,201,72,.16);
+  color:#fff7d6;
+}
+.card:has(h3.text-center.text-primary) .mom-option-disabled{
+  cursor:default;
+  opacity:.7;
 }
