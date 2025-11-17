@@ -777,15 +777,6 @@ export default function TestMatchForm() {
           <div className="mb-2">
             <label className="form-label">Select Player:</label>
 
-            {/* 🔍 Search bar for dropdown */}
-            <input
-              type="text"
-              className="form-control test-mom-search-input mb-2"
-              placeholder="Search player by name or team…"
-              value={momSearch}
-              onChange={(e) => setMomSearch(e.target.value)}
-            />
-
             {/* ⬇️ Wrapped select so CSS can draw a custom arrow */}
             <div className="test-mom-select-wrapper">
               <select
@@ -824,6 +815,15 @@ export default function TestMatchForm() {
               </select>
               <span className="test-mom-select-arrow">▾</span>
             </div>
+
+            {/* 🔍 Search bar for dropdown (filters same options) */}
+            <input
+              type="text"
+              className="form-control test-mom-search-input mt-2"
+              placeholder="Search player by name or team…"
+              value={momSearch}
+              onChange={(e) => setMomSearch(e.target.value)}
+            />
 
             {playersError && (
               <small className="text-danger d-block mt-1">

@@ -198,22 +198,6 @@
    - Custom select arrow so user knows it’s a dropdown
 --------------------------------------------------------*/
 
-/* Search bar above MoM select */
-.test-card .test-mom-search-input{
-  background: var(--tm-bg-800) !important;
-  border-radius: 10px !important;
-  border:1px solid rgba(255,255,255,.09) !important;
-  font-size:.9rem;
-  padding-inline: 0.75rem;
-}
-.test-card .test-mom-search-input::placeholder{
-  color: var(--tm-muted);
-}
-.test-card .test-mom-search-input:focus{
-  border-color: var(--tm-accent) !important;
-  box-shadow: var(--tm-ring) !important;
-}
-
 /* Wrapper to host custom arrow */
 .test-card .test-mom-select-wrapper{
   position:relative;
@@ -238,6 +222,22 @@
   font-size:.9rem;
   color: #ffe082;
   text-shadow: 0 0 4px rgba(0,0,0,.8);
+}
+
+/* Search bar below MoM select */
+.test-card .test-mom-search-input{
+  background: var(--tm-bg-800) !important;
+  border-radius: 10px !important;
+  border:1px solid rgba(255,255,255,.09) !important;
+  font-size:.9rem;
+  padding-inline: 0.75rem;
+}
+.test-card .test-mom-search-input::placeholder{
+  color: var(--tm-muted);
+}
+.test-card .test-mom-search-input:focus{
+  border-color: var(--tm-accent) !important;
+  box-shadow: var(--tm-ring) !important;
 }
 
 /* Slight hover feedback on select */
