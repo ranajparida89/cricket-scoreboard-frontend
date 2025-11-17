@@ -1,6 +1,11 @@
 // src/components/PlayerRankings.js
 // CrickEdge Player Rankings with MoM bonus + CSV/PDF export + Search + MoM filter
-// Updated: Impact column removed, MoM text, compact tabs, search button, MoM-only toggle
+// Updated:
+//  - When "MoM players only" is ON, fetches GLOBAL MoM leaderboard (all formats & roles)
+//  - Global MoM view ignores Bat/Bowl/All-rounder tabs and TEST/ODI/T20 chips
+//  - Global MoM is sorted by total MoM awards (highest first)
+//  - CSV/PDF headers & filenames adapt in MoM-only mode
+//  - Small info note added in modal
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
@@ -13,6 +18,8 @@ const TAB_LABELS = {
   allrounder: "All-rounders",
 };
 
+const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
+
 const PlayerRankings = () => {
   const [activeTab, setActiveTab] = useState("batting");
   const [matchType, setMatchType] = useState("TEST");
@@ -20,7 +27,7 @@ const PlayerRankings = () => {
   const [loading, setLoading] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [searchText, setSearchText] = useState(""); // 🔍 search
-  const [momOnly, setMomOnly] = useState(false);    // ⭐ MoM-only filter
+  const [momOnly, setMomOnly] = useState(false); // ⭐ MoM-only filter
 
   const [isScrolling, setIsScrolling] = useState(false);
   const tableWrapRef = useRef(null);
@@ -39,59 +46,93 @@ const PlayerRankings = () => {
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
-  // fetch rankings (final rating already contains MoM bonus)
+  // fetch rankings
   useEffect(() => {
-    (async () => {
+    const fetchRankings = async () => {
       try {
         setLoading(true);
-        const url = `https://cricket-scoreboard-backend.onrender.com/api/rankings/players?type=${activeTab}&match_type=${matchType}&mom_only=${
-          momOnly ? "true" : "false"
-        }`;
-        const res = await axios.get(url);
-        const data = Array.isArray(res.data) ? res.data : [];
-        setRankingData(
-          [...data].sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0))
-        );
+
+        let data = [];
+
+        if (momOnly) {
+          // ⭐ GLOBAL MoM leaderboard – ignores tab & format
+          const url = `${API_BASE}/api/rankings/players/mom-leaderboard`;
+          const res = await axios.get(url);
+          data = Array.isArray(res.data) ? res.data : [];
+
+          // sort by total MoM awards just to be extra safe
+          data.sort(
+            (a, b) =>
+              Number(b.mom_awards || 0) - Number(a.mom_awards || 0)
+          );
+        } else {
+          // Normal per-format rating view
+          const url = `${API_BASE}/api/rankings/players?type=${activeTab}&match_type=${matchType}`;
+          const res = await axios.get(url);
+          data = Array.isArray(res.data) ? res.data : [];
+
+          data.sort(
+            (a, b) => Number(b.rating || 0) - Number(a.rating || 0)
+          );
+        }
+
+        setRankingData(data);
       } catch (e) {
         console.error("Failed to fetch rankings:", e);
       } finally {
         setLoading(false);
       }
-    })();
+    };
+
+    fetchRankings();
   }, [activeTab, matchType, momOnly]);
 
   /* =========================================================
-     CSV EXPORT  (Impact removed)
+     CSV EXPORT
   ========================================================= */
   const onExportCSV = () => {
-    const rows = [
-      [
-        "Position",
-        "Player",
-        "Team",
-        "Rating (Final)",
-        "MoM Awards",
-        "MoM Bonus Points",
-        "Base Rating",
-      ],
-    ];
+    let rows = [];
 
-    rankingData.forEach((p, i) => {
-      const rating = Number(p.rating || 0);
-      const base = Number(p.base_rating || 0);
-      const momAwards = Number(p.mom_awards || 0);
-      const momBonus = Number(p.mom_bonus || 0);
+    if (momOnly) {
+      // Global MoM leaderboard export
+      rows = [["Position", "Player", "Team", "Total MoM Awards", "Formats"]];
 
-      rows.push([
-        i + 1,
-        p.player_name,
-        p.team_name,
-        rating,
-        momAwards,
-        momBonus,
-        base,
-      ]);
-    });
+      rankingData.forEach((p, i) => {
+        const awards = Number(p.mom_awards || 0);
+        const formats = Array.isArray(p.formats) ? p.formats.join(" / ") : "";
+        rows.push([i + 1, p.player_name, p.team_name, awards, formats]);
+      });
+    } else {
+      // Normal rating export
+      rows = [
+        [
+          "Position",
+          "Player",
+          "Team",
+          "Rating (Final)",
+          "MoM Awards",
+          "MoM Bonus Points",
+          "Base Rating",
+        ],
+      ];
+
+      rankingData.forEach((p, i) => {
+        const rating = Number(p.rating || 0);
+        const base = Number(p.base_rating || 0);
+        const momAwards = Number(p.mom_awards || 0);
+        const momBonus = Number(p.mom_bonus || 0);
+
+        rows.push([
+          i + 1,
+          p.player_name,
+          p.team_name,
+          rating,
+          momAwards,
+          momBonus,
+          base,
+        ]);
+      });
+    }
 
     const csv = rows
       .map((r) =>
@@ -106,19 +147,61 @@ const PlayerRankings = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `rankings_${activeTab}_${matchType}.csv`;
+    a.download = momOnly
+      ? "mom_leaderboard_all_formats.csv"
+      : `rankings_${activeTab}_${matchType}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   /* =========================================================
-     PDF EXPORT  (Impact removed)
+     PDF EXPORT
   ========================================================= */
   const onExportPDF = () => {
     const doc = new jsPDF("p", "mm", "a4");
     const left = 12;
     let y = 16;
 
+    if (momOnly) {
+      // Global MoM leaderboard PDF
+      doc.setFontSize(14);
+      doc.text("CrickEdge MoM Leaderboard (All formats & roles)", left, y);
+
+      y += 8;
+      doc.setFontSize(10);
+      doc.text("Players sorted by total Man of the Match awards.", left, y);
+
+      y += 10;
+      doc.setFontSize(9);
+
+      doc.text("Pos", left, y);
+      doc.text("Player", left + 12, y);
+      doc.text("Team", left + 60, y);
+      doc.text("Total MoM", left + 110, y);
+
+      y += 4;
+
+      rankingData.forEach((p, i) => {
+        if (y > 280) {
+          doc.addPage();
+          y = 16;
+        }
+
+        const awards = Number(p.mom_awards || 0);
+
+        doc.text(String(i + 1), left, y);
+        doc.text(p.player_name || "", left + 12, y);
+        doc.text(p.team_name || "", left + 60, y);
+        doc.text(String(awards), left + 110, y);
+
+        y += 4;
+      });
+
+      doc.save("mom_leaderboard_all_formats.pdf");
+      return;
+    }
+
+    // Normal rankings PDF
     doc.setFontSize(14);
     doc.text(
       `CrickEdge Player Rankings - ${TAB_LABELS[activeTab]} (${matchType})`,
@@ -187,12 +270,18 @@ const PlayerRankings = () => {
     setSearchText((prev) => prev.trim());
   };
 
+  const handleMomToggle = (e) => {
+    const checked = e.target.checked;
+    setMomOnly(checked);
+  };
+
   return (
     <div className="pr-wrap">
       {/* Header */}
       <header className="pr-header">
         <h2 className="pr-title">
-          <span className="bat">🏏</span> CrickEdge Player Rankings
+          <span className="bat">🏏</span>{" "}
+          {momOnly ? "CrickEdge MoM Leaderboard" : "CrickEdge Player Rankings"}
         </h2>
         <button
           className="pr-info"
@@ -206,12 +295,15 @@ const PlayerRankings = () => {
       {/* Controls */}
       <div className="pr-controls">
         {/* compact tabs */}
-        <div className="seg">
+        <div className={`seg ${momOnly ? "seg-disabled" : ""}`}>
           {Object.keys(TAB_LABELS).map((k) => (
             <button
               key={k}
-              className={`seg-btn ${activeTab === k ? "active" : ""}`}
-              onClick={() => setActiveTab(k)}
+              className={`seg-btn ${
+                activeTab === k ? "active" : ""
+              }`}
+              onClick={() => !momOnly && setActiveTab(k)}
+              disabled={momOnly}
             >
               {TAB_LABELS[k]}
             </button>
@@ -219,12 +311,13 @@ const PlayerRankings = () => {
         </div>
 
         {/* format chips */}
-        <div className="chips">
+        <div className={`chips ${momOnly ? "chips-disabled" : ""}`}>
           {["TEST", "ODI", "T20"].map((f) => (
             <button
               key={f}
               className={`chip ${matchType === f ? "active" : ""}`}
-              onClick={() => setMatchType(f)}
+              onClick={() => !momOnly && setMatchType(f)}
+              disabled={momOnly}
             >
               {f}
             </button>
@@ -258,11 +351,14 @@ const PlayerRankings = () => {
             <input
               type="checkbox"
               checked={momOnly}
-              onChange={(e) => setMomOnly(e.target.checked)}
+              onChange={handleMomToggle}
             />
             <span>MoM players only</span>
           </label>
-          <button className="tool ghost" onClick={() => window.location.reload()}>
+          <button
+            className="tool ghost"
+            onClick={() => window.location.reload()}
+          >
             ⟳ Refresh
           </button>
           <button className="tool ghost" onClick={onExportPDF}>
@@ -282,16 +378,27 @@ const PlayerRankings = () => {
           const momBonus = Number(p.mom_bonus || 0);
           const momAwards = Number(p.mom_awards || 0);
 
+          // In MoM-only mode, show MoM awards as the “big number”
+          const bigNumber = momOnly
+            ? momAwards
+            : p.rating;
+
           return (
-            <article className={`podium-card ${cls}`} key={p.player_name + i}>
+            <article
+              className={`podium-card ${cls}`}
+              key={p.player_name + i}
+            >
               <div className="sheen" />
               <div className="medal-badge">{medal}</div>
               <div className="podium-rank">#{i + 1}</div>
               <div className="podium-name">{p.player_name}</div>
               <div className="podium-team">{p.team_name}</div>
-              <div className="podium-rating">{p.rating}</div>
+              <div className="podium-rating">
+                {bigNumber}
+                {momOnly && <span className="podium-sub"> MoM</span>}
+              </div>
 
-              {momAwards > 0 && (
+              {!momOnly && momAwards > 0 && (
                 <div className="podium-mom">
                   ⭐ MoM bonus: +{momBonus} pts{" "}
                   <span>
@@ -309,13 +416,17 @@ const PlayerRankings = () => {
         className={`lb-wrap ${isScrolling ? "is-scrolling" : ""}`}
         ref={tableWrapRef}
       >
-        {/* 5 columns: Pos | Player | Team | Rating | MoM */}
+        {/* Head */}
         <div className="lb-head">
           <div className="cell head num">Pos</div>
           <div className="cell head">Player</div>
           <div className="cell head">Team</div>
-          <div className="cell head num">Rating</div>
-          <div className="cell head num">MoM</div>
+          <div className="cell head num">
+            {momOnly ? "Total MoM" : "Rating"}
+          </div>
+          <div className="cell head num">
+            {momOnly ? "Formats" : "MoM"}
+          </div>
         </div>
 
         <div className="lb-body">
@@ -341,6 +452,9 @@ const PlayerRankings = () => {
                 const rating = Number(p.rating || 0);
                 const momAwards = Number(p.mom_awards || 0);
                 const momBonus = Number(p.mom_bonus || 0);
+                const formats = Array.isArray(p.formats)
+                  ? p.formats.join(" / ")
+                  : "";
 
                 return (
                   <div
@@ -354,14 +468,18 @@ const PlayerRankings = () => {
                     <div className="cell">{p.team_name}</div>
 
                     <div className="cell num">
-                      {rating}
-                      {momBonus > 0 && (
+                      {momOnly ? momAwards : rating}
+                      {!momOnly && momBonus > 0 && (
                         <span className="mom-chip">+{momBonus}</span>
                       )}
                     </div>
 
                     <div className="cell num">
-                      {momAwards > 0 ? `${momAwards} MoM` : "No MoM yet"}
+                      {momOnly
+                        ? formats || "—"
+                        : momAwards > 0
+                        ? `${momAwards} MoM`
+                        : "No MoM yet"}
                     </div>
                   </div>
                 );
@@ -381,35 +499,54 @@ const PlayerRankings = () => {
             </button>
             <h3>About Rankings &amp; MoM Bonus</h3>
 
-            <p>
-              The table shows <b>Pos, Player, Team, Rating</b> and{" "}
-              <b>MoM (Man of the Match) count</b> for the selected category and
-              format.
-            </p>
+            {!momOnly && (
+              <>
+                <p>
+                  The table shows <b>Pos, Player, Team, Rating</b> and{" "}
+                  <b>MoM (Man of the Match) count</b> for the selected
+                  category and format.
+                </p>
 
-            <p>
-              <b>Final Rating = Base Rating + MoM Bonus</b>
-            </p>
+                <p>
+                  <b>Final Rating = Base Rating + MoM Bonus</b>
+                </p>
 
-            <h4>Base Rating</h4>
-            <ul>
-              <li>Batting = runs ×1 + 10×fifties + 25×hundreds</li>
-              <li>Bowling = wickets ×20</li>
-              <li>All-rounder = (batting + bowling) ÷ 2</li>
-            </ul>
+                <h4>Base Rating</h4>
+                <ul>
+                  <li>Batting = runs ×1 + 10×fifties + 25×hundreds</li>
+                  <li>Bowling = wickets ×20</li>
+                  <li>All-rounder = (batting + bowling) ÷ 2</li>
+                </ul>
 
-            <h4>MoM Bonus</h4>
-            <ul>
-              <li>TEST → +40 (Bat/Bowl), +60 (All-rounder) per MoM</li>
-              <li>ODI → +30 (Bat/Bowl), +45 (All-rounder) per MoM</li>
-              <li>T20 → +20 (Bat/Bowl), +30 (All-rounder) per MoM</li>
-            </ul>
+                <h4>MoM Bonus</h4>
+                <ul>
+                  <li>TEST → +40 (Bat/Bowl), +60 (All-rounder) per MoM</li>
+                  <li>ODI → +30 (Bat/Bowl), +45 (All-rounder) per MoM</li>
+                  <li>T20 → +20 (Bat/Bowl), +30 (All-rounder) per MoM</li>
+                </ul>
 
-            <p>
-              In the table, the <b>MoM</b> column shows either{" "}
-              <b>“X MoM”</b> (number of awards) or <b>“No MoM yet”</b> if the
-              player hasn’t received any award so far.
-            </p>
+                <p>
+                  In the table, the <b>MoM</b> column shows either{" "}
+                  <b>“X MoM”</b> (number of awards) or <b>“No MoM yet”</b> if
+                  the player hasn’t received any award so far.
+                </p>
+              </>
+            )}
+
+            {momOnly && (
+              <>
+                <p>
+                  You are viewing the <b>global MoM leaderboard</b>. This
+                  view ignores batting/bowling/all-rounder tabs and match
+                  formats.
+                </p>
+                <p>
+                  Players are ranked purely by{" "}
+                  <b>total Man of the Match awards</b> collected across all
+                  formats (Test, ODI, T20).
+                </p>
+              </>
+            )}
           </div>
         </div>
       )}
