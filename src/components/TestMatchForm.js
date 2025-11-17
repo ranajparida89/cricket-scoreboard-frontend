@@ -10,7 +10,8 @@ import { useAuth } from "../services/auth";
 import "./TestMatchForm.css";
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
-const API_PLAYERS = "https://cricket-scoreboard-backend.onrender.com/api/players";
+const API_PLAYERS =
+  "https://cricket-scoreboard-backend.onrender.com/api/players";
 
 /* ---- same formatter as MatchForm ---- */
 const ACRONYMS = new Set([
@@ -181,6 +182,8 @@ export default function TestMatchForm() {
   const [players, setPlayers] = useState([]);
   const [playersLoading, setPlayersLoading] = useState(false);
   const [playersError, setPlayersError] = useState("");
+  // 🆕 Search text for MoM dropdown
+  const [momSearch, setMomSearch] = useState("");
 
   const maxOvers = 450;
 
@@ -348,7 +351,7 @@ export default function TestMatchForm() {
     return true;
   };
 
-  // 🆕 MoM dropdown grouping (players from selected teams first)
+  // 🆕 MoM dropdown grouping + search + de-dup (like ODI/T20 form)
   const { xiPlayers, otherPlayers } = useMemo(() => {
     const norm = (name) => normalizeTeamName(name).toLowerCase();
     const t1 = norm(team1);
@@ -366,13 +369,40 @@ export default function TestMatchForm() {
       }
     });
 
+    // sort by player name
     xi.sort((a, b) => (a.player_name || "").localeCompare(b.player_name || ""));
     others.sort((a, b) =>
       (a.player_name || "").localeCompare(b.player_name || "")
     );
 
-    return { xiPlayers: xi, otherPlayers: others };
-  }, [players, team1, team2]);
+    const search = momSearch.trim().toLowerCase();
+    const matchSearch = (p) => {
+      if (!search) return true;
+      const name = (p.player_name || "").toLowerCase();
+      const teamName = (p.team_name || "").toLowerCase();
+      return name.includes(search) || teamName.includes(search);
+    };
+
+    const dedupe = (list) => {
+      const seen = new Set();
+      const out = [];
+      for (const p of list) {
+        const key = `${(p.player_name || "").toLowerCase()}|${(
+          p.team_name || ""
+        ).toLowerCase()}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          out.push(p);
+        }
+      }
+      return out;
+    };
+
+    return {
+      xiPlayers: dedupe(xi.filter(matchSearch)),
+      otherPlayers: dedupe(others.filter(matchSearch)),
+    };
+  }, [players, team1, team2, momSearch]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -471,7 +501,12 @@ export default function TestMatchForm() {
   return (
     <div className="container mt-4">
       {showFireworks && (
-        <Confetti width={width} height={height} numberOfPieces={300} recycle={false} />
+        <Confetti
+          width={width}
+          height={height}
+          numberOfPieces={300}
+          recycle={false}
+        />
       )}
       {celebrationText && (
         <div className="celebration-banner">{celebrationText}</div>
@@ -716,12 +751,7 @@ export default function TestMatchForm() {
                     className="form-control"
                     placeholder="Overs"
                     value={innings[key].overs}
-                    onChange={(e) =>
-                      setInnings((p) => ({
-                        ...p,
-                        [key]: { ...p[key], overs: e.target.value },
-                      }))
-                    }
+                    onChange={(e) => updateInning(key, "overs", e.target.value)}
                   />
                 </div>
                 <div className="col">
@@ -731,10 +761,7 @@ export default function TestMatchForm() {
                     placeholder="Wickets"
                     value={innings[key].wickets}
                     onChange={(e) =>
-                      setInnings((p) => ({
-                        ...p,
-                        [key]: { ...p[key], wickets: e.target.value },
-                      }))
+                      updateInning(key, "wickets", e.target.value)
                     }
                   />
                 </div>
@@ -745,42 +772,59 @@ export default function TestMatchForm() {
             </div>
           ))}
 
-          {/* 🆕 Man of the Match Section (ID-based) */}
+          {/* 🆕 Man of the Match Section (ID-based, with search + arrow) */}
           <h5 className="mt-4">Man of the Match</h5>
           <div className="mb-2">
             <label className="form-label">Select Player:</label>
-            <select
-              className="form-select"
-              value={momPlayerId}
-              onChange={(e) => setMomPlayerId(e.target.value)}
-              required
-            >
-              <option value="">
-                {playersLoading
-                  ? "Loading players…"
-                  : "Select Man of the Match"}
-              </option>
 
-              {xiPlayers.length > 0 && (
-                <optgroup label="Players from selected teams">
-                  {xiPlayers.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.player_name} {p.team_name ? `(${p.team_name})` : ""}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
+            {/* 🔍 Search bar for dropdown */}
+            <input
+              type="text"
+              className="form-control test-mom-search-input mb-2"
+              placeholder="Search player by name or team…"
+              value={momSearch}
+              onChange={(e) => setMomSearch(e.target.value)}
+            />
 
-              {otherPlayers.length > 0 && (
-                <optgroup label="Other registered players">
-                  {otherPlayers.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.player_name} {p.team_name ? `(${p.team_name})` : ""}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-            </select>
+            {/* ⬇️ Wrapped select so CSS can draw a custom arrow */}
+            <div className="test-mom-select-wrapper">
+              <select
+                className="form-select test-mom-select"
+                value={momPlayerId}
+                onChange={(e) => setMomPlayerId(e.target.value)}
+                required
+              >
+                <option value="">
+                  {playersLoading
+                    ? "Loading players…"
+                    : "Select Man of the Match"}
+                </option>
+
+                {xiPlayers.length > 0 && (
+                  <optgroup label="Players from selected teams">
+                    {xiPlayers.map((p) => (
+                      <option key={`${p.id}-xi`} value={p.id}>
+                        {p.player_name}{" "}
+                        {p.team_name ? `(${p.team_name})` : ""}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+
+                {otherPlayers.length > 0 && (
+                  <optgroup label="Other registered players">
+                    {otherPlayers.map((p) => (
+                      <option key={`${p.id}-other`} value={p.id}>
+                        {p.player_name}{" "}
+                        {p.team_name ? `(${p.team_name})` : ""}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+              </select>
+              <span className="test-mom-select-arrow">▾</span>
+            </div>
+
             {playersError && (
               <small className="text-danger d-block mt-1">
                 {playersError}

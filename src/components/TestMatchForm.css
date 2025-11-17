@@ -49,14 +49,20 @@
   border-radius:12px !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
 }
-.test-card .form-control::placeholder{ color: var(--tm-muted); opacity:.82; }
+.test-card .form-control::placeholder{
+  color: var(--tm-muted);
+  opacity:.82;
+}
 .test-card .form-control:focus,
 .test-card .form-select:focus{
   border-color: var(--tm-accent) !important;
   box-shadow: var(--tm-ring), var(--tm-glow) !important; /* soft gold glow */
   outline: none;
 }
-.test-card .form-select option{ background:#0d1424; color: var(--tm-ink); }
+.test-card .form-select option{
+  background:#0d1424;
+  color: var(--tm-ink);
+}
 
 /* Read-only "Match Name" look */
 .test-card .form-control[readonly]{
@@ -66,7 +72,10 @@
   color:#fff4c2 !important;
   font-style:italic;
 }
-.test-card .form-control[readonly]::placeholder{ color:#ffe6a6; opacity:.95; }
+.test-card .form-control[readonly]::placeholder{
+  color:#ffe6a6;
+  opacity:.95;
+}
 
 /* Success button */
 .test-card .btn.btn-success{
@@ -74,7 +83,8 @@
   color:#fff7d6 !important;
   border:1px solid rgba(247,201,72,.55) !important;
   border-radius:12px !important;
-  font-weight:800; letter-spacing:.2px;
+  font-weight:800;
+  letter-spacing:.2px;
   box-shadow: 0 10px 28px -18px rgba(247,201,72,.6);     /* gold shadow */
   transition: transform .08s ease, box-shadow .12s ease, background .12s ease;
 }
@@ -89,12 +99,17 @@
 
 /* "+" beside tournament dropdown */
 .test-card .btn-add-gold{
-  width:40px; height:40px; border-radius:10px;
-  display:inline-flex; align-items:center; justify-content:center;
+  width:40px;
+  height:40px;
+  border-radius:10px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
   background: linear-gradient(180deg, rgba(247,201,72,.22), rgba(247,201,72,.12));
   border:1px solid rgba(247,201,72,.5);
   color: var(--tm-accent);
-  font-weight:900; font-size:1.2rem;
+  font-weight:900;
+  font-size:1.2rem;
   box-shadow: 0 8px 24px -18px rgba(247,201,72,.55);
   transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
 }
@@ -110,7 +125,10 @@
   border:1px dashed rgba(247,201,72,.28) !important;
   box-shadow:none !important;
 }
-.test-card .muted-label{ color:#ffe082; font-weight:800; }
+.test-card .muted-label{
+  color:#ffe082;
+  font-weight:800;
+}
 
 /* Alerts */
 .test-card .alert-success{
@@ -126,7 +144,9 @@
 
 /* Add-tournament modal */
 .addtour-backdrop{
-  position:fixed; inset:0; backdrop-filter: blur(6px) saturate(120%);
+  position:fixed;
+  inset:0;
+  backdrop-filter: blur(6px) saturate(120%);
   background: radial-gradient(80% 100% at 50% 0, rgba(10,12,16,.65), rgba(0,0,0,.6));
   z-index: 1050;
 }
@@ -140,17 +160,87 @@
   padding:16px 16px 14px;
   color: var(--tm-ink);
 }
-.addtour-header{ font-weight:900; letter-spacing:.2px; margin-bottom:10px; color: var(--tm-accent); }
+.addtour-header{
+  font-weight:900;
+  letter-spacing:.2px;
+  margin-bottom:10px;
+  color: var(--tm-accent);
+}
 
 /* Celebration banner (gold) */
 .celebration-banner{
-  position: fixed; top: 18%; left: 50%; transform: translateX(-50%);
-  background:#0c1c2c; color: var(--tm-accent);
+  position: fixed;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  background:#0c1c2c;
+  color: var(--tm-accent);
   border:1px solid rgba(247,201,72,.35);
   box-shadow: var(--tm-glow);
-  font-size:1.65rem; font-weight:800;
-  padding:14px 22px; border-radius:12px; z-index:1200;
+  font-size:1.65rem;
+  font-weight:800;
+  padding:14px 22px;
+  border-radius:12px;
+  z-index:1200;
   animation: tmIn .6s ease, tmOut .8s ease 3.6s forwards;
 }
-@keyframes tmIn{from{opacity:0; transform:translateX(-50%) scale(.92);}to{opacity:1; transform:translateX(-50%) scale(1);}}
-@keyframes tmOut{to{opacity:0; transform:translateX(-50%) scale(.88);}}
+@keyframes tmIn{
+  from{opacity:0; transform:translateX(-50%) scale(.92);}
+  to{opacity:1; transform:translateX(-50%) scale(1);}
+}
+@keyframes tmOut{
+  to{opacity:0; transform:translateX(-50%) scale(.88);}
+}
+
+/* -------------------------------------------------------
+   🏅 Test MoM dropdown enhancements
+   - Search bar styling
+   - Custom select arrow so user knows it’s a dropdown
+--------------------------------------------------------*/
+
+/* Search bar above MoM select */
+.test-card .test-mom-search-input{
+  background: var(--tm-bg-800) !important;
+  border-radius: 10px !important;
+  border:1px solid rgba(255,255,255,.09) !important;
+  font-size:.9rem;
+  padding-inline: 0.75rem;
+}
+.test-card .test-mom-search-input::placeholder{
+  color: var(--tm-muted);
+}
+.test-card .test-mom-search-input:focus{
+  border-color: var(--tm-accent) !important;
+  box-shadow: var(--tm-ring) !important;
+}
+
+/* Wrapper to host custom arrow */
+.test-card .test-mom-select-wrapper{
+  position:relative;
+  display:block;
+}
+
+/* Remove native arrow + add padding on right */
+.test-card .test-mom-select{
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+  padding-right: 2.25rem;
+}
+
+/* Soft-gold arrow icon */
+.test-card .test-mom-select-arrow{
+  position:absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events:none;
+  font-size:.9rem;
+  color: #ffe082;
+  text-shadow: 0 0 4px rgba(0,0,0,.8);
+}
+
+/* Slight hover feedback on select */
+.test-card .test-mom-select:hover{
+  border-color: rgba(247,201,72,.45) !important;
+}
