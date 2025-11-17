@@ -1,5 +1,10 @@
 // ✅ src/components/TestMatchForm.js
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import axios from "axios";
 import { createMatch, submitTestMatchResult } from "../services/api";
 import { playSound } from "../utils/playSound";
@@ -184,10 +189,27 @@ export default function TestMatchForm() {
   const [playersError, setPlayersError] = useState("");
   // 🆕 Search text for MoM dropdown
   const [momSearch, setMomSearch] = useState("");
+  // 🆕 Custom dropdown open/close
+  const [momOpen, setMomOpen] = useState(false);
+  const momDropdownRef = useRef(null);
 
   const maxOvers = 450;
 
   const formattedPreview = formatTournamentName(newTourName);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handler = (e) => {
+      if (
+        momDropdownRef.current &&
+        !momDropdownRef.current.contains(e.target)
+      ) {
+        setMomOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   // Load tournaments
   useEffect(() => {
@@ -403,6 +425,33 @@ export default function TestMatchForm() {
       otherPlayers: dedupe(others.filter(matchSearch)),
     };
   }, [players, team1, team2, momSearch]);
+
+  // For showing selected label in fake select
+  const selectedMomForLabel = useMemo(() => {
+    if (!momPlayerId) return null;
+    return (
+      (players || []).find(
+        (p) => String(p.id) === String(momPlayerId)
+      ) || null
+    );
+  }, [players, momPlayerId]);
+
+  const momPlaceholder = playersLoading
+    ? "Loading players…"
+    : "Select Man of the Match";
+
+  const momDisplayLabel = selectedMomForLabel
+    ? `${selectedMomForLabel.player_name}${
+        selectedMomForLabel.team_name
+          ? ` (${selectedMomForLabel.team_name})`
+          : ""
+      }`
+    : momPlaceholder;
+
+  const handleMomSelect = (p) => {
+    setMomPlayerId(p.id);
+    setMomOpen(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -772,58 +821,98 @@ export default function TestMatchForm() {
             </div>
           ))}
 
-          {/* 🆕 Man of the Match Section (ID-based, with search + arrow) */}
+          {/* 🆕 Man of the Match Section (ID-based, custom dropdown with search) */}
           <h5 className="mt-4">Man of the Match</h5>
           <div className="mb-2">
             <label className="form-label">Select Player:</label>
 
-            {/* ⬇️ Wrapped select so CSS can draw a custom arrow */}
-            <div className="test-mom-select-wrapper">
-              <select
-                className="form-select test-mom-select"
-                value={momPlayerId}
-                onChange={(e) => setMomPlayerId(e.target.value)}
-                required
+            <div
+              className="test-mom-dropdown"
+              ref={momDropdownRef}
+            >
+              {/* Fake select that opens panel */}
+              <button
+                type="button"
+                className="form-select test-mom-select-display"
+                onClick={() => setMomOpen((o) => !o)}
               >
-                <option value="">
-                  {playersLoading
-                    ? "Loading players…"
-                    : "Select Man of the Match"}
-                </option>
+                <span className={momPlayerId ? "" : "test-mom-placeholder"}>
+                  {momDisplayLabel}
+                </span>
+                <span className="test-mom-select-arrow">
+                  {momOpen ? "▴" : "▾"}
+                </span>
+              </button>
 
-                {xiPlayers.length > 0 && (
-                  <optgroup label="Players from selected teams">
-                    {xiPlayers.map((p) => (
-                      <option key={`${p.id}-xi`} value={p.id}>
-                        {p.player_name}{" "}
-                        {p.team_name ? `(${p.team_name})` : ""}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
+              {momOpen && (
+                <div className="test-mom-panel">
+                  {/* 🔍 Search input INSIDE dropdown panel */}
+                  <input
+                    type="text"
+                    className="form-control test-mom-search-input"
+                    placeholder="Search player by name or team…"
+                    value={momSearch}
+                    onChange={(e) => setMomSearch(e.target.value)}
+                  />
 
-                {otherPlayers.length > 0 && (
-                  <optgroup label="Other registered players">
-                    {otherPlayers.map((p) => (
-                      <option key={`${p.id}-other`} value={p.id}>
-                        {p.player_name}{" "}
-                        {p.team_name ? `(${p.team_name})` : ""}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-              </select>
-              <span className="test-mom-select-arrow">▾</span>
+                  <div className="test-mom-options">
+                    {xiPlayers.length > 0 && (
+                      <>
+                        <div className="test-mom-group-label">
+                          Players from selected teams
+                        </div>
+                        {xiPlayers.map((p) => (
+                          <div
+                            key={`${p.id}-xi`}
+                            className={
+                              "test-mom-option" +
+                              (String(p.id) === String(momPlayerId)
+                                ? " test-mom-option-selected"
+                                : "")
+                            }
+                            onClick={() => handleMomSelect(p)}
+                          >
+                            {p.player_name}{" "}
+                            {p.team_name ? `(${p.team_name})` : ""}
+                          </div>
+                        ))}
+                      </>
+                    )}
+
+                    {otherPlayers.length > 0 && (
+                      <>
+                        <div className="test-mom-group-label">
+                          Other registered players
+                        </div>
+                        {otherPlayers.map((p) => (
+                          <div
+                            key={`${p.id}-other`}
+                            className={
+                              "test-mom-option" +
+                              (String(p.id) === String(momPlayerId)
+                                ? " test-mom-option-selected"
+                                : "")
+                            }
+                            onClick={() => handleMomSelect(p)}
+                          >
+                            {p.player_name}{" "}
+                            {p.team_name ? `(${p.team_name})` : ""}
+                          </div>
+                        ))}
+                      </>
+                    )}
+
+                    {!playersLoading &&
+                      !xiPlayers.length &&
+                      !otherPlayers.length && (
+                        <div className="test-mom-empty">
+                          No players found for this search.
+                        </div>
+                      )}
+                  </div>
+                </div>
+              )}
             </div>
-
-            {/* 🔍 Search bar for dropdown (filters same options) */}
-            <input
-              type="text"
-              className="form-control test-mom-search-input mt-2"
-              placeholder="Search player by name or team…"
-              value={momSearch}
-              onChange={(e) => setMomSearch(e.target.value)}
-            />
 
             {playersError && (
               <small className="text-danger d-block mt-1">

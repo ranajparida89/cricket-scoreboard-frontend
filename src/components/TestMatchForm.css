@@ -1,4 +1,4 @@
-/* ===== TestMatchForm.css — Royal Gold theme (v2, no :has) =====
+/* ===== TestMatchForm.css — Royal Gold theme (v2, custom MoM dropdown) =====
    Scope with .test-card to avoid parent selectors and ensure compatibility.
    Soft gold borders + glow on inputs, selects and buttons.
 */
@@ -194,53 +194,122 @@
 
 /* -------------------------------------------------------
    🏅 Test MoM dropdown enhancements
-   - Search bar styling
-   - Custom select arrow so user knows it’s a dropdown
+   - Custom fake select + floating panel
+   - Search input INSIDE panel
 --------------------------------------------------------*/
 
-/* Wrapper to host custom arrow */
-.test-card .test-mom-select-wrapper{
-  position:relative;
-  display:block;
+/* Wrapper for custom dropdown */
+.test-card .test-mom-dropdown {
+  position: relative;
 }
 
-/* Remove native arrow + add padding on right */
-.test-card .test-mom-select{
-  appearance:none;
-  -webkit-appearance:none;
-  -moz-appearance:none;
-  padding-right: 2.25rem;
-}
-
-/* Soft-gold arrow icon */
-.test-card .test-mom-select-arrow{
-  position:absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events:none;
-  font-size:.9rem;
-  color: #ffe082;
-  text-shadow: 0 0 4px rgba(0,0,0,.8);
-}
-
-/* Search bar below MoM select */
-.test-card .test-mom-search-input{
+/* Fake select button that looks like a select */
+.test-card .test-mom-select-display {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   background: var(--tm-bg-800) !important;
-  border-radius: 10px !important;
-  border:1px solid rgba(255,255,255,.09) !important;
-  font-size:.9rem;
-  padding-inline: 0.75rem;
+  color: var(--tm-ink) !important;
+  border: 1px solid rgba(247, 201, 72, 0.25) !important;
+  border-radius: 12px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  padding: 0.45rem 0.9rem;
+  font-size: 0.95rem;
+  cursor: pointer;
 }
-.test-card .test-mom-search-input::placeholder{
+
+.test-card .test-mom-select-display:focus {
+  outline: none;
+  border-color: var(--tm-accent) !important;
+  box-shadow: var(--tm-ring), var(--tm-glow) !important;
+}
+
+/* Placeholder text style */
+.test-card .test-mom-placeholder {
   color: var(--tm-muted);
 }
-.test-card .test-mom-search-input:focus{
+
+/* Arrow inside fake select */
+.test-card .test-mom-select-arrow {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  color: #ffe082;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+}
+
+/* Floating panel that appears when open */
+.test-card .test-mom-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: var(--tm-bg-900);
+  border-radius: 12px;
+  border: 1px solid rgba(247, 201, 72, 0.35);
+  box-shadow: var(--tm-glow);
+  padding: 8px 10px 10px;
+  z-index: 50;
+}
+
+/* Search bar INSIDE panel */
+.test-card .test-mom-search-input {
+  background: var(--tm-bg-800) !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  font-size: 0.9rem;
+  padding-inline: 0.75rem;
+}
+
+.test-card .test-mom-search-input::placeholder {
+  color: var(--tm-muted);
+}
+
+.test-card .test-mom-search-input:focus {
   border-color: var(--tm-accent) !important;
   box-shadow: var(--tm-ring) !important;
 }
 
-/* Slight hover feedback on select */
-.test-card .test-mom-select:hover{
-  border-color: rgba(247,201,72,.45) !important;
+/* Scroll container for options */
+.test-card .test-mom-options {
+  max-height: 260px;
+  overflow-y: auto;
+  margin-top: 6px;
+}
+
+/* Group labels ("Players from selected teams" etc.) */
+.test-card .test-mom-group-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tm-muted);
+  margin: 4px 4px 2px;
+}
+
+/* Individual option rows */
+.test-card .test-mom-option {
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.08s ease, transform 0.06s ease,
+    border-color 0.08s ease;
+}
+
+.test-card .test-mom-option:hover {
+  background: rgba(247, 201, 72, 0.12);
+  transform: translateY(-0.5px);
+}
+
+.test-card .test-mom-option-selected {
+  background: rgba(247, 201, 72, 0.18);
+  border: 1px solid rgba(247, 201, 72, 0.45);
+}
+
+/* Empty-state text */
+.test-card .test-mom-empty {
+  font-size: 0.85rem;
+  color: var(--tm-muted);
+  padding: 6px 4px;
 }
