@@ -27,6 +27,9 @@ const PlayerStats = () => {
   // runs = default (what your global rank is based on)
   const [combinedSort, setCombinedSort] = useState("runs"); // "runs" | "wkts" | "rpm"
 
+  // 3rd table morale filter
+  const [moraleFilter, setMoraleFilter] = useState("ALL"); // "ALL" | "High" | "Moderate" | "Low"
+
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
@@ -194,7 +197,7 @@ const PlayerStats = () => {
     const result = new Map();
 
     byPlayer.forEach((list, playerName) => {
-      // newest first (higher id = newer)
+      // newest first (higher id = newer if present)
       const sorted = [...list].sort((a, b) => (b.id || 0) - (a.id || 0));
       const recent = sorted.slice(0, 5); // last 5 matches
       const rec = sumStats(recent);
@@ -267,13 +270,22 @@ const PlayerStats = () => {
     };
   }, [combinedAllFormats]);
 
-  // 3b) apply search + sort to table 3 (but DO NOT change displayed rank)
+  // 3b) apply search + sort + morale filter to table 3 (but DO NOT change displayed rank)
   const filteredCombinedAllFormats = useMemo(() => {
     const q = combinedSearch.trim().toLowerCase();
     let base = combinedAllFormats;
+
     if (q) {
-      base = combinedAllFormats.filter((p) =>
+      base = base.filter((p) =>
         p.player_name.toLowerCase().includes(q)
+      );
+    }
+
+    if (moraleFilter !== "ALL") {
+      base = base.filter(
+        (p) =>
+          (moraleByPlayer.get(p.player_name) || "Moderate") ===
+          moraleFilter
       );
     }
 
@@ -291,7 +303,13 @@ const PlayerStats = () => {
 
     // "runs" -> keep original run order to match rank
     return base;
-  }, [combinedAllFormats, combinedSearch, combinedSort]);
+  }, [
+    combinedAllFormats,
+    combinedSearch,
+    combinedSort,
+    moraleFilter,
+    moraleByPlayer,
+  ]);
 
   if (loading) {
     return (
@@ -433,7 +451,9 @@ const PlayerStats = () => {
       {combined.length > 0 && (
         <div className="ps-card mt-4">
           <div className="ps-header ps-header--mini">
-            <h4 className="ps-title-small">Player Overall Performance Summary</h4>
+            <h4 className="ps-title-small">
+              Player Overall Performance Summary
+            </h4>
             <button
               type="button"
               className="ps-info"
@@ -521,8 +541,14 @@ const PlayerStats = () => {
             className="ps-info"
             onClick={() =>
               openInfo(
-                "Player Combined (All Formats)",
-                "This table shows exactly 1 row per player. It adds ODI + T20 + Test for that player from the filtered list above. Moral is based on the last few matches compared to the player's usual level."
+                "Player Combined (All Formats) & Moral",
+                `This table shows exactly 1 row per player. It adds ODI + T20 + Test for that player from the filtered list above.
+
+Moral = recent form compared to the player's career:
+
+• HIGH – last 5 matches clearly better than career (more runs/wickets per match or 2+ big scores).
+• MODERATE – last 5 matches roughly equal to normal career performance.
+• LOW – last 5 matches much below career and include several low scores (<20 runs with 0 wickets).`
               )
             }
           >
@@ -571,6 +597,44 @@ const PlayerStats = () => {
               value={combinedSearch}
               onChange={(e) => setCombinedSearch(e.target.value)}
             />
+            <div className="moral-filter-group">
+              <button
+                type="button"
+                className={`moral-filter-btn ${
+                  moraleFilter === "ALL" ? "active" : ""
+                }`}
+                onClick={() => setMoraleFilter("ALL")}
+              >
+                All
+              </button>
+              <button
+                type="button"
+                className={`moral-filter-btn moral-filter-high ${
+                  moraleFilter === "High" ? "active" : ""
+                }`}
+                onClick={() => setMoraleFilter("High")}
+              >
+                High
+              </button>
+              <button
+                type="button"
+                className={`moral-filter-btn moral-filter-moderate ${
+                  moraleFilter === "Moderate" ? "active" : ""
+                }`}
+                onClick={() => setMoraleFilter("Moderate")}
+              >
+                Moderate
+              </button>
+              <button
+                type="button"
+                className={`moral-filter-btn moral-filter-low ${
+                  moraleFilter === "Low" ? "active" : ""
+                }`}
+                onClick={() => setMoraleFilter("Low")}
+              >
+                Low
+              </button>
+            </div>
           </div>
           <div className="ps-combined-sort-wrap">
             <label className="ps-combined-sort-label" htmlFor="sortCombined">
@@ -587,6 +651,20 @@ const PlayerStats = () => {
               <option value="rpm">Runs per Match</option>
             </select>
           </div>
+        </div>
+
+        {/* Moral legend so users understand colours quickly */}
+        <div className="moral-legend">
+          <span className="moral-legend-label">Moral guide:</span>
+          <span className="moral-pill moral-high moral-pill-mini">
+            High = hot form
+          </span>
+          <span className="moral-pill moral-moderate moral-pill-mini">
+            Moderate = normal form
+          </span>
+          <span className="moral-pill moral-low moral-pill-mini">
+            Low = below par
+          </span>
         </div>
 
         <div className="ps-grid-combined" role="table">
@@ -665,7 +743,7 @@ const PlayerStats = () => {
                   <div className="cell num">{p.total_fifties}</div>
                   <div className="cell num">{p.total_hundreds}</div>
                   <div className="cell num">{p.total_double_hundreds}</div>
-                  <div className="cell">
+                  <div className="cell moral-cell">
                     <span className={moraleClass}>{morale}</span>
                   </div>
                 </div>

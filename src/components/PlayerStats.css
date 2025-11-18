@@ -276,6 +276,7 @@
   /* Rank | Player | Matches | Runs | Wkts | 50s | 100s | 200s | Moral */
   --comb-cols: 0.6fr 1.3fr 0.8fr 1fr 0.9fr 0.8fr 0.8fr 0.8fr 0.9fr;
   font-variant-numeric: tabular-nums;
+  column-gap: 10px; /* more breathing space between cols, esp. 200s vs Moral */
 }
 .ps-head-combined,
 .ps-row-combined {
@@ -307,6 +308,12 @@
 .ps-card .ps-grid-combined .ps-body {
   max-height: 420px;
   overflow-y: auto;
+}
+
+/* centre the Moral column nicely */
+.ps-head-combined .cell:last-child,
+.ps-row-combined .cell.moral-cell {
+  justify-content: center;
 }
 
 /* pastel top 3 */
@@ -378,6 +385,14 @@
   border: 1px solid rgba(239, 68, 68, 0.95);
   color: #fef2f2;
   box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+/* smaller badges for legend */
+.moral-pill-mini {
+  min-width: auto;
+  padding: 2px 8px;
+  font-size: 10px;
+  box-shadow: none;
 }
 
 /* ensure visibility even on pastel top-3 rows */
@@ -497,6 +512,7 @@
   border-radius: 14px;
   padding: 14px 14px 16px;
   color: #d6e8ff;
+  white-space: pre-line; /* so \n in JS strings show as new lines */
 }
 
 @media (max-width: 520px) {
@@ -515,7 +531,7 @@
 .ps-combined-toolbar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 14px;
   margin-bottom: 10px;
   flex-wrap: wrap;
@@ -583,4 +599,65 @@
   font-weight: 700;
   font-size: 13.5px;
   color: #ffffff;
+}
+
+/* ===== Morale filter chips ===== */
+.moral-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.moral-filter-btn {
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(15, 23, 42, 0.9);
+  color: #cbd5f5;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.moral-filter-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+/* reuse same colour language as morale pills */
+.moral-filter-high {
+  background: linear-gradient(135deg, #064e3b, #059669);
+  border-color: #22c55e;
+  color: #ecfdf5;
+}
+.moral-filter-moderate {
+  background: linear-gradient(135deg, #78350f, #f59e0b);
+  border-color: #facc15;
+  color: #fffbeb;
+}
+.moral-filter-low {
+  background: linear-gradient(135deg, #7f1d1d, #ef4444);
+  border-color: #f97373;
+  color: #fee2e2;
+}
+
+.moral-filter-btn.active {
+  box-shadow: 0 0 12px rgba(96, 165, 250, 0.7);
+}
+
+/* ===== Moral legend ===== */
+.moral-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #9fb6cc;
+}
+
+.moral-legend-label {
+  font-weight: 600;
+  color: #cfd8e3;
 }
