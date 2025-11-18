@@ -1,5 +1,5 @@
 // ✅ src/components/PlayerStats.js
-// match-wise table + grouped table + combined-all-formats table
+// match-wise table + grouped table + combined-all-formats table + Moral
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
@@ -151,6 +151,95 @@ const PlayerStats = () => {
       p.rank = idx + 1;
     });
     return arr;
+  }, [rows]);
+
+  // 3x) Morale map: player_name -> "High" | "Moderate" | "Low"
+  const moraleByPlayer = useMemo(() => {
+    const byPlayer = new Map();
+
+    for (const perf of rows) {
+      const name = perf.player_name;
+      if (!name) continue;
+      if (!byPlayer.has(name)) byPlayer.set(name, []);
+      byPlayer.get(name).push(perf);
+    }
+
+    const sumStats = (items) => {
+      let runs = 0;
+      let wkts = 0;
+      let fifties = 0;
+      let hundreds = 0;
+      let lowScores = 0; // <20 runs & 0 wkts
+
+      for (const m of items) {
+        const r = Number(m.run_scored || 0);
+        const w = Number(m.wickets_taken || 0);
+        runs += r;
+        wkts += w;
+        fifties += Number(m.fifties || 0);
+        hundreds += Number(m.hundreds || 0);
+        if (r < 20 && w === 0) lowScores += 1;
+      }
+
+      return {
+        matches: items.length,
+        runs,
+        wkts,
+        fifties,
+        hundreds,
+        lowScores,
+      };
+    };
+
+    const result = new Map();
+
+    byPlayer.forEach((list, playerName) => {
+      // newest first (higher id = newer)
+      const sorted = [...list].sort((a, b) => (b.id || 0) - (a.id || 0));
+      const recent = sorted.slice(0, 5); // last 5 matches
+      const rec = sumStats(recent);
+      const all = sumStats(list);
+
+      if (rec.matches < 3 || all.matches === 0) {
+        // not enough data → neutral
+        result.set(playerName, "Moderate");
+        return;
+      }
+
+      const recentRunsAvg = rec.matches ? rec.runs / rec.matches : 0;
+      const careerRunsAvg = all.matches ? all.runs / all.matches : 0;
+      const recentWktsAvg = rec.matches ? rec.wkts / rec.matches : 0;
+      const careerWktsAvg = all.matches ? all.wkts / all.matches : 0;
+
+      const batRatio =
+        careerRunsAvg > 0 ? recentRunsAvg / careerRunsAvg : 1;
+      const bowlRatio =
+        careerWktsAvg > 0 ? recentWktsAvg / careerWktsAvg : 1;
+
+      // weighted form index (1.0 = normal, >1 good, <1 poor)
+      const formIndex = 0.7 * batRatio + 0.3 * bowlRatio;
+
+      const hasPurplePatch =
+        rec.fifties + rec.hundreds >= 2 ||
+        recentRunsAvg >= careerRunsAvg * 1.3 ||
+        recentWktsAvg >= careerWktsAvg * 1.5;
+
+      const isSlump =
+        rec.lowScores >= 3 ||
+        (recentRunsAvg <= careerRunsAvg * 0.6 &&
+          recentWktsAvg <= careerWktsAvg * 0.6);
+
+      let morale = "Moderate";
+      if (hasPurplePatch || formIndex >= 1.25) {
+        morale = "High";
+      } else if (isSlump || formIndex <= 0.75) {
+        morale = "Low";
+      }
+
+      result.set(playerName, morale);
+    });
+
+    return result;
   }, [rows]);
 
   // 3a) build highlights from the global combined array
@@ -433,7 +522,7 @@ const PlayerStats = () => {
             onClick={() =>
               openInfo(
                 "Player Combined (All Formats)",
-                "This table shows exactly 1 row per player. It adds ODI + T20 + Test for that player from the filtered list above. Use the search and the sort to explore different leaders."
+                "This table shows exactly 1 row per player. It adds ODI + T20 + Test for that player from the filtered list above. Moral is based on the last few matches compared to the player's usual level."
               )
             }
           >
@@ -510,6 +599,7 @@ const PlayerStats = () => {
             <div className="cell head num">Total 50s</div>
             <div className="cell head num">Total 100s</div>
             <div className="cell head num">Total 200s</div>
+            <div className="cell head">Moral</div>
           </div>
 
           <div className="ps-body" role="rowgroup">
@@ -542,6 +632,14 @@ const PlayerStats = () => {
                 ? (p.total_wickets / p.total_matches).toFixed(2)
                 : "0.00";
 
+              const morale = moraleByPlayer.get(p.player_name) || "Moderate";
+              const moraleClass =
+                morale === "High"
+                  ? "moral-pill moral-high"
+                  : morale === "Low"
+                  ? "moral-pill moral-low"
+                  : "moral-pill moral-moderate";
+
               return (
                 <div
                   className={`ps-row-combined ${top}`}
@@ -567,6 +665,9 @@ const PlayerStats = () => {
                   <div className="cell num">{p.total_fifties}</div>
                   <div className="cell num">{p.total_hundreds}</div>
                   <div className="cell num">{p.total_double_hundreds}</div>
+                  <div className="cell">
+                    <span className={moraleClass}>{morale}</span>
+                  </div>
                 </div>
               );
             })}

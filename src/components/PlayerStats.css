@@ -273,7 +273,8 @@
    3rd TABLE: Player Combined (All Formats)
    ========================= */
 .ps-grid-combined {
-  --comb-cols: 0.6fr 1.3fr 0.8fr 1fr 0.9fr 0.8fr 0.8fr 0.8fr;
+  /* Rank | Player | Matches | Runs | Wkts | 50s | 100s | 200s | Moral */
+  --comb-cols: 0.6fr 1.3fr 0.8fr 1fr 0.9fr 0.8fr 0.8fr 0.8fr 0.9fr;
   font-variant-numeric: tabular-nums;
 }
 .ps-head-combined,
@@ -341,6 +342,41 @@
 }
 .ps-grid-combined .medal {
   filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.12));
+}
+
+/* Morale pill */
+.moral-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.moral-high {
+  background: rgba(34, 197, 94, 0.18);
+  border: 1px solid rgba(34, 197, 94, 0.75);
+  color: #bbf7d0;
+  box-shadow: 0 0 12px rgba(22, 163, 74, 0.35);
+}
+
+.moral-moderate {
+  background: rgba(245, 158, 11, 0.18);
+  border: 1px solid rgba(245, 158, 11, 0.75);
+  color: #fef9c3;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+.moral-low {
+  background: rgba(239, 68, 68, 0.18);
+  border: 1px solid rgba(239, 68, 68, 0.8);
+  color: #fee2e2;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.35);
 }
 
 /* =========================
@@ -466,6 +502,7 @@
     font-size: 0.9rem;
   }
 }
+
 /* ===== 3rd table: toolbar, highlights, sort ===== */
 .ps-combined-toolbar {
   display: flex;
@@ -524,7 +561,6 @@
 .ps-combined-sort::-ms-expand {
   display: none;
 }
-
 
 /* Highlights bar */
 .ps-combined-highlights {
