@@ -387,7 +387,7 @@
   box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
 }
 
-/* smaller badges for legend */
+/* smaller badges for legend (bottom row) */
 .moral-pill-mini {
   min-width: auto;
   padding: 2px 8px;
@@ -612,20 +612,23 @@
   margin-left: 8px;
 }
 
-/* force smaller capsules; override any global .btn styles if present */
+/* mid-sized capsules with same colour language */
 button.moral-filter-btn,
 .moral-filter-btn {
   border-radius: 999px !important;
   border: 1px solid rgba(148, 163, 184, 0.6) !important;
   background: rgba(15, 23, 42, 0.9) !important;
   color: #cbd5f5 !important;
-  font-size: 9px !important;     /* smaller text */
+
+  font-size: 11px !important;      /* mid-size text */
   font-weight: 700;
-  padding: 2px 7px !important;   /* tighter pill */
-  line-height: 1.0 !important;
+  padding: 4px 12px !important;    /* chunkier pill */
+  line-height: 1.1 !important;
+  min-width: 52px;                 /* consistent width */
+  height: 24px;                    /* consistent height */
+
   cursor: pointer;
   transition: all 0.15s ease;
-  min-width: 40px;               /* small but still clickable */
 }
 
 .moral-filter-btn:hover {
