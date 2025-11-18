@@ -601,11 +601,10 @@
   color: #ffffff;
 }
 
-/* ===== Morale filter chips ===== */
 .moral-filter-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;              /* a bit tighter */
 }
 
 .moral-filter-btn {
@@ -613,9 +612,10 @@
   border: 1px solid rgba(148, 163, 184, 0.6);
   background: rgba(15, 23, 42, 0.9);
   color: #cbd5f5;
-  font-size: 11px;
+  font-size: 10px;       /* smaller text */
   font-weight: 700;
-  padding: 4px 10px;
+  padding: 3px 8px;      /* slimmer capsule */
+  line-height: 1.1;      /* avoids tall pill */
   cursor: pointer;
   transition: all 0.15s ease;
 }
