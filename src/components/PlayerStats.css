@@ -601,23 +601,31 @@
   color: #ffffff;
 }
 
+/* =========================
+   MORAL FILTERS + LEGEND
+   ========================= */
 .moral-filter-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;              /* a bit tighter */
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
 }
 
+/* force smaller capsules; override any global .btn styles if present */
+button.moral-filter-btn,
 .moral-filter-btn {
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  background: rgba(15, 23, 42, 0.9);
-  color: #cbd5f5;
-  font-size: 10px;       /* smaller text */
+  border-radius: 999px !important;
+  border: 1px solid rgba(148, 163, 184, 0.6) !important;
+  background: rgba(15, 23, 42, 0.9) !important;
+  color: #cbd5f5 !important;
+  font-size: 9px !important;     /* smaller text */
   font-weight: 700;
-  padding: 3px 8px;      /* slimmer capsule */
-  line-height: 1.1;      /* avoids tall pill */
+  padding: 2px 7px !important;   /* tighter pill */
+  line-height: 1.0 !important;
   cursor: pointer;
   transition: all 0.15s ease;
+  min-width: 40px;               /* small but still clickable */
 }
 
 .moral-filter-btn:hover {
@@ -627,26 +635,26 @@
 
 /* reuse same colour language as morale pills */
 .moral-filter-high {
-  background: linear-gradient(135deg, #064e3b, #059669);
-  border-color: #22c55e;
-  color: #ecfdf5;
+  background: linear-gradient(135deg, #064e3b, #059669) !important;
+  border-color: #22c55e !important;
+  color: #ecfdf5 !important;
 }
 .moral-filter-moderate {
-  background: linear-gradient(135deg, #78350f, #f59e0b);
-  border-color: #facc15;
-  color: #fffbeb;
+  background: linear-gradient(135deg, #78350f, #f59e0b) !important;
+  border-color: #facc15 !important;
+  color: #fffbeb !important;
 }
 .moral-filter-low {
-  background: linear-gradient(135deg, #7f1d1d, #ef4444);
-  border-color: #f97373;
-  color: #fee2e2;
+  background: linear-gradient(135deg, #7f1d1d, #ef4444) !important;
+  border-color: #f97373 !important;
+  color: #fee2e2 !important;
 }
 
 .moral-filter-btn.active {
   box-shadow: 0 0 12px rgba(96, 165, 250, 0.7);
 }
 
-/* ===== Moral legend ===== */
+/* Moral legend */
 .moral-legend {
   display: flex;
   flex-wrap: wrap;
