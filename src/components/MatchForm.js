@@ -95,9 +95,7 @@ const titleWord = (w, index, last) => {
 
     return lower.charAt(0).toUpperCase() + lower.slice(1);
   });
-  return parts
-    .map((p) => (p ? p : ""))
-    .join("-");
+  return parts.map((p) => (p ? p : "")).join("-");
 };
 
 const formatTournamentName = (raw) => {
@@ -253,7 +251,22 @@ export default function MatchForm() {
       .then(({ data }) => {
         if (cancelled) return;
         const list = Array.isArray(data?.tournaments) ? data.tournaments : [];
-        setTournaments(list);
+
+        // 🔧 NEW: normalise + de-duplicate by formatted name (case-insensitive)
+        const seen = new Set();
+        const cleaned = [];
+
+        list.forEach((raw) => {
+          const label = formatTournamentName(String(raw || "").trim());
+          if (!label) return;
+          const key = label.toLowerCase();
+          if (seen.has(key)) return;
+          seen.add(key);
+          cleaned.push(label);
+        });
+
+        cleaned.sort((a, b) => a.localeCompare(b));
+        setTournaments(cleaned);
       })
       .catch(() => !cancelled && setTournaments([]))
       .finally(() => !cancelled && setTournamentsLoading(false));
@@ -271,7 +284,7 @@ export default function MatchForm() {
     }
     axios
       .get(`${API_BASE}/match/tournaments/years`, {
-        params: { scope: "limited", tournament_name: tournamentName },
+        params: { scope: "limited", tournament_name: tournamentName }, // tournamentName is already canonical
       })
       .then(({ data }) => {
         if (cancelled) return;
@@ -371,6 +384,7 @@ export default function MatchForm() {
     if (!raw) return;
     const fm = formatTournamentName(raw);
 
+    // 🔧 tournaments already store canonical labels, but keep defensive check
     const exists = (tournaments || []).some(
       (t) => formatTournamentName(t).toLowerCase() === fm.toLowerCase()
     );
@@ -537,7 +551,9 @@ export default function MatchForm() {
         />
       )}
       {showPopup && (
-        <div className="celebration-banner">🎉 Congratulations {winnerTeam}!</div>
+        <div className="celebration-banner">
+          🎉 Congratulations {winnerTeam}!
+        </div>
       )}
 
       <div className="card shadow p-4">
@@ -576,7 +592,7 @@ export default function MatchForm() {
                   </option>
                   {tournaments.map((t) => (
                     <option key={t} value={t}>
-                      {formatTournamentName(t)}
+                      {t /* already canonical */}
                     </option>
                   ))}
                 </select>
@@ -866,7 +882,8 @@ export default function MatchForm() {
                       </div>
                     )}
 
-                    {!playersLoading && xiPlayers.length === 0 &&
+                    {!playersLoading &&
+                      xiPlayers.length === 0 &&
                       otherPlayers.length === 0 && (
                         <div className="mom-option mom-option-disabled">
                           No players match your search.
@@ -881,10 +898,11 @@ export default function MatchForm() {
                         {xiPlayers.map((p) => (
                           <div
                             key={p.id}
-                            className={`
-                              mom-option
-                              ${String(p.id) === String(momPlayerId) ? "selected" : ""}
-                            `}
+                            className={`mom-option ${
+                              String(p.id) === String(momPlayerId)
+                                ? "selected"
+                                : ""
+                            }`}
                             onClick={() => {
                               setMomPlayerId(p.id);
                               setMomOpen(false);
@@ -905,10 +923,11 @@ export default function MatchForm() {
                         {otherPlayers.map((p) => (
                           <div
                             key={p.id}
-                            className={`
-                              mom-option
-                              ${String(p.id) === String(momPlayerId) ? "selected" : ""}
-                            `}
+                            className={`mom-option ${
+                              String(p.id) === String(momPlayerId)
+                                ? "selected"
+                                : ""
+                            }`}
                             onClick={() => {
                               setMomPlayerId(p.id);
                               setMomOpen(false);
