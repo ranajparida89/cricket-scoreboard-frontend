@@ -1,8 +1,9 @@
 // src/components/TeamDetails.js
-// Pure data-driven Team Morale dashboard (ODI / T20 / Test)
+// Teams Overview (morale cards) + TeamDetails (full dashboard)
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 import { getMatchesByTeam } from "../services/api";
 import {
   ResponsiveContainer,
@@ -16,73 +17,96 @@ import {
 } from "recharts";
 import "./TeamDetails.css";
 
-/* ----------------- helpers ----------------- */
+const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
+
+/* ----------------- shared helpers ----------------- */
 
 const normalizeTeamName = (name) => {
   if (!name) return "";
   const n = String(name).trim().toLowerCase();
   const map = {
+    // India
     ind: "India",
     india: "India",
     in: "India",
 
+    // Australia
     aus: "Australia",
     australia: "Australia",
     au: "Australia",
 
+    // England
     eng: "England",
     england: "England",
     gb: "England",
 
+    // Pakistan
     pak: "Pakistan",
     pakistan: "Pakistan",
     pk: "Pakistan",
 
+    // New Zealand
     nz: "New Zealand",
     "new zealand": "New Zealand",
 
+    // South Africa
     sa: "South Africa",
     "south africa": "South Africa",
     za: "South Africa",
 
+    // Sri Lanka
     sl: "Sri Lanka",
     "sri lanka": "Sri Lanka",
     lk: "Sri Lanka",
 
+    // West Indies
     wi: "West Indies",
     "west indies": "West Indies",
 
+    // Afghanistan
     afg: "Afghanistan",
     afghanistan: "Afghanistan",
 
+    // Bangladesh
     ban: "Bangladesh",
     bangladesh: "Bangladesh",
 
+    // Zimbabwe
     zim: "Zimbabwe",
     zimbabwe: "Zimbabwe",
 
+    // Ireland
     ire: "Ireland",
     ireland: "Ireland",
 
+    // Netherlands
     ned: "Netherlands",
     netherlands: "Netherlands",
 
+    // Scotland
     sco: "Scotland",
     scotland: "Scotland",
 
+    // Nepal
     nep: "Nepal",
     nepal: "Nepal",
 
-    uae: "UAE",
-    "united arab emirates": "UAE",
+    // United Arab Emirates – FULL name
+    uae: "United Arab Emirates",
+    "united arab emirates": "United Arab Emirates",
 
+    // Namibia
     nam: "Namibia",
     namibia: "Namibia",
 
-    usa: "USA",
+    // USA
+    usa: "United States of America",
+
+    // Oman
     oma: "Oman",
     oman: "Oman",
 
+    // PNG
     png: "Papua New Guinea",
     "papua new guinea": "Papua New Guinea",
   };
@@ -217,9 +241,244 @@ const normalizeMatchRow = (row, teamName) => {
   };
 };
 
-/* ----------------- component ----------------- */
+/* ----------------- Teams Overview (main Teams tab) ----------------- */
 
-const TeamDetails = () => {
+const TeamsOverview = () => {
+  const [teams, setTeams] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [infoTeam, setInfoTeam] = useState(null);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        // uses /api/teams leaderboard (reads from public.teams)
+        const res = await axios.get(`${API_BASE}/teams`);
+        const rows = Array.isArray(res.data) ? res.data : [];
+
+        const enriched = rows.map((row) => {
+          const name = row.team_name || row.name || "";
+          const matches = Number(row.matches_played ?? row.matches ?? 0);
+          const wins = Number(row.wins ?? 0);
+          const losses = Number(row.losses ?? 0);
+          const draws = Number(row.draws ?? 0);
+          const winPct = matches ? (wins * 100) / matches : 0;
+          const nrr = Number(row.nrr ?? 0);
+
+          const morale = classifyMorale(winPct, nrr, winPct, matches);
+
+          return {
+            name,
+            matches,
+            wins,
+            losses,
+            draws,
+            winPct,
+            nrr,
+            moraleBand: morale.band,
+            moraleScore: morale.score,
+          };
+        });
+
+        // sort by morale score desc, then name
+        enriched.sort(
+          (a, b) =>
+            b.moraleScore - a.moraleScore || a.name.localeCompare(b.name)
+        );
+
+        setTeams(enriched);
+      } catch (e) {
+        console.error("TeamsOverview load error", e);
+        setError("Unable to load team overview.");
+        setTeams([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, []);
+
+  const totalTeams = useMemo(() => teams.length, [teams]);
+
+  const handleViewStats = (teamName) => {
+    if (!teamName) return;
+    navigate(`/teams/${encodeURIComponent(teamName)}`);
+  };
+
+  const openInfo = (team, e) => {
+    e.stopPropagation();
+    setInfoTeam(team);
+  };
+
+  const closeInfo = () => setInfoTeam(null);
+
+  return (
+    <div className="teams-overview-page">
+      <div className="teams-header-row">
+        <div>
+          <h2>Teams Morale Overview</h2>
+          <p className="teams-subtitle">
+            Live morale snapshot based on Win %, NRR and form across ODI &amp; T20.
+          </p>
+        </div>
+        <div className="teams-summary-chip">
+          <span className="chip-label">Total Teams</span>
+          <span className="chip-value">{totalTeams}</span>
+        </div>
+      </div>
+
+      {loading && (
+        <div className="teams-state-msg">Loading teams from database…</div>
+      )}
+      {error && <div className="teams-state-msg error">{error}</div>}
+
+      {!loading && !error && (
+        <>
+          {teams.length === 0 ? (
+            <div className="teams-state-msg">
+              No teams found in leaderboard. Play a few matches to populate this
+              view.
+            </div>
+          ) : (
+            <div className="teams-grid">
+              {teams.map((t) => (
+                <div
+                  key={t.name}
+                  className={`team-card-overview morale-${t.moraleBand.toLowerCase()}`}
+                  onClick={() => handleViewStats(t.name)}
+                >
+                  <div className="team-card-top-row">
+                    <div className="team-name-block">
+                      <h3 className="team-name">{t.name}</h3>
+                      <span className="team-matches-label">
+                        {t.matches} match{t.matches === 1 ? "" : "es"}
+                      </span>
+                    </div>
+
+                    {/* red "i" info button */}
+                    <button
+                      className="team-info-btn"
+                      type="button"
+                      onClick={(e) => openInfo(t, e)}
+                    >
+                      i
+                    </button>
+                  </div>
+
+                  <div className="team-morale-row">
+                    <span
+                      className={`team-morale-chip chip-${t.moraleBand.toLowerCase()}`}
+                    >
+                      {t.moraleBand.toUpperCase()} • {t.moraleScore}
+                    </span>
+                    <span className="team-nrr-chip">
+                      NRR {round2(t.nrr).toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="team-metrics-row">
+                    <div className="metric-block">
+                      <span className="metric-label">Win %</span>
+                      <span className="metric-value">
+                        {round1(t.winPct).toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="metric-block">
+                      <span className="metric-label">W / L</span>
+                      <span className="metric-value">
+                        {t.wins} / {t.losses}
+                      </span>
+                    </div>
+                    <div className="metric-block">
+                      <span className="metric-label">Draws</span>
+                      <span className="metric-value">{t.draws}</span>
+                    </div>
+                  </div>
+
+                  <div className="team-card-footer">
+                    <button
+                      className="view-stats-btn"
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewStats(t.name);
+                      }}
+                    >
+                      View Stats
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* rectangular info popup */}
+      {infoTeam && (
+        <div className="team-info-overlay" onClick={closeInfo}>
+          <div
+            className="team-info-box"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="info-box-header">
+              <h4>{infoTeam.name} – Morale details</h4>
+            </div>
+            <div className="info-box-body">
+              <p>
+                Morale score for <strong>{infoTeam.name}</strong> is{" "}
+                <strong>{infoTeam.moraleScore}</strong> (
+                {infoTeam.moraleBand}) based on:
+              </p>
+              <ul>
+                <li>
+                  Overall Win %:{" "}
+                    <strong>{round1(infoTeam.winPct).toFixed(1)}%</strong>{" "}
+                    from <strong>{infoTeam.matches}</strong> matches.
+                </li>
+                <li>
+                  Net Run Rate (NRR):{" "}
+                  <strong>{round2(infoTeam.nrr).toFixed(2)}</strong>.
+                </li>
+                <li>
+                  Weightage: 55% long-term win %, 25% recent form,
+                  20% NRR impact.
+                </li>
+              </ul>
+              <p className="info-note">
+                Tip: higher morale suggests the team is in good rhythm and
+                handling pressure well in recent series.
+              </p>
+            </div>
+            <div className="info-box-footer">
+              <button className="info-close-btn" onClick={closeInfo}>
+                Close
+              </button>
+              <button
+                className="info-view-btn"
+                onClick={() => {
+                  closeInfo();
+                  handleViewStats(infoTeam.name);
+                }}
+              >
+                Go to full stats
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ----------------- TeamDetails (full dashboard page) ----------------- */
+
+export const TeamDetails = () => {
   const { teamName } = useParams();
   const navigate = useNavigate();
 
@@ -710,4 +969,4 @@ const TeamDetails = () => {
   );
 };
 
-export default TeamDetails;
+export default TeamsOverview;
