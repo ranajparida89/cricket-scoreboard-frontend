@@ -9,7 +9,8 @@ import TestLeaderboard from "./components/TestLeaderboard";
 import MatchHistory from "./components/MatchHistory";
 import TeamChart from "./components/TeamCharts";
 import MatchCards from "./components/MatchCards";
-import TeamsPage from "./components/TeamsPage";
+// ❌ old landing component no longer used
+// import TeamsPage from "./components/TeamsPage";
 import TeamDetails from "./components/TeamDetails";
 import AboutCrickEdge from "./components/AboutCrickEdge";
 import ContactFeedback from "./components/ContactFeedback";
@@ -77,12 +78,16 @@ function HomePage() {
       </div>
 
       <div className="card bg-dark text-white p-4 shadow mb-5">
-        <h4 className="text-center text-success mb-3">Limited-Overs Cricket Leaderboard</h4>
+        <h4 className="text-center text-success mb-3">
+          Limited-Overs Cricket Leaderboard
+        </h4>
         <Leaderboard />
       </div>
 
       <div className="card bg-dark text-white p-4 shadow mb-5">
-        <h4 className="text-center text-info mb-3">World Test Match Team Rankings</h4>
+        <h4 className="text-center text-info mb-3">
+          World Test Match Team Rankings
+        </h4>
         <TestLeaderboard />
       </div>
     </div>
@@ -101,7 +106,8 @@ function App() {
   const { currentUser } = useAuth();
 
   useEffect(() => {
-    document.body.className = theme === "dark" ? "bg-dark text-light" : "bg-light text-dark";
+    document.body.className =
+      theme === "dark" ? "bg-dark text-light" : "bg-light text-dark";
   }, [theme]);
 
   const toggleTheme = () => {
@@ -153,7 +159,11 @@ function App() {
       <div className="crickedge-bg" aria-hidden="true"></div>
 
       <Router>
-        <AppNavbar onAuthClick={() => setShowAuthModal(true)} toggleTheme={toggleTheme} theme={theme} />
+        <AppNavbar
+          onAuthClick={() => setShowAuthModal(true)}
+          toggleTheme={toggleTheme}
+          theme={theme}
+        />
 
         {updateAvailable && (
           <div
@@ -178,7 +188,10 @@ function App() {
               <button className="btn btn-success btn-sm" onClick={handleAppUpdate}>
                 Update
               </button>
-              <button className="btn btn-secondary btn-sm" onClick={() => setUpdateAvailable(false)}>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => setUpdateAvailable(false)}
+              >
                 Cancel
               </button>
             </div>
@@ -187,8 +200,14 @@ function App() {
 
         <DownloadAppButton />
         <MatchTicker />
-        <AuthModal show={showAuthModal} onClose={() => setShowAuthModal(false)} />
-        <SidebarMenu isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <AuthModal
+          show={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+        />
+        <SidebarMenu
+          isOpen={isSidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
 
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -276,7 +295,10 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/create-board" element={<Navigate to="/register-board" replace />} />
+          <Route
+            path="/create-board"
+            element={<Navigate to="/register-board" replace />}
+          />
           <Route
             path="/register-board"
             element={
@@ -287,11 +309,13 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* ✅ Teams: overview + detail in TeamDetails */}
           <Route
             path="/teams"
             element={
               <PageWrapper>
-                <TeamsPage />
+                <TeamDetails />
               </PageWrapper>
             }
           />
@@ -303,6 +327,7 @@ function App() {
               </PageWrapper>
             }
           />
+
           <Route
             path="/about"
             element={
@@ -366,7 +391,13 @@ function App() {
                   {isAdmin ? (
                     <AddPlayers isAdmin={isAdmin} />
                   ) : (
-                    <div style={{ padding: 24, color: "red", textAlign: "center" }}>
+                    <div
+                      style={{
+                        padding: 24,
+                        color: "red",
+                        textAlign: "center",
+                      }}
+                    >
                       You are not authorized to access this page.
                     </div>
                   )}
@@ -389,7 +420,13 @@ function App() {
                 {isAdmin ? (
                   <PlayerPerformance />
                 ) : (
-                  <div style={{ padding: 24, color: "red", textAlign: "center" }}>
+                  <div
+                    style={{
+                      padding: 24,
+                      color: "red",
+                      textAlign: "center",
+                    }}
+                  >
                     You are not authorized to access this page.
                   </div>
                 )}
@@ -406,7 +443,10 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/qualification-scenario" element={<QualificationScenario />} />
+          <Route
+            path="/qualification-scenario"
+            element={<QualificationScenario />}
+          />
           <Route
             path="/add-upcoming-match"
             element={
@@ -414,7 +454,13 @@ function App() {
                 {isAdmin ? (
                   <AddUpcomingMatch isAdmin={isAdmin} />
                 ) : (
-                  <div style={{ padding: 24, color: "red", textAlign: "center" }}>
+                  <div
+                    style={{
+                      padding: 24,
+                      color: "red",
+                      textAlign: "center",
+                    }}
+                  >
                     You are not authorized to access this page.
                   </div>
                 )}
@@ -435,7 +481,13 @@ function App() {
           <Route path="/smart-analyzer" element={<SmartAnalyzer />} />
           <Route
             path="/my-dashboard"
-            element={currentUser ? <UserCricketStatsDashboardV2 /> : <div>Please log in to view your dashboard.</div>}
+            element={
+              currentUser ? (
+                <UserCricketStatsDashboardV2 />
+              ) : (
+                <div>Please log in to view your dashboard.</div>
+              )
+            }
           />
           <Route
             path="/manage-favorites"
