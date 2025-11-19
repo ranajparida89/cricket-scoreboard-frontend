@@ -3,9 +3,11 @@
 /* ---------------- OVERVIEW (landing /teams) ---------------- */
 
 .teams-page-overview {
-  padding: 16px 24px 32px;
+  padding: 20px 28px 36px;
   color: #eaf4ff;
-  background: radial-gradient(circle at top, #0f172a 0, #020617 52%, #020617 100%);
+  background:
+    radial-gradient(circle at top, #0b1120 0, #020617 55%, #020617 100%),
+    radial-gradient(circle at -10% -20%, rgba(250, 204, 21, 0.08), transparent 60%);
   min-height: calc(100vh - 64px);
 }
 
@@ -13,57 +15,62 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 18px;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 .teams-title {
   margin: 0;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 800;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
 }
 
 .teams-subtitle {
-  margin: 2px 0 0;
-  font-size: 12px;
-  color: #94a3b8;
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #9ca3af;
 }
 
 .teams-header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
-/* red eye-catching info button */
+/* golden, soft info button */
 .teams-info-btn {
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
   border-radius: 999px;
-  border: 1px solid #fecaca;
-  background: radial-gradient(circle at top, #7f1d1d, #b91c1c);
-  color: #fee2e2;
-  font-size: 14px;
-  font-weight: 700;
+  border: 1px solid rgba(250, 204, 21, 0.95);
+  background: radial-gradient(circle at 20% 0%, #facc15, #92400e);
+  color: #111827;
+  font-size: 15px;
+  font-weight: 800;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.85);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.7),
+    0 0 18px rgba(250, 204, 21, 0.6);
+  transition: transform 0.14s ease, box-shadow 0.14s ease, filter 0.14s ease;
 }
 
 .teams-info-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 18px rgba(252, 165, 165, 0.95);
+  transform: translateY(-1px) scale(1.03);
+  filter: brightness(1.06);
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.9),
+    0 0 24px rgba(250, 204, 21, 0.85);
 }
 
 .teams-count-pill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
+  padding: 7px 14px;
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.7);
   background: radial-gradient(circle at top, #020617, #020617 60%, #020617);
@@ -71,31 +78,39 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #cbd5f5;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.9);
 }
 
 .teams-count-pill strong {
-  font-size: 14px;
+  font-size: 15px;
+  color: #facc15;
 }
 
 /* rectangular info popup under header */
 .teams-info-popup {
-  margin-bottom: 16px;
-  border-radius: 14px;
-  border: 1px solid rgba(248, 113, 113, 0.7);
-  background: linear-gradient(135deg, rgba(30, 64, 175, 0.6), rgba(15, 23, 42, 0.98));
-  padding: 10px 12px;
-  font-size: 12px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+  margin-bottom: 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(250, 204, 21, 0.7);
+  background: linear-gradient(
+    135deg,
+    rgba(30, 64, 175, 0.7),
+    rgba(15, 23, 42, 0.98)
+  );
+  padding: 12px 14px;
+  font-size: 13px;
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.7),
+    0 0 24px rgba(250, 204, 21, 0.3);
 }
 
 .teams-info-popup h4 {
   margin: 0 0 4px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
 }
 
 .teams-info-popup p {
-  margin: 2px 0;
+  margin: 3px 0;
 }
 
 .teams-overview-status {
@@ -107,20 +122,26 @@
   color: #fecaca;
 }
 
-/* grid of cards (keeps feel of old TeamsPage) */
+/* grid of cards */
 .teams-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: 20px;
 }
 
 /* individual team card */
 .teams-card {
-  background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.88));
-  border-radius: 18px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.55);
-  padding: 12px 14px 14px;
+  background: radial-gradient(
+    circle at top left,
+    rgba(15, 23, 42, 0.98),
+    rgba(15, 23, 42, 0.9)
+  );
+  border-radius: 20px;
+  border: 1px solid rgba(30, 64, 175, 0.5);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.75),
+    0 0 22px rgba(250, 204, 21, 0.16);
+  padding: 16px 18px 18px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -130,64 +151,73 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .teams-card-name-block {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .teams-card-name {
   margin: 0;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
 }
 
 /* reuse morale pill but slightly smaller variant */
 .team-morale-pill.small {
-  padding: 2px 8px;
-  font-size: 10px;
+  padding: 3px 10px;
+  font-size: 11px;
 }
 
+/* rank pill with gold feel */
 .teams-rank-pill {
-  padding: 4px 10px;
+  padding: 5px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(251, 191, 36, 0.75);
-  background: radial-gradient(circle at top, rgba(120, 53, 15, 0.9), rgba(30, 64, 175, 0.4));
-  font-size: 10px;
+  border: 1px solid rgba(251, 191, 36, 0.85);
+  background: radial-gradient(
+    circle at 10% 0%,
+    rgba(250, 204, 21, 0.95),
+    rgba(120, 53, 15, 0.9)
+  );
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #fef3c7;
+  color: #111827;
   text-align: right;
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.7),
+    0 0 18px rgba(251, 191, 36, 0.7);
 }
 
 .teams-rank-pill strong {
   display: block;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 /* small stats row inside card */
 .teams-card-body {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 10px;
-  margin-bottom: 10px;
+  gap: 10px 12px;
+  margin-bottom: 12px;
 }
 
 .teams-stat-label {
   display: block;
-  font-size: 10px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #9ca3af;
 }
 
 .teams-stat-value {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
+  color: #e5e7eb;
 }
 
 .teams-card-footer {
@@ -197,19 +227,28 @@
 
 .teams-view-btn {
   border-radius: 999px;
-  border: 1px solid rgba(59, 130, 246, 0.85);
-  background: radial-gradient(circle at top, #0f172a, #1e3a8a);
-  color: #e5e7eb;
-  font-size: 12px;
-  padding: 5px 16px;
+  border: 1px solid rgba(59, 130, 246, 0.9);
+  background: linear-gradient(
+    135deg,
+    #1e40af,
+    #0ea5e9
+  );
+  color: #f9fafb;
+  font-size: 13px;
+  padding: 6px 18px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.16s ease;
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.8),
+    0 0 18px rgba(56, 189, 248, 0.7);
 }
 
 .teams-view-btn:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.05);
   transform: translateY(-1px);
-  box-shadow: 0 0 18px rgba(59, 130, 246, 0.9);
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 1),
+    0 0 24px rgba(56, 189, 248, 0.9);
 }
 
 /* ---------------- DETAIL VIEW (/teams/:teamName) ---------------- */
