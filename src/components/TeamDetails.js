@@ -72,8 +72,7 @@ const classifyMorale = (winPct, nrr, recentWinPct, matchesCount) => {
 
   // very few matches → treat as neutral band
   if (!matchesCount || matchesCount < 3) {
-    const rawNeutral =
-      0.55 * w + 0.25 * r + 15 * clamp(n, -1.5, 1.5);
+    const rawNeutral = 0.55 * w + 0.25 * r + 15 * clamp(n, -1.5, 1.5);
     return {
       band: "Moderate",
       score: Math.round(clamp(rawNeutral, 0, 100)),
@@ -84,6 +83,7 @@ const classifyMorale = (winPct, nrr, recentWinPct, matchesCount) => {
     0.55 * w + // long-term win%
     0.25 * r + // recent win%
     15 * clamp(n, -1.5, 1.5); // NRR impact
+
   const score = clamp(rawScore, 0, 100);
 
   let band = "Low";
@@ -91,6 +91,20 @@ const classifyMorale = (winPct, nrr, recentWinPct, matchesCount) => {
   else if (score >= 45) band = "Moderate";
 
   return { band, score: Math.round(score) };
+};
+
+// Decide result from winner text + team names
+const getResultForTeam = (rawWinner, teamNorm) => {
+  const winnerStr = String(rawWinner || "").toLowerCase();
+  const team = String(teamNorm || "").toLowerCase();
+
+  if (!winnerStr) return "NR";
+  if (winnerStr.includes("draw")) return "Draw";
+
+  // Handle values like "India", "India won the match!", "India won!"
+  if (winnerStr.includes(team)) return "Win";
+
+  return "Loss";
 };
 
 // Convert one match row from API into a normalized structure
@@ -108,9 +122,7 @@ const normalizeMatchRow = (row, teamName) => {
   if (!isTeam1 && !isTeam2) return null;
 
   // match type
-  let format = String(
-    row.match_type || row.matchType || row.type || ""
-  ).toUpperCase();
+  let format = String(row.match_type || row.matchType || row.type || "").toUpperCase();
   if (format !== "ODI" && format !== "T20" && format !== "TEST") {
     format = "ODI"; // default bucket
   }
@@ -143,15 +155,8 @@ const normalizeMatchRow = (row, teamName) => {
   const oversFor = isTeam1 ? overs1 : overs2;
   const oversAgainst = isTeam1 ? overs2 : overs1;
 
-  // result
   const winner = row.winner || row.winner_team || "";
-  let result = "NR";
-  if (!winner) result = "NR";
-  else if (String(winner).toLowerCase().includes("draw")) result = "Draw";
-  else if (normalizeTeamName(winner).toLowerCase() === teamNorm)
-    result = "Win";
-  else result = "Loss";
-
+  const result = getResultForTeam(winner, teamNorm);
   const opponent = isTeam1 ? t2Norm : t1Norm;
 
   return {
@@ -163,7 +168,7 @@ const normalizeMatchRow = (row, teamName) => {
     dateLabel: label || monthKey,
     monthKey,
     opponent,
-    result,
+    result, // Win / Loss / Draw / NR
     runsFor,
     runsAgainst,
     oversFor,
@@ -187,7 +192,7 @@ const TeamDetails = () => {
 
   const teamLabel = normalizeTeamName(teamName || "");
 
-  // load matches
+  // load matches for this team from API
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -207,7 +212,7 @@ const TeamDetails = () => {
         setLoading(false);
       }
     };
-    load();
+    if (teamLabel) load();
   }, [teamLabel]);
 
   // normalized + sorted
@@ -215,7 +220,10 @@ const TeamDetails = () => {
     return matchesRaw
       .map((r) => normalizeMatchRow(r, teamLabel))
       .filter(Boolean)
-      .sort((a, b) => (a.date && b.date ? a.date - b.date : 0));
+      .sort((a, b) => {
+        if (a.date && b.date) return a.date - b.date;
+        return 0;
+      });
   }, [matchesRaw, teamLabel]);
 
   // seasons for dropdown
@@ -263,6 +271,8 @@ const TeamDetails = () => {
     });
 
     const winPct = total ? (wins * 100) / total : 0;
+
+    // last 5 matches in this filtered view
     const recentSlice = filteredMatches.slice(-5);
     const recentWins = recentSlice.filter((m) => m.result === "Win").length;
     const recentWinPct = recentSlice.length
@@ -289,7 +299,7 @@ const TeamDetails = () => {
     };
   }, [filteredMatches]);
 
-  // build monthly morale history
+  // build monthly morale history (simple, per-month stats)
   const history = useMemo(() => {
     if (!filteredMatches.length) return [];
 
@@ -327,38 +337,19 @@ const TeamDetails = () => {
       a.key.localeCompare(b.key)
     );
 
-    // compute morale per month
+    // compute morale per month – use that month’s win% as both long-term & recent
     rows.forEach((row) => {
       const winPct = row.matches ? (row.wins * 100) / row.matches : 0;
+
       let nrr = 0;
       if (row.oversFor > 0 && row.oversAgainst > 0) {
         nrr = row.runsFor / row.oversFor - row.runsAgainst / row.oversAgainst;
       }
 
-      // recent window: last 5 matches up to end of that month
-      const uptoIndex = filteredMatches.findIndex(
-        (m) => m.monthKey === row.key
-      );
-      let slice = filteredMatches;
-      if (uptoIndex >= 0) {
-        const upto = uptoIndex + row.matches;
-        slice = filteredMatches.slice(Math.max(0, upto - 5), upto);
-      }
-      const recentWins = slice.filter((m) => m.result === "Win").length;
-      const recentWinPct = slice.length
-        ? (recentWins * 100) / slice.length
-        : winPct;
-
-      const morale = classifyMorale(
-        winPct,
-        nrr,
-        recentWinPct,
-        row.matches
-      );
+      const morale = classifyMorale(winPct, nrr, winPct, row.matches);
 
       row.winPct = winPct;
       row.nrr = nrr;
-      row.recentWinPct = recentWinPct;
       row.moraleScore = morale.score;
       row.moraleBand = morale.band;
     });
@@ -383,10 +374,7 @@ const TeamDetails = () => {
   return (
     <div className="team-page">
       <div className="team-page-header">
-        <button
-          className="team-back-btn"
-          onClick={() => navigate(-1)}
-        >
+        <button className="team-back-btn" onClick={() => navigate(-1)}>
           ← Back
         </button>
 
@@ -424,9 +412,7 @@ const TeamDetails = () => {
                     </div>
                     <div className="stat-block">
                       <span className="stat-label">Draws</span>
-                      <span className="stat-value">
-                        {overallStats.draws}
-                      </span>
+                      <span className="stat-value">{overallStats.draws}</span>
                     </div>
                     <div className="stat-block">
                       <span className="stat-label">Win %</span>
