@@ -4,7 +4,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { getMatchesByTeam } from "../services/api";
+import { getMatchesByTeam, getTestMatches } from "../services/api"; // ✅ UPDATED
 import {
   ResponsiveContainer,
   LineChart,
@@ -188,11 +188,31 @@ const normalizeMatchRow = (row, teamName) => {
       year: "numeric",
     });
 
-  // scores (already stored as decimal overs from backend NRR fix)
-  const runs1 = Number(row.runs1 ?? row.runs_1 ?? 0);
-  const runs2 = Number(row.runs2 ?? row.runs_2 ?? 0);
-  const overs1 = Number(row.overs1 ?? row.overs_1 ?? 0);
-  const overs2 = Number(row.overs2 ?? row.overs_2 ?? 0);
+  // scores
+  const runs1 = Number(
+    row.runs1 ??
+      row.runs_1 ??
+      row.total_runs_team1 ??
+      0
+  );
+  const runs2 = Number(
+    row.runs2 ??
+      row.runs_2 ??
+      row.total_runs_team2 ??
+      0
+  );
+  const overs1 = Number(
+    row.overs1 ??
+      row.overs_1 ??
+      row.total_overs_team1 ??
+      0
+  );
+  const overs2 = Number(
+    row.overs2 ??
+      row.overs_2 ??
+      row.total_overs_team2 ??
+      0
+  );
 
   const runsFor = isTeam1 ? runs1 : runs2;
   const runsAgainst = isTeam1 ? runs2 : runs1;
@@ -205,7 +225,7 @@ const normalizeMatchRow = (row, teamName) => {
 
   return {
     id: row.id,
-    matchName: row.match_name || row.matchName || "",
+    matchName: row.match_name || row.matchName || row.series_name || "",
     format,
     seasonYear,
     date: dt,
@@ -261,7 +281,12 @@ const TeamDetails = () => {
             const name = normalizeTeamName(rawName);
 
             const matches =
-              Number(row.matches_played ?? row.matches ?? row.total_matches ?? 0) || 0;
+              Number(
+                row.matches_played ??
+                  row.matches ??
+                  row.total_matches ??
+                  0
+              ) || 0;
             const wins = Number(row.wins ?? 0) || 0;
             const losses = Number(row.losses ?? 0) || 0;
             const draws = Number(row.draws ?? 0) || 0;
@@ -318,14 +343,45 @@ const TeamDetails = () => {
       setLoading(true);
       setError("");
       try {
-        const res = await getMatchesByTeam(teamLabel);
-        if (Array.isArray(res)) {
-          setMatchesRaw(res);
-        } else {
-          setMatchesRaw([]);
-        }
+        // ✅ fetch limited-overs + Test matches
+        const [limitedRes, testRes] = await Promise.all([
+          getMatchesByTeam(teamLabel),
+          getTestMatches(), // (used exactly like in MatchCards)
+        ]);
+
+        const limitedArr = Array.isArray(limitedRes)
+          ? limitedRes
+          : limitedRes?.data || [];
+
+        const testArrRaw = Array.isArray(testRes)
+          ? testRes
+          : testRes?.data || [];
+
+        // normalise Test rows → expose totals & mark as TEST
+        const testArr = testArrRaw.map((row) => ({
+          ...row,
+          match_type: (row.match_type || "TEST").toUpperCase(),
+          runs1:
+            row.runs1 ??
+            row.runs_1 ??
+            row.total_runs_team1,
+          runs2:
+            row.runs2 ??
+            row.runs_2 ??
+            row.total_runs_team2,
+          overs1:
+            row.overs1 ??
+            row.overs_1 ??
+            row.total_overs_team1,
+          overs2:
+            row.overs2 ??
+            row.overs_2 ??
+            row.total_overs_team2,
+        }));
+
+        setMatchesRaw([...limitedArr, ...testArr]);
       } catch (e) {
-        console.error("getMatchesByTeam error", e);
+        console.error("getMatchesByTeam / getTestMatches error", e);
         setError("Unable to fetch matches for this team.");
         setMatchesRaw([]);
       } finally {
@@ -365,7 +421,10 @@ const TeamDetails = () => {
     if (isOverview) return [];
     return matches.filter((m) => {
       if (formatFilter !== "ALL" && m.format !== formatFilter) return false;
-      if (seasonFilter !== "ALL" && m.seasonYear !== Number(seasonFilter))
+      if (
+        seasonFilter !== "ALL" &&
+        m.seasonYear !== Number(seasonFilter)
+      )
         return false;
       return true;
     });
@@ -400,7 +459,9 @@ const TeamDetails = () => {
 
     // last 5 matches in this filtered view
     const recentSlice = filteredMatches.slice(-5);
-    const recentWins = recentSlice.filter((m) => m.result === "Win").length;
+    const recentWins = recentSlice.filter(
+      (m) => m.result === "Win"
+    ).length;
     const recentWinPct = recentSlice.length
       ? (recentWins * 100) / recentSlice.length
       : winPct;
@@ -410,7 +471,12 @@ const TeamDetails = () => {
       nrr = runsFor / oversFor - runsAgainst / oversAgainst;
     }
 
-    const morale = classifyMorale(winPct, nrr, recentWinPct, total);
+    const morale = classifyMorale(
+      winPct,
+      nrr,
+      recentWinPct,
+      total
+    );
 
     return {
       matches: total,
@@ -465,16 +531,25 @@ const TeamDetails = () => {
 
     // compute morale per month – use that month’s win% as both long-term & recent
     rows.forEach((row) => {
-      const rawWinPct = row.matches ? (row.wins * 100) / row.matches : 0;
+      const rawWinPct = row.matches
+        ? (row.wins * 100) / row.matches
+        : 0;
       const winPct = round1(rawWinPct);
 
       let nrr = 0;
       if (row.oversFor > 0 && row.oversAgainst > 0) {
-        nrr = row.runsFor / row.oversFor - row.runsAgainst / row.oversAgainst;
+        nrr =
+          row.runsFor / row.oversFor -
+          row.runsAgainst / row.oversAgainst;
       }
       const nrrRounded = round2(nrr);
 
-      const morale = classifyMorale(winPct, nrrRounded, winPct, row.matches);
+      const morale = classifyMorale(
+        winPct,
+        nrrRounded,
+        winPct,
+        row.matches
+      );
 
       row.winPct = winPct;
       row.nrr = nrrRounded;
@@ -509,7 +584,8 @@ const TeamDetails = () => {
           <div>
             <h2 className="teams-title">Teams Overview</h2>
             <p className="teams-subtitle">
-              Live morale snapshot based on Win %, NRR and form across ODI &amp; T20.
+              Live morale snapshot based on Win %, NRR and form across
+              ODI &amp; T20.
             </p>
           </div>
 
@@ -532,21 +608,28 @@ const TeamDetails = () => {
           <div className="teams-info-popup">
             <h4>How Team Morale &amp; Rank work</h4>
             <p>
-              Each team&apos;s morale (0–100) is derived from overall Win %, Net Run Rate
-              and match volume. Bands: <strong>High</strong> ≥ 70,{" "}
-              <strong>Moderate</strong> 45–69, <strong>Low</strong> &lt; 45.
+              Each team&apos;s morale (0–100) is derived from overall
+              Win %, Net Run Rate and match volume. Bands:{" "}
+              <strong>High</strong> ≥ 70,{" "}
+              <strong>Moderate</strong> 45–69,{" "}
+              <strong>Low</strong> &lt; 45.
             </p>
             <p>
-              Rank is assigned by morale score (higher first), with Win % as a tie-breaker.
+              Rank is assigned by morale score (higher first), with
+              Win % as a tie-breaker.
             </p>
           </div>
         )}
 
         {overviewLoading && (
-          <div className="teams-overview-status">Loading teams…</div>
+          <div className="teams-overview-status">
+            Loading teams…
+          </div>
         )}
         {overviewError && (
-          <div className="teams-overview-status error">{overviewError}</div>
+          <div className="teams-overview-status error">
+            {overviewError}
+          </div>
         )}
 
         {!overviewLoading && !overviewError && (
@@ -559,7 +642,8 @@ const TeamDetails = () => {
                     <span
                       className={`team-morale-pill small team-morale-${t.moraleBand.toLowerCase()}`}
                     >
-                      {t.moraleBand.toUpperCase()} • {t.moraleScore}
+                      {t.moraleBand.toUpperCase()} •{" "}
+                      {t.moraleScore}
                     </span>
                   </div>
                   <div className="teams-rank-pill">
@@ -570,23 +654,33 @@ const TeamDetails = () => {
 
                 <div className="teams-card-body">
                   <div className="teams-stat">
-                    <span className="teams-stat-label">Matches</span>
-                    <span className="teams-stat-value">{t.matches}</span>
+                    <span className="teams-stat-label">
+                      Matches
+                    </span>
+                    <span className="teams-stat-value">
+                      {t.matches}
+                    </span>
                   </div>
                   <div className="teams-stat">
-                    <span className="teams-stat-label">Win %</span>
+                    <span className="teams-stat-label">
+                      Win %
+                    </span>
                     <span className="teams-stat-value">
                       {t.winPct.toFixed(1)}%
                     </span>
                   </div>
                   <div className="teams-stat">
-                    <span className="teams-stat-label">NRR</span>
+                    <span className="teams-stat-label">
+                      NRR
+                    </span>
                     <span className="teams-stat-value">
                       {t.nrr.toFixed(2)}
                     </span>
                   </div>
                   <div className="teams-stat">
-                    <span className="teams-stat-label">W / L</span>
+                    <span className="teams-stat-label">
+                      W / L
+                    </span>
                     <span className="teams-stat-value">
                       {t.wins} / {t.losses}
                     </span>
@@ -597,7 +691,9 @@ const TeamDetails = () => {
                   <button
                     className="teams-view-btn"
                     onClick={() =>
-                      navigate(`/teams/${encodeURIComponent(t.name)}`)
+                      navigate(
+                        `/teams/${encodeURIComponent(t.name)}`
+                      )
                     }
                   >
                     View Stats
@@ -616,7 +712,10 @@ const TeamDetails = () => {
   return (
     <div className="team-page">
       <div className="team-page-header">
-        <button className="team-back-btn" onClick={() => navigate(-1)}>
+        <button
+          className="team-back-btn"
+          onClick={() => navigate(-1)}
+        >
           ← Back
         </button>
 
@@ -624,12 +723,16 @@ const TeamDetails = () => {
           <h2>{teamLabel || "Team"}</h2>
           <span className="team-header-sub">
             Team Morale • {formatLabel}
-            {seasonFilter !== "ALL" ? ` • Season ${seasonFilter}` : ""}
+            {seasonFilter !== "ALL"
+              ? ` • Season ${seasonFilter}`
+              : ""}
           </span>
         </div>
       </div>
 
-      {loading && <div className="team-loading">Loading team data…</div>}
+      {loading && (
+        <div className="team-loading">Loading team data…</div>
+      )}
       {error && <div className="team-error">{error}</div>}
 
       {!loading && !error && (
@@ -641,54 +744,77 @@ const TeamDetails = () => {
                 <>
                   <div className="team-stats-grid">
                     <div className="stat-block">
-                      <span className="stat-label">Matches</span>
+                      <span className="stat-label">
+                        Matches
+                      </span>
                       <span className="stat-value">
                         {overallStats.matches}
                       </span>
                     </div>
                     <div className="stat-block">
-                      <span className="stat-label">Wins / Losses</span>
+                      <span className="stat-label">
+                        Wins / Losses
+                      </span>
                       <span className="stat-value">
-                        {overallStats.wins} / {overallStats.losses}
+                        {overallStats.wins} /{" "}
+                        {overallStats.losses}
                       </span>
                     </div>
                     <div className="stat-block">
-                      <span className="stat-label">Draws</span>
+                      <span className="stat-label">
+                        Draws
+                      </span>
                       <span className="stat-value">
                         {overallStats.draws}
                       </span>
                     </div>
                     <div className="stat-block">
-                      <span className="stat-label">Win %</span>
+                      <span className="stat-label">
+                        Win %
+                      </span>
                       <span className="stat-value">
-                        {round1(overallStats.winPct).toFixed(1)}%
+                        {round1(
+                          overallStats.winPct
+                        ).toFixed(1)}
+                        %
                       </span>
                     </div>
                     <div className="stat-block">
-                      <span className="stat-label">NRR</span>
+                      <span className="stat-label">
+                        NRR
+                      </span>
                       <span className="stat-value">
-                        {round2(overallStats.nrr).toFixed(2)}
+                        {round2(
+                          overallStats.nrr
+                        ).toFixed(2)}
                       </span>
                     </div>
                     <div className="stat-block">
-                      <span className="stat-label">Last 5 Win %</span>
+                      <span className="stat-label">
+                        Last 5 Win %
+                      </span>
                       <span className="stat-value">
-                        {round1(overallStats.recentWinPct).toFixed(1)}%
+                        {round1(
+                          overallStats.recentWinPct
+                        ).toFixed(1)}
+                        %
                       </span>
                     </div>
                     <div className="stat-block">
-                      <span className="stat-label">Current Morale</span>
+                      <span className="stat-label">
+                        Current Morale
+                      </span>
                       <span
                         className={`team-morale-pill team-morale-${overallStats.moraleBand.toLowerCase()}`}
                       >
-                        {overallStats.moraleBand.toUpperCase()} •{" "}
-                        {overallStats.moraleScore}
+                        {overallStats.moraleBand.toUpperCase()}{" "}
+                        • {overallStats.moraleScore}
                       </span>
                     </div>
                   </div>
                   <div className="team-morale-legend">
-                    High = strong form • Moderate = stable • Low = needs
-                    improvement.
+                    High = strong form • Moderate = stable •
+                    Low = needs improvement.
                   </div>
                 </>
               ) : (
@@ -702,7 +828,7 @@ const TeamDetails = () => {
           {/* filters */}
           <div className="team-filters-row">
             <div className="pill-group">
-              <span className="pill-group-label">Format</span>
+              <span className="pill-group-label">FORMAT</span>
               {["ALL", "ODI", "T20", "TEST"].map((fmt) => (
                 <button
                   key={fmt}
@@ -717,26 +843,30 @@ const TeamDetails = () => {
             </div>
 
             <div className="pill-group">
-              <span className="pill-group-label">Morale</span>
-              {["ALL", "High", "Moderate", "Low"].map((band) => (
-                <button
-                  key={band}
-                  className={`pill-btn pill-${band.toLowerCase()} ${
-                    moraleFilter === band ? "active" : ""
-                  }`}
-                  onClick={() => setMoraleFilter(band)}
-                >
-                  {band === "ALL" ? "All" : band}
-                </button>
-              ))}
+              <span className="pill-group-label">MORALE</span>
+              {["ALL", "High", "Moderate", "Low"].map(
+                (band) => (
+                  <button
+                    key={band}
+                    className={`pill-btn pill-${band.toLowerCase()} ${
+                      moraleFilter === band ? "active" : ""
+                    }`}
+                    onClick={() => setMoraleFilter(band)}
+                  >
+                    {band === "ALL" ? "All" : band}
+                  </button>
+                )
+              )}
             </div>
 
             <div className="season-filter">
-              <span className="pill-group-label">Season</span>
+              <span className="pill-group-label">SEASON</span>
               <select
                 className="season-select"
                 value={seasonFilter}
-                onChange={(e) => setSeasonFilter(e.target.value)}
+                onChange={(e) =>
+                  setSeasonFilter(e.target.value)
+                }
               >
                 <option value="ALL">All</option>
                 {availableSeasons.map((y) => (
@@ -754,14 +884,20 @@ const TeamDetails = () => {
               <div className="card-header-row">
                 <h4>Season / Month Morale Trend</h4>
                 <span className="card-sub">
-                  Morale score (0–100) calculated from win%, recent form and
-                  NRR.
+                  Morale score (0–100) calculated from win%,
+                  recent form and NRR.
                 </span>
               </div>
               {filteredHistory.length ? (
-                <ResponsiveContainer width="100%" height={260}>
+                <ResponsiveContainer
+                  width="100%"
+                  height={260}
+                >
                   <LineChart data={filteredHistory}>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.25} />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      opacity={0.25}
+                    />
                     <XAxis dataKey="label" />
                     <YAxis domain={[0, 100]} />
                     <Tooltip
@@ -769,9 +905,17 @@ const TeamDetails = () => {
                         if (name === "moraleScore")
                           return [value, "Morale"];
                         if (name === "winPct")
-                          return [`${round1(value).toFixed(1)}%`, "Win %"];
+                          return [
+                            `${round1(value).toFixed(
+                              1
+                            )}%`,
+                            "Win %",
+                          ];
                         if (name === "nrr")
-                          return [round2(value).toFixed(2), "NRR"];
+                          return [
+                            round2(value).toFixed(2),
+                            "NRR",
+                          ];
                         return value;
                       }}
                     />
@@ -805,7 +949,8 @@ const TeamDetails = () => {
               <div className="card-header-row">
                 <h4>Monthly Morale Snapshot</h4>
                 <span className="card-sub">
-                  Morale filter (High / Moderate / Low) applies here.
+                  Morale filter (High / Moderate / Low) applies
+                  here.
                 </span>
               </div>
               {filteredHistory.length ? (
@@ -829,8 +974,12 @@ const TeamDetails = () => {
                           <td>
                             {h.wins} / {h.losses}
                           </td>
-                          <td>{round1(h.winPct).toFixed(1)}%</td>
-                          <td>{round2(h.nrr).toFixed(2)}</td>
+                          <td>
+                            {round1(h.winPct).toFixed(1)}%
+                          </td>
+                          <td>
+                            {round2(h.nrr).toFixed(2)}
+                          </td>
                           <td>
                             <span
                               className={`team-morale-pill team-morale-${h.moraleBand.toLowerCase()}`}
@@ -857,7 +1006,8 @@ const TeamDetails = () => {
             <div className="card-header-row">
               <h4>Recent Matches (current view)</h4>
               <span className="card-sub">
-                Last 8 matches after applying format + season filters.
+                Last 8 matches after applying format + season
+                filters.
               </span>
             </div>
             {recentMatches.length ? (
@@ -887,10 +1037,12 @@ const TeamDetails = () => {
                           </span>
                         </td>
                         <td>
-                          {m.runsFor} / {formatOvers(m.oversFor)}
+                          {m.runsFor} /{" "}
+                          {formatOvers(m.oversFor)}
                         </td>
                         <td>
-                          {m.runsAgainst} / {formatOvers(m.oversAgainst)}
+                          {m.runsAgainst} /{" "}
+                          {formatOvers(m.oversAgainst)}
                         </td>
                       </tr>
                     ))}
