@@ -1,8 +1,9 @@
 // src/components/TeamDetails.js
-// Pure data-driven Team Morale dashboard (ODI / T20 / Test)
+// Teams Overview (landing) + per-team Morale dashboard (ODI / T20 / Test)
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 import { getMatchesByTeam } from "../services/api";
 import {
   ResponsiveContainer,
@@ -15,6 +16,8 @@ import {
   Legend,
 } from "recharts";
 import "./TeamDetails.css";
+
+const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
 
 /* ----------------- helpers ----------------- */
 
@@ -73,8 +76,8 @@ const normalizeTeamName = (name) => {
     nep: "Nepal",
     nepal: "Nepal",
 
-    uae: "UAE",
-    "united arab emirates": "UAE",
+    uae: "United Arab Emirates",
+    "united arab emirates": "United Arab Emirates",
 
     nam: "Namibia",
     namibia: "Namibia",
@@ -222,7 +225,15 @@ const normalizeMatchRow = (row, teamName) => {
 const TeamDetails = () => {
   const { teamName } = useParams();
   const navigate = useNavigate();
+  const isOverview = !teamName;
 
+  // ---------- Overview (landing cards) state ----------
+  const [overviewTeams, setOverviewTeams] = useState([]);
+  const [overviewLoading, setOverviewLoading] = useState(true);
+  const [overviewError, setOverviewError] = useState("");
+  const [showInfo, setShowInfo] = useState(false);
+
+  // ---------- Detail view state ----------
   const [matchesRaw, setMatchesRaw] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -233,9 +244,77 @@ const TeamDetails = () => {
 
   const teamLabel = normalizeTeamName(teamName || "");
 
-  // load matches for this team from API
+  // ---------- Data loading ----------
   useEffect(() => {
-    const load = async () => {
+    // Landing page → fetch all teams and compute morale
+    if (isOverview) {
+      const loadOverview = async () => {
+        setOverviewLoading(true);
+        setOverviewError("");
+        try {
+          const res = await axios.get(`${API_BASE}/api/teams`);
+          const rows = Array.isArray(res.data) ? res.data : [];
+
+          const enriched = rows.map((row) => {
+            const rawName =
+              row.team_name || row.name || row.team || "";
+            const name = normalizeTeamName(rawName);
+
+            const matches =
+              Number(row.matches_played ?? row.matches ?? row.total_matches ?? 0) || 0;
+            const wins = Number(row.wins ?? 0) || 0;
+            const losses = Number(row.losses ?? 0) || 0;
+            const draws = Number(row.draws ?? 0) || 0;
+            const nrr = Number(row.nrr ?? 0) || 0;
+
+            const winPct = matches ? (wins * 100) / matches : 0;
+
+            const morale = classifyMorale(winPct, nrr, winPct, matches);
+
+            return {
+              name,
+              matches,
+              wins,
+              losses,
+              draws,
+              winPct: round1(winPct),
+              nrr: round2(nrr),
+              moraleBand: morale.band,
+              moraleScore: morale.score,
+            };
+          });
+
+          // Sort by morale score desc (then win% as tie-breaker)
+          enriched.sort((a, b) => {
+            if (b.moraleScore !== a.moraleScore) {
+              return b.moraleScore - a.moraleScore;
+            }
+            return b.winPct - a.winPct;
+          });
+
+          // Assign ranks
+          const ranked = enriched.map((t, idx) => ({
+            ...t,
+            rank: idx + 1,
+          }));
+
+          setOverviewTeams(ranked);
+        } catch (e) {
+          console.error("teams overview error", e);
+          setOverviewError("Unable to load teams overview.");
+          setOverviewTeams([]);
+        } finally {
+          setOverviewLoading(false);
+        }
+      };
+
+      loadOverview();
+      return;
+    }
+
+    // Detail view → load matches for this team
+    const loadDetails = async () => {
+      if (!teamLabel) return;
       setLoading(true);
       setError("");
       try {
@@ -253,11 +332,15 @@ const TeamDetails = () => {
         setLoading(false);
       }
     };
-    if (teamLabel) load();
-  }, [teamLabel]);
+
+    loadDetails();
+  }, [isOverview, teamLabel]);
+
+  // ---------- Detail view calculations ----------
 
   // normalized + sorted
   const matches = useMemo(() => {
+    if (isOverview) return [];
     return matchesRaw
       .map((r) => normalizeMatchRow(r, teamLabel))
       .filter(Boolean)
@@ -265,30 +348,32 @@ const TeamDetails = () => {
         if (a.date && b.date) return a.date - b.date;
         return 0;
       });
-  }, [matchesRaw, teamLabel]);
+  }, [matchesRaw, teamLabel, isOverview]);
 
   // seasons for dropdown
   const availableSeasons = useMemo(() => {
+    if (isOverview) return [];
     const set = new Set();
     matches.forEach((m) => {
       if (m.seasonYear) set.add(m.seasonYear);
     });
     return Array.from(set).sort();
-  }, [matches]);
+  }, [matches, isOverview]);
 
   // apply format + season filters
   const filteredMatches = useMemo(() => {
+    if (isOverview) return [];
     return matches.filter((m) => {
       if (formatFilter !== "ALL" && m.format !== formatFilter) return false;
       if (seasonFilter !== "ALL" && m.seasonYear !== Number(seasonFilter))
         return false;
       return true;
     });
-  }, [matches, formatFilter, seasonFilter]);
+  }, [matches, formatFilter, seasonFilter, isOverview]);
 
   // overall stats for current view
   const overallStats = useMemo(() => {
-    if (!filteredMatches.length) return null;
+    if (isOverview || !filteredMatches.length) return null;
 
     let total = 0,
       wins = 0,
@@ -338,11 +423,11 @@ const TeamDetails = () => {
       moraleBand: morale.band,
       moraleScore: morale.score,
     };
-  }, [filteredMatches]);
+  }, [filteredMatches, isOverview]);
 
   // build monthly morale history (simple, per-month stats)
   const history = useMemo(() => {
-    if (!filteredMatches.length) return [];
+    if (isOverview || !filteredMatches.length) return [];
 
     const map = new Map();
 
@@ -398,21 +483,135 @@ const TeamDetails = () => {
     });
 
     return rows;
-  }, [filteredMatches]);
+  }, [filteredMatches, isOverview]);
 
   // morale band filter on history
   const filteredHistory = useMemo(() => {
+    if (isOverview) return [];
     if (moraleFilter === "ALL") return history;
     return history.filter((h) => h.moraleBand === moraleFilter);
-  }, [history, moraleFilter]);
+  }, [history, moraleFilter, isOverview]);
 
   const recentMatches = useMemo(
-    () => filteredMatches.slice(-8).reverse(),
-    [filteredMatches]
+    () => (isOverview ? [] : filteredMatches.slice(-8).reverse()),
+    [filteredMatches, isOverview]
   );
 
   const formatLabel =
     formatFilter === "ALL" ? "All Formats" : formatFilter.toUpperCase();
+
+  /* ------------- OVERVIEW RENDER ------------- */
+
+  if (isOverview) {
+    return (
+      <div className="teams-page-overview">
+        <div className="teams-header-row">
+          <div>
+            <h2 className="teams-title">Teams Overview</h2>
+            <p className="teams-subtitle">
+              Live morale snapshot based on Win %, NRR and form across ODI &amp; T20.
+            </p>
+          </div>
+
+          <div className="teams-header-right">
+            <button
+              className="teams-info-btn"
+              onClick={() => setShowInfo((v) => !v)}
+              title="How morale & rank are calculated"
+            >
+              i
+            </button>
+            <div className="teams-count-pill">
+              <span>Total Teams</span>
+              <strong>{overviewTeams.length}</strong>
+            </div>
+          </div>
+        </div>
+
+        {showInfo && (
+          <div className="teams-info-popup">
+            <h4>How Team Morale &amp; Rank work</h4>
+            <p>
+              Each team&apos;s morale (0–100) is derived from overall Win %, Net Run Rate
+              and match volume. Bands: <strong>High</strong> ≥ 70,{" "}
+              <strong>Moderate</strong> 45–69, <strong>Low</strong> &lt; 45.
+            </p>
+            <p>
+              Rank is assigned by morale score (higher first), with Win % as a tie-breaker.
+            </p>
+          </div>
+        )}
+
+        {overviewLoading && (
+          <div className="teams-overview-status">Loading teams…</div>
+        )}
+        {overviewError && (
+          <div className="teams-overview-status error">{overviewError}</div>
+        )}
+
+        {!overviewLoading && !overviewError && (
+          <div className="teams-grid">
+            {overviewTeams.map((t) => (
+              <div className="teams-card" key={t.name}>
+                <div className="teams-card-top">
+                  <div className="teams-card-name-block">
+                    <h3 className="teams-card-name">{t.name}</h3>
+                    <span
+                      className={`team-morale-pill small team-morale-${t.moraleBand.toLowerCase()}`}
+                    >
+                      {t.moraleBand.toUpperCase()} • {t.moraleScore}
+                    </span>
+                  </div>
+                  <div className="teams-rank-pill">
+                    <span>Rank</span>
+                    <strong>#{t.rank}</strong>
+                  </div>
+                </div>
+
+                <div className="teams-card-body">
+                  <div className="teams-stat">
+                    <span className="teams-stat-label">Matches</span>
+                    <span className="teams-stat-value">{t.matches}</span>
+                  </div>
+                  <div className="teams-stat">
+                    <span className="teams-stat-label">Win %</span>
+                    <span className="teams-stat-value">
+                      {t.winPct.toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="teams-stat">
+                    <span className="teams-stat-label">NRR</span>
+                    <span className="teams-stat-value">
+                      {t.nrr.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="teams-stat">
+                    <span className="teams-stat-label">W / L</span>
+                    <span className="teams-stat-value">
+                      {t.wins} / {t.losses}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="teams-card-footer">
+                  <button
+                    className="teams-view-btn"
+                    onClick={() =>
+                      navigate(`/teams/${encodeURIComponent(t.name)}`)
+                    }
+                  >
+                    View Stats
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  /* ------------- DETAIL RENDER ------------- */
 
   return (
     <div className="team-page">
