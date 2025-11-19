@@ -257,6 +257,7 @@
   font-size: 12px;
 }
 
+/* header row: dark theme background, clear text */
 .history-table thead th,
 .recent-table thead th {
   text-align: left;
@@ -265,7 +266,8 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #9ca3af;
+  background: radial-gradient(circle at top, #020617, #020617 70%, #020617);
+  color: #f9fafb;
 }
 
 .history-table tbody td,

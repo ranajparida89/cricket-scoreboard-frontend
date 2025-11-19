@@ -24,39 +24,65 @@ const normalizeTeamName = (name) => {
   const map = {
     ind: "India",
     india: "India",
+    in: "India",
+
     aus: "Australia",
     australia: "Australia",
+    au: "Australia",
+
     eng: "England",
     england: "England",
+    gb: "England",
+
     pak: "Pakistan",
     pakistan: "Pakistan",
+    pk: "Pakistan",
+
     nz: "New Zealand",
     "new zealand": "New Zealand",
+
     sa: "South Africa",
     "south africa": "South Africa",
+    za: "South Africa",
+
     sl: "Sri Lanka",
     "sri lanka": "Sri Lanka",
+    lk: "Sri Lanka",
+
     wi: "West Indies",
     "west indies": "West Indies",
+
     afg: "Afghanistan",
     afghanistan: "Afghanistan",
+
     ban: "Bangladesh",
     bangladesh: "Bangladesh",
+
     zim: "Zimbabwe",
     zimbabwe: "Zimbabwe",
+
     ire: "Ireland",
     ireland: "Ireland",
+
     ned: "Netherlands",
     netherlands: "Netherlands",
+
     sco: "Scotland",
     scotland: "Scotland",
+
     nep: "Nepal",
     nepal: "Nepal",
+
     uae: "UAE",
+    "united arab emirates": "UAE",
+
     nam: "Namibia",
     namibia: "Namibia",
+
     usa: "USA",
     oma: "Oman",
+    oman: "Oman",
+
     png: "Papua New Guinea",
     "papua new guinea": "Papua New Guinea",
   };
@@ -65,6 +91,18 @@ const normalizeTeamName = (name) => {
 
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
+const round1 = (v) =>
+  Number.isFinite(v) ? Math.round(v * 10) / 10 : 0;
+
+const round2 = (v) =>
+  Number.isFinite(v) ? Math.round(v * 100) / 100 : 0;
+
+const formatOvers = (v) => {
+  if (!Number.isFinite(v)) return "-";
+  const r = Math.round(v * 10) / 10; // 30.3333 → 30.3
+  return Number.isInteger(r) ? r.toFixed(0) : r.toFixed(1);
+};
+
 const classifyMorale = (winPct, nrr, recentWinPct, matchesCount) => {
   const w = Number.isFinite(winPct) ? winPct : 0;
   const r = Number.isFinite(recentWinPct) ? recentWinPct : w;
@@ -72,7 +110,8 @@ const classifyMorale = (winPct, nrr, recentWinPct, matchesCount) => {
 
   // very few matches → treat as neutral band
   if (!matchesCount || matchesCount < 3) {
-    const rawNeutral = 0.55 * w + 0.25 * r + 15 * clamp(n, -1.5, 1.5);
+    const rawNeutral =
+      0.55 * w + 0.25 * r + 15 * clamp(n, -1.5, 1.5);
     return {
       band: "Moderate",
       score: Math.round(clamp(rawNeutral, 0, 100)),
@@ -122,7 +161,9 @@ const normalizeMatchRow = (row, teamName) => {
   if (!isTeam1 && !isTeam2) return null;
 
   // match type
-  let format = String(row.match_type || row.matchType || row.type || "").toUpperCase();
+  let format = String(
+    row.match_type || row.matchType || row.type || ""
+  ).toUpperCase();
   if (format !== "ODI" && format !== "T20" && format !== "TEST") {
     format = "ODI"; // default bucket
   }
@@ -144,7 +185,7 @@ const normalizeMatchRow = (row, teamName) => {
       year: "numeric",
     });
 
-  // scores
+  // scores (already stored as decimal overs from backend NRR fix)
   const runs1 = Number(row.runs1 ?? row.runs_1 ?? 0);
   const runs2 = Number(row.runs2 ?? row.runs_2 ?? 0);
   const overs1 = Number(row.overs1 ?? row.overs_1 ?? 0);
@@ -339,17 +380,19 @@ const TeamDetails = () => {
 
     // compute morale per month – use that month’s win% as both long-term & recent
     rows.forEach((row) => {
-      const winPct = row.matches ? (row.wins * 100) / row.matches : 0;
+      const rawWinPct = row.matches ? (row.wins * 100) / row.matches : 0;
+      const winPct = round1(rawWinPct);
 
       let nrr = 0;
       if (row.oversFor > 0 && row.oversAgainst > 0) {
         nrr = row.runsFor / row.oversFor - row.runsAgainst / row.oversAgainst;
       }
+      const nrrRounded = round2(nrr);
 
-      const morale = classifyMorale(winPct, nrr, winPct, row.matches);
+      const morale = classifyMorale(winPct, nrrRounded, winPct, row.matches);
 
       row.winPct = winPct;
-      row.nrr = nrr;
+      row.nrr = nrrRounded;
       row.moraleScore = morale.score;
       row.moraleBand = morale.band;
     });
@@ -412,24 +455,26 @@ const TeamDetails = () => {
                     </div>
                     <div className="stat-block">
                       <span className="stat-label">Draws</span>
-                      <span className="stat-value">{overallStats.draws}</span>
+                      <span className="stat-value">
+                        {overallStats.draws}
+                      </span>
                     </div>
                     <div className="stat-block">
                       <span className="stat-label">Win %</span>
                       <span className="stat-value">
-                        {overallStats.winPct.toFixed(1)}%
+                        {round1(overallStats.winPct).toFixed(1)}%
                       </span>
                     </div>
                     <div className="stat-block">
                       <span className="stat-label">NRR</span>
                       <span className="stat-value">
-                        {overallStats.nrr.toFixed(2)}
+                        {round2(overallStats.nrr).toFixed(2)}
                       </span>
                     </div>
                     <div className="stat-block">
                       <span className="stat-label">Last 5 Win %</span>
                       <span className="stat-value">
-                        {overallStats.recentWinPct.toFixed(1)}%
+                        {round1(overallStats.recentWinPct).toFixed(1)}%
                       </span>
                     </div>
                     <div className="stat-block">
@@ -525,9 +570,9 @@ const TeamDetails = () => {
                         if (name === "moraleScore")
                           return [value, "Morale"];
                         if (name === "winPct")
-                          return [`${value.toFixed(1)}%`, "Win %"];
+                          return [`${round1(value).toFixed(1)}%`, "Win %"];
                         if (name === "nrr")
-                          return [value.toFixed(2), "NRR"];
+                          return [round2(value).toFixed(2), "NRR"];
                         return value;
                       }}
                     />
@@ -585,8 +630,8 @@ const TeamDetails = () => {
                           <td>
                             {h.wins} / {h.losses}
                           </td>
-                          <td>{h.winPct.toFixed(1)}%</td>
-                          <td>{h.nrr.toFixed(2)}</td>
+                          <td>{round1(h.winPct).toFixed(1)}%</td>
+                          <td>{round2(h.nrr).toFixed(2)}</td>
                           <td>
                             <span
                               className={`team-morale-pill team-morale-${h.moraleBand.toLowerCase()}`}
@@ -643,10 +688,10 @@ const TeamDetails = () => {
                           </span>
                         </td>
                         <td>
-                          {m.runsFor} / {m.oversFor}
+                          {m.runsFor} / {formatOvers(m.oversFor)}
                         </td>
                         <td>
-                          {m.runsAgainst} / {m.oversAgainst}
+                          {m.runsAgainst} / {formatOvers(m.oversAgainst)}
                         </td>
                       </tr>
                     ))}
