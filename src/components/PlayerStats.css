@@ -1,5 +1,5 @@
 /* =========================
-   CARD BASE / GENERAL
+   CARD BASE / GENERAL New File
    ========================= */
 .ps-card {
   position: relative;
@@ -612,20 +612,20 @@
   margin-left: 8px;
 }
 
-/* mid-sized capsules with same colour language */
+/* mid-sized capsules; colour comes from high/moderate/low classes */
 button.moral-filter-btn,
 .moral-filter-btn {
-  border-radius: 999px !important;
-  border: 1px solid rgba(148, 163, 184, 0.6) !important;
-  background: rgba(15, 23, 42, 0.9) !important;
-  color: #cbd5f5 !important;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(15, 23, 42, 0.9);
+  color: #cbd5f5;
 
-  font-size: 11px !important;      /* mid-size text */
+  font-size: 11px;
   font-weight: 700;
-  padding: 4px 12px !important;    /* chunkier pill */
-  line-height: 1.1 !important;
-  min-width: 52px;                 /* consistent width */
-  height: 24px;                    /* consistent height */
+  padding: 4px 12px;
+  line-height: 1.1;
+  min-width: 52px;
+  height: 24px;
 
   cursor: pointer;
   transition: all 0.15s ease;
@@ -636,7 +636,7 @@ button.moral-filter-btn,
   transform: translateY(-1px);
 }
 
-/* reuse same colour language as morale pills */
+/* colour-specific pills */
 .moral-filter-high {
   background: linear-gradient(135deg, #064e3b, #059669) !important;
   border-color: #22c55e !important;
@@ -657,7 +657,7 @@ button.moral-filter-btn,
   box-shadow: 0 0 12px rgba(96, 165, 250, 0.7);
 }
 
-/* Moral legend */
+/* Moral legend New File*/ 
 .moral-legend {
   display: flex;
   flex-wrap: wrap;
