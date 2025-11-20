@@ -89,24 +89,25 @@ header {
   color: #fff;
 }
 
-/* ===== Cards / dark blocks — MORE translucent glass (center strip) ===== */
+/* ===== Cards / dark blocks — MORE transparent glass ===== */
 .card,
 .bg-dark:not(body) {
-  /* much lighter glass so side player photos shine through */
-  background: rgba(10, 16, 28, 0.38) !important; /* was ~0.70 */
+  /* stronger glass, lighter fill so side players show through */
+  background: rgba(18, 24, 40, 0.45) !important;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   border-radius: 1.2em;
-  box-shadow: 0 2px 14px #0006;
+  box-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
 }
 
-/* On smaller screens, tone blur down but keep translucency */
+/* On smaller screens, tone blur down to avoid artifacts
+   but KEEP a lighter, semi-transparent fill */
 @media (max-width: 768px) {
   .card,
   .bg-dark:not(body) {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    background: rgba(8, 16, 28, 0.62) !important;   /* was ~0.85 */
+    background: rgba(12, 20, 34, 0.75) !important;
   }
 }
 
@@ -182,15 +183,14 @@ a:hover { color: #ffb800; text-decoration: underline; }
 
 /* Touch devices & small screens: disable heavy effects */
 @media (max-width: 900px), (pointer: coarse) {
-  /* Kill backdrop blur on glass cards to stop last flickers,
-     but keep them more transparent than before */
+  /* Kill backdrop blur on glass cards to stop last flickers */
   .leaderboard-glass,
   .lbfx-glass,
   .trfx-glass,
   .mhfx-glass {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    background: rgba(13, 31, 47, 0.72) !important; /* was 0.86 */
+    background: rgba(13,31,47,.82) !important; /* slightly lighter than before */
     box-shadow: 0 10px 26px rgba(0,0,0,.35);
   }
 
@@ -279,7 +279,7 @@ body.bg-dark { background: transparent !important; }
   .lbfx-glass,
   .trfx-glass,
   .mhfx-glass {
-    background: rgba(15, 27, 40, 0.72) !important;  /* was 0.88 */
+    background: rgba(15,27,40,.84) !important;
     box-shadow: 0 6px 16px rgba(0,0,0,.28) !important;
     border: 1px solid rgba(255,255,255,.06) !important;
     backdrop-filter: none !important;
@@ -315,9 +315,10 @@ body.bg-dark { background: transparent !important; }
 @media (hover: none) and (pointer: coarse) and (min-width: 900px) {
   .card,
   .bg-dark:not(body) {
-    backdrop-filter: none !important;
+    /* previously 0.86 and no blur: looked too opaque */
+    backdrop-filter: none !important;          /* still keep safe */
     -webkit-backdrop-filter: none !important;
-    background: rgba(12, 20, 32, 0.68) !important; /* was 0.86 */
+    background: rgba(15, 25, 40, 0.62) !important;  /* MUCH lighter */
   }
   .ce-bg-layer__img {
     transform: none !important;
@@ -343,7 +344,7 @@ body.bg-dark { background: transparent !important; }
 @supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))){
   .card,
   .bg-dark:not(body) {
-    background: rgba(15,27,40,.78) !important; /* slightly lighter than before */
+    background: rgba(15,27,40,.76) !important;  /* lighter than old .88 */
   }
   .crickedge-footer {
     background: rgba(10,10,10,.86);
