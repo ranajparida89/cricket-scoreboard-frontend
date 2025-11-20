@@ -432,7 +432,13 @@
   overflow: hidden;
   min-height: 190px;
   box-shadow: 0 18px 50px rgba(0,0,0,.55);
+
+  /* default gradient (will be overridden by inline style from JS) */
   background: linear-gradient(90deg,#e4f1ff 0%,#0474ff 40%,rgba(0,0,0,.0) 85%);
+
+  /* 🆕 key line: blend player photo with gradient,
+     so white areas take the green/blue/pink tint */
+  background-blend-mode: multiply;
 }
 
 /* MoM view keeps same structure */
@@ -465,7 +471,7 @@
   text-shadow: 0 2px 8px rgba(0,0,0,.55);
 }
 
-/* [INFO ICON] now pinned to full banner top-right */
+/* Info icon pinned to full banner top-right */
 .pr-hero .pr-info{
   position:absolute;
   top: 14px;
@@ -527,18 +533,17 @@
   opacity:.92;
 }
 
-/* [PHOTO BLEND] soft dark glass only on the LEFT.
-   Right side ~30% is fully transparent so photo is bright. */
+/* 🆕 Dark glass only on LEFT so right photo area is bright */
 .pr-hero::after{
   content:"";
   position:absolute;
   inset:0;
   background: linear-gradient(
     90deg,
-    rgba(3,9,19,.80) 0%,
-    rgba(3,9,19,.55) 32%,
-    rgba(3,9,19,.18) 60%,
-    rgba(3,9,19,0) 80%,
+    rgba(3,9,19,.85) 0%,
+    rgba(3,9,19,.65) 30%,
+    rgba(3,9,19,.28) 55%,
+    rgba(3,9,19,0) 75%,
     rgba(3,9,19,0) 100%
   );
   pointer-events:none;
