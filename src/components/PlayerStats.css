@@ -56,24 +56,30 @@
   letter-spacing: 0.2px;
 }
 
-/* Info button (circle "i") */
+/* Info button (circle "i") – brighter + soft pulse */
 .ps-info {
   position: absolute;
   top: 10px;
   right: 12px;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: #0f1b28;
-  color: #eaf6ff;
+  border: 1px solid rgba(45, 212, 191, 0.9);
+  background: radial-gradient(circle at 30% 20%, #1e293b 0%, #020617 70%);
+  color: #f9fafb;
   font-weight: 900;
-  line-height: 22px;
+  font-size: 13px;
+  line-height: 24px;
   text-align: center;
   cursor: pointer;
+  box-shadow:
+    0 0 0 1px rgba(8, 47, 73, 0.85),
+    0 0 10px rgba(34, 211, 238, 0.75);
+  animation: ps-info-pulse 2.6s ease-in-out infinite;
 }
 .ps-info:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.12);
+  transform: translateY(-1px) scale(1.03);
 }
 /* disable old tooltip style */
 .ps-info[data-tip]::after {
@@ -218,10 +224,11 @@
 }
 
 /* =========================
-   SUMMARY TABLE (2nd table)
+   SUMMARY TABLE (2nd table) – OVERALL PERFORMANCE
    ========================= */
 .ps-grid-sum {
-  --sum-cols: 0.7fr 1.4fr 0.9fr 1fr 0.9fr 0.8fr 0.8fr 0.8fr;
+  /* Rank | Player | Team | Type | Matches | Runs | Wkts | 50s | 100s */
+  --sum-cols: 0.6fr 1.4fr 0.9fr 0.9fr 0.9fr 0.9fr 0.8fr 0.8fr 0.8fr;
   font-variant-numeric: tabular-nums;
 }
 .ps-head-sum,
@@ -256,17 +263,37 @@
   margin-right: 6px;
   filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.25));
 }
+
+/* Softer, eye-friendly pastel top-3 rows */
 .ps-row-sum.gold {
-  background: linear-gradient(180deg, rgba(255, 214, 98, 0.09), rgba(255, 214, 98, 0.03));
-  box-shadow: 0 8px 20px rgba(255, 214, 98, 0.1);
+  background: linear-gradient(180deg, #fff8dd 0%, #f6e7b8 100%);
+  border: 1px solid rgba(247, 190, 80, 0.35);
+  box-shadow: 0 6px 18px rgba(247, 190, 80, 0.18);
+  color: #2f2f2f;
 }
 .ps-row-sum.silver {
-  background: linear-gradient(180deg, rgba(206, 219, 233, 0.08), rgba(206, 219, 233, 0.03));
-  box-shadow: 0 8px 20px rgba(206, 219, 233, 0.1);
+  background: linear-gradient(180deg, #f4f6ff 0%, #e0e6f2 100%);
+  border: 1px solid rgba(184, 198, 223, 0.45);
+  box-shadow: 0 6px 18px rgba(184, 198, 223, 0.16);
+  color: #273047;
 }
 .ps-row-sum.bronze {
-  background: linear-gradient(180deg, rgba(238, 168, 114, 0.08), rgba(238, 168, 114, 0.03));
-  box-shadow: 0 8px 20px rgba(238, 168, 114, 0.1);
+  background: linear-gradient(180deg, #ffece0 0%, #f3d2ba 100%);
+  border: 1px solid rgba(244, 178, 120, 0.4);
+  box-shadow: 0 6px 18px rgba(244, 178, 120, 0.16);
+  color: #332822;
+}
+.ps-row-sum.gold .cell,
+.ps-row-sum.gold .player-link {
+  color: #2f2f2f;
+}
+.ps-row-sum.silver .cell,
+.ps-row-sum.silver .player-link {
+  color: #273047;
+}
+.ps-row-sum.bronze .cell,
+.ps-row-sum.bronze .player-link {
+  color: #332822;
 }
 
 /* =========================
@@ -316,7 +343,7 @@
   justify-content: center;
 }
 
-/* pastel top 3 */
+/* pastel top 3 (combined table) */
 .ps-grid-combined .ps-row-combined.gold {
   background: linear-gradient(180deg, #fef6d9 0%, #f9ebbd 100%);
   border: 1px solid rgba(247, 190, 80, 0.35);
@@ -570,40 +597,7 @@
   display: none;
 }
 
-/* Highlights bar */
-.ps-combined-highlights {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-}
-
-.ps-h-item {
-  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0));
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 14px;
-  padding: 8px 12px 7px;
-  min-width: 180px;
-}
-
-.ps-h-label {
-  display: block;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #98adc1;
-  margin-bottom: 2px;
-}
-
-.ps-h-value {
-  font-weight: 700;
-  font-size: 13.5px;
-  color: #ffffff;
-}
-
-/* =========================
-   MORAL FILTERS + LEGEND
-   ========================= */
+/********* MORAL FILTERS + LEGEND *********/
 .moral-filter-group {
   display: flex;
   flex-wrap: wrap;
@@ -671,4 +665,19 @@ button.moral-filter-btn,
 .moral-legend-label {
   font-weight: 600;
   color: #cfd8e3;
+}
+
+/* ====== keyframes for info button pulse ====== */
+@keyframes ps-info-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(8, 47, 73, 0.85),
+      0 0 10px rgba(34, 211, 238, 0.75);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px rgba(34, 211, 238, 0),
+      0 0 14px rgba(34, 211, 238, 0.9);
+  }
 }
