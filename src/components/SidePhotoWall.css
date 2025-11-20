@@ -21,38 +21,42 @@
 }
 
 /* Left & right placement + soft dissolve towards the center */
+/* Left: stronger dissolve towards center */
 .sidewall-left {
   left: 0;
 
-  /* 👇 fade towards the RIGHT edge (inner edge) */
   -webkit-mask-image: linear-gradient(
     to right,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 1) 55%,
-    rgba(0, 0, 0, 0) 100%
+    rgba(0, 0, 0, 1) 0%,      /* fully visible at extreme left */
+    rgba(0, 0, 0, 1) 40%,     /* solid up to 40% */
+    rgba(0, 0, 0, 0.4) 65%,   /* start fading */
+    rgba(0, 0, 0, 0) 100%     /* fully transparent at inner edge */
   );
   mask-image: linear-gradient(
     to right,
     rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 1) 55%,
+    rgba(0, 0, 0, 1) 40%,
+    rgba(0, 0, 0, 0.4) 65%,
     rgba(0, 0, 0, 0) 100%
   );
 }
 
+/* Right: mirror of left, stronger dissolve towards center */
 .sidewall-right {
   right: 0;
 
-  /* 👇 fade towards the LEFT edge (inner edge) */
   -webkit-mask-image: linear-gradient(
     to left,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 1) 55%,
-    rgba(0, 0, 0, 0) 100%
+    rgba(0, 0, 0, 1) 0%,      /* fully visible at extreme right */
+    rgba(0, 0, 0, 1) 40%,     /* solid up to 40% */
+    rgba(0, 0, 0, 0.4) 65%,   /* start fading */
+    rgba(0, 0, 0, 0) 100%     /* fully transparent at inner edge */
   );
   mask-image: linear-gradient(
     to left,
     rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 1) 55%,
+    rgba(0, 0, 0, 1) 40%,
+    rgba(0, 0, 0, 0.4) 65%,
     rgba(0, 0, 0, 0) 100%
   );
 }
