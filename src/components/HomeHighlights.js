@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./HomeHighlights.css";
-import SidePhotoWall from "./SidePhotoWall";  // 🌟 NEW
+import SidePhotoWall from "./SidePhotoWall";
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
 
@@ -80,16 +80,20 @@ const HomeHighlights = () => {
     );
   };
 
+  const renderCard = (content) => (
+    <div className="ce-hl-wrapper">
+      <div className="ce-hl-card">
+        {content}
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <>
         <SidePhotoWall side="left" />
         <SidePhotoWall side="right" />
-        <div className="ce-hl-wrapper">
-          <div className="ce-hl-card">
-            <p>Loading highlights…</p>
-          </div>
-        </div>
+        {renderCard(<p>Loading highlights…</p>)}
       </>
     );
   }
@@ -99,11 +103,7 @@ const HomeHighlights = () => {
       <>
         <SidePhotoWall side="left" />
         <SidePhotoWall side="right" />
-        <div className="ce-hl-wrapper">
-          <div className="ce-hl-card">
-            <p>No highlights available.</p>
-          </div>
-        </div>
+        {renderCard(<p>No highlights available.</p>)}
       </>
     );
   }

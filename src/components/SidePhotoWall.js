@@ -9,7 +9,7 @@ import "./SidePhotoWall.css";
 // public/home-sidewall-photos/
 //
 // Example: if you have
-//   C:\cricket-scoreboard-frontend\public\home-sidewall-photos\SACHIN.jpg
+//   public/home-sidewall-photos/SACHIN.jpg
 // then add "/home-sidewall-photos/SACHIN.jpg" in this array.
 const SIDEWALL_PHOTOS = [
   "/home-sidewall-photos/player1.jpg",

@@ -8,8 +8,16 @@
   width: 220px;
   overflow: hidden;
   pointer-events: none;              /* never block clicks on content */
-  z-index: 0;                        /* behind main content */
+  z-index: 1;                        /* below main content (z=2), above plain bg */
   isolation: isolate;
+
+  /* base gradient so you SEE the strip even if the image fails */
+  background: radial-gradient(
+    circle at center,
+    rgba(14, 40, 70, 0.85) 0%,
+    rgba(2, 8, 23, 0.98) 55%,
+    rgba(0, 0, 0, 1) 100%
+  );
 }
 
 /* Left & right placement */
@@ -62,7 +70,7 @@
       rgba(0, 0, 0, 0.8) 100%
     );
   mix-blend-mode: multiply;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 /* Inner edge fade so it blends into central dark background */
