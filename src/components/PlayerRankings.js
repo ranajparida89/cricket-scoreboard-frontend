@@ -13,6 +13,7 @@
 //  - [20-Nov-2025] Hero photo tuning:
 //      • Better crop (centered) so heads are not cut
 //      • Info icon aligned to banner’s top-right
+//      • Photo made more opaque + soft colour blend
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
@@ -41,42 +42,40 @@ const buildHeroBackgroundStyle = (topPlayer, matchType, momOnly) => {
   const mt = (matchType || "").toUpperCase();
   let gradient;
 
+  // [PHOTO BLEND] gradient now fades out on the right
   if (momOnly) {
-    // darker global view
     gradient =
-      "linear-gradient(90deg, #171a2c 0%, #3d1d5a 40%, rgba(0,0,0,0.85) 100%)";
+      "linear-gradient(90deg, #171a2c 0%, #3d1d5a 40%, rgba(23,26,44,0) 85%)";
   } else if (mt === "TEST") {
     gradient =
-      "linear-gradient(90deg, #e3f6e5 0%, #189b3d 40%, rgba(0,0,0,0.8) 100%)";
+      "linear-gradient(90deg, #e3f6e5 0%, #189b3d 40%, rgba(24,155,61,0) 85%)";
   } else if (mt === "T20") {
     gradient =
-      "linear-gradient(90deg, #ffe3ff 0%, #b1028c 40%, rgba(0,0,0,0.85) 100%)";
+      "linear-gradient(90deg, #ffe3ff 0%, #b1028c 40%, rgba(177,2,140,0) 85%)";
   } else {
     // ODI default
     gradient =
-      "linear-gradient(90deg, #e4f1ff 0%, #0474ff 40%, rgba(0,0,0,0.85) 100%)";
+      "linear-gradient(90deg, #e4f1ff 0%, #0474ff 40%, rgba(4,116,255,0) 85%)";
   }
 
-  // base style: gradient only
   const style = {
-    backgroundImage: gradient,
     backgroundRepeat: "no-repeat",
     backgroundSize: "cover",
     backgroundPosition: "left center",
+    backgroundImage: gradient,
   };
 
-  // if player has a photo_key, layer image on the right
+  // if player has a photo_key, layer image on top-right
   if (topPlayer && topPlayer.photo_key) {
     const encoded = encodeURIComponent(topPlayer.photo_key);
     const url = `/player-photos/${encoded}`;
 
-    // [20-Nov-2025] tuned sizing/position:
-    //  - center the player vertically so head is not cut
-    //  - use ~100% height instead of 115% zoom
-    style.backgroundImage = `${gradient}, url("${url}")`;
+    // [PHOTO BLEND] photo is now the FIRST layer (more visible),
+    // gradient sits behind it
+    style.backgroundImage = `url("${url}"), ${gradient}`;
     style.backgroundRepeat = "no-repeat, no-repeat";
-    style.backgroundSize = "cover, auto 100%";
-    style.backgroundPosition = "left center, right center";
+    style.backgroundSize = "auto 105%, cover"; // photo 105% height, gradient covers
+    style.backgroundPosition = "right center, left center";
   }
 
   return style;
@@ -347,6 +346,15 @@ const PlayerRankings = () => {
         className={`pr-hero ${momOnly ? "pr-hero-mom" : ""}`}
         style={buildHeroBackgroundStyle(topPlayer, matchType, momOnly)}
       >
+        {/* [INFO ICON] anchored to full banner */}
+        <button
+          className="pr-info"
+          onClick={() => setShowInfo(true)}
+          title="About ranking"
+        >
+          i
+        </button>
+
         <div className="pr-hero-inner">
           <header className="pr-header">
             <h2 className="pr-title">
@@ -355,13 +363,6 @@ const PlayerRankings = () => {
                 ? "CrickEdge MoM Leaderboard"
                 : "CrickEdge Player Rankings"}
             </h2>
-            <button
-              className="pr-info"
-              onClick={() => setShowInfo(true)}
-              title="About ranking"
-            >
-              i
-            </button>
           </header>
 
           <div className="pr-hero-sub">
