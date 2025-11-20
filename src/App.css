@@ -89,9 +89,8 @@ header {
   color: #fff;
 }
 
-/* ===== Cards / dark blocks — MORE transparent glass ===== */
-.card,
-.bg-dark:not(body) {
+/* ===== Cards — glass; bg-dark strip made fully transparent ===== */
+.card {
   /* stronger glass, lighter fill so side players show through */
   background: rgba(18, 24, 40, 0.45) !important;
   backdrop-filter: blur(6px);
@@ -100,14 +99,26 @@ header {
   box-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
 }
 
+/* Any Bootstrap .bg-dark wrapper (home big strip etc.) → transparent */
+.bg-dark:not(body) {
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 /* On smaller screens, tone blur down to avoid artifacts
-   but KEEP a lighter, semi-transparent fill */
+   but KEEP a lighter, semi-transparent fill for cards */
 @media (max-width: 768px) {
-  .card,
-  .bg-dark:not(body) {
+  .card {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     background: rgba(12, 20, 34, 0.75) !important;
+  }
+
+  /* still no strip on mobile */
+  .bg-dark:not(body) {
+    background: transparent !important;
   }
 }
 
@@ -313,13 +324,18 @@ body.bg-dark { background: transparent !important; }
    Chrome Android “Desktop site” guard
    ========================================================= */
 @media (hover: none) and (pointer: coarse) and (min-width: 900px) {
-  .card,
-  .bg-dark:not(body) {
+  .card {
     /* previously 0.86 and no blur: looked too opaque */
     backdrop-filter: none !important;          /* still keep safe */
     -webkit-backdrop-filter: none !important;
     background: rgba(15, 25, 40, 0.62) !important;  /* MUCH lighter */
   }
+
+  /* still no .bg-dark strip even in Desktop-site mode */
+  .bg-dark:not(body) {
+    background: transparent !important;
+  }
+
   .ce-bg-layer__img {
     transform: none !important;
   }
@@ -342,10 +358,14 @@ body.bg-dark { background: transparent !important; }
 
 /* ===== Strong fallbacks ===== */
 @supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))){
-  .card,
-  .bg-dark:not(body) {
+  .card {
     background: rgba(15,27,40,.76) !important;  /* lighter than old .88 */
   }
+
+  .bg-dark:not(body) {
+    background: transparent !important;
+  }
+
   .crickedge-footer {
     background: rgba(10,10,10,.86);
   }
