@@ -37,6 +37,8 @@
 }
 .pr-title .bat{ filter: drop-shadow(0 0 12px rgba(0,229,255,.28)); }
 
+/* (old .pr-info in header is no longer used) */
+
 /* Controls */
 .pr-controls{
   display:grid;
@@ -161,17 +163,21 @@
 }
 .tool.cta:hover{ filter:brightness(1.06); }
 
-/* square ℹ️ button after CSV */
-.tool.pr-info-square{
-  border-radius:8px;
+/* 🆕 square info button next to CSV */
+.tool.info-square{
   width:32px;
-  text-align:center;
-  padding-inline:0;
-  font-size:14px;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:8px;
   font-weight:900;
+  font-size:14px;
+  background:rgba(8,23,34,.95);
+  border-color:rgba(255,255,255,.26);
 }
-.tool.pr-info-square:hover{
-  border-color:var(--teal-strong);
+.tool.info-square:hover{
+  filter:brightness(1.08);
 }
 
 /* ⭐ MoM players only toggle */
@@ -427,7 +433,7 @@
 }
 
 /* ===========================================================
-   🆕 HERO STRIP WITH #1 PLAYER PHOTO (full-width blend)
+   🆕 HERO STRIP WITH #1 PLAYER PHOTO (ICC-style + soft fade)
    =========================================================== */
 
 .pr-hero{
@@ -447,34 +453,26 @@
   box-shadow: 0 18px 50px rgba(0,0,0,.7);
 }
 
-/* Photo layer blended with gradient — covers entire banner */
+/* Photo layer blended with gradient via soft left fade */
 .pr-hero-photo{
   position:absolute;
-  inset:0;
+  top:0;
+  right:0;
+  bottom:0;
+  width:260px;
   background-repeat:no-repeat;
-  background-size:auto 100%;   /* full player visible vertically */
-  background-position:center right;
+  background-size:cover;
+  background-position:center;
   opacity:0.98;
-  mix-blend-mode:soft-light;   /* green/blue/pink tint merges with photo */
-  pointer-events:none;
-  z-index:0;
-}
-
-/* Dark glass mainly on LEFT so text is readable; right keeps more photo */
-.pr-hero::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background: linear-gradient(
-    90deg,
-    rgba(3,9,19,.90) 0%,
-    rgba(3,9,19,.78) 32%,
-    rgba(3,9,19,.42) 55%,
-    rgba(3,9,19,0) 80%,
-    rgba(3,9,19,0) 100%
-  );
   pointer-events:none;
   z-index:1;
+
+  /* hero photo url injected via CSS custom property */
+  background-image: var(--hero-photo-url);
+
+  /* Key lines: fade left edge so rectangle disappears */
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 26%, #000 100%);
+          mask-image: linear-gradient(to right, transparent 0, #000 26%, #000 100%);
 }
 
 /* inner text block */
@@ -546,6 +544,23 @@
   opacity:.92;
 }
 
+/* Dark glass mainly on LEFT so text is readable; photo side stays bright */
+.pr-hero::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(
+    90deg,
+    rgba(3,9,19,.85) 0%,
+    rgba(3,9,19,.65) 30%,
+    rgba(3,9,19,.28) 55%,
+    rgba(3,9,19,0) 75%,
+    rgba(3,9,19,0) 100%
+  );
+  pointer-events:none;
+  z-index:0;
+}
+
 /* Tabs/format disabled look when MoM-only is ON */
 .seg-disabled,
 .chips-disabled{
@@ -560,6 +575,9 @@
 @media (max-width: 980px){
   .pr-hero-inner{
     max-width: 70%;
+  }
+  .pr-hero-photo{
+    width:220px;
   }
 }
 @media (max-width: 720px){

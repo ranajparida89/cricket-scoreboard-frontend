@@ -7,11 +7,14 @@
 //  - CSV/PDF headers & filenames adapt in MoM-only mode
 //  - Small info note added in modal
 //  - [20-Nov-2025] Hero banner with #1 player's photo on the right
-//  - [21-Nov-2025] Hero photo rework:
-//      • Photo now spans full banner (no narrow crop on right)
-//      • Fitted by height so head is not cut (background-size: auto 100%)
-//      • Format gradient sits behind + dark glass on left for text
-//      • Info button moved next to CSV with square border
+//      • Uses photo_key from backend
+//      • Background gradient changes by format (TEST/ODI/T20)
+//      • Works for normal & MoM-only modes
+//  - [20-Nov-2025] Hero photo blending (v2):
+//      • Gradient is background, photo is separate layer
+//      • Left edge of photo softly dissolves into gradient (no harsh rectangle)
+//      • Photo keeps natural colours (no heavy dark overlay)
+//  - [20-Nov-2025] Info button moved next to CSV as square tool
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
@@ -336,11 +339,11 @@ const PlayerRankings = () => {
         className={`pr-hero ${momOnly ? "pr-hero-mom" : ""}`}
         style={buildHeroBackgroundStyle(matchType, momOnly)}
       >
-        {/* Full-width photo layer blended with gradient */}
+        {/* Photo layer on the right, softly faded into gradient */}
         {topPlayerPhotoUrl && (
           <div
             className="pr-hero-photo"
-            style={{ backgroundImage: `url("${topPlayerPhotoUrl}")` }}
+            style={{ "--hero-photo-url": `url("${topPlayerPhotoUrl}")` }}
           />
         )}
 
@@ -454,12 +457,12 @@ const PlayerRankings = () => {
           <button className="tool cta" onClick={onExportCSV}>
             ⤓ CSV
           </button>
-          {/* ℹ️ info button after CSV with square border */}
+          {/* 🆕 info button moved here, square style */}
           <button
             type="button"
-            className="tool pr-info-square"
+            className="tool info-square"
             onClick={() => setShowInfo(true)}
-            title="About rankings & MoM bonus"
+            title="About rankings"
           >
             i
           </button>
