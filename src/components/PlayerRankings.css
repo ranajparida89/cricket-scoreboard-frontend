@@ -420,3 +420,132 @@
 @media (max-width: 760px){
   .podium{ grid-template-columns: 1fr; }
 }
+
+/* ===========================================================
+   🆕 HERO STRIP WITH #1 PLAYER PHOTO (ICC-style)
+   =========================================================== */
+
+.pr-hero{
+  position: relative;
+  margin: -4px -4px 16px;
+  border-radius: 16px;
+  overflow: hidden;
+  min-height: 190px;
+  box-shadow: 0 18px 50px rgba(0,0,0,.55);
+  background: linear-gradient(90deg,#e4f1ff 0%,#0474ff 40%,rgba(0,0,0,.85) 100%);
+}
+
+.pr-hero-mom{
+  /* slight purple tint in MoM-only view */
+  box-shadow: 0 18px 50px rgba(0,0,0,.7);
+}
+
+.pr-hero-inner{
+  position: relative;
+  z-index: 2;
+  padding: 16px 20px 18px;
+  max-width: 60%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Override header look inside hero */
+.pr-hero .pr-header{
+  margin-bottom: 8px;
+}
+.pr-hero .pr-title{
+  text-align: left;
+  font-size: 24px;
+  line-height: 1.1;
+  background: none;
+  -webkit-text-fill-color: #ffffff;
+  color:#ffffff;
+  text-shadow: 0 2px 8px rgba(0,0,0,.55);
+}
+
+.pr-hero .pr-info{
+  top: 2px;
+  right: 4px;
+  background: rgba(0,0,0,.45);
+  border-color: rgba(255,255,255,.45);
+}
+
+/* small label above top player */
+.pr-hero-sub{
+  margin-top: 4px;
+}
+.pr-hero-eyebrow{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:999px;
+  background: rgba(0,0,0,.45);
+  border:1px solid rgba(255,255,255,.35);
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:#f6fbff;
+}
+
+/* "#1 Joe Root · England · 908" line */
+.pr-hero-topline{
+  margin-top:8px;
+  font-size:18px;
+  font-weight:800;
+  color:#ffffff;
+  text-shadow: 0 2px 6px rgba(0,0,0,.55);
+  display:flex;
+  align-items:baseline;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.pr-hero-rank{
+  font-size:20px;
+  font-weight:900;
+}
+.pr-hero-name{
+  font-size:20px;
+  font-weight:900;
+}
+.pr-hero-team,
+.pr-hero-rating{
+  font-size:14px;
+  font-weight:700;
+  opacity:.92;
+}
+
+/* make sure background image side is clickable-safe */
+.pr-hero::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: radial-gradient(circle at left center, rgba(0,0,0,.0) 0%, rgba(0,0,0,.2) 45%, rgba(0,0,0,.75) 100%);
+  pointer-events:none;
+}
+
+/* Tabs/format disabled look when MoM-only is ON */
+.seg-disabled,
+.chips-disabled{
+  opacity:.55;
+  filter:grayscale(0.1);
+}
+.seg-disabled .seg-btn,
+.chips-disabled .chip{
+  cursor:not-allowed;
+}
+@media (max-width: 980px){
+  .pr-hero-inner{
+    max-width: 70%;
+  }
+}
+@media (max-width: 720px){
+  .pr-hero{
+    margin: -4px -4px 12px;
+    min-height: 180px;
+  }
+  .pr-hero-inner{
+    max-width: 100%;
+    padding-right: 16px;
+  }
+}

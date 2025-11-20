@@ -6,6 +6,10 @@
 //  - Global MoM is sorted by total MoM awards (highest first)
 //  - CSV/PDF headers & filenames adapt in MoM-only mode
 //  - Small info note added in modal
+//  - [20-Nov-2025] Hero banner with #1 player's photo on the right
+//      • Uses photo_key from backend
+//      • Background gradient changes by format (TEST/ODI/T20)
+//      • Works for normal & MoM-only modes
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
@@ -19,6 +23,58 @@ const TAB_LABELS = {
 };
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
+
+/* ----------------------------------------------------------
+   Hero helpers (background + labels)
+---------------------------------------------------------- */
+
+const heroRoleLabel = (tabKey) => {
+  if (tabKey === "bowling") return "BOWLING";
+  if (tabKey === "allrounder") return "ALL-ROUNDERS";
+  return "BATTING";
+};
+
+const buildHeroBackgroundStyle = (topPlayer, matchType, momOnly) => {
+  const mt = (matchType || "").toUpperCase();
+  let gradient;
+
+  if (momOnly) {
+    // darker global view
+    gradient =
+      "linear-gradient(90deg, #171a2c 0%, #3d1d5a 40%, rgba(0,0,0,0.85) 100%)";
+  } else if (mt === "TEST") {
+    gradient =
+      "linear-gradient(90deg, #e3f6e5 0%, #189b3d 40%, rgba(0,0,0,0.8) 100%)";
+  } else if (mt === "T20") {
+    gradient =
+      "linear-gradient(90deg, #ffe3ff 0%, #b1028c 40%, rgba(0,0,0,0.85) 100%)";
+  } else {
+    // ODI default
+    gradient =
+      "linear-gradient(90deg, #e4f1ff 0%, #0474ff 40%, rgba(0,0,0,0.85) 100%)";
+  }
+
+  // base style: gradient only
+  const style = {
+    backgroundImage: gradient,
+    backgroundRepeat: "no-repeat",
+    backgroundSize: "cover",
+    backgroundPosition: "left center",
+  };
+
+  // if player has a photo_key, layer image on the right
+  if (topPlayer && topPlayer.photo_key) {
+    const encoded = encodeURIComponent(topPlayer.photo_key);
+    const url = `/player-photos/${encoded}`;
+
+    style.backgroundImage = `${gradient}, url("${url}")`;
+    style.backgroundRepeat = "no-repeat, no-repeat";
+    style.backgroundSize = "cover, auto 115%";
+    style.backgroundPosition = "left center, right 8% bottom 0";
+  }
+
+  return style;
+};
 
 const PlayerRankings = () => {
   const [activeTab, setActiveTab] = useState("batting");
@@ -62,8 +118,7 @@ const PlayerRankings = () => {
 
           // sort by total MoM awards just to be extra safe
           data.sort(
-            (a, b) =>
-              Number(b.mom_awards || 0) - Number(a.mom_awards || 0)
+            (a, b) => Number(b.mom_awards || 0) - Number(a.mom_awards || 0)
           );
         } else {
           // Normal per-format rating view
@@ -71,9 +126,7 @@ const PlayerRankings = () => {
           const res = await axios.get(url);
           data = Array.isArray(res.data) ? res.data : [];
 
-          data.sort(
-            (a, b) => Number(b.rating || 0) - Number(a.rating || 0)
-          );
+          data.sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0));
         }
 
         setRankingData(data);
@@ -265,6 +318,12 @@ const PlayerRankings = () => {
     });
   }, [sorted, searchText]);
 
+  // #1 player for current view (after search)
+  const topPlayer = useMemo(() => {
+    if (!filtered || filtered.length === 0) return null;
+    return filtered[0];
+  }, [filtered]);
+
   const handleSearchClick = () => {
     // filtering is already live; this keeps button functional if needed
     setSearchText((prev) => prev.trim());
@@ -277,20 +336,54 @@ const PlayerRankings = () => {
 
   return (
     <div className="pr-wrap">
-      {/* Header */}
-      <header className="pr-header">
-        <h2 className="pr-title">
-          <span className="bat">🏏</span>{" "}
-          {momOnly ? "CrickEdge MoM Leaderboard" : "CrickEdge Player Rankings"}
-        </h2>
-        <button
-          className="pr-info"
-          onClick={() => setShowInfo(true)}
-          title="About ranking"
-        >
-          i
-        </button>
-      </header>
+      {/* Hero strip with background + #1 player's photo */}
+      <div
+        className={`pr-hero ${momOnly ? "pr-hero-mom" : ""}`}
+        style={buildHeroBackgroundStyle(topPlayer, matchType, momOnly)}
+      >
+        <div className="pr-hero-inner">
+          <header className="pr-header">
+            <h2 className="pr-title">
+              <span className="bat">🏏</span>{" "}
+              {momOnly
+                ? "CrickEdge MoM Leaderboard"
+                : "CrickEdge Player Rankings"}
+            </h2>
+            <button
+              className="pr-info"
+              onClick={() => setShowInfo(true)}
+              title="About ranking"
+            >
+              i
+            </button>
+          </header>
+
+          <div className="pr-hero-sub">
+            <div className="pr-hero-eyebrow">
+              {momOnly
+                ? "GLOBAL MOM LEADERBOARD"
+                : `MEN'S ${matchType} ${heroRoleLabel(activeTab)}`}
+            </div>
+
+            {topPlayer && (
+              <div className="pr-hero-topline">
+                <span className="pr-hero-rank">#1</span>
+                <span className="pr-hero-name">
+                  {topPlayer.player_name || ""}
+                </span>
+                <span className="pr-hero-team">
+                  {topPlayer.team_name ? `· ${topPlayer.team_name}` : ""}
+                </span>
+                <span className="pr-hero-rating">
+                  {momOnly
+                    ? `· ${Number(topPlayer.mom_awards || 0)} MoM`
+                    : `· Rating ${Number(topPlayer.rating || 0)}`}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Controls */}
       <div className="pr-controls">
@@ -299,9 +392,7 @@ const PlayerRankings = () => {
           {Object.keys(TAB_LABELS).map((k) => (
             <button
               key={k}
-              className={`seg-btn ${
-                activeTab === k ? "active" : ""
-              }`}
+              className={`seg-btn ${activeTab === k ? "active" : ""}`}
               onClick={() => !momOnly && setActiveTab(k)}
               disabled={momOnly}
             >
@@ -379,15 +470,10 @@ const PlayerRankings = () => {
           const momAwards = Number(p.mom_awards || 0);
 
           // In MoM-only mode, show MoM awards as the “big number”
-          const bigNumber = momOnly
-            ? momAwards
-            : p.rating;
+          const bigNumber = momOnly ? momAwards : p.rating;
 
           return (
-            <article
-              className={`podium-card ${cls}`}
-              key={p.player_name + i}
-            >
+            <article className={`podium-card ${cls}`} key={p.player_name + i}>
               <div className="sheen" />
               <div className="medal-badge">{medal}</div>
               <div className="podium-rank">#{i + 1}</div>
