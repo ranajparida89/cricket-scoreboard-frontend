@@ -4,32 +4,26 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./SidePhotoWall.css";
 
-// 🔁 IMPORTANT:
-// Put your actual file names here that you copied into
-// public/home-sidewall-photos/
+// We assume files in:
+//   public/home-sidewall-photos/01.jpg
+//   public/home-sidewall-photos/02.jpg
+//   ...
+//   public/home-sidewall-photos/33.jpg
 //
-// Example: if you have
-//   public/home-sidewall-photos/SACHIN.jpg
-// then add "/home-sidewall-photos/SACHIN.jpg" in this array.
-const SIDEWALL_PHOTOS = [
-  "/home-sidewall-photos/player1.jpg",
-  "/home-sidewall-photos/player2.jpg",
-  "/home-sidewall-photos/player3.jpg",
-  "/home-sidewall-photos/player4.jpg",
-];
+// If you later add more, just increase 33 to your max number.
+const SIDEWALL_PHOTOS = Array.from({ length: 33 }, (_, i) => {
+  const num = String(i + 1).padStart(2, "0"); // 1 -> 01, 2 -> 02 ...
+  return `/home-sidewall-photos/${num}.jpg`;
+});
 
 const SidePhotoWall = ({ side = "left", intervalMs = 8000 }) => {
-  // safety: clean list
-  const photos = useMemo(
-    () => SIDEWALL_PHOTOS.filter(Boolean),
-    []
-  );
+  const photos = useMemo(() => SIDEWALL_PHOTOS.filter(Boolean), []);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [previousIndex, setPreviousIndex] = useState(null);
   const [hasMounted, setHasMounted] = useState(false);
 
-  // Mark mounted to avoid any weird first-paint flicker
+  // avoid first-paint flicker
   useEffect(() => {
     setHasMounted(true);
   }, []);
