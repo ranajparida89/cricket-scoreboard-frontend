@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./HomeHighlights.css";
+import SidePhotoWall from "./SidePhotoWall";  // 🌟 NEW
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
 
@@ -81,21 +82,29 @@ const HomeHighlights = () => {
 
   if (loading) {
     return (
-      <div className="ce-hl-wrapper">
-        <div className="ce-hl-card">
-          <p>Loading highlights…</p>
+      <>
+        <SidePhotoWall side="left" />
+        <SidePhotoWall side="right" />
+        <div className="ce-hl-wrapper">
+          <div className="ce-hl-card">
+            <p>Loading highlights…</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (!items.length) {
     return (
-      <div className="ce-hl-wrapper">
-        <div className="ce-hl-card">
-          <p>No highlights available.</p>
+      <>
+        <SidePhotoWall side="left" />
+        <SidePhotoWall side="right" />
+        <div className="ce-hl-wrapper">
+          <div className="ce-hl-card">
+            <p>No highlights available.</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -108,66 +117,73 @@ const HomeHighlights = () => {
     : [];
 
   return (
-    <div className="ce-hl-wrapper">
-      <button className="ce-hl-nav left" onClick={handlePrev}>
-        &lt;
-      </button>
+    <>
+      {/* 🌟 Cinematic side photo walls */}
+      <SidePhotoWall side="left" />
+      <SidePhotoWall side="right" />
 
-      {/* spotlight on EVERY card now */}
-      <div className="ce-hl-card ce-hl-card-spot">
-        {/* floor glow for spotlight */}
-        <div className="ce-hl-spot-floor" />
+      {/* Existing highlight hero card */}
+      <div className="ce-hl-wrapper">
+        <button className="ce-hl-nav left" onClick={handlePrev}>
+          &lt;
+        </button>
 
-        {/* tiny, slower particle confetti */}
-        <div className="ce-hl-confetti">
-          {Array.from({ length: 110 }).map((_, i) => (
+        {/* spotlight on EVERY card now */}
+        <div className="ce-hl-card ce-hl-card-spot">
+          {/* floor glow for spotlight */}
+          <div className="ce-hl-spot-floor" />
+
+          {/* tiny, slower particle confetti */}
+          <div className="ce-hl-confetti">
+            {Array.from({ length: 110 }).map((_, i) => (
+              <span
+                key={i}
+                className={`ce-confetti c-${(i % 5) + 1}`}
+                style={{
+                  "--x": `${(i * 0.9) % 100}%`,
+                  "--delay": `${(i % 18) * 0.18}s`,
+                  "--duration": `${3 + (i % 6) * 0.28}s`,
+                }}
+              />
+            ))}
+          </div>
+
+          <div className="ce-hl-content">
+            {displayTag && <div className="ce-hl-tag">{displayTag}</div>}
+            <h2 className="ce-hl-title">{current.title}</h2>
+
+            {current.subtitle ? (
+              <p className="ce-hl-subtitle">{current.subtitle}</p>
+            ) : null}
+
+            {displayMeta.length > 0 && (
+              <div className="ce-hl-meta-grid">
+                {displayMeta.map((m, i) => (
+                  <div key={i} className="ce-hl-meta-item">
+                    <span className="ce-hl-meta-label">{m.label}</span>
+                    <span className="ce-hl-meta-value">{m.value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <button className="ce-hl-nav right" onClick={handleNext}>
+          &gt;
+        </button>
+
+        <div className="ce-hl-dots">
+          {items.map((_, i) => (
             <span
               key={i}
-              className={`ce-confetti c-${(i % 5) + 1}`}
-              style={{
-                "--x": `${(i * 0.9) % 100}%`,
-                "--delay": `${(i % 18) * 0.18}s`,
-                "--duration": `${3 + (i % 6) * 0.28}s`,
-              }}
+              className={`ce-hl-dot ${i === activeIndex ? "active" : ""}`}
+              onClick={() => setActiveIndex(i)}
             />
           ))}
         </div>
-
-        <div className="ce-hl-content">
-          {displayTag && <div className="ce-hl-tag">{displayTag}</div>}
-          <h2 className="ce-hl-title">{current.title}</h2>
-
-          {current.subtitle ? (
-            <p className="ce-hl-subtitle">{current.subtitle}</p>
-          ) : null}
-
-          {displayMeta.length > 0 && (
-            <div className="ce-hl-meta-grid">
-              {displayMeta.map((m, i) => (
-                <div key={i} className="ce-hl-meta-item">
-                  <span className="ce-hl-meta-label">{m.label}</span>
-                  <span className="ce-hl-meta-value">{m.value}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
-
-      <button className="ce-hl-nav right" onClick={handleNext}>
-        &gt;
-      </button>
-
-      <div className="ce-hl-dots">
-        {items.map((_, i) => (
-          <span
-            key={i}
-            className={`ce-hl-dot ${i === activeIndex ? "active" : ""}`}
-            onClick={() => setActiveIndex(i)}
-          />
-        ))}
-      </div>
-    </div>
+    </>
   );
 };
 
