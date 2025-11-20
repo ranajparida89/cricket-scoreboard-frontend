@@ -10,13 +10,11 @@
 //      • Uses photo_key from backend
 //      • Background gradient changes by format (TEST/ODI/T20)
 //      • Works for normal & MoM-only modes
-//  - [20-Nov-2025] Hero photo tuning:
-//      • Better crop (centered) so heads are not cut
-//      • Info icon aligned to banner’s top-right
-//  - [20-Nov-2025] Hero photo blending:
-//      • Gradient is background
-//      • Photo is separate layer with mix-blend-mode
-//      • White studio backgrounds pick up green/pink/blue tint
+//  - [20-Nov-2025] Hero photo blending (v2):
+//      • Gradient is background, photo is separate layer
+//      • Left edge of photo softly dissolves into gradient (no harsh rectangle)
+//      • Photo keeps natural colours (no heavy dark overlay)
+//  - [20-Nov-2025] Info button moved next to CSV as square tool
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
@@ -341,22 +339,13 @@ const PlayerRankings = () => {
         className={`pr-hero ${momOnly ? "pr-hero-mom" : ""}`}
         style={buildHeroBackgroundStyle(matchType, momOnly)}
       >
-        {/* Photo layer on the right, blended with gradient */}
+        {/* Photo layer on the right, softly faded into gradient */}
         {topPlayerPhotoUrl && (
           <div
             className="pr-hero-photo"
-            style={{ backgroundImage: `url("${topPlayerPhotoUrl}")` }}
+            style={{ "--hero-photo-url": `url("${topPlayerPhotoUrl}")` }}
           />
         )}
-
-        {/* Info icon pinned to banner corner */}
-        <button
-          className="pr-info"
-          onClick={() => setShowInfo(true)}
-          title="About ranking"
-        >
-          i
-        </button>
 
         <div className="pr-hero-inner">
           <header className="pr-header">
@@ -467,6 +456,15 @@ const PlayerRankings = () => {
           </button>
           <button className="tool cta" onClick={onExportCSV}>
             ⤓ CSV
+          </button>
+          {/* 🆕 info button moved here, square style */}
+          <button
+            type="button"
+            className="tool info-square"
+            onClick={() => setShowInfo(true)}
+            title="About rankings"
+          >
+            i
           </button>
         </div>
       </div>
