@@ -10,6 +10,9 @@
 //      • Uses photo_key from backend
 //      • Background gradient changes by format (TEST/ODI/T20)
 //      • Works for normal & MoM-only modes
+//  - [20-Nov-2025] Hero photo tuning:
+//      • Better crop (centered) so heads are not cut
+//      • Info icon aligned to banner’s top-right
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
@@ -67,10 +70,13 @@ const buildHeroBackgroundStyle = (topPlayer, matchType, momOnly) => {
     const encoded = encodeURIComponent(topPlayer.photo_key);
     const url = `/player-photos/${encoded}`;
 
+    // [20-Nov-2025] tuned sizing/position:
+    //  - center the player vertically so head is not cut
+    //  - use ~100% height instead of 115% zoom
     style.backgroundImage = `${gradient}, url("${url}")`;
     style.backgroundRepeat = "no-repeat, no-repeat";
-    style.backgroundSize = "cover, auto 115%";
-    style.backgroundPosition = "left center, right 8% bottom 0";
+    style.backgroundSize = "cover, auto 100%";
+    style.backgroundPosition = "left center, right center";
   }
 
   return style;

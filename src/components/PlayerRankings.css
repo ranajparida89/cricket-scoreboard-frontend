@@ -25,7 +25,7 @@
 }
 
 /* Header */
-.pr-header{ position: relative; }
+.pr-header{ position: relative; } /* overridden in hero */
 .pr-title{
   margin: 0 0 8px;
   text-align: center;
@@ -440,6 +440,7 @@
   box-shadow: 0 18px 50px rgba(0,0,0,.7);
 }
 
+/* [20-Nov-2025] use hero-inner as positioning container for the info icon */
 .pr-hero-inner{
   position: relative;
   z-index: 2;
@@ -453,6 +454,7 @@
 /* Override header look inside hero */
 .pr-hero .pr-header{
   margin-bottom: 8px;
+  position: static; /* so .pr-info anchors to hero-inner instead */
 }
 .pr-hero .pr-title{
   text-align: left;
@@ -464,9 +466,11 @@
   text-shadow: 0 2px 8px rgba(0,0,0,.55);
 }
 
+/* [20-Nov-2025] move info icon to top-right of the banner area */
 .pr-hero .pr-info{
-  top: 2px;
-  right: 4px;
+  position:absolute;
+  top: 10px;
+  right: 18px;
   background: rgba(0,0,0,.45);
   border-color: rgba(255,255,255,.45);
 }
@@ -515,12 +519,18 @@
   opacity:.92;
 }
 
-/* make sure background image side is clickable-safe */
+/* [20-Nov-2025] overlay only darkens LEFT side so photo stays visible */
 .pr-hero::after{
   content:"";
   position:absolute;
   inset:0;
-  background: radial-gradient(circle at left center, rgba(0,0,0,.0) 0%, rgba(0,0,0,.2) 45%, rgba(0,0,0,.75) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(0,0,0,.55) 0%,
+    rgba(0,0,0,.45) 30%,
+    rgba(0,0,0,.15) 70%,
+    rgba(0,0,0,0) 100%
+  );
   pointer-events:none;
 }
 
@@ -534,6 +544,7 @@
 .chips-disabled .chip{
   cursor:not-allowed;
 }
+
 @media (max-width: 980px){
   .pr-hero-inner{
     max-width: 70%;
