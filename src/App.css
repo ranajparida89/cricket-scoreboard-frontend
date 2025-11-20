@@ -521,3 +521,23 @@ body.bg-dark .dark {
   background: transparent !important;
   background-color: transparent !important;
 }
+/* =======================================================
+   HARD OVERRIDE: kill background on the top-level dark wrapper
+   (#root > .dark / .bg-dark) so the center strip becomes transparent
+   ======================================================= */
+
+#root > .dark,
+#root > .bg-dark {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Also remove any pseudo-element overlay that might be painting a strip */
+#root > .dark::before,
+#root > .dark::after,
+#root > .bg-dark::before,
+#root > .bg-dark::after {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
