@@ -5,13 +5,13 @@
   position: fixed;
   top: 0;
   bottom: 0;
-  width: 220px;
+  width: 260px;                     /* bit wider → more of each player visible */
   overflow: hidden;
-  pointer-events: none;              /* never block clicks on content */
-  z-index: 1;                        /* below main content (z=2), above plain bg */
+  pointer-events: none;             /* never block clicks on content */
+  z-index: 1;                       /* below main content (z=2), above plain bg */
   isolation: isolate;
 
-  /* base gradient so you SEE the strip even if the image fails */
+  /* base gradient so strip is visible even before image loads */
   background: radial-gradient(
     circle at center,
     rgba(14, 40, 70, 0.85) 0%,
@@ -38,9 +38,12 @@
   background-repeat: no-repeat;
   opacity: 0;
   transform: scale(1.06);
+
+  /* 🕊️ slower, smoother fades & zoom */
   transition:
-    opacity 1.6s ease-in-out,
-    transform 8s ease-out;
+    opacity 2.6s ease-in-out,
+    transform 15s ease-out;
+
   will-change: opacity, transform;
   backface-visibility: hidden;
 }
@@ -57,20 +60,24 @@
   transform: scale(1.09);
 }
 
-/* Soft dissolve / vignette on top of images */
+/* =========================================================
+   Soft dissolve / vignette on top of images (no sharp border)
+   ========================================================= */
 .sidewall::before {
   content: "";
   position: absolute;
-  inset: -40px;
+  inset: -60px;
   pointer-events: none;
+
+  /* strong vignette on all sides so image melts into background */
   background:
     radial-gradient(
       ellipse at center,
-      rgba(0, 0, 0, 0) 45%,
-      rgba(0, 0, 0, 0.8) 100%
+      rgba(0, 0, 0, 0) 40%,
+      rgba(0, 0, 0, 0.85) 100%
     );
   mix-blend-mode: multiply;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 /* Inner edge fade so it blends into central dark background */
@@ -82,60 +89,70 @@
   pointer-events: none;
 }
 
-/* Left: fade towards center from dark => transparent */
+/* Left: fade towards center from dark => soft transparent */
 .sidewall-left::after {
-  background: linear-gradient(
-    to right,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 0.7) 14%,
-    rgba(0, 0, 0, 0.3) 30%,
-    transparent 55%
-  );
+  background:
+    linear-gradient(
+      to right,
+      rgba(0, 0, 0, 1) 0%,
+      rgba(0, 0, 0, 0.8) 12%,
+      rgba(0, 0, 0, 0.45) 32%,
+      rgba(0, 0, 0, 0.15) 55%,
+      transparent 75%
+    );
 }
 
 /* Right: mirror of left */
 .sidewall-right::after {
-  background: linear-gradient(
-    to left,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 0.7) 14%,
-    rgba(0, 0, 0, 0.3) 30%,
-    transparent 55%
-  );
+  background:
+    linear-gradient(
+      to left,
+      rgba(0, 0, 0, 1) 0%,
+      rgba(0, 0, 0, 0.8) 12%,
+      rgba(0, 0, 0, 0.45) 32%,
+      rgba(0, 0, 0, 0.15) 55%,
+      transparent 75%
+    );
 }
 
 /* Subtle shadow to separate from the center column */
 .sidewall-left {
-  box-shadow: 12px 0 32px rgba(0, 0, 0, 0.7);
+  box-shadow: 16px 0 40px rgba(0, 0, 0, 0.8);
 }
 
 .sidewall-right {
-  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.7);
+  box-shadow: -16px 0 40px rgba(0, 0, 0, 0.8);
 }
 
-/* ====== Responsive tweaks ====== */
+/* ====== Responsive tweaks (show on mobile too) ====== */
 
 @media (max-width: 1400px) {
   .sidewall {
-    width: 190px;
+    width: 220px;
   }
 }
 
 @media (max-width: 1200px) {
   .sidewall {
-    width: 160px;
+    width: 190px;
   }
 }
 
 @media (max-width: 1024px) {
   .sidewall {
-    width: 120px;
+    width: 150px;
   }
 }
 
-/* On small/mobile screens: hide completely for performance & no clutter */
+/* 📱 On mobile: still visible, but slimmer so center content has space */
 @media (max-width: 900px) {
   .sidewall {
-    display: none;
+    width: 95px;   /* instead of display:none */
+  }
+}
+
+@media (max-width: 600px) {
+  .sidewall {
+    width: 80px;
   }
 }

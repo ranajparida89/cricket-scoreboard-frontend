@@ -9,14 +9,13 @@ import "./SidePhotoWall.css";
 //   public/home-sidewall-photos/02.jpg
 //   ...
 //   public/home-sidewall-photos/33.jpg
-//
-// If you later add more, just increase 33 to your max number.
 const SIDEWALL_PHOTOS = Array.from({ length: 33 }, (_, i) => {
-  const num = String(i + 1).padStart(2, "0"); // 1 -> 01, 2 -> 02 ...
+  const num = String(i + 1).padStart(2, "0"); // 1 -> 01, 2 -> 02, ...
   return `/home-sidewall-photos/${num}.jpg`;
 });
 
-const SidePhotoWall = ({ side = "left", intervalMs = 8000 }) => {
+// 🕒 slower interval for more relaxed fade
+const SidePhotoWall = ({ side = "left", intervalMs = 15000 }) => {
   const photos = useMemo(() => SIDEWALL_PHOTOS.filter(Boolean), []);
 
   const [currentIndex, setCurrentIndex] = useState(0);
