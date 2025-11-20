@@ -425,3 +425,27 @@ body.bg-dark { background: transparent !important; }
   .crickedge-bg::before { top: 9vh; }
   .crickedge-bg::after { top: 60vh; }
 }
+/* =======================================================
+   FINAL OVERRIDE: remove the solid black center strip
+   (body.bg-dark and any inner .bg-dark wrappers)
+   ======================================================= */
+
+/* Kill background on the <body class="bg-dark text-light"> itself */
+body.bg-dark,
+body.bg-dark.text-light {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Kill any big .bg-dark containers inside the body (home strip, etc.) */
+body.bg-dark .bg-dark {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Safety: if some wrapper div has class "dark" instead */
+body.bg-dark .dark {
+  background: transparent !important;
+  background-color: transparent !important;
+}
