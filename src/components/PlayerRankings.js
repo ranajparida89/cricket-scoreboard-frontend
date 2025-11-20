@@ -350,7 +350,7 @@ const PlayerRankings = () => {
         <div className="pr-hero-inner">
           <header className="pr-header">
             <h2 className="pr-title">
-              <span className="bat">🏏</span>{" "}
+              <span className="bat"></span>{" "}
               {momOnly
                 ? "CrickEdge MoM Leaderboard"
                 : "CrickEdge Player Rankings"}
