@@ -13,7 +13,10 @@
 //  - [20-Nov-2025] Hero photo tuning:
 //      • Better crop (centered) so heads are not cut
 //      • Info icon aligned to banner’s top-right
-//      • Photo made more opaque + soft colour blend
+//  - [20-Nov-2025] Hero photo blending:
+//      • Gradient is background
+//      • Photo is separate layer with mix-blend-mode
+//      • White studio backgrounds pick up green/pink/blue tint
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
@@ -38,11 +41,11 @@ const heroRoleLabel = (tabKey) => {
   return "BATTING";
 };
 
-const buildHeroBackgroundStyle = (topPlayer, matchType, momOnly) => {
+// Only returns gradient; photo is handled by .pr-hero-photo
+const buildHeroBackgroundStyle = (matchType, momOnly) => {
   const mt = (matchType || "").toUpperCase();
   let gradient;
 
-  // [PHOTO BLEND] gradient now fades out on the right
   if (momOnly) {
     gradient =
       "linear-gradient(90deg, #171a2c 0%, #3d1d5a 40%, rgba(23,26,44,0) 85%)";
@@ -58,27 +61,12 @@ const buildHeroBackgroundStyle = (topPlayer, matchType, momOnly) => {
       "linear-gradient(90deg, #e4f1ff 0%, #0474ff 40%, rgba(4,116,255,0) 85%)";
   }
 
-  const style = {
+  return {
     backgroundRepeat: "no-repeat",
     backgroundSize: "cover",
     backgroundPosition: "left center",
     backgroundImage: gradient,
   };
-
-  // if player has a photo_key, layer image on top-right
-  if (topPlayer && topPlayer.photo_key) {
-    const encoded = encodeURIComponent(topPlayer.photo_key);
-    const url = `/player-photos/${encoded}`;
-
-    // [PHOTO BLEND] photo is now the FIRST layer (more visible),
-    // gradient sits behind it
-    style.backgroundImage = `url("${url}"), ${gradient}`;
-    style.backgroundRepeat = "no-repeat, no-repeat";
-    style.backgroundSize = "auto 105%, cover"; // photo 105% height, gradient covers
-    style.backgroundPosition = "right center, left center";
-  }
-
-  return style;
 };
 
 const PlayerRankings = () => {
@@ -329,6 +317,13 @@ const PlayerRankings = () => {
     return filtered[0];
   }, [filtered]);
 
+  // 🆕 Photo URL for hero blend
+  const topPlayerPhotoUrl = useMemo(() => {
+    if (!topPlayer || !topPlayer.photo_key) return null;
+    const encoded = encodeURIComponent(topPlayer.photo_key);
+    return `/player-photos/${encoded}`;
+  }, [topPlayer]);
+
   const handleSearchClick = () => {
     // filtering is already live; this keeps button functional if needed
     setSearchText((prev) => prev.trim());
@@ -344,9 +339,17 @@ const PlayerRankings = () => {
       {/* Hero strip with background + #1 player's photo */}
       <div
         className={`pr-hero ${momOnly ? "pr-hero-mom" : ""}`}
-        style={buildHeroBackgroundStyle(topPlayer, matchType, momOnly)}
+        style={buildHeroBackgroundStyle(matchType, momOnly)}
       >
-        {/* [INFO ICON] anchored to full banner */}
+        {/* Photo layer on the right, blended with gradient */}
+        {topPlayerPhotoUrl && (
+          <div
+            className="pr-hero-photo"
+            style={{ backgroundImage: `url("${topPlayerPhotoUrl}")` }}
+          />
+        )}
+
+        {/* Info icon pinned to banner corner */}
         <button
           className="pr-info"
           onClick={() => setShowInfo(true)}
