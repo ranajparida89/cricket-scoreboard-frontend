@@ -34,10 +34,8 @@ body {
 }
 
 /* ------------------------------------------------------------------
-   🚫 IMPORTANT: we do NOT draw the background on body anymore.
-   The fixed body::before layer is a common source of flicker on
-   Chrome Android (esp. in Desktop site mode). Background now lives
-   in <BackgroundLayer/> which is positioned behind the app.
+   We do NOT draw the stadium background on <body>.
+   Background lives in <BackgroundLayer/> / .ce-bg-layer behind the app.
    ------------------------------------------------------------------ */
 
 /* ===== BackgroundLayer safety styles (backup to the component CSS) ===== */
@@ -61,7 +59,7 @@ body {
   filter: none;
 }
 
-/* Prevent theme utilities from painting over the image */
+/* Prevent theme utilities from painting solid backgrounds */
 .dark,
 body.dark,
 #root.dark,
@@ -112,7 +110,7 @@ header {
   box-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
 }
 
-/* Any Bootstrap .bg-dark or .dark wrapper (home big strip etc.) → transparent */
+/* Any Bootstrap .bg-dark or .dark wrapper → transparent */
 .bg-dark:not(body),
 .dark:not(body) {
   background: transparent !important;
@@ -381,43 +379,6 @@ body.bg-dark {
   }
 }
 
-/* =========================================================
-   Chrome Android “Desktop site” guard
-   ========================================================= */
-@media (hover: none) and (pointer: coarse) and (min-width: 900px) {
-  .card {
-    /* previously 0.86 and no blur: looked too opaque */
-    backdrop-filter: none !important; /* still keep safe */
-    -webkit-backdrop-filter: none !important;
-    background: rgba(15, 25, 40, 0.62) !important; /* MUCH lighter */
-  }
-
-  /* still no .bg-dark / .dark strip even in Desktop-site mode */
-  .bg-dark:not(body),
-  .dark:not(body) {
-    background: transparent !important;
-  }
-
-  .ce-bg-layer__img {
-    transform: none !important;
-  }
-}
-
-/* ===== Optional util: highlight newly imported players ===== */
-.new-chip {
-  background: #22c55e;
-  color: #0b1220;
-  font-weight: 700;
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 999px;
-  margin-left: 8px;
-}
-.new-glow {
-  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25), 0 0 20px rgba(34, 197, 94, 0.45);
-  transition: box-shadow 0.3s ease;
-}
-
 /* ===== Strong fallbacks ===== */
 @supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
   .card {
@@ -443,9 +404,7 @@ body.bg-dark {
   z-index: -1;
   pointer-events: none;
 
-  /* Only a very soft light glow in the middle.
-     Removed the heavy dark radial-gradient that was
-     making the entire center block look black. */
+  /* Only a very soft light glow in the middle. */
   background: radial-gradient(
     circle at center,
     rgba(255, 213, 124, 0.08),
@@ -498,8 +457,7 @@ body.bg-dark {
 }
 
 /* =======================================================
-   STEP 3 / FINAL OVERRIDE: remove the solid black center strip
-   (body.bg-dark and any inner .bg-dark / .dark wrappers)
+   STEP 3 / FINAL OVERRIDE: nuke any solid strip
    ======================================================= */
 
 /* Kill background on the <body class="bg-dark text-light"> itself */
@@ -509,35 +467,17 @@ body.bg-dark.text-light {
   background-color: transparent !important;
 }
 
-/* Kill any big .bg-dark containers inside the body (home strip, etc.) */
-body.bg-dark .bg-dark {
-  background: transparent !important;
-  background-color: transparent !important;
-  box-shadow: none !important;
-}
-
-/* Safety: if some wrapper div has class "dark" instead */
+/* Kill any top-level dark wrappers under #root */
+#root > .bg-dark,
+#root > .dark,
+body.bg-dark .bg-dark,
 body.bg-dark .dark {
   background: transparent !important;
   background-color: transparent !important;
-}
-/* =======================================================
-   HARD OVERRIDE: kill background on the top-level dark wrapper
-   (#root > .dark / .bg-dark) so the center strip becomes transparent
-   ======================================================= */
-
-#root > .dark,
-#root > .bg-dark {
-  background: transparent !important;
-  background-color: transparent !important;
-}
-
-/* Also remove any pseudo-element overlay that might be painting a strip */
-#root > .dark::before,
-#root > .dark::after,
-#root > .bg-dark::before,
-#root > .bg-dark::after {
-  background: transparent !important;
-  background-color: transparent !important;
   box-shadow: none !important;
+}
+
+/* Also ensure the watermark layer never darkens the center */
+.crickedge-bg {
+  background-color: transparent !important;
 }
