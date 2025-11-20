@@ -89,18 +89,19 @@ header {
   color: #fff;
 }
 
-/* ===== Cards — glass; bg-dark strip made fully transparent ===== */
+/* ===== Cards — glass panels ======================================= */
+/* Cards stay slightly dark but MUCH more transparent */
 .card {
-  /* stronger glass, lighter fill so side players show through */
-  background: rgba(18, 24, 40, 0.45) !important;
+  background: rgba(18, 24, 40, 0.24) !important;  /* ⬅️ lighter alpha */
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   border-radius: 1.2em;
   box-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
 }
 
-/* Any Bootstrap .bg-dark wrapper (home big strip etc.) → transparent */
-.bg-dark:not(body) {
+/* Any Bootstrap .bg-dark or .dark wrapper (home big strip etc.) → transparent */
+.bg-dark:not(body),
+.dark:not(body) {
   background: transparent !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
@@ -117,7 +118,8 @@ header {
   }
 
   /* still no strip on mobile */
-  .bg-dark:not(body) {
+  .bg-dark:not(body),
+  .dark:not(body) {
     background: transparent !important;
   }
 }
@@ -331,8 +333,9 @@ body.bg-dark { background: transparent !important; }
     background: rgba(15, 25, 40, 0.62) !important;  /* MUCH lighter */
   }
 
-  /* still no .bg-dark strip even in Desktop-site mode */
-  .bg-dark:not(body) {
+  /* still no .bg-dark / .dark strip even in Desktop-site mode */
+  .bg-dark:not(body),
+  .dark:not(body) {
     background: transparent !important;
   }
 
@@ -362,7 +365,8 @@ body.bg-dark { background: transparent !important; }
     background: rgba(15,27,40,.76) !important;  /* lighter than old .88 */
   }
 
-  .bg-dark:not(body) {
+  .bg-dark:not(body),
+  .dark:not(body) {
     background: transparent !important;
   }
 
