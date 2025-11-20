@@ -20,13 +20,41 @@
   );
 }
 
-/* Left & right placement */
+/* Left & right placement + soft dissolve towards the center */
 .sidewall-left {
   left: 0;
+
+  /* 👇 fade towards the RIGHT edge (inner edge) */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 55%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 55%,
+    rgba(0, 0, 0, 0) 100%
+  );
 }
 
 .sidewall-right {
   right: 0;
+
+  /* 👇 fade towards the LEFT edge (inner edge) */
+  -webkit-mask-image: linear-gradient(
+    to left,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 55%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  mask-image: linear-gradient(
+    to left,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 55%,
+    rgba(0, 0, 0, 0) 100%
+  );
 }
 
 /* Base image layers */
@@ -61,7 +89,8 @@
 }
 
 /* =========================================================
-   Soft dissolve / vignette on top of images (NO heavy center)
+   Soft dissolve / vignette on top of images
+   (kept light, most of the dissolve now via mask above)
    ========================================================= */
 .sidewall::before {
   content: "";
@@ -69,7 +98,7 @@
   inset: -60px;
   pointer-events: none;
 
-  /* much lighter in the middle, vignette only near edges */
+  /* lighter vignette – mainly at outer edges */
   background:
     radial-gradient(
       ellipse at center,
@@ -79,42 +108,19 @@
       rgba(0, 0, 0, 0.75) 100%
     );
   mix-blend-mode: multiply;
-  opacity: 0.75; /* was 0.9 – more see-through overall */
+  opacity: 0.75;
 }
 
-/* Inner edge fade so it blends into central dark background */
+/* Inner edge overlay – now neutral (mask handles fading) */
 .sidewall-left::after,
 .sidewall-right::after {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-}
 
-/* Left: fade towards center from dark => very soft transparent */
-.sidewall-left::after {
-  background:
-    linear-gradient(
-      to right,
-      rgba(0, 0, 0, 0.95) 0%,
-      rgba(0, 0, 0, 0.6) 16%,
-      rgba(0, 0, 0, 0.25) 36%,
-      rgba(0, 0, 0, 0.08) 58%,
-      transparent 82%
-    );
-}
-
-/* Right: mirror of left */
-.sidewall-right::after {
-  background:
-    linear-gradient(
-      to left,
-      rgba(0, 0, 0, 0.95) 0%,
-      rgba(0, 0, 0, 0.6) 16%,
-      rgba(0, 0, 0, 0.25) 36%,
-      rgba(0, 0, 0, 0.08) 58%,
-      transparent 82%
-    );
+  /* old dark gradients removed so we don’t re-darken the inner edge */
+  background: none;
 }
 
 /* Subtle shadow to separate from the center column */
