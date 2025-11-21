@@ -136,7 +136,7 @@
   box-shadow: -16px 0 40px rgba(0, 0, 0, 0.8);
 }
 
-/* ====== Responsive tweaks (desktop-only side walls) ====== */
+/* ====== Responsive tweaks (show on mobile too) ====== */
 
 @media (max-width: 1400px) {
   .sidewall {
@@ -156,10 +156,15 @@
   }
 }
 
-/* 📱 On mobile (≤ 900px): HIDE side walls completely
-   → fixes pinch-zoom issues and keeps tables/cards inside view */
+/* 📱 On mobile: still visible, but slimmer so center content has space */
 @media (max-width: 900px) {
   .sidewall {
-    display: none;
+    width: 95px;   /* instead of display:none */
+  }
+}
+
+@media (max-width: 600px) {
+  .sidewall {
+    width: 80px;
   }
 }
