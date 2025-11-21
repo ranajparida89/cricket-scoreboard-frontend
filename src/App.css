@@ -3,6 +3,7 @@
  * - Stadium photo renders behind the whole app (via BackgroundLayer.jsx)
  * - Glassmorphic surfaces stay translucent (no solid blue)
  * - Mobile-safe fallbacks to avoid flicker/tearing
+ * ⭐ RP-ZOOM-FIX: works together with viewport meta to keep layout stable
  ************************************************************/
 
 /* ===== App layout ===== */
@@ -31,6 +32,11 @@ body,
 
 body {
   margin: 0;
+}
+
+/* ⭐ RP-ZOOM-FIX: make sure our custom body class never paints a solid bg */
+body.crickedge-body {
+  background: transparent !important;
 }
 
 /* ------------------------------------------------------------------
