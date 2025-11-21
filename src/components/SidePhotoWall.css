@@ -136,7 +136,7 @@
   box-shadow: -16px 0 40px rgba(0, 0, 0, 0.8);
 }
 
-/* ====== Responsive tweaks (show on mobile too) ====== */
+/* ====== Responsive tweaks ====== */
 
 @media (max-width: 1400px) {
   .sidewall {
@@ -156,15 +156,16 @@
   }
 }
 
-/* 📱 On mobile: still visible, but slimmer so center content has space */
+/* 📱 On mobile: keep them visible, just slimmer
+   (instead of display:none which was hiding the photos) */
 @media (max-width: 900px) {
   .sidewall {
-    width: 95px;   /* instead of display:none */
+    width: 95px;   /* slim strip but still visible on phones */
   }
 }
 
 @media (max-width: 600px) {
   .sidewall {
-    width: 80px;
+    width: 80px;   /* extra-slim on very small screens */
   }
 }
