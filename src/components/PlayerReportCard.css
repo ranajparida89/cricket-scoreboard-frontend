@@ -16,6 +16,23 @@
   gap: 16px;
 }
 
+/* ==================== Header wrap + underline ==================== */
+
+.prc-header-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prc-header-underline {
+  height: 2px;
+  width: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0ea5e9, #22c55e, #facc15);
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.4);
+  opacity: 0.75;
+}
+
 /* Modern title bar – FULL WIDTH, RECTANGLE STYLE */
 .prc-header-half-circle {
   margin: 0 0 8px;
@@ -170,6 +187,20 @@
   overflow: hidden;
 }
 
+/* hero layout when we have text + mini chart */
+.prc-hero-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .prc-hero-head {
+    flex-direction: column;
+  }
+}
+
 .prc-hero::after {
   content: "";
   position: absolute;
@@ -197,6 +228,49 @@
   font-size: 0.9rem;
   max-width: 360px;
   color: #e5e7eb;
+}
+
+/* Mini chart card inside hero */
+
+.prc-hero-chart {
+  position: relative;
+  flex: 0 0 190px;
+  max-width: 260px;
+  align-self: stretch;
+  background: radial-gradient(circle at top, #020617 0, #020617 80%);
+  border-radius: 18px;
+  padding: 10px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.9);
+}
+
+.prc-hero-chart--bars,
+.prc-hero-chart--hbars {
+  /* just semantic hooks – visual is common */
+}
+
+@media (max-width: 900px) {
+  .prc-hero-chart {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* Recharts tweaks */
+.prc-chart-grid line {
+  stroke: rgba(148, 163, 184, 0.35);
+}
+
+.prc-chart-bar path {
+  opacity: 0.9;
+}
+
+.prc-chart-bar--blue path {
+  fill: #60a5fa;
+}
+
+.prc-chart-bar--orange path {
+  fill: #fb923c;
 }
 
 /* Filter row + MODERN DROPDOWN */
@@ -289,8 +363,42 @@
   color: #fecaca;
 }
 
-/* Generic row card – uses CSS variables */
+/* ============ Row cards ============ */
 
+@keyframes prc-row-fade {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes prc-glow-pulse {
+  0% {
+    opacity: 0.05;
+  }
+  50% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0.05;
+  }
+}
+
+@keyframes prc-crown-bob {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.08);
+  }
+}
+
+/* Generic row card – uses CSS variables */
 .prc-row-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -300,9 +408,11 @@
   background: var(--prc-card-bg);
   border: 1px solid var(--prc-card-border);
   color: var(--prc-card-text);
+  position: relative;
+  animation: prc-row-fade 260ms ease-out both;
 }
 
-/* ✅ Global "rank 1" 3D pop & bigger fonts */
+/* Global "rank 1" 3D pop & bigger fonts */
 .prc-row-card--highlight {
   background: var(--prc-highlight-bg);
   color: #f9fafb;
@@ -310,6 +420,23 @@
   transform: translateY(-4px) scale(1.02);
   position: relative;
   z-index: 1;
+}
+
+/* soft pulsing halo behind #1 row */
+.prc-row-card--highlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at 10% 0%,
+    rgba(250, 204, 21, 0.4),
+    transparent 55%
+  );
+  opacity: 0.08;
+  pointer-events: none;
+  animation: prc-glow-pulse 3.4s ease-in-out infinite;
+  z-index: -1;
 }
 
 .prc-row-card--highlight .prc-row-primary {
@@ -352,6 +479,7 @@
 .prc-rank-crown {
   font-size: 1.1rem;
   line-height: 1;
+  animation: prc-crown-bob 2.6s ease-in-out infinite;
 }
 
 .prc-row-main {
@@ -445,7 +573,7 @@
   font-weight: 800;
 }
 
-/* ✅ Make top run-scorer pop as well */
+/* Make top run-scorer pop as well */
 .prc-runs-row--highlight {
   background: linear-gradient(90deg, #facc15, #fef9c3);
   color: #111827;
