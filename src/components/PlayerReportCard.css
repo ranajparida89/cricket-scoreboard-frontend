@@ -16,10 +16,11 @@
   gap: 16px;
 }
 
-/* Modern pill title bar */
+/* Modern pill title bar – FULL WIDTH */
 .prc-header-half-circle {
-  margin: 0 auto 8px;
-  width: min(720px, 100%);
+  margin: 0 0 8px;
+  width: 100%;
+  max-width: none;
   padding: 18px 24px;
   background: linear-gradient(135deg, #1d4ed8, #3b82f6, #facc15);
   border-radius: 999px;
@@ -138,7 +139,7 @@
     transparent 50%
   );
   mix-blend-mode: screen;
-  pointer-events: none; /* 🔧 so dropdowns work */
+  pointer-events: none; /* so dropdowns work */
 }
 
 .prc-hero-title {
@@ -467,30 +468,42 @@
   --prc-highlight-bg: #fbbf24;
 }
 
-/* Most ducks – white board with black stripes + orange accent */
+/* Most ducks – DARK theme with orange highlight */
 .prc-section--ducks {
-  --prc-hero-bg: radial-gradient(circle at top, #ffffff 0, #fee2e2 40%, #fef2f2 70%);
+  --prc-hero-bg: radial-gradient(circle at top, #020617 0, #020617 70%);
   --prc-hero-border: rgba(248, 113, 113, 0.9);
-  --prc-card-bg: #ffffff;
-  --prc-card-border: #111827;
-  --prc-card-text: #111827;
-  --prc-card-secondary: #4b5563;
-  --prc-value-bg: #111827;
-  --prc-value-text: #ffffff;
-  --prc-highlight-bg: #fee2e2;
+  --prc-card-bg: #020617;
+  --prc-card-border: rgba(55, 65, 81, 0.9);
+  --prc-card-text: #f9fafb;
+  --prc-card-secondary: #9ca3af;
+  --prc-value-bg: #f97316;   /* orange value box */
+  --prc-value-text: #111827;
+  --prc-highlight-bg: #111827;
 }
 
 .prc-section--ducks .prc-hero-title {
-  color: #ef4444;
+  color: #f97316;
 }
 
 .prc-section--ducks .prc-hero-sub {
-  color: #111827;
+  color: #e5e7eb;
 }
 
 .prc-section--ducks .prc-list-panel {
-  background: #f9fafb;
+  background: #020617;
   border-color: #111827;
+}
+
+/* special orange strip for rank #1 */
+.prc-section--ducks .prc-row-card--highlight {
+  background: linear-gradient(90deg, #f97316, #fb923c);
+  border-color: #fed7aa;
+  color: #111827;
+}
+
+.prc-section--ducks .prc-row-card--highlight .prc-row-value {
+  background: #111827;
+  color: #f97316;
 }
 
 /* Most balls faced – dark navy + gold highlight */
