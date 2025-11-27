@@ -36,7 +36,10 @@ const StatRowCard = ({ rank, primary, secondary, value, highlight = false }) => 
   return (
     <div className={classes.join(" ")}>
       <div className="prc-row-left">
-        <div className="prc-row-rank">{rank}</div>
+        <div className="prc-row-rank">
+          <span className="prc-rank-number">{rank}</span>
+          {highlight && <span className="prc-rank-crown">👑</span>}
+        </div>
         <div className="prc-row-main">
           <div className="prc-row-primary">{primary}</div>
           {secondary && <div className="prc-row-secondary">{secondary}</div>}
@@ -397,15 +400,24 @@ const PlayerReportCard = () => {
           {renderStatus()}
           {!loading &&
             !error &&
-            topRunScorers.map((row) => (
-              <div key={row.rank} className="prc-runs-row">
-                <div className="prc-runs-rank">{row.rank}</div>
-                <div className="prc-runs-name">{row.playerName}</div>
-                <div className="prc-runs-value">
-                  {Number(row.totalRuns).toLocaleString("en-IN")}
+            topRunScorers.map((row) => {
+              const isTop = row.rank === 1;
+              const rowClass = isTop
+                ? "prc-runs-row prc-runs-row--highlight"
+                : "prc-runs-row";
+              return (
+                <div key={row.rank} className={rowClass}>
+                  <div className="prc-runs-rank">{row.rank}</div>
+                  <div className="prc-runs-name">
+                    {row.playerName}
+                    {isTop && <span className="prc-runs-crown">👑</span>}
+                  </div>
+                  <div className="prc-runs-value">
+                    {Number(row.totalRuns).toLocaleString("en-IN")}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
         </div>
       </div>
     </section>
@@ -597,9 +609,11 @@ const PlayerReportCard = () => {
 
   return (
     <div className="prc-page">
-      {/* Half-circle module heading */}
+      {/* Module heading */}
       <div className="prc-header-half-circle">
-        <span className="prc-header-title">CRICKEDGE PLAYER REPORT CARD</span>
+        <span className="prc-header-title">
+          CRICKEDGE PLAYER REPORT CARD
+        </span>
       </div>
 
       {/* Tabs */}
