@@ -67,6 +67,7 @@ import FaqPage from "./components/FaqPage";
 import PastMatchesHub from "./components/PastMatchesHub";
 
 import "bootstrap/dist/css/bootstrap.min.css";
+import PlayerReportCard from "./components/PlayerReportCard";
 
 function HomePage() {
   return (
@@ -507,6 +508,7 @@ function App() {
           <Route path="/scheduler" element={<SchedulerPage />} />
           <Route path="/team-distributor" element={<TeamDistributor />} />
           <Route path="/past-matches" element={<PastMatchesHub />} />
+          <Route path="/player-report-card" element={<PlayerReportCard />} />
           <Route
             path="/tournament-points"
             element={

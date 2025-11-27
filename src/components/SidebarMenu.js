@@ -1,6 +1,7 @@
 // ✅ src/components/SidebarMenu.js
 // ✅ [01-JUL-2025 Ranaj Parida | Admin-only "Manage Admins" menu item]
 // ✅ [04-NOV-2025 Ranaj Parida | Added "Man of the Match Insights" module + Squad/Lineup restored safely]
+// ✅ [27-NOV-2025 Ranaj Parida | Added "Crickedge Player Report Card" module]
 
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -10,9 +11,10 @@ import {
   FaChartLine,
   FaUserCheck,
   FaTimes,
-  FaDiceD20,   // 🎯 Pitch Randomizer icon
-  FaMedal,      // 🏅 MoM Insights
+  FaDiceD20,      // 🎯 Pitch Randomizer icon
+  FaMedal,        // 🏅 MoM Insights
   FaPeopleArrows, // 👥 Squad/Lineup icon
+  FaIdCard,       // 🪪 Player Report Card
 } from "react-icons/fa";
 import { FaRegNewspaper } from "react-icons/fa";
 import { FaHandshake } from "react-icons/fa";
@@ -61,6 +63,11 @@ const SidebarMenu = () => {
         <li>
           <Link to="/player-rankings" onClick={handleClose}>
             <FaChartLine className="me-2" /> 🏆 CrickEdge Rankings
+          </Link>
+        </li>
+        <li>
+          <Link to="/player-report-card" onClick={handleClose}>
+            <FaIdCard className="me-2 text-warning" /> Player Report Card
           </Link>
         </li>
 
@@ -160,7 +167,11 @@ const SidebarMenu = () => {
             </li>
             <li>
               <Link to="/register-board" onClick={handleClose}>
-                <span role="img" aria-label="create" style={{ marginRight: 6 }}>
+                <span
+                  role="img"
+                  aria-label="create"
+                  style={{ marginRight: 6 }}
+                >
                   ➕
                 </span>
                 Create New Board

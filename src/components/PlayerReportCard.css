@@ -1,0 +1,415 @@
+/* src/components/PlayerReportCard.css */
+
+/* Base page with dark cricket-stadium feel */
+.prc-page {
+  min-height: 100vh;
+  padding: 24px 12px 40px;
+  background: radial-gradient(circle at top left, #020617 0, #020617 40%, #020617 100%);
+  color: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Half-circle title */
+.prc-header-half-circle {
+  margin: 0 auto;
+  width: min(520px, 100%);
+  height: 120px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border-radius: 0 0 999px 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.18);
+}
+
+.prc-header-title {
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  font-size: 0.9rem;
+}
+
+/* Tabs row */
+
+.prc-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  overflow-x: auto;
+}
+
+.prc-tab {
+  white-space: nowrap;
+  border-radius: 999px;
+  padding: 6px 14px;
+  border: 1px solid rgba(148, 163, 184, 0.65);
+  background: rgba(15, 23, 42, 0.92);
+  color: #e5e7eb;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease-out;
+}
+
+.prc-tab:hover {
+  border-color: #38bdf8;
+  color: #f9fafb;
+}
+
+.prc-tab--active {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border-color: transparent;
+  color: #f9fafb;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.7);
+}
+
+/* ============ Section base layout ============ */
+
+.prc-section {
+  --prc-hero-bg: radial-gradient(circle at top, #1f2937 0, #020617 70%);
+  --prc-hero-border: rgba(148, 163, 184, 0.5);
+  --prc-card-bg: #f9fafb;
+  --prc-card-border: rgba(15, 23, 42, 0.75);
+  --prc-card-text: #111827;
+  --prc-card-secondary: #6b7280;
+  --prc-value-bg: #2563eb;
+  --prc-value-text: #ffffff;
+  --prc-highlight-bg: #1d4ed8;
+  --prc-highlight-value-bg: #1d4ed8;
+}
+
+.prc-section-inner {
+  margin-top: 4px;
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(0, 2.4fr);
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .prc-section-inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Left hero panel (mimics text+image area) */
+
+.prc-hero {
+  background: var(--prc-hero-bg);
+  border-radius: 22px;
+  padding: 20px 18px;
+  position: relative;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
+  border: 1px solid var(--prc-hero-border);
+  overflow: hidden;
+}
+
+.prc-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 130% -10%, rgba(59, 130, 246, 0.35), transparent 50%);
+  mix-blend-mode: screen;
+}
+
+.prc-hero-title {
+  position: relative;
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.prc-hero-sub {
+  position: relative;
+  font-size: 0.85rem;
+  max-width: 360px;
+  color: #e5e7eb;
+}
+
+.prc-filter {
+  position: relative;
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.prc-filter label {
+  opacity: 0.9;
+}
+
+.prc-filter select {
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  padding: 4px 10px;
+  font-size: 0.8rem;
+}
+
+/* Right list panel */
+
+.prc-list-panel {
+  background: rgba(15, 23, 42, 0.96);
+  border-radius: 22px;
+  padding: 16px 16px 20px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Status */
+
+.prc-status {
+  font-size: 0.85rem;
+  color: #e5e7eb;
+}
+
+.prc-status--error {
+  color: #fecaca;
+}
+
+/* Generic row card – uses CSS variables */
+
+.prc-row-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--prc-card-bg);
+  border: 1px solid var(--prc-card-border);
+  color: var(--prc-card-text);
+}
+
+.prc-row-card--highlight {
+  background: var(--prc-highlight-bg);
+  color: #f9fafb;
+}
+
+.prc-row-left {
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1fr);
+  align-items: center;
+}
+
+.prc-row-rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  background: rgba(15, 23, 42, 0.08);
+}
+
+.prc-row-card--highlight .prc-row-rank {
+  background: rgba(15, 23, 42, 0.25);
+}
+
+.prc-row-main {
+  padding: 8px 10px;
+}
+
+.prc-row-primary {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.prc-row-secondary {
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: var(--prc-card-secondary);
+}
+
+.prc-row-card--highlight .prc-row-secondary {
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.prc-row-value {
+  min-width: 82px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--prc-value-bg);
+  color: var(--prc-value-text);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+/* ============ Themed sections to match your images ============ */
+
+/* Highest Score – blue top bar, white cards, blue number boxes */
+.prc-section--highest-score {
+  --prc-hero-bg: radial-gradient(circle at top, #1e293b 0, #020617 70%);
+  --prc-hero-border: rgba(59, 130, 246, 0.8);
+  --prc-card-bg: #ffffff;
+  --prc-card-border: #111827;
+  --prc-card-text: #111827;
+  --prc-card-secondary: #6b7280;
+  --prc-value-bg: #1d4ed8;
+  --prc-value-text: #ffffff;
+  --prc-highlight-bg: #eff6ff;
+}
+
+/* Bowling Average – navy with orange highlight row */
+.prc-section--bowling-average {
+  --prc-hero-bg: radial-gradient(circle at top, #020617 0, #020617 70%);
+  --prc-hero-border: rgba(15, 23, 42, 0.9);
+  --prc-card-bg: #020617;
+  --prc-card-border: rgba(55, 65, 81, 0.9);
+  --prc-card-text: #e5e7eb;
+  --prc-card-secondary: #9ca3af;
+  --prc-value-bg: #0f172a;
+  --prc-value-text: #f97316;
+  --prc-highlight-bg: #f97316;
+  --prc-highlight-value-bg: #0f172a;
+}
+
+/* Matches "Best Average" orange strip look */
+.prc-section--bowling-average .prc-row-card--highlight {
+  background: #f97316;
+  color: #111827;
+}
+
+.prc-section--bowling-average .prc-row-card--highlight .prc-row-value {
+  background: #0f172a;
+  color: #f97316;
+}
+
+/* Most Wickets by format – deep blue list like most test wickets */
+.prc-section--most-wickets,
+.prc-section--most-wickets-overall {
+  --prc-hero-bg: radial-gradient(circle at top, #111827 0, #020617 70%);
+  --prc-hero-border: rgba(15, 23, 42, 0.9);
+  --prc-card-bg: #0f172a;
+  --prc-card-border: rgba(30, 64, 175, 0.8);
+  --prc-card-text: #e5e7eb;
+  --prc-card-secondary: #9ca3af;
+  --prc-value-bg: #fde68a;
+  --prc-value-text: #111827;
+  --prc-highlight-bg: #1d4ed8;
+}
+
+/* Batting Average – gold theme like Dhoni graphic */
+.prc-section--batting-average {
+  --prc-hero-bg: radial-gradient(circle at top, #020617 0, #111827 70%);
+  --prc-hero-border: rgba(250, 204, 21, 0.8);
+  --prc-card-bg: #fefce8;
+  --prc-card-border: #92400e;
+  --prc-card-text: #1f2933;
+  --prc-card-secondary: #78350f;
+  --prc-value-bg: #f59e0b;
+  --prc-value-text: #111827;
+  --prc-highlight-bg: #facc15;
+}
+
+/* Top runs list – simple black background text list */
+.prc-section--top-runs {
+  --prc-hero-bg: radial-gradient(circle at top, #020617 0, #020617 70%);
+  --prc-hero-border: rgba(15, 23, 42, 0.9);
+}
+
+.prc-section-inner--runs {
+  grid-template-columns: minmax(0, 1.8fr) minmax(0, 2.4fr);
+}
+
+.prc-hero--runs {
+  border-radius: 22px;
+}
+
+.prc-list-panel--runs {
+  border-radius: 22px;
+  background: #020617;
+  border-color: #111827;
+}
+
+/* simple three-column run rows */
+.prc-runs-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 120px;
+  gap: 6px;
+  padding: 6px 4px;
+  border-bottom: 1px solid rgba(55, 65, 81, 0.7);
+  font-size: 0.9rem;
+}
+
+.prc-runs-row:last-child {
+  border-bottom: none;
+}
+
+.prc-runs-rank {
+  font-weight: 700;
+}
+
+.prc-runs-name {
+  font-weight: 600;
+}
+
+.prc-runs-value {
+  text-align: right;
+  font-weight: 700;
+}
+
+/* Most fifties – blue headline like sample */
+.prc-section--fifties {
+  --prc-hero-bg: radial-gradient(circle at top, #1d4ed8 0, #020617 70%);
+  --prc-hero-border: rgba(59, 130, 246, 0.9);
+  --prc-card-bg: #ffffff;
+  --prc-card-border: #0f172a;
+  --prc-card-text: #111827;
+  --prc-card-secondary: #6b7280;
+  --prc-value-bg: #1d4ed8;
+  --prc-value-text: #ffffff;
+  --prc-highlight-bg: #e0f2fe;
+}
+
+/* Most hundreds – gold/blue hybrid */
+.prc-section--hundreds {
+  --prc-hero-bg: radial-gradient(circle at top, #312e81 0, #020617 70%);
+  --prc-hero-border: rgba(129, 140, 248, 0.9);
+  --prc-card-bg: #fefce8;
+  --prc-card-border: #1e293b;
+  --prc-card-text: #111827;
+  --prc-card-secondary: #6b7280;
+  --prc-value-bg: #f59e0b;
+  --prc-value-text: #111827;
+  --prc-highlight-bg: #fbbf24;
+}
+
+/* Most ducks – white board with black stripes + orange accent */
+.prc-section--ducks {
+  --prc-hero-bg: radial-gradient(circle at top, #ffffff 0, #fee2e2 40%, #fef2f2 70%);
+  --prc-hero-border: rgba(248, 113, 113, 0.9);
+  --prc-card-bg: #ffffff;
+  --prc-card-border: #111827;
+  --prc-card-text: #111827;
+  --prc-card-secondary: #4b5563;
+  --prc-value-bg: #111827;
+  --prc-value-text: #ffffff;
+  --prc-highlight-bg: #fee2e2;
+}
+
+/* Most balls faced – dark navy + gold highlight */
+.prc-section--balls {
+  --prc-hero-bg: radial-gradient(circle at top, #020617 0, #020617 70%);
+  --prc-hero-border: rgba(15, 23, 42, 0.9);
+  --prc-card-bg: #020617;
+  --prc-card-border: rgba(55, 65, 81, 0.9);
+  --prc-card-text: #e5e7eb;
+  --prc-card-secondary: #9ca3af;
+  --prc-value-bg: #facc15;
+  --prc-value-text: #111827;
+  --prc-highlight-bg: #1f2937;
+}
