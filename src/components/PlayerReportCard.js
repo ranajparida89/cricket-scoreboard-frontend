@@ -224,7 +224,7 @@ const PlayerReportCard = () => {
       <div className="prc-section-inner">
         <header className="prc-hero">
           <h2 className="prc-hero-title">HIGHEST SCORE</h2>
-          <p className="prc-hero-sub">Individual Highest Score in ODI Cricket</p>
+          <p className="prc-hero-sub">Crickedge Individual Highest Score in ODI Cricket</p>
         </header>
         <div className="prc-list-panel">
           {renderStatus()}
@@ -391,7 +391,7 @@ const PlayerReportCard = () => {
     <section className="prc-section prc-section--top-runs">
       <div className="prc-section-inner prc-section-inner--runs">
         <header className="prc-hero prc-hero--runs">
-          <h2 className="prc-hero-title">TOP INTERNATIONAL RUN SCORERS</h2>
+          <h2 className="prc-hero-title">TOP CRICKEDGE RUN SCORERS</h2>
           <p className="prc-hero-sub">
             Combined runs across all Crickedge formats (ODI, T20, Test).
           </p>
