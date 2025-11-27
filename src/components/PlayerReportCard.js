@@ -930,7 +930,7 @@ const PlayerReportCard = () => {
     }
   };
 
-  return (
+    return (
     <div className="prc-page">
       {/* Module heading */}
       <div className="prc-header-half-circle">
@@ -939,19 +939,37 @@ const PlayerReportCard = () => {
         </span>
       </div>
 
-      {/* Tabs */}
-      <div className="prc-tabs">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            className={
-              tab.id === activeTab ? "prc-tab prc-tab--active" : "prc-tab"
-            }
-            onClick={() => setActiveTab(tab.id)}
+      {/* Tabs strip (desktop/tablet) + dropdown (mobile) */}
+      <div className="prc-tabs-bar">
+        {/* Pills for larger screens */}
+        <div className="prc-tabs">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              className={
+                tab.id === activeTab ? "prc-tab prc-tab--active" : "prc-tab"
+              }
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Compact select for small screens */}
+        <div className="prc-tabs-select-wrapper">
+          <select
+            className="prc-tabs-select"
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value)}
           >
-            {tab.label}
-          </button>
-        ))}
+            {TABS.map((tab) => (
+              <option key={tab.id} value={tab.id}>
+                {tab.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Active tab body */}
@@ -961,3 +979,4 @@ const PlayerReportCard = () => {
 };
 
 export default PlayerReportCard;
+

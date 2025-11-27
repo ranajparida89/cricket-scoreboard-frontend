@@ -54,16 +54,25 @@
   font-size: 1.15rem;
 }
 
-/* Tabs row */
+/* ==================== Tabs row (desktop/tablet) + dropdown (mobile) ==================== */
 
+/* wrapper so we can stack pills row + mobile select */
+.prc-tabs-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Pills row */
 .prc-tabs {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 0;
-  overflow-x: auto;
-  flex-wrap: wrap;              /* ✅ wrap to 2 lines instead of going off-screen */
+  flex-wrap: wrap;           /* wrap to multiple lines */
+  justify-content: center;   /* center rows */
   max-width: 100%;
+  overflow: visible;
 }
 
 .prc-tab {
@@ -90,6 +99,35 @@
   border-color: transparent;
   color: #f9fafb;
   box-shadow: 0 6px 18px rgba(37, 99, 235, 0.7);
+}
+
+/* Mobile dropdown – hidden on large screens */
+.prc-tabs-select-wrapper {
+  display: none;
+}
+
+.prc-tabs-select {
+  width: 100%;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: #020617;
+  color: #e5e7eb;
+  border: 1px solid rgba(148, 163, 184, 0.65);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* On small screens: hide pills, show dropdown */
+@media (max-width: 640px) {
+  .prc-tabs {
+    display: none;
+  }
+
+  .prc-tabs-select-wrapper {
+    display: block;
+  }
 }
 
 /* ============ Section base layout ============ */
@@ -604,7 +642,7 @@
   --prc-highlight-bg: #4c1d95;   /* darker for better contrast */
 }
 
-/* ✅ make #1 row in Most 200s very readable */
+/* clearer #1 row for Most 200s */
 .prc-section--double-tons .prc-row-card--highlight {
   background: linear-gradient(90deg, #4c1d95, #7e22ce);
   color: #f9fafb;
@@ -632,7 +670,7 @@
   --prc-highlight-bg: #0f766e;   /* darker */
 }
 
-/* ✅ clearer #1 row for Fastest Fifty */
+/* clearer #1 row for Fastest Fifty */
 .prc-section--fast50 .prc-row-card--highlight {
   background: linear-gradient(90deg, #0f766e, #14b8a6);
   color: #ecfeff;
@@ -656,7 +694,7 @@
   --prc-highlight-bg: #7c2d12;   /* darker */
 }
 
-/* ✅ clearer #1 row for Fastest Hundred */
+/* clearer #1 row for Fastest Hundred */
 .prc-section--fast100 .prc-row-card--highlight {
   background: linear-gradient(90deg, #7c2d12, #f97316);
   color: #fff7ed;
@@ -680,7 +718,7 @@
   --prc-highlight-bg: #166534;   /* darker */
 }
 
-/* ✅ clearer #1 row for Highest Strike Rate */
+/* clearer #1 row for Highest Strike Rate */
 .prc-section--strike-rate .prc-row-card--highlight {
   background: linear-gradient(90deg, #166534, #22c55e);
   color: #ecfdf3;
