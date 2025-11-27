@@ -16,14 +16,14 @@
   gap: 16px;
 }
 
-/* Modern pill title bar – FULL WIDTH */
+/* Modern title bar – FULL WIDTH, RECTANGLE STYLE */
 .prc-header-half-circle {
   margin: 0 0 8px;
   width: 100%;
   max-width: none;
   padding: 18px 24px;
   background: linear-gradient(135deg, #1d4ed8, #3b82f6, #facc15);
-  border-radius: 999px;
+  border-radius: 16px; /* 🔁 changed from 999px → rectangle with soft corners */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -158,6 +158,7 @@
   color: #e5e7eb;
 }
 
+/* Filter row + MODERN DROPDOWN */
 .prc-filter {
   position: relative;
   margin-top: 18px;
@@ -172,13 +173,32 @@
   opacity: 0.9;
 }
 
+/* 🔥 Modernised select – pill, gradient, custom arrow */
 .prc-filter select {
-  background: rgba(15, 23, 42, 0.9);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: linear-gradient(135deg, #020617, #0f172a);
   color: #e5e7eb;
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.7);
-  padding: 4px 10px;
+  padding: 6px 34px 6px 14px;
   font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.6),
+    0 8px 18px rgba(15, 23, 42, 0.85);
+  background-image: linear-gradient(135deg, #020617, #0f172a),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23e5e7eb' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat, no-repeat;
+  background-position: left top, right 10px center;
+  background-size: auto, 10px 6px;
+}
+
+.prc-filter select:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 1px #38bdf8, 0 0 24px rgba(56, 189, 248, 0.45);
 }
 
 /* Right list panel */
@@ -476,7 +496,7 @@
   --prc-card-border: rgba(55, 65, 81, 0.9);
   --prc-card-text: #f9fafb;
   --prc-card-secondary: #9ca3af;
-  --prc-value-bg: #f97316;   /* orange value box */
+  --prc-value-bg: #f97316;
   --prc-value-text: #111827;
   --prc-highlight-bg: #111827;
 }
