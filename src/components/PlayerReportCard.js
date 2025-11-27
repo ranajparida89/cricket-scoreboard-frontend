@@ -16,6 +16,16 @@ const TABS = [
   { id: "top-run-scorers", label: "Top Run Scorer" },
   { id: "most-fifties", label: "Most Fifties" },
   { id: "most-hundreds", label: "Most Hundreds" },
+
+  // NEW advanced batting tabs
+  { id: "most-200s", label: "Most 200s" },
+  { id: "fastest-fifty", label: "Fastest Fifty" },
+  { id: "fastest-hundred", label: "Fastest Hundred" },
+  { id: "highest-strike-rate", label: "Highest Strike Rate" },
+
+  // NEW advanced bowling tab
+  { id: "best-bowling-figures", label: "Best Figures" },
+
   { id: "most-wickets-overall", label: "Most Wickets (Overall)" },
   { id: "most-ducks", label: "Most Ducks" },
   { id: "most-balls-faced", label: "Most Balls Faced (Test)" },
@@ -69,12 +79,26 @@ const PlayerReportCard = () => {
   const [mostDucks, setMostDucks] = useState([]);
   const [mostBalls, setMostBalls] = useState([]);
 
+  // NEW datasets
+  const [mostDoubleCenturies, setMostDoubleCenturies] = useState([]);
+  const [fastestFifties, setFastestFifties] = useState([]);
+  const [fastestHundreds, setFastestHundreds] = useState([]);
+  const [highestStrikeRates, setHighestStrikeRates] = useState([]);
+  const [bestFigures, setBestFigures] = useState([]);
+
   // filters
   const [bowlingMatchType, setBowlingMatchType] = useState("Test");
   const [wicketsMatchType, setWicketsMatchType] = useState("ALL");
   const [battingMatchType, setBattingMatchType] = useState("ALL");
   const [wicketsOverallMatchType, setWicketsOverallMatchType] =
     useState("ALL");
+
+  // NEW filters
+  const [fast50MatchType, setFast50MatchType] = useState("ALL");
+  const [fast100MatchType, setFast100MatchType] = useState("ALL");
+  const [strikeRateMatchType, setStrikeRateMatchType] = useState("ALL");
+  const [strikeRateMinBalls, setStrikeRateMinBalls] = useState(250);
+  const [bestFiguresMatchType, setBestFiguresMatchType] = useState("ALL");
 
   // ---- data loaders ----
 
@@ -161,6 +185,49 @@ const PlayerReportCard = () => {
       setMostBalls(res.data || []);
     });
 
+  // NEW loaders
+
+  const loadMost200s = () =>
+    withStatus(async () => {
+      const res = await axios.get(`${API_PR_CARD}/most-200s`);
+      setMostDoubleCenturies(res.data || []);
+    });
+
+  const loadFastestFifty = () =>
+    withStatus(async () => {
+      const res = await axios.get(`${API_PR_CARD}/fastest-fifty`, {
+        params: { matchType: fast50MatchType },
+      });
+      setFastestFifties(res.data || []);
+    });
+
+  const loadFastestHundred = () =>
+    withStatus(async () => {
+      const res = await axios.get(`${API_PR_CARD}/fastest-hundred`, {
+        params: { matchType: fast100MatchType },
+      });
+      setFastestHundreds(res.data || []);
+    });
+
+  const loadHighestStrikeRate = () =>
+    withStatus(async () => {
+      const res = await axios.get(`${API_PR_CARD}/highest-strike-rate`, {
+        params: {
+          matchType: strikeRateMatchType,
+          minBalls: strikeRateMinBalls,
+        },
+      });
+      setHighestStrikeRates(res.data || []);
+    });
+
+  const loadBestFigures = () =>
+    withStatus(async () => {
+      const res = await axios.get(`${API_PR_CARD}/best-bowling-figures`, {
+        params: { matchType: bestFiguresMatchType },
+      });
+      setBestFigures(res.data || []);
+    });
+
   // ---- effects for tab changes / filter changes ----
 
   useEffect(() => {
@@ -203,6 +270,27 @@ const PlayerReportCard = () => {
     if (activeTab === "most-balls-faced") loadMostBalls();
   }, [activeTab]);
 
+  // NEW effects
+  useEffect(() => {
+    if (activeTab === "most-200s") loadMost200s();
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === "fastest-fifty") loadFastestFifty();
+  }, [activeTab, fast50MatchType]);
+
+  useEffect(() => {
+    if (activeTab === "fastest-hundred") loadFastestHundred();
+  }, [activeTab, fast100MatchType]);
+
+  useEffect(() => {
+    if (activeTab === "highest-strike-rate") loadHighestStrikeRate();
+  }, [activeTab, strikeRateMatchType, strikeRateMinBalls]);
+
+  useEffect(() => {
+    if (activeTab === "best-bowling-figures") loadBestFigures();
+  }, [activeTab, bestFiguresMatchType]);
+
   // ---------- render helpers ----------
 
   const renderStatus = () => {
@@ -224,7 +312,9 @@ const PlayerReportCard = () => {
       <div className="prc-section-inner">
         <header className="prc-hero">
           <h2 className="prc-hero-title">HIGHEST SCORE</h2>
-          <p className="prc-hero-sub">Crickedge Individual Highest Score in ODI Cricket</p>
+          <p className="prc-hero-sub">
+            Crickedge Individual Highest Score in ODI Cricket
+          </p>
         </header>
         <div className="prc-list-panel">
           {renderStatus()}
@@ -252,8 +342,8 @@ const PlayerReportCard = () => {
           <h2 className="prc-hero-title">BEST AVERAGE</h2>
           <p className="prc-hero-sub">
             Crickedge Best Bowling Average
-            {bowlingMatchType !== "ALL" ? ` in ${bowlingMatchType}` : ""} (min: 1
-            wicket)
+            {bowlingMatchType !== "ALL" ? ` in ${bowlingMatchType}` : ""} (min:
+            1 wicket)
           </p>
 
           <div className="prc-filter">
@@ -281,7 +371,9 @@ const PlayerReportCard = () => {
                 primary={row.playerName}
                 secondary={`${row.totalWickets} wkts`}
                 value={
-                  row.bowlingAvg != null ? Number(row.bowlingAvg).toFixed(2) : "-"
+                  row.bowlingAvg != null
+                    ? Number(row.bowlingAvg).toFixed(2)
+                    : "-"
                 }
                 highlight={row.rank === 1}
               />
@@ -479,6 +571,225 @@ const PlayerReportCard = () => {
     </section>
   );
 
+  // NEW: Most 200s
+  const Most200sTab = () => (
+    <section className="prc-section prc-section--double-tons">
+      <div className="prc-section-inner">
+        <header className="prc-hero">
+          <h2 className="prc-hero-title">MOST 200s</h2>
+          <p className="prc-hero-sub">
+            Crickedge Most Double Hundreds in Test cricket (combined Test
+            innings).
+          </p>
+        </header>
+        <div className="prc-list-panel">
+          {renderStatus()}
+          {!loading &&
+            !error &&
+            mostDoubleCenturies.map((row) => (
+              <StatRowCard
+                key={row.rank}
+                rank={row.rank}
+                primary={row.playerName}
+                secondary="TEST DOUBLE HUNDREDS"
+                value={row.doubleCenturies}
+                highlight={row.rank === 1}
+              />
+            ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  // NEW: Fastest Fifty
+  const FastestFiftyTab = () => (
+    <section className="prc-section prc-section--fast50">
+      <div className="prc-section-inner">
+        <header className="prc-hero">
+          <h2 className="prc-hero-title">FASTEST FIFTY</h2>
+          <p className="prc-hero-sub">
+            Quickest 50+ knocks in Crickedge – by balls faced.
+          </p>
+
+          <div className="prc-filter">
+            <label>Match Type:</label>
+            <select
+              value={fast50MatchType}
+              onChange={(e) => setFast50MatchType(e.target.value)}
+            >
+              {MATCH_TYPE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </header>
+        <div className="prc-list-panel">
+          {renderStatus()}
+          {!loading &&
+            !error &&
+            fastestFifties.map((row) => (
+              <StatRowCard
+                key={row.rank}
+                rank={row.rank}
+                primary={row.playerName}
+                secondary={`${row.runs} runs · ${row.balls} balls · ${row.matchType}`}
+                value={`${row.balls} balls`}
+                highlight={row.rank === 1}
+              />
+            ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  // NEW: Fastest Hundred
+  const FastestHundredTab = () => (
+    <section className="prc-section prc-section--fast100">
+      <div className="prc-section-inner">
+        <header className="prc-hero">
+          <h2 className="prc-hero-title">FASTEST HUNDRED</h2>
+          <p className="prc-hero-sub">
+            Quickest 100+ knocks in Crickedge – by balls faced.
+          </p>
+
+          <div className="prc-filter">
+            <label>Match Type:</label>
+            <select
+              value={fast100MatchType}
+              onChange={(e) => setFast100MatchType(e.target.value)}
+            >
+              {MATCH_TYPE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </header>
+        <div className="prc-list-panel">
+          {renderStatus()}
+          {!loading &&
+            !error &&
+            fastestHundreds.map((row) => (
+              <StatRowCard
+                key={row.rank}
+                rank={row.rank}
+                primary={row.playerName}
+                secondary={`${row.runs} runs · ${row.balls} balls · ${row.matchType}`}
+                value={`${row.balls} balls`}
+                highlight={row.rank === 1}
+              />
+            ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  // NEW: Highest Strike Rate
+  const HighestStrikeRateTab = () => (
+    <section className="prc-section prc-section--strike-rate">
+      <div className="prc-section-inner">
+        <header className="prc-hero">
+          <h2 className="prc-hero-title">HIGHEST STRIKE RATE</h2>
+          <p className="prc-hero-sub">
+            Crickedge top strike-rate monsters (min {strikeRateMinBalls} balls
+            faced).
+          </p>
+
+          <div className="prc-filter">
+            <label>Match Type:</label>
+            <select
+              value={strikeRateMatchType}
+              onChange={(e) => setStrikeRateMatchType(e.target.value)}
+            >
+              {MATCH_TYPE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+
+            <label>Min Balls:</label>
+            <select
+              value={strikeRateMinBalls}
+              onChange={(e) =>
+                setStrikeRateMinBalls(Number(e.target.value) || 250)
+              }
+            >
+              <option value={100}>100</option>
+              <option value={250}>250</option>
+              <option value={500}>500</option>
+            </select>
+          </div>
+        </header>
+        <div className="prc-list-panel">
+          {renderStatus()}
+          {!loading &&
+            !error &&
+            highestStrikeRates.map((row) => (
+              <StatRowCard
+                key={row.rank}
+                rank={row.rank}
+                primary={row.playerName}
+                secondary={`${row.totalRuns} runs · ${row.totalBalls} balls`}
+                value={
+                  row.strikeRate != null
+                    ? row.strikeRate.toFixed(2)
+                    : "-"
+                }
+                highlight={row.rank === 1}
+              />
+            ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  // NEW: Best Bowling Figures
+  const BestFiguresTab = () => (
+    <section className="prc-section prc-section--best-figures">
+      <div className="prc-section-inner">
+        <header className="prc-hero">
+          <h2 className="prc-hero-title">BEST FIGURES IN AN INNINGS</h2>
+          <p className="prc-hero-sub">
+            Crickedge&apos;s deadliest spells – most wickets with least runs.
+          </p>
+
+          <div className="prc-filter">
+            <label>Match Type:</label>
+            <select
+              value={bestFiguresMatchType}
+              onChange={(e) => setBestFiguresMatchType(e.target.value)}
+            >
+              {MATCH_TYPE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </header>
+        <div className="prc-list-panel">
+          {renderStatus()}
+          {!loading &&
+            !error &&
+            bestFigures.map((row) => (
+              <StatRowCard
+                key={row.rank}
+                rank={row.rank}
+                primary={row.playerName}
+                secondary={`${row.wickets}/${row.runs} · ${row.matchType}`}
+                value={`${row.wickets}/${row.runs}`}
+                highlight={row.rank === 1}
+              />
+            ))}
+        </div>
+      </div>
+    </section>
+  );
+
   const MostWicketsOverallTab = () => (
     <section className="prc-section prc-section--most-wickets-overall">
       <div className="prc-section-inner">
@@ -596,6 +907,18 @@ const PlayerReportCard = () => {
         return <MostFiftiesTab />;
       case "most-hundreds":
         return <MostHundredsTab />;
+
+      case "most-200s":
+        return <Most200sTab />;
+      case "fastest-fifty":
+        return <FastestFiftyTab />;
+      case "fastest-hundred":
+        return <FastestHundredTab />;
+      case "highest-strike-rate":
+        return <HighestStrikeRateTab />;
+      case "best-bowling-figures":
+        return <BestFiguresTab />;
+
       case "most-wickets-overall":
         return <MostWicketsOverallTab />;
       case "most-ducks":

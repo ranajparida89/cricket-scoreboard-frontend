@@ -23,7 +23,7 @@
   max-width: none;
   padding: 18px 24px;
   background: linear-gradient(135deg, #1d4ed8, #3b82f6, #facc15);
-  border-radius: 16px; /* 🔁 changed from 999px → rectangle with soft corners */
+  border-radius: 16px; /* rectangle with soft corners */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -117,7 +117,7 @@
   }
 }
 
-/* Left hero panel (mimics text+image area) */
+/* Left hero panel */
 
 .prc-hero {
   background: var(--prc-hero-bg);
@@ -139,7 +139,7 @@
     transparent 50%
   );
   mix-blend-mode: screen;
-  pointer-events: none; /* so dropdowns work */
+  pointer-events: none;
 }
 
 .prc-hero-title {
@@ -159,7 +159,7 @@
 }
 
 /* Filter row + MODERN DROPDOWN */
-/* Filter row (unchanged) */
+
 .prc-filter {
   position: relative;
   margin-top: 18px;
@@ -174,29 +174,24 @@
   opacity: 0.9;
 }
 
-/* 🔥 New modern pill-style dropdown */
+/* Modern pill-style dropdown for all selects in this module */
 .prc-filter select {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
 
-  /* dark inner fill + neon border using double background */
-  background-image:
-    linear-gradient(#020617, #020617),
-    radial-gradient(circle at 0% 0%, #38bdf8, #1d4ed8);
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
-
-  /* custom arrow */
   background-image:
     linear-gradient(#020617, #020617),
     radial-gradient(circle at 0% 0%, #38bdf8, #1d4ed8),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23e5e7eb' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-origin: border-box;
+  background-clip: padding-box, border-box, border-box;
   background-repeat: no-repeat, no-repeat, no-repeat;
   background-position:
-    0 0, 0 0, right 12px center;
-  background-size:
-    auto, auto, 10px 6px;
+    0 0,
+    0 0,
+    right 12px center;
+  background-size: auto, auto, 10px 6px;
 
   border: 2px solid transparent;
   border-radius: 999px;
@@ -335,82 +330,8 @@
   font-weight: 800;
 }
 
-/* ============ Themed sections to match your images ============ */
+/* ============ Top runs custom list ============ */
 
-/* Highest Score – blue top bar, special golden top row */
-.prc-section--highest-score {
-  --prc-hero-bg: radial-gradient(circle at top, #1e293b 0, #020617 70%);
-  --prc-hero-border: rgba(59, 130, 246, 0.8);
-  --prc-card-bg: #ffffff;
-  --prc-card-border: #111827;
-  --prc-card-text: #111827;
-  --prc-card-secondary: #6b7280;
-  --prc-value-bg: #1d4ed8;
-  --prc-value-text: #ffffff;
-  --prc-highlight-bg: #fff7d6;
-}
-
-.prc-section--highest-score .prc-row-card--highlight {
-  background: linear-gradient(90deg, #fef9c3, #fffbeb);
-  border-color: #facc15;
-}
-
-.prc-section--highest-score .prc-row-card--highlight .prc-row-primary {
-  color: #78350f;
-}
-
-/* Bowling Average – navy with orange highlight row */
-.prc-section--bowling-average {
-  --prc-hero-bg: radial-gradient(circle at top, #020617 0, #020617 70%);
-  --prc-hero-border: rgba(15, 23, 42, 0.9);
-  --prc-card-bg: #020617;
-  --prc-card-border: rgba(55, 65, 81, 0.9);
-  --prc-card-text: #e5e7eb;
-  --prc-card-secondary: #9ca3af;
-  --prc-value-bg: #0f172a;
-  --prc-value-text: #f97316;
-  --prc-highlight-bg: #f97316;
-  --prc-highlight-value-bg: #0f172a;
-}
-
-.prc-section--bowling-average .prc-row-card--highlight {
-  background: #f97316;
-  color: #111827;
-}
-
-.prc-section--bowling-average .prc-row-card--highlight .prc-row-value {
-  background: #0f172a;
-  color: #f97316;
-}
-
-/* Most Wickets by format – deep blue list like most test wickets */
-.prc-section--most-wickets,
-.prc-section--most-wickets-overall {
-  --prc-hero-bg: radial-gradient(circle at top, #111827 0, #020617 70%);
-  --prc-hero-border: rgba(15, 23, 42, 0.9);
-  --prc-card-bg: #0f172a;
-  --prc-card-border: rgba(30, 64, 175, 0.8);
-  --prc-card-text: #e5e7eb;
-  --prc-card-secondary: #9ca3af;
-  --prc-value-bg: #fde68a;
-  --prc-value-text: #111827;
-  --prc-highlight-bg: #1d4ed8;
-}
-
-/* Batting Average – gold theme like Dhoni graphic */
-.prc-section--batting-average {
-  --prc-hero-bg: radial-gradient(circle at top, #020617 0, #111827 70%);
-  --prc-hero-border: rgba(250, 204, 21, 0.8);
-  --prc-card-bg: #fefce8;
-  --prc-card-border: #92400e;
-  --prc-card-text: #1f2933;
-  --prc-card-secondary: #78350f;
-  --prc-value-bg: #f59e0b;
-  --prc-value-text: #111827;
-  --prc-highlight-bg: #facc15;
-}
-
-/* Top runs list – bold text like big leaderboard */
 .prc-section--top-runs {
   --prc-hero-bg: radial-gradient(circle at top, #020617 0, #020617 70%);
   --prc-hero-border: rgba(15, 23, 42, 0.9);
@@ -481,7 +402,82 @@
   font-size: 1.2rem;
 }
 
-/* Most fifties – blue headline like sample */
+/* ============ Themed sections to match your images ============ */
+
+/* Highest Score – blue top bar, special golden top row */
+.prc-section--highest-score {
+  --prc-hero-bg: radial-gradient(circle at top, #1e293b 0, #020617 70%);
+  --prc-hero-border: rgba(59, 130, 246, 0.8);
+  --prc-card-bg: #ffffff;
+  --prc-card-border: #111827;
+  --prc-card-text: #111827;
+  --prc-card-secondary: #6b7280;
+  --prc-value-bg: #1d4ed8;
+  --prc-value-text: #ffffff;
+  --prc-highlight-bg: #fff7d6;
+}
+
+.prc-section--highest-score .prc-row-card--highlight {
+  background: linear-gradient(90deg, #fef9c3, #fffbeb);
+  border-color: #facc15;
+}
+
+.prc-section--highest-score .prc-row-card--highlight .prc-row-primary {
+  color: #78350f;
+}
+
+/* Bowling Average – navy with orange highlight row */
+.prc-section--bowling-average {
+  --prc-hero-bg: radial-gradient(circle at top, #020617 0, #020617 70%);
+  --prc-hero-border: rgba(15, 23, 42, 0.9);
+  --prc-card-bg: #020617;
+  --prc-card-border: rgba(55, 65, 81, 0.9);
+  --prc-card-text: #e5e7eb;
+  --prc-card-secondary: #9ca3af;
+  --prc-value-bg: #0f172a;
+  --prc-value-text: #f97316;
+  --prc-highlight-bg: #f97316;
+  --prc-highlight-value-bg: #0f172a;
+}
+
+.prc-section--bowling-average .prc-row-card--highlight {
+  background: #f97316;
+  color: #111827;
+}
+
+.prc-section--bowling-average .prc-row-card--highlight .prc-row-value {
+  background: #0f172a;
+  color: #f97316;
+}
+
+/* Most Wickets by format – deep blue list like most test wickets */
+.prc-section--most-wickets,
+.prc-section--most-wickets-overall {
+  --prc-hero-bg: radial-gradient(circle at top, #111827 0, #020617 70%);
+  --prc-hero-border: rgba(15, 23, 42, 0.9);
+  --prc-card-bg: #0f172a;
+  --prc-card-border: rgba(30, 64, 175, 0.8);
+  --prc-card-text: #e5e7eb;
+  --prc-card-secondary: #9ca3af;
+  --prc-value-bg: #fde68a;
+  --prc-value-text: #111827;
+  --prc-highlight-bg: #1d4ed8;
+}
+
+/* Batting Average – gold theme */
+.prc-section--batting-average {
+  --prc-hero-bg: radial-gradient(circle at top, #020617 0, #111827 70%);
+  --prc-hero-border: rgba(250, 204, 21, 0.8);
+  --prc-card-bg: #fefce8;
+  --prc-card-border: #92400e;
+  --prc-card-text: #1f2933;
+  --prc-card-secondary: #78350f;
+  --prc-value-bg: #f59e0b;
+  --prc-value-text: #111827;
+  --prc-highlight-bg: #facc15;
+}
+
+/* Most fifties – blue headline */
 .prc-section--fifties {
   --prc-hero-bg: radial-gradient(circle at top, #1d4ed8 0, #020617 70%);
   --prc-hero-border: rgba(59, 130, 246, 0.9);
@@ -565,4 +561,71 @@
   --prc-value-bg: #facc15;
   --prc-value-text: #111827;
   --prc-highlight-bg: #1f2937;
+}
+
+/* ============ NEW themed sections for extra tabs ============ */
+
+/* Most 200s – royal purple/gold */
+.prc-section--double-tons {
+  --prc-hero-bg: radial-gradient(circle at top, #4c1d95 0, #020617 70%);
+  --prc-hero-border: rgba(192, 132, 252, 0.9);
+  --prc-card-bg: #f5f3ff;
+  --prc-card-border: #4c1d95;
+  --prc-card-text: #111827;
+  --prc-card-secondary: #6b21a8;
+  --prc-value-bg: #a855f7;
+  --prc-value-text: #f9fafb;
+  --prc-highlight-bg: #e9d5ff;
+}
+
+/* Fastest Fifty – teal / cyan speed vibes */
+.prc-section--fast50 {
+  --prc-hero-bg: radial-gradient(circle at top, #0f766e 0, #020617 70%);
+  --prc-hero-border: rgba(45, 212, 191, 0.9);
+  --prc-card-bg: #ecfeff;
+  --prc-card-border: #0f766e;
+  --prc-card-text: #042f2e;
+  --prc-card-secondary: #115e59;
+  --prc-value-bg: #14b8a6;
+  --prc-value-text: #022c22;
+  --prc-highlight-bg: #ccfbf1;
+}
+
+/* Fastest Hundred – fiery orange/red */
+.prc-section--fast100 {
+  --prc-hero-bg: radial-gradient(circle at top, #7c2d12 0, #020617 70%);
+  --prc-hero-border: rgba(248, 153, 50, 0.9);
+  --prc-card-bg: #fff7ed;
+  --prc-card-border: #7c2d12;
+  --prc-card-text: #431407;
+  --prc-card-secondary: #9a3412;
+  --prc-value-bg: #f97316;
+  --prc-value-text: #111827;
+  --prc-highlight-bg: #fed7aa;
+}
+
+/* Highest Strike Rate – neon green theme */
+.prc-section--strike-rate {
+  --prc-hero-bg: radial-gradient(circle at top, #14532d 0, #020617 70%);
+  --prc-hero-border: rgba(74, 222, 128, 0.9);
+  --prc-card-bg: #ecfdf3;
+  --prc-card-border: #166534;
+  --prc-card-text: #052e16;
+  --prc-card-secondary: #166534;
+  --prc-value-bg: #22c55e;
+  --prc-value-text: #052e16;
+  --prc-highlight-bg: #bbf7d0;
+}
+
+/* Best Bowling Figures – deep indigo + cyan */
+.prc-section--best-figures {
+  --prc-hero-bg: radial-gradient(circle at top, #1e293b 0, #020617 70%);
+  --prc-hero-border: rgba(129, 140, 248, 0.9);
+  --prc-card-bg: #020617;
+  --prc-card-border: #1d4ed8;
+  --prc-card-text: #e5e7eb;
+  --prc-card-secondary: #9ca3af;
+  --prc-value-bg: #38bdf8;
+  --prc-value-text: #0f172a;
+  --prc-highlight-bg: #1d4ed8;
 }
