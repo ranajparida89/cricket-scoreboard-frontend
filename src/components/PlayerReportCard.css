@@ -62,6 +62,8 @@
   gap: 8px;
   padding: 8px 0;
   overflow-x: auto;
+  flex-wrap: wrap;              /* ✅ wrap to 2 lines instead of going off-screen */
+  max-width: 100%;
 }
 
 .prc-tab {
@@ -75,6 +77,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease-out;
+  flex: 0 0 auto;
 }
 
 .prc-tab:hover {
@@ -261,10 +264,26 @@
   color: var(--prc-card-text);
 }
 
+/* ✅ Global "rank 1" 3D pop & bigger fonts */
 .prc-row-card--highlight {
   background: var(--prc-highlight-bg);
   color: #f9fafb;
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.8);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.95);
+  transform: translateY(-4px) scale(1.02);
+  position: relative;
+  z-index: 1;
+}
+
+.prc-row-card--highlight .prc-row-primary {
+  font-size: 1.05rem;
+}
+
+.prc-row-card--highlight .prc-row-value {
+  font-size: 1.2rem;
+}
+
+.prc-row-card--highlight .prc-rank-number {
+  font-size: 1.3rem;
 }
 
 .prc-row-left {
@@ -388,14 +407,21 @@
   font-weight: 800;
 }
 
+/* ✅ Make top run-scorer pop as well */
 .prc-runs-row--highlight {
   background: linear-gradient(90deg, #facc15, #fef9c3);
   color: #111827;
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.7);
+  transform: translateY(-4px) scale(1.02);
+}
+
+.prc-runs-row--highlight .prc-runs-name {
+  font-size: 1.05rem;
 }
 
 .prc-runs-row--highlight .prc-runs-value {
   color: #b45309;
+  font-size: 1.08rem;
 }
 
 .prc-runs-crown {
@@ -575,7 +601,22 @@
   --prc-card-secondary: #6b21a8;
   --prc-value-bg: #a855f7;
   --prc-value-text: #f9fafb;
-  --prc-highlight-bg: #e9d5ff;
+  --prc-highlight-bg: #4c1d95;   /* darker for better contrast */
+}
+
+/* ✅ make #1 row in Most 200s very readable */
+.prc-section--double-tons .prc-row-card--highlight {
+  background: linear-gradient(90deg, #4c1d95, #7e22ce);
+  color: #f9fafb;
+}
+
+.prc-section--double-tons .prc-row-card--highlight .prc-row-secondary {
+  color: rgba(237, 233, 254, 0.9);
+}
+
+.prc-section--double-tons .prc-row-card--highlight .prc-row-value {
+  background: #a855f7;
+  color: #f9fafb;
 }
 
 /* Fastest Fifty – teal / cyan speed vibes */
@@ -588,7 +629,18 @@
   --prc-card-secondary: #115e59;
   --prc-value-bg: #14b8a6;
   --prc-value-text: #022c22;
-  --prc-highlight-bg: #ccfbf1;
+  --prc-highlight-bg: #0f766e;   /* darker */
+}
+
+/* ✅ clearer #1 row for Fastest Fifty */
+.prc-section--fast50 .prc-row-card--highlight {
+  background: linear-gradient(90deg, #0f766e, #14b8a6);
+  color: #ecfeff;
+}
+
+.prc-section--fast50 .prc-row-card--highlight .prc-row-value {
+  background: #022c22;
+  color: #a7f3d0;
 }
 
 /* Fastest Hundred – fiery orange/red */
@@ -601,7 +653,18 @@
   --prc-card-secondary: #9a3412;
   --prc-value-bg: #f97316;
   --prc-value-text: #111827;
-  --prc-highlight-bg: #fed7aa;
+  --prc-highlight-bg: #7c2d12;   /* darker */
+}
+
+/* ✅ clearer #1 row for Fastest Hundred */
+.prc-section--fast100 .prc-row-card--highlight {
+  background: linear-gradient(90deg, #7c2d12, #f97316);
+  color: #fff7ed;
+}
+
+.prc-section--fast100 .prc-row-card--highlight .prc-row-value {
+  background: #111827;
+  color: #fed7aa;
 }
 
 /* Highest Strike Rate – neon green theme */
@@ -614,7 +677,18 @@
   --prc-card-secondary: #166534;
   --prc-value-bg: #22c55e;
   --prc-value-text: #052e16;
-  --prc-highlight-bg: #bbf7d0;
+  --prc-highlight-bg: #166534;   /* darker */
+}
+
+/* ✅ clearer #1 row for Highest Strike Rate */
+.prc-section--strike-rate .prc-row-card--highlight {
+  background: linear-gradient(90deg, #166534, #22c55e);
+  color: #ecfdf3;
+}
+
+.prc-section--strike-rate .prc-row-card--highlight .prc-row-value {
+  background: #052e16;
+  color: #bbf7d0;
 }
 
 /* Best Bowling Figures – deep indigo + cyan */
