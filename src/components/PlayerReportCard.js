@@ -1,7 +1,7 @@
 // src/components/PlayerReportCard.js
-// Crickedge Player Report Card – all tabs + mini charts + subtle motion
+// Crickedge Player Report Card – all tabs + mini charts + subtle animations
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import {
   ResponsiveContainer,
@@ -9,8 +9,8 @@ import {
   Bar,
   XAxis,
   YAxis,
-  Tooltip,
   CartesianGrid,
+  Tooltip,
 } from "recharts";
 import "./PlayerReportCard.css";
 
@@ -47,25 +47,94 @@ const MATCH_TYPE_OPTIONS = [
   { value: "Test", label: "Test" },
 ];
 
-// Generic row card that reads CSS variables for colors
-const StatRowCard = ({
-  rank,
-  primary,
-  secondary,
-  value,
-  highlight = false,
-  staggerIndex = 0,
+// ---------- small helpers ----------
+
+const shortName = (full = "") => {
+  const parts = String(full).split(" ");
+  if (parts.length === 1) return parts[0];
+  const last = parts[parts.length - 1];
+  return last.length > 9 ? last.slice(0, 9) + "…" : last;
+};
+
+const numberOrZero = (v) => (v == null ? 0 : Number(v) || 0);
+
+// Reusable mini chart – size handled via CSS wrapper
+const MiniBarChart = ({
+  data,
+  valueKey = "value",
+  nameKey = "name",
+  layout = "vertical", // "vertical" or "horizontal"
+  color = "#60a5fa",
 }) => {
+  if (!data || !data.length) return null;
+
+  const isVertical = layout === "vertical";
+
+  return (
+    <div className="prc-mini-chart-wrapper">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={data}
+          layout={layout}
+          margin={
+            isVertical
+              ? { top: 12, right: 8, left: -12, bottom: 18 }
+              : { top: 12, right: 16, left: 10, bottom: 8 }
+          }
+        >
+          <CartesianGrid
+            strokeDasharray="3 3"
+            vertical={isVertical}
+            horizontal={!isVertical}
+          />
+          {isVertical ? (
+            <>
+              <XAxis
+                dataKey={nameKey}
+                tickLine={false}
+                tick={{ fontSize: 10 }}
+              />
+              <YAxis tickLine={false} tick={{ fontSize: 10 }} />
+            </>
+          ) : (
+            <>
+              <XAxis type="number" tickLine={false} tick={{ fontSize: 10 }} />
+              <YAxis
+                dataKey={nameKey}
+                type="category"
+                tickLine={false}
+                tick={{ fontSize: 10 }}
+              />
+            </>
+          )}
+          <Tooltip
+            cursor={{ fill: "rgba(15,23,42,0.35)" }}
+            contentStyle={{
+              background: "#020617",
+              border: "1px solid rgba(148,163,184,0.7)",
+              borderRadius: 10,
+              fontSize: 11,
+            }}
+          />
+          <Bar
+            dataKey={valueKey}
+            maxBarSize={22}
+            radius={[8, 8, 4, 4]}
+            fill={color}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
+// Generic row card that reads CSS variables for colors
+const StatRowCard = ({ rank, primary, secondary, value, highlight = false }) => {
   const classes = ["prc-row-card"];
   if (highlight) classes.push("prc-row-card--highlight");
 
-  const style =
-    staggerIndex != null
-      ? { animationDelay: `${staggerIndex * 40}ms` }
-      : undefined;
-
   return (
-    <div className={classes.join(" ")} style={style}>
+    <div className={classes.join(" ")}>
       <div className="prc-row-left">
         <div className="prc-row-rank">
           <span className="prc-rank-number">{rank}</span>
@@ -312,7 +381,7 @@ const PlayerReportCard = () => {
     if (activeTab === "best-bowling-figures") loadBestFigures();
   }, [activeTab, bestFiguresMatchType]);
 
-  // ---------- render helpers ----------
+  // ---------- status + formatting ----------
 
   const renderStatus = () => {
     if (loading) return <div className="prc-status">Loading...</div>;
@@ -326,198 +395,231 @@ const PlayerReportCard = () => {
     return Number(n).toLocaleString("en-IN");
   };
 
-  // ======== Tabs content ========
+  // ---------- mini chart data (top-5 each) ----------
 
-  const HighestScoreTab = () => {
-    const chartData = (highestScores || []).slice(0, 5).map((row) => ({
-      name: row.playerName,
-      shortName:
-        row.playerName && row.playerName.length > 14
-          ? row.playerName.split(" ").slice(-1)[0]
-          : row.playerName,
-      score: row.score,
-    }));
+  const highestScoreChart = useMemo(
+    () =>
+      (highestScores || []).slice(0, 5).map((row) => ({
+        name: shortName(row.playerName),
+        value: numberOrZero(row.score),
+      })),
+    [highestScores]
+  );
 
-    return (
-      <section className="prc-section prc-section--highest-score">
-        <div className="prc-section-inner">
-          <header className="prc-hero">
-            <div className="prc-hero-head">
-              <div>
-                <h2 className="prc-hero-title">HIGHEST SCORE</h2>
-                <p className="prc-hero-sub">
-                  Crickedge Individual Highest Score in ODI Cricket
-                </p>
-              </div>
+  const bowlingAvgChart = useMemo(
+    () =>
+      (bowlingAvg || []).slice(0, 5).map((row) => ({
+        name: shortName(row.playerName),
+        value: numberOrZero(row.bowlingAvg),
+      })),
+    [bowlingAvg]
+  );
 
-              {chartData.length > 0 && (
-                <div className="prc-hero-chart prc-hero-chart--bars">
-                  <ResponsiveContainer width="100%" height={140}>
-                    <BarChart
-                      data={chartData}
-                      margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
-                    >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        vertical={false}
-                        className="prc-chart-grid"
-                      />
-                      <XAxis
-                        dataKey="shortName"
-                        tickLine={false}
-                        axisLine={false}
-                        tick={{ fontSize: 11 }}
-                      />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tick={{ fontSize: 11 }}
-                      />
-                      <Tooltip
-                        cursor={{ opacity: 0.1 }}
-                        contentStyle={{ fontSize: 11 }}
-                      />
-                      <Bar
-                        dataKey="score"
-                        radius={[8, 8, 0, 0]}
-                        className="prc-chart-bar prc-chart-bar--blue"
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-            </div>
-          </header>
+  const wicketsFormatChart = useMemo(
+    () =>
+      (mostWicketsFormat || []).slice(0, 5).map((row) => ({
+        name: shortName(row.playerName),
+        value: numberOrZero(row.totalWickets),
+      })),
+    [mostWicketsFormat]
+  );
 
-          <div className="prc-list-panel">
-            {renderStatus()}
-            {!loading &&
-              !error &&
-              highestScores.map((row, idx) => (
-                <StatRowCard
-                  key={row.rank}
-                  rank={row.rank}
-                  primary={row.playerName}
-                  secondary="INDIVIDUAL ODI INNINGS"
-                  value={`${row.score}${row.notOut ? "*" : ""}`}
-                  highlight={row.rank === 1}
-                  staggerIndex={idx}
-                />
-              ))}
-          </div>
+  const battingAvgChart = useMemo(
+    () =>
+      (battingAvg || []).slice(0, 5).map((row) => ({
+        name: shortName(row.playerName),
+        value: numberOrZero(row.battingAvg),
+      })),
+    [battingAvg]
+  );
+
+  const topRunsChart = useMemo(
+    () =>
+      (topRunScorers || []).slice(0, 5).map((row) => ({
+        name: shortName(row.playerName),
+        value: numberOrZero(row.totalRuns),
+      })),
+    [topRunScorers]
+  );
+
+  const fiftiesChart = useMemo(
+    () =>
+      (mostFifties || []).slice(0, 5).map((row) => ({
+        name: shortName(row.playerName),
+        value: numberOrZero(row.totalFifties),
+      })),
+    [mostFifties]
+  );
+
+  const hundredsChart = useMemo(
+    () =>
+      (mostHundreds || []).slice(0, 5).map((row) => ({
+        name: shortName(row.playerName),
+        value: numberOrZero(row.totalHundreds),
+      })),
+    [mostHundreds]
+  );
+
+  const doubleTonsChart = useMemo(
+    () =>
+      (mostDoubleCenturies || []).slice(0, 5).map((row) => ({
+        name: shortName(row.playerName),
+        value: numberOrZero(row.doubleCenturies),
+      })),
+    [mostDoubleCenturies]
+  );
+
+  const fast50Chart = useMemo(
+    () =>
+      (fastestFifties || []).slice(0, 5).map((row) => ({
+        name: shortName(row.playerName),
+        value: numberOrZero(row.balls),
+      })),
+    [fastestFifties]
+  );
+
+  const fast100Chart = useMemo(
+    () =>
+      (fastestHundreds || []).slice(0, 5).map((row) => ({
+        name: shortName(row.playerName),
+        value: numberOrZero(row.balls),
+      })),
+    [fastestHundreds]
+  );
+
+  const strikeRateChart = useMemo(
+    () =>
+      (highestStrikeRates || []).slice(0, 5).map((row) => ({
+        name: shortName(row.playerName),
+        value: numberOrZero(row.strikeRate),
+      })),
+    [highestStrikeRates]
+  );
+
+  const bestFiguresChart = useMemo(
+    () =>
+      (bestFigures || []).slice(0, 5).map((row) => ({
+        name: shortName(row.playerName),
+        value: numberOrZero(row.wickets),
+      })),
+    [bestFigures]
+  );
+
+  const wicketsOverallChart = useMemo(
+    () =>
+      (mostWicketsOverall || []).slice(0, 5).map((row) => ({
+        name: shortName(row.playerName),
+        value: numberOrZero(row.totalWickets),
+      })),
+    [mostWicketsOverall]
+  );
+
+  const ducksChart = useMemo(
+    () =>
+      (mostDucks || []).slice(0, 5).map((row) => ({
+        name: shortName(row.playerName),
+        value: numberOrZero(row.ducks),
+      })),
+    [mostDucks]
+  );
+
+  const ballsChart = useMemo(
+    () =>
+      (mostBalls || []).slice(0, 5).map((row) => ({
+        name: shortName(row.playerName),
+        value: numberOrZero(row.totalBalls),
+      })),
+    [mostBalls]
+  );
+
+  // ---------- individual tab components ----------
+
+  const HighestScoreTab = () => (
+    <section className="prc-section prc-section--highest-score">
+      <div className="prc-section-inner">
+        <header className="prc-hero">
+          <h2 className="prc-hero-title">HIGHEST SCORE</h2>
+          <p className="prc-hero-sub">
+            Crickedge Individual Highest Score in ODI Cricket
+          </p>
+          <MiniBarChart
+            data={highestScoreChart}
+            color="#60a5fa"
+            layout="vertical"
+          />
+        </header>
+        <div className="prc-list-panel">
+          {renderStatus()}
+          {!loading &&
+            !error &&
+            highestScores.map((row) => (
+              <StatRowCard
+                key={row.rank}
+                rank={row.rank}
+                primary={row.playerName}
+                secondary="INDIVIDUAL ODI INNINGS"
+                value={`${row.score}${row.notOut ? "*" : ""}`}
+                highlight={row.rank === 1}
+              />
+            ))}
         </div>
-      </section>
-    );
-  };
+      </div>
+    </section>
+  );
 
-  const BowlingAverageTab = () => {
-    const chartData = (bowlingAvg || []).slice(0, 5).map((row) => ({
-      name: row.playerName,
-      shortName:
-        row.playerName && row.playerName.length > 14
-          ? row.playerName.split(" ").slice(-1)[0]
-          : row.playerName,
-      avg:
-        row.bowlingAvg != null
-          ? Number(row.bowlingAvg)
-          : null,
-    }));
+  const BowlingAverageTab = () => (
+    <section className="prc-section prc-section--bowling-average">
+      <div className="prc-section-inner">
+        <header className="prc-hero">
+          <h2 className="prc-hero-title">BEST AVERAGE</h2>
+          <p className="prc-hero-sub">
+            Crickedge Best Bowling Average
+            {bowlingMatchType !== "ALL" ? ` in ${bowlingMatchType}` : ""} (min:
+            1 wicket)
+          </p>
 
-    const suffix =
-      bowlingMatchType !== "ALL" ? ` in ${bowlingMatchType}` : "";
-
-    return (
-      <section className="prc-section prc-section--bowling-average">
-        <div className="prc-section-inner">
-          <header className="prc-hero">
-            <div className="prc-hero-head">
-              <div>
-                <h2 className="prc-hero-title">BEST AVERAGE</h2>
-                <p className="prc-hero-sub">
-                  Crickedge Best Bowling Average{suffix} (min: 1 wicket)
-                </p>
-
-                <div className="prc-filter">
-                  <label>Match Type:</label>
-                  <select
-                    value={bowlingMatchType}
-                    onChange={(e) => setBowlingMatchType(e.target.value)}
-                  >
-                    {MATCH_TYPE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {chartData.length > 0 && (
-                <div className="prc-hero-chart prc-hero-chart--hbars">
-                  <ResponsiveContainer width="100%" height={140}>
-                    <BarChart
-                      data={chartData}
-                      layout="vertical"
-                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                    >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        horizontal={false}
-                        className="prc-chart-grid"
-                      />
-                      <XAxis
-                        type="number"
-                        tickLine={false}
-                        axisLine={false}
-                        tick={{ fontSize: 11 }}
-                      />
-                      <YAxis
-                        type="category"
-                        dataKey="shortName"
-                        tickLine={false}
-                        axisLine={false}
-                        tick={{ fontSize: 11 }}
-                      />
-                      <Tooltip
-                        cursor={{ opacity: 0.1 }}
-                        contentStyle={{ fontSize: 11 }}
-                      />
-                      <Bar
-                        dataKey="avg"
-                        radius={[0, 8, 8, 0]}
-                        className="prc-chart-bar prc-chart-bar--orange"
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-            </div>
-          </header>
-
-          <div className="prc-list-panel">
-            {renderStatus()}
-            {!loading &&
-              !error &&
-              bowlingAvg.map((row, idx) => (
-                <StatRowCard
-                  key={row.rank}
-                  rank={row.rank}
-                  primary={row.playerName}
-                  secondary={`${row.totalWickets} wkts`}
-                  value={
-                    row.bowlingAvg != null
-                      ? Number(row.bowlingAvg).toFixed(2)
-                      : "-"
-                  }
-                  highlight={row.rank === 1}
-                  staggerIndex={idx}
-                />
+          <div className="prc-filter">
+            <label>Match Type:</label>
+            <select
+              value={bowlingMatchType}
+              onChange={(e) => setBowlingMatchType(e.target.value)}
+            >
+              {MATCH_TYPE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
               ))}
+            </select>
           </div>
+
+          <MiniBarChart
+            data={bowlingAvgChart}
+            layout="horizontal"
+            color="#fb923c"
+          />
+        </header>
+        <div className="prc-list-panel">
+          {renderStatus()}
+          {!loading &&
+            !error &&
+            bowlingAvg.map((row) => (
+              <StatRowCard
+                key={row.rank}
+                rank={row.rank}
+                primary={row.playerName}
+                secondary={`${row.totalWickets} wkts`}
+                value={
+                  row.bowlingAvg != null
+                    ? Number(row.bowlingAvg).toFixed(2)
+                    : "-"
+                }
+                highlight={row.rank === 1}
+              />
+            ))}
         </div>
-      </section>
-    );
-  };
+      </div>
+    </section>
+  );
 
   const MostWicketsFormatTab = () => (
     <section className="prc-section prc-section--most-wickets">
@@ -544,12 +646,18 @@ const PlayerReportCard = () => {
               ))}
             </select>
           </div>
+
+          <MiniBarChart
+            data={wicketsFormatChart}
+            layout="vertical"
+            color="#fde68a"
+          />
         </header>
         <div className="prc-list-panel">
           {renderStatus()}
           {!loading &&
             !error &&
-            mostWicketsFormat.map((row, idx) => (
+            mostWicketsFormat.map((row) => (
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
@@ -557,7 +665,6 @@ const PlayerReportCard = () => {
                 secondary="TOTAL WICKETS"
                 value={row.totalWickets}
                 highlight={row.rank === 1}
-                staggerIndex={idx}
               />
             ))}
         </div>
@@ -591,12 +698,18 @@ const PlayerReportCard = () => {
                 ))}
               </select>
             </div>
+
+            <MiniBarChart
+              data={battingAvgChart}
+              layout="vertical"
+              color="#f59e0b"
+            />
           </header>
           <div className="prc-list-panel">
             {renderStatus()}
             {!loading &&
               !error &&
-              battingAvg.map((row, idx) => (
+              battingAvg.map((row) => (
                 <StatRowCard
                   key={row.rank}
                   rank={row.rank}
@@ -608,7 +721,6 @@ const PlayerReportCard = () => {
                       : "-"
                   }
                   highlight={row.rank === 1}
-                  staggerIndex={idx}
                 />
               ))}
           </div>
@@ -625,6 +737,12 @@ const PlayerReportCard = () => {
           <p className="prc-hero-sub">
             Combined runs across all Crickedge formats (ODI, T20, Test).
           </p>
+
+          <MiniBarChart
+            data={topRunsChart}
+            layout="vertical"
+            color="#38bdf8"
+          />
         </header>
         <div className="prc-list-panel prc-list-panel--runs">
           {renderStatus()}
@@ -661,12 +779,14 @@ const PlayerReportCard = () => {
           <p className="prc-hero-sub">
             Crickedge Most Fifties (combined ODI, T20 and Test).
           </p>
+
+          <MiniBarChart data={fiftiesChart} layout="vertical" color="#1d4ed8" />
         </header>
         <div className="prc-list-panel">
           {renderStatus()}
           {!loading &&
             !error &&
-            mostFifties.map((row, idx) => (
+            mostFifties.map((row) => (
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
@@ -674,7 +794,6 @@ const PlayerReportCard = () => {
                 secondary="TOTAL FIFTIES"
                 value={row.totalFifties}
                 highlight={row.rank === 1}
-                staggerIndex={idx}
               />
             ))}
         </div>
@@ -690,12 +809,18 @@ const PlayerReportCard = () => {
           <p className="prc-hero-sub">
             Crickedge Most Hundreds (combined ODI, T20 and Test).
           </p>
+
+          <MiniBarChart
+            data={hundredsChart}
+            layout="vertical"
+            color="#f97316"
+          />
         </header>
         <div className="prc-list-panel">
           {renderStatus()}
           {!loading &&
             !error &&
-            mostHundreds.map((row, idx) => (
+            mostHundreds.map((row) => (
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
@@ -703,7 +828,6 @@ const PlayerReportCard = () => {
                 secondary="TOTAL HUNDREDS"
                 value={row.totalHundreds}
                 highlight={row.rank === 1}
-                staggerIndex={idx}
               />
             ))}
         </div>
@@ -721,12 +845,18 @@ const PlayerReportCard = () => {
             Crickedge Most Double Hundreds in Test cricket (combined Test
             innings).
           </p>
+
+          <MiniBarChart
+            data={doubleTonsChart}
+            layout="vertical"
+            color="#a855f7"
+          />
         </header>
         <div className="prc-list-panel">
           {renderStatus()}
           {!loading &&
             !error &&
-            mostDoubleCenturies.map((row, idx) => (
+            mostDoubleCenturies.map((row) => (
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
@@ -734,7 +864,6 @@ const PlayerReportCard = () => {
                 secondary="TEST DOUBLE HUNDREDS"
                 value={row.doubleCenturies}
                 highlight={row.rank === 1}
-                staggerIndex={idx}
               />
             ))}
         </div>
@@ -765,12 +894,18 @@ const PlayerReportCard = () => {
               ))}
             </select>
           </div>
+
+          <MiniBarChart
+            data={fast50Chart}
+            layout="horizontal"
+            color="#14b8a6"
+          />
         </header>
         <div className="prc-list-panel">
           {renderStatus()}
           {!loading &&
             !error &&
-            fastestFifties.map((row, idx) => (
+            fastestFifties.map((row) => (
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
@@ -778,7 +913,6 @@ const PlayerReportCard = () => {
                 secondary={`${row.runs} runs · ${row.balls} balls · ${row.matchType}`}
                 value={`${row.balls} balls`}
                 highlight={row.rank === 1}
-                staggerIndex={idx}
               />
             ))}
         </div>
@@ -809,12 +943,18 @@ const PlayerReportCard = () => {
               ))}
             </select>
           </div>
+
+          <MiniBarChart
+            data={fast100Chart}
+            layout="horizontal"
+            color="#f97316"
+          />
         </header>
         <div className="prc-list-panel">
           {renderStatus()}
           {!loading &&
             !error &&
-            fastestHundreds.map((row, idx) => (
+            fastestHundreds.map((row) => (
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
@@ -822,7 +962,6 @@ const PlayerReportCard = () => {
                 secondary={`${row.runs} runs · ${row.balls} balls · ${row.matchType}`}
                 value={`${row.balls} balls`}
                 highlight={row.rank === 1}
-                staggerIndex={idx}
               />
             ))}
         </div>
@@ -866,12 +1005,18 @@ const PlayerReportCard = () => {
               <option value={500}>500</option>
             </select>
           </div>
+
+          <MiniBarChart
+            data={strikeRateChart}
+            layout="vertical"
+            color="#22c55e"
+          />
         </header>
         <div className="prc-list-panel">
           {renderStatus()}
           {!loading &&
             !error &&
-            highestStrikeRates.map((row, idx) => (
+            highestStrikeRates.map((row) => (
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
@@ -881,7 +1026,6 @@ const PlayerReportCard = () => {
                   row.strikeRate != null ? row.strikeRate.toFixed(2) : "-"
                 }
                 highlight={row.rank === 1}
-                staggerIndex={idx}
               />
             ))}
         </div>
@@ -912,12 +1056,18 @@ const PlayerReportCard = () => {
               ))}
             </select>
           </div>
+
+          <MiniBarChart
+            data={bestFiguresChart}
+            layout="horizontal"
+            color="#38bdf8"
+          />
         </header>
         <div className="prc-list-panel">
           {renderStatus()}
           {!loading &&
             !error &&
-            bestFigures.map((row, idx) => (
+            bestFigures.map((row) => (
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
@@ -925,7 +1075,6 @@ const PlayerReportCard = () => {
                 secondary={`${row.wickets}/${row.runs} · ${row.matchType}`}
                 value={`${row.wickets}/${row.runs}`}
                 highlight={row.rank === 1}
-                staggerIndex={idx}
               />
             ))}
         </div>
@@ -958,12 +1107,18 @@ const PlayerReportCard = () => {
               ))}
             </select>
           </div>
+
+          <MiniBarChart
+            data={wicketsOverallChart}
+            layout="vertical"
+            color="#fde68a"
+          />
         </header>
         <div className="prc-list-panel">
           {renderStatus()}
           {!loading &&
             !error &&
-            mostWicketsOverall.map((row, idx) => (
+            mostWicketsOverall.map((row) => (
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
@@ -971,7 +1126,6 @@ const PlayerReportCard = () => {
                 secondary="TOTAL WICKETS"
                 value={row.totalWickets}
                 highlight={row.rank === 1}
-                staggerIndex={idx}
               />
             ))}
         </div>
@@ -987,12 +1141,14 @@ const PlayerReportCard = () => {
           <p className="prc-hero-sub">
             Crickedge Most Duckout – players dismissed for 0 runs most often.
           </p>
+
+          <MiniBarChart data={ducksChart} layout="vertical" color="#f97316" />
         </header>
         <div className="prc-list-panel">
           {renderStatus()}
           {!loading &&
             !error &&
-            mostDucks.map((row, idx) => (
+            mostDucks.map((row) => (
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
@@ -1000,7 +1156,6 @@ const PlayerReportCard = () => {
                 secondary="TOTAL DUCKS"
                 value={row.ducks}
                 highlight={row.rank === 1}
-                staggerIndex={idx}
               />
             ))}
         </div>
@@ -1016,12 +1171,14 @@ const PlayerReportCard = () => {
           <p className="prc-hero-sub">
             Crickedge Most Balls Faced in Test Cricket (combined Test innings).
           </p>
+
+          <MiniBarChart data={ballsChart} layout="vertical" color="#facc15" />
         </header>
         <div className="prc-list-panel">
           {renderStatus()}
           {!loading &&
             !error &&
-            mostBalls.map((row, idx) => (
+            mostBalls.map((row) => (
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
@@ -1029,7 +1186,6 @@ const PlayerReportCard = () => {
                 secondary="TOTAL BALLS FACED (TEST)"
                 value={formatBalls(row.totalBalls)}
                 highlight={row.rank === 1}
-                staggerIndex={idx}
               />
             ))}
         </div>
@@ -1078,45 +1234,41 @@ const PlayerReportCard = () => {
 
   return (
     <div className="prc-page">
-      {/* Header + tabs wrapper so we can visually attach them */}
-      <div className="prc-header-wrap">
-        {/* Module heading */}
-        <div className="prc-header-half-circle">
-          <span className="prc-header-title">CRICKEDGE PLAYER REPORT CARD</span>
-        </div>
-        <div className="prc-header-underline" />
+      {/* Module heading */}
+      <div className="prc-header-half-circle">
+        <span className="prc-header-title">CRICKEDGE PLAYER REPORT CARD</span>
+      </div>
 
-        {/* Tabs strip (desktop/tablet) + dropdown (mobile) */}
-        <div className="prc-tabs-bar">
-          {/* Pills for larger screens */}
-          <div className="prc-tabs">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                className={
-                  tab.id === activeTab ? "prc-tab prc-tab--active" : "prc-tab"
-                }
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Compact select for small screens */}
-          <div className="prc-tabs-select-wrapper">
-            <select
-              className="prc-tabs-select"
-              value={activeTab}
-              onChange={(e) => setActiveTab(e.target.value)}
+      {/* Tabs strip (desktop/tablet) + dropdown (mobile) */}
+      <div className="prc-tabs-bar">
+        {/* Pills for larger screens */}
+        <div className="prc-tabs">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              className={
+                tab.id === activeTab ? "prc-tab prc-tab--active" : "prc-tab"
+              }
+              onClick={() => setActiveTab(tab.id)}
             >
-              {TABS.map((tab) => (
-                <option key={tab.id} value={tab.id}>
-                  {tab.label}
-                </option>
-              ))}
-            </select>
-          </div>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Compact select for small screens */}
+        <div className="prc-tabs-select-wrapper">
+          <select
+            className="prc-tabs-select"
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value)}
+          >
+            {TABS.map((tab) => (
+              <option key={tab.id} value={tab.id}>
+                {tab.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
