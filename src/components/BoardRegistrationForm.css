@@ -89,22 +89,33 @@
 
 .existing-board-select select {
   width: 100%;
-  padding: 0.7rem 0.9rem;
+  padding: 0.7rem 2.1rem 0.7rem 0.9rem; /* extra right padding for arrow */
   font-size: 0.95rem;
   border-radius: 10px;
-  border: 1px solid #30363d;
-  background: linear-gradient(135deg, #020617, #020617) padding-box,
-              linear-gradient(135deg, #38bdf8, #22c55e) border-box;
+  border: 1px solid #38bdf8;
+  background-color: #020617;
   color: #e5e7eb;
   outline: none;
+
+  /* hide native arrow & add custom one */
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
+
+  background-image: url("data:image/svg+xml;utf8,<svg fill='white' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='M5.23 7.21a.75.75 0 011.06.02L10 11.086l3.71-3.855a.75.75 0 111.08 1.04l-4.24 4.4a.75.75 0 01-1.08 0l-4.24-4.4a.75.75 0 01.02-1.06z'/></svg>");
   background-repeat: no-repeat;
   background-position: right 0.8rem center;
-  background-size: 12px;
+  background-size: 0.8rem;
 }
 
 .existing-board-select select:focus {
-  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.6);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.8);
+}
+
+/* make options readable in the open dropdown */
+.existing-board-select select option {
+  background-color: #020617;
+  color: #e5e7eb;
 }
 
 /* ----------- core form layout ----------- */
