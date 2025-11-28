@@ -7,11 +7,16 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./BoardRegistrationForm.css";
 
-/* [2025-11-28] API helper with auth
-   - baseURL → your backend
-   - withCredentials → send cookies (if you use cookie-based auth)
-   - Authorization → attach JWT from localStorage (if present)
-*/
+/* [2025-11-29] Helper to get TODAY in local time (YYYY-MM-DD) */
+const getTodayLocal = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+/* API helper with auth */
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
 
 const api = axios.create({
@@ -34,7 +39,7 @@ api.interceptors.request.use((config) => {
 
 // Helper to build form state from a board object (or empty for new)
 const buildInitialForm = (board) => {
-  const today = new Date().toISOString().split("T")[0];
+  const today = getTodayLocal();
 
   if (!board) {
     // New board
@@ -61,7 +66,6 @@ const buildInitialForm = (board) => {
 };
 
 const BoardRegistrationForm = () => {
-  // [2025-11-28] Mode: "new" vs "existing"
   const [mode, setMode] = useState("new"); // "new" | "existing"
 
   // List of all boards for "existing" mode dropdown
@@ -83,7 +87,6 @@ const BoardRegistrationForm = () => {
     const fetchBoards = async () => {
       try {
         const res = await api.get("/boards/all-boards");
-        // backend sends { boards: [...] }
         const list = res.data?.boards || res.data || [];
         setBoards(list);
       } catch (err) {
@@ -190,16 +193,16 @@ const BoardRegistrationForm = () => {
       setSubmittedError(false);
 
       if (mode === "existing" && registrationId) {
-        // UPDATE EXISTING BOARD (admin-only, now with auth via api instance)
+        // UPDATE EXISTING BOARD
         await api.put(`/boards/update/${registrationId}`, formData);
         toast.success("Board updated successfully!");
       } else {
-        // CREATE NEW BOARD (open, still works with auth present)
+        // CREATE NEW BOARD
         await api.post("/boards/register", formData);
         toast.success("Board registered successfully!");
 
-        // reset form only for create
-        const today = new Date().toISOString().split("T")[0];
+        // reset form only for create — now using local date
+        const today = getTodayLocal();
         setFormData({
           board_name: "",
           owner_name: "",
