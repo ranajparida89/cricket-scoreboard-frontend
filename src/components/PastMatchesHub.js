@@ -100,13 +100,20 @@ const PastMatchesHub = () => {
     return Array.from(years).sort((a, b) => b.localeCompare(a));
   }, [odiT20, tests]);
 
-  // Build a de-duplicated list of tournaments using the normalized names
+  // [2025-11-28] De-duplicate tournaments ignoring case, but keep a single pretty label
   const allTournaments = useMemo(() => {
-    const t = new Set();
+    const map = new Map();
     [...odiT20, ...tests].forEach((m) => {
-      if (m.tournament_norm) t.add(m.tournament_norm);
+      const norm = m.tournament_norm;
+      if (!norm) return;
+      const key = norm.toLowerCase(); // case-insensitive key
+      if (!map.has(key)) {
+        map.set(key, norm); // store the first nicely formatted label
+      }
     });
-    return Array.from(t).sort();
+    return Array.from(map.entries())
+      .map(([key, label]) => ({ key, label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
   }, [odiT20, tests]);
 
   const analytics = useMemo(() => {
@@ -229,7 +236,7 @@ const PastMatchesHub = () => {
   return (
     <div className="pm-shell">
       <header className="pm-top">
-        <h2>🏏 CrickEdge Match Vault</h2>
+        <h2>CrickEdge Match Vault</h2>
         <p>All recorded ODI, T20 and Test results in one interactive view.</p>
       </header>
 
@@ -313,8 +320,8 @@ const PastMatchesHub = () => {
           >
             <option value="">All Tournaments</option>
             {allTournaments.map((t) => (
-              <option key={t} value={t}>
-                {t}
+              <option key={t.key} value={t.label}>
+                {t.label}
               </option>
             ))}
           </select>
@@ -410,7 +417,10 @@ const PastMatchesHub = () => {
               m.overs1_2 != null ||
               m.overs2_2 != null;
             return (
-              <article key={m.id || m.match_date} className="pm-card pm-card-test pm-card-glassy">
+              <article
+                key={m.id || m.match_date}
+                className="pm-card pm-card-test pm-card-glassy"
+              >
                 <div className="pm-card-header">
                   <span className="pm-tag pm-tag-test">{m.match_type || "Test"}</span>
                   <span className="pm-date">
