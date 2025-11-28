@@ -256,7 +256,7 @@ const TeamRanking = () => {
               i
             </button>
           </div>
-          <h2 className="tr-title">International Team Rankings</h2>
+          <h2 className="tr-title">Crickedge Team Rankings</h2>
           <p className="tr-desc">
             This page compares ODI &amp; T20 teams by rating and points. Top 3
             get highlighted. If rating data is not available, we switch to a
