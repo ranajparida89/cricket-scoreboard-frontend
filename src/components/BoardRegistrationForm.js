@@ -5,16 +5,50 @@ import axios from "axios";
 import { Player } from "@lottiefiles/react-lottie-player";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useLocation } from "react-router-dom"; // [2025-11-28] NEW
 import "./BoardRegistrationForm.css";
 
+// [2025-11-28] Helper to build initial form (create vs edit)
+const buildInitialForm = (editingBoard) => {
+  const today = new Date().toISOString().split("T")[0];
+
+  if (!editingBoard) {
+    // 👉 Create mode (new board)
+    return {
+      board_name: "",
+      owner_name: "",
+      registration_date: today,
+      owner_email: "",
+      teams: [""],
+    };
+  }
+
+  // 👉 Edit mode: prefill with existing board + teams
+  return {
+    board_name: editingBoard.board_name || "",
+    owner_name: editingBoard.owner_name || "",
+    // registration_date from backend is already YYYY-MM-DD
+    registration_date:
+      editingBoard.registration_date || today,
+    owner_email: editingBoard.owner_email || "",
+    teams:
+      Array.isArray(editingBoard.teams) && editingBoard.teams.length
+        ? editingBoard.teams
+        : [""],
+  };
+};
+
 const BoardRegistrationForm = () => {
-  const [formData, setFormData] = useState({
-    board_name: "",
-    owner_name: "",
-    registration_date: new Date().toISOString().split("T")[0],
-    owner_email: "",
-    teams: [""],
-  });
+  // [2025-11-28] Read data passed from "Registered Cricket Boards" page
+  const location = useLocation();
+  const routeState = location.state || {};
+  const editingBoard = routeState.board || routeState.editingBoard || null;
+  const isEditMode = !!editingBoard;
+  const registrationId = editingBoard?.registration_id || null;
+
+  const [formData, setFormData] = useState(() =>
+    buildInitialForm(editingBoard)
+  );
 
   const [submitting, setSubmitting] = useState(false);
   const [submittedSuccess, setSubmittedSuccess] = useState(false);
@@ -47,10 +81,10 @@ const BoardRegistrationForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ✅ Validation
     const { board_name, owner_name, registration_date, owner_email, teams } =
       formData;
 
+    // ✅ Common validation for both create + edit
     if (!board_name || !owner_name || !registration_date || !owner_email) {
       toast.error("All fields are required.");
       return;
@@ -61,14 +95,20 @@ const BoardRegistrationForm = () => {
       return;
     }
 
-    if (new Date(registration_date) < new Date().setHours(0, 0, 0, 0)) {
-      toast.error("Registration date must be today or later.");
-      return;
-    }
-
     if (teams.length === 0 || teams.some((t) => !t.trim())) {
       toast.error("Please enter valid team names.");
       return;
+    }
+
+    // [2025-11-28] Date check ONLY for NEW boards
+    if (!isEditMode) {
+      const todayMidnight = new Date();
+      todayMidnight.setHours(0, 0, 0, 0);
+      const chosen = new Date(registration_date);
+      if (chosen < todayMidnight) {
+        toast.error("Registration date must be today or later.");
+        return;
+      }
     }
 
     try {
@@ -76,22 +116,41 @@ const BoardRegistrationForm = () => {
       setSubmittedSuccess(false);
       setSubmittedError(false);
 
-      const response = await axios.post(
-        "https://cricket-scoreboard-backend.onrender.com/api/boards/register",
-        formData
-      );
+      if (isEditMode && registrationId) {
+        // [2025-11-28] EDIT MODE → PUT update
+        await axios.put(
+          `https://cricket-scoreboard-backend.onrender.com/api/boards/update/${registrationId}`,
+          formData
+        );
+        toast.success("Board updated successfully!");
+      } else {
+        // CREATE MODE → POST register (existing behaviour)
+        await axios.post(
+          "https://cricket-scoreboard-backend.onrender.com/api/boards/register",
+          formData
+        );
+        toast.success("Board registered successfully!");
 
-      toast.success("Board registered successfully!");
+        // reset form only for create
+        const today = new Date().toISOString().split("T")[0];
+        setFormData({
+          board_name: "",
+          owner_name: "",
+          registration_date: today,
+          owner_email: "",
+          teams: [""],
+        });
+      }
+
       setSubmittedSuccess(true);
-      setFormData({
-        board_name: "",
-        owner_name: "",
-        registration_date: new Date().toISOString().split("T")[0],
-        owner_email: "",
-        teams: [""],
-      });
     } catch (error) {
-      toast.error("Something went wrong during registration.");
+      console.error("Board save error:", error?.response || error);
+      const msg =
+        error?.response?.data?.error ||
+        (isEditMode
+          ? "Something went wrong while updating the board."
+          : "Something went wrong during registration.");
+      toast.error(msg);
       setSubmittedError(true);
     } finally {
       setSubmitting(false);
@@ -100,7 +159,9 @@ const BoardRegistrationForm = () => {
 
   return (
     <div className="form-container">
-      <h1>🏏 Board Registration</h1>
+      {/* [2025-11-28] Dynamic title */}
+      <h1>{isEditMode ? "🏏 Update Board" : "🏏 Board Registration"}</h1>
+
       <form onSubmit={handleSubmit} className="registration-form">
         <input
           type="text"
@@ -152,7 +213,13 @@ const BoardRegistrationForm = () => {
         </button>
 
         <button type="submit" disabled={submitting}>
-          {submitting ? "Registering..." : "Register Board"}
+          {submitting
+            ? isEditMode
+              ? "Updating..."
+              : "Registering..."
+            : isEditMode
+            ? "Update Board"
+            : "Register Board"}
         </button>
       </form>
 
@@ -165,7 +232,11 @@ const BoardRegistrationForm = () => {
             src="https://assets10.lottiefiles.com/packages/lf20_xd9ypluc.json"
             style={{ height: "200px", width: "200px" }}
           />
-          <p>Thank you for registering!</p>
+          <p>
+            {isEditMode
+              ? "Board details updated successfully!"
+              : "Thank you for registering!"}
+          </p>
         </div>
       )}
 
