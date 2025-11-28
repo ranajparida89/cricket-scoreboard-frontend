@@ -7,6 +7,31 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./BoardRegistrationForm.css";
 
+/* [2025-11-28] API helper with auth
+   - baseURL → your backend
+   - withCredentials → send cookies (if you use cookie-based auth)
+   - Authorization → attach JWT from localStorage (if present)
+*/
+const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
+
+const api = axios.create({
+  baseURL: API_BASE,
+  withCredentials: true,
+});
+
+api.interceptors.request.use((config) => {
+  const token =
+    localStorage.getItem("token") ||
+    localStorage.getItem("authToken") ||
+    localStorage.getItem("accessToken");
+
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // Helper to build form state from a board object (or empty for new)
 const buildInitialForm = (board) => {
   const today = new Date().toISOString().split("T")[0];
@@ -39,13 +64,13 @@ const BoardRegistrationForm = () => {
   // [2025-11-28] Mode: "new" vs "existing"
   const [mode, setMode] = useState("new"); // "new" | "existing"
 
-  // [2025-11-28] List of all boards for "existing" mode dropdown
+  // List of all boards for "existing" mode dropdown
   const [boards, setBoards] = useState([]);
   const [selectedRegId, setSelectedRegId] = useState("");
 
-  // [2025-11-28] Edit state derived from mode + selected board
-  const isEditMode = mode === "existing" && !!selectedRegId;
+  // Edit state derived from mode + selected board
   const [registrationId, setRegistrationId] = useState(null);
+  const isEditMode = mode === "existing" && !!selectedRegId;
 
   const [formData, setFormData] = useState(() => buildInitialForm(null));
 
@@ -53,13 +78,11 @@ const BoardRegistrationForm = () => {
   const [submittedSuccess, setSubmittedSuccess] = useState(false);
   const [submittedError, setSubmittedError] = useState(false);
 
-  // [2025-11-28] Fetch all boards once, for dropdown
+  // Fetch all boards once, for dropdown
   useEffect(() => {
     const fetchBoards = async () => {
       try {
-        const res = await axios.get(
-          "https://cricket-scoreboard-backend.onrender.com/api/boards/all-boards"
-        );
+        const res = await api.get("/boards/all-boards");
         // backend sends { boards: [...] }
         const list = res.data?.boards || res.data || [];
         setBoards(list);
@@ -95,7 +118,7 @@ const BoardRegistrationForm = () => {
     setFormData({ ...formData, teams: updatedTeams });
   };
 
-  // [2025-11-28] When user switches between "New" and "Existing"
+  // When user switches between "New" and "Existing"
   const handleModeChange = (newMode) => {
     setMode(newMode);
 
@@ -104,13 +127,11 @@ const BoardRegistrationForm = () => {
       setSelectedRegId("");
       setRegistrationId(null);
       setFormData(buildInitialForm(null));
-    } else {
-      // existing mode: wait until user selects a board;
-      // keep current form as-is for now
     }
+    // for "existing" we wait until the user picks a board
   };
 
-  // [2025-11-28] When user selects an existing board from dropdown
+  // When user selects an existing board from dropdown
   const handleExistingBoardSelect = (regId) => {
     setSelectedRegId(regId);
 
@@ -169,18 +190,12 @@ const BoardRegistrationForm = () => {
       setSubmittedError(false);
 
       if (mode === "existing" && registrationId) {
-        // UPDATE EXISTING BOARD
-        await axios.put(
-          `https://cricket-scoreboard-backend.onrender.com/api/boards/update/${registrationId}`,
-          formData
-        );
+        // UPDATE EXISTING BOARD (admin-only, now with auth via api instance)
+        await api.put(`/boards/update/${registrationId}`, formData);
         toast.success("Board updated successfully!");
       } else {
-        // CREATE NEW BOARD
-        await axios.post(
-          "https://cricket-scoreboard-backend.onrender.com/api/boards/register",
-          formData
-        );
+        // CREATE NEW BOARD (open, still works with auth present)
+        await api.post("/boards/register", formData);
         toast.success("Board registered successfully!");
 
         // reset form only for create
@@ -226,7 +241,7 @@ const BoardRegistrationForm = () => {
     <div className="form-container">
       <h1>{titleText}</h1>
 
-      {/* [2025-11-28] Mode selector */}
+      {/* Mode selector */}
       <div className="board-mode-toggle">
         <label>
           <input
@@ -250,7 +265,7 @@ const BoardRegistrationForm = () => {
         </label>
       </div>
 
-      {/* [2025-11-28] Existing board dropdown */}
+      {/* Existing board dropdown */}
       {mode === "existing" && (
         <div className="existing-board-select">
           <label>Select existing board:</label>
