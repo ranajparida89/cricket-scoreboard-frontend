@@ -30,17 +30,22 @@ const formatDateTime = (raw) => {
 
 /** Normalize tournament naming for UI consistency & filtering.
  *  - Converts any whole-word "series" (any case) → "Series"
+ *  - Converts all hyphens to spaces so "Trans-Tasman" === "Trans Tasman"
  *  - Trims extra spaces
  *  - Leaves other words intact (doesn't force full title case)
  */
 const normalizeTournament = (name) => {
   if (!name) return "";
-  return String(name)
-    .trim()
-    // whole-word "series" → "Series"
+
+  // [2025-11-28] Step 1: trim + unify hyphens → spaces
+  let n = String(name).trim().replace(/-/g, " ");
+
+  // [2025-11-28] Step 2: normalize word "series" and collapse multiple spaces
+  n = n
     .replace(/\bseries\b/gi, "Series")
-    // collapse multiple spaces
     .replace(/\s{2,}/g, " ");
+
+  return n;
 };
 
 /** Case-insensitive equality helper using normalized forms */
