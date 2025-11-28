@@ -1,19 +1,18 @@
 // src/components/BoardRegistrationForm.js
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Player } from "@lottiefiles/react-lottie-player";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useLocation } from "react-router-dom"; // [2025-11-28] NEW
 import "./BoardRegistrationForm.css";
 
-// [2025-11-28] Helper to build initial form (create vs edit)
-const buildInitialForm = (editingBoard) => {
+// Helper to build form state from a board object (or empty for new)
+const buildInitialForm = (board) => {
   const today = new Date().toISOString().split("T")[0];
 
-  if (!editingBoard) {
-    // 👉 Create mode (new board)
+  if (!board) {
+    // New board
     return {
       board_name: "",
       owner_name: "",
@@ -23,36 +22,54 @@ const buildInitialForm = (editingBoard) => {
     };
   }
 
-  // 👉 Edit mode: prefill with existing board + teams
+  // Existing board → prefill
   return {
-    board_name: editingBoard.board_name || "",
-    owner_name: editingBoard.owner_name || "",
-    // registration_date from backend is already YYYY-MM-DD
-    registration_date:
-      editingBoard.registration_date || today,
-    owner_email: editingBoard.owner_email || "",
+    board_name: board.board_name || "",
+    owner_name: board.owner_name || "",
+    registration_date: board.registration_date || today, // already YYYY-MM-DD
+    owner_email: board.owner_email || "",
     teams:
-      Array.isArray(editingBoard.teams) && editingBoard.teams.length
-        ? editingBoard.teams
+      Array.isArray(board.teams) && board.teams.length
+        ? board.teams
         : [""],
   };
 };
 
 const BoardRegistrationForm = () => {
-  // [2025-11-28] Read data passed from "Registered Cricket Boards" page
-  const location = useLocation();
-  const routeState = location.state || {};
-  const editingBoard = routeState.board || routeState.editingBoard || null;
-  const isEditMode = !!editingBoard;
-  const registrationId = editingBoard?.registration_id || null;
+  // [2025-11-28] Mode: "new" vs "existing"
+  const [mode, setMode] = useState("new"); // "new" | "existing"
 
-  const [formData, setFormData] = useState(() =>
-    buildInitialForm(editingBoard)
-  );
+  // [2025-11-28] List of all boards for "existing" mode dropdown
+  const [boards, setBoards] = useState([]);
+  const [selectedRegId, setSelectedRegId] = useState("");
+
+  // [2025-11-28] Edit state derived from mode + selected board
+  const isEditMode = mode === "existing" && !!selectedRegId;
+  const [registrationId, setRegistrationId] = useState(null);
+
+  const [formData, setFormData] = useState(() => buildInitialForm(null));
 
   const [submitting, setSubmitting] = useState(false);
   const [submittedSuccess, setSubmittedSuccess] = useState(false);
   const [submittedError, setSubmittedError] = useState(false);
+
+  // [2025-11-28] Fetch all boards once, for dropdown
+  useEffect(() => {
+    const fetchBoards = async () => {
+      try {
+        const res = await axios.get(
+          "https://cricket-scoreboard-backend.onrender.com/api/boards/all-boards"
+        );
+        // backend sends { boards: [...] }
+        const list = res.data?.boards || res.data || [];
+        setBoards(list);
+      } catch (err) {
+        console.error("Error fetching boards list:", err);
+        toast.error("Could not load existing boards list.");
+      }
+    };
+    fetchBoards();
+  }, []);
 
   const validateEmail = (email) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -78,13 +95,42 @@ const BoardRegistrationForm = () => {
     setFormData({ ...formData, teams: updatedTeams });
   };
 
+  // [2025-11-28] When user switches between "New" and "Existing"
+  const handleModeChange = (newMode) => {
+    setMode(newMode);
+
+    if (newMode === "new") {
+      // reset to blank new-board form
+      setSelectedRegId("");
+      setRegistrationId(null);
+      setFormData(buildInitialForm(null));
+    } else {
+      // existing mode: wait until user selects a board;
+      // keep current form as-is for now
+    }
+  };
+
+  // [2025-11-28] When user selects an existing board from dropdown
+  const handleExistingBoardSelect = (regId) => {
+    setSelectedRegId(regId);
+
+    const found = boards.find((b) => b.registration_id === regId);
+    if (found) {
+      setRegistrationId(found.registration_id);
+      setFormData(buildInitialForm(found));
+    } else {
+      setRegistrationId(null);
+      setFormData(buildInitialForm(null));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const { board_name, owner_name, registration_date, owner_email, teams } =
       formData;
 
-    // ✅ Common validation for both create + edit
+    // Common validation
     if (!board_name || !owner_name || !registration_date || !owner_email) {
       toast.error("All fields are required.");
       return;
@@ -100,8 +146,14 @@ const BoardRegistrationForm = () => {
       return;
     }
 
-    // [2025-11-28] Date check ONLY for NEW boards
-    if (!isEditMode) {
+    // For existing mode we must have a selected board
+    if (mode === "existing" && !selectedRegId) {
+      toast.error("Please select an existing board to update.");
+      return;
+    }
+
+    // Date rule: only enforce "today or later" for NEW boards
+    if (mode === "new") {
       const todayMidnight = new Date();
       todayMidnight.setHours(0, 0, 0, 0);
       const chosen = new Date(registration_date);
@@ -116,15 +168,15 @@ const BoardRegistrationForm = () => {
       setSubmittedSuccess(false);
       setSubmittedError(false);
 
-      if (isEditMode && registrationId) {
-        // [2025-11-28] EDIT MODE → PUT update
+      if (mode === "existing" && registrationId) {
+        // UPDATE EXISTING BOARD
         await axios.put(
           `https://cricket-scoreboard-backend.onrender.com/api/boards/update/${registrationId}`,
           formData
         );
         toast.success("Board updated successfully!");
       } else {
-        // CREATE MODE → POST register (existing behaviour)
+        // CREATE NEW BOARD
         await axios.post(
           "https://cricket-scoreboard-backend.onrender.com/api/boards/register",
           formData
@@ -147,7 +199,7 @@ const BoardRegistrationForm = () => {
       console.error("Board save error:", error?.response || error);
       const msg =
         error?.response?.data?.error ||
-        (isEditMode
+        (mode === "existing"
           ? "Something went wrong while updating the board."
           : "Something went wrong during registration.");
       toast.error(msg);
@@ -157,10 +209,64 @@ const BoardRegistrationForm = () => {
     }
   };
 
+  const titleText =
+    mode === "existing" && selectedRegId
+      ? "🏏 Update Board"
+      : "🏏 Board Registration";
+
+  const submitLabel = submitting
+    ? mode === "existing" && selectedRegId
+      ? "Updating..."
+      : "Registering..."
+    : mode === "existing" && selectedRegId
+    ? "Update Board"
+    : "Register Board";
+
   return (
     <div className="form-container">
-      {/* [2025-11-28] Dynamic title */}
-      <h1>{isEditMode ? "🏏 Update Board" : "🏏 Board Registration"}</h1>
+      <h1>{titleText}</h1>
+
+      {/* [2025-11-28] Mode selector */}
+      <div className="board-mode-toggle">
+        <label>
+          <input
+            type="radio"
+            name="boardMode"
+            value="new"
+            checked={mode === "new"}
+            onChange={() => handleModeChange("new")}
+          />
+          <span>New Board</span>
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="boardMode"
+            value="existing"
+            checked={mode === "existing"}
+            onChange={() => handleModeChange("existing")}
+          />
+          <span>Existing Board</span>
+        </label>
+      </div>
+
+      {/* [2025-11-28] Existing board dropdown */}
+      {mode === "existing" && (
+        <div className="existing-board-select">
+          <label>Select existing board:</label>
+          <select
+            value={selectedRegId}
+            onChange={(e) => handleExistingBoardSelect(e.target.value)}
+          >
+            <option value="">-- Choose a board --</option>
+            {boards.map((b) => (
+              <option key={b.registration_id} value={b.registration_id}>
+                {b.board_name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="registration-form">
         <input
@@ -213,17 +319,11 @@ const BoardRegistrationForm = () => {
         </button>
 
         <button type="submit" disabled={submitting}>
-          {submitting
-            ? isEditMode
-              ? "Updating..."
-              : "Registering..."
-            : isEditMode
-            ? "Update Board"
-            : "Register Board"}
+          {submitLabel}
         </button>
       </form>
 
-      {/* ✅ Lottie Success Animation */}
+      {/* Lottie Success Animation */}
       {submittedSuccess && (
         <div className="lottie-animation">
           <Player
@@ -233,14 +333,14 @@ const BoardRegistrationForm = () => {
             style={{ height: "200px", width: "200px" }}
           />
           <p>
-            {isEditMode
+            {mode === "existing" && selectedRegId
               ? "Board details updated successfully!"
               : "Thank you for registering!"}
           </p>
         </div>
       )}
 
-      {/* ❌ Lottie Error Animation */}
+      {/* Lottie Error Animation */}
       {submittedError && (
         <div className="lottie-animation">
           <Player
