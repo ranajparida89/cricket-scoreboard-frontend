@@ -6,6 +6,7 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./AllBoardsView.css";
+import { useAuth } from "../services/auth";
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
 
@@ -100,6 +101,8 @@ const AllBoardsView = () => {
   const [teamFilter, setTeamFilter] = useState("active");
 
   // -------- Auth / Role --------
+  const { currentUser } = useAuth();
+
   const user = useMemo(() => {
     try {
       const raw =
@@ -114,16 +117,19 @@ const AllBoardsView = () => {
     }
   }, []);
 
-  const role = getRoleFromUser(user);
-  const email = getEmailFromUser(user);
+  const roleFromLocalUser = getRoleFromUser(user);
+  const emailFromLocalUser = getEmailFromUser(user);
 
-  // admin if role === "admin" OR email in ADMIN_EMAILS list
+  // FINAL admin check: any of these being true makes you admin
   const isAdmin =
-    (role && role.toLowerCase() === "admin") ||
-    (email &&
+    currentUser?.role === "admin" || // from auth context (old logic)
+    localStorage.getItem("isAdmin") === "true" || // manual flag (old logic)
+    (roleFromLocalUser &&
+      roleFromLocalUser.toLowerCase() === "admin") || // role in stored user
+    (emailFromLocalUser &&
       ADMIN_EMAILS.some(
-        (e) => e.toLowerCase() === String(email).toLowerCase()
-      ));
+        (e) => e.toLowerCase() === String(emailFromLocalUser).toLowerCase()
+      )); // whitelisted email
 
   // -------- Load boards --------
   const fetchBoards = async () => {
