@@ -1,26 +1,22 @@
 // src/components/AllBoardsView.js
-// 10-AUG-2025 — Board overview + admin actions + Move Team between boards (no data loss)
-// [Final: uses useAuth + isAdmin flag, robust team normalization, move-team alignment, drag-to-move, delete team/board]
+// View + manage boards & teams (move team, remove team, active/archived toggle)
 
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useAuth } from "../services/auth";
 import "./AllBoardsView.css";
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
 
 const API_ALL_BOARDS = `${API_BASE}/api/boards/all-boards`;
 const API_MOVE_TEAM = `${API_BASE}/api/boards/move-team`;
-const API_UPDATE_BOARD = `${API_BASE}/api/boards/update`;
-const API_DELETE_BOARD = `${API_BASE}/api/boards/delete`;
+const API_REMOVE_TEAM = `${API_BASE}/api/boards/remove-team`;
 
 // ---- helper to derive role from different shapes of user object ----
 const getRoleFromUser = (u) => {
   if (!u) return null;
 
-  // direct fields
   const possibleRole =
     u.role ??
     u.userRole ??
@@ -31,7 +27,6 @@ const getRoleFromUser = (u) => {
 
   if (possibleRole) return String(possibleRole).toLowerCase();
 
-  // nested user: { user: { role: 'admin' } }
   if (u.user) {
     const nestedRole =
       u.user.role ??
@@ -62,43 +57,31 @@ const AllBoardsView = () => {
   const [loadingMove, setLoadingMove] = useState(false);
   const [error, setError] = useState(null);
 
-  // Move-team state { fromRegId, toRegId, teamName, moveDate }
+  // Move-team panel state
   const [movePanel, setMovePanel] = useState(null);
 
-  // Drag context for drag-to-move { fromRegId, teamName }
+  // Drag context for drag-to-move
   const [dragContext, setDragContext] = useState(null);
 
-  // -------- Auth / Role (combined logic) --------
-  const { currentUser } = useAuth();
+  // Filter: "active" | "archived"
+  const [teamFilter, setTeamFilter] = useState("active");
 
-  const userFromStorage = useMemo(() => {
+  // -------- Auth / Role --------
+  const user = useMemo(() => {
     try {
       const raw =
         localStorage.getItem("user") ||
         localStorage.getItem("loggedInUser") ||
         localStorage.getItem("authUser");
-      return raw ? JSON.parse(raw) : null;
+      const parsed = raw ? JSON.parse(raw) : null;
+      console.log("AllBoardsView: user from localStorage =", parsed);
+      return parsed;
     } catch {
       return null;
     }
   }, []);
 
-  const isAdmin = (() => {
-    const authRole = getRoleFromUser(currentUser);
-    const storedRole = getRoleFromUser(userFromStorage);
-    const isAdminFlag = localStorage.getItem("isAdmin") === "true";
-    return (
-      authRole === "admin" || storedRole === "admin" || isAdminFlag === true
-    );
-  })();
-
-  const authHeaders = () => {
-    const t =
-      localStorage.getItem("admin_jwt") ||
-      localStorage.getItem("token") ||
-      localStorage.getItem("authToken");
-    return t ? { Authorization: `Bearer ${t}` } : {};
-  };
+  const isAdmin = getRoleFromUser(user) === "admin";
 
   // -------- Load boards --------
   const fetchBoards = async () => {
@@ -113,6 +96,7 @@ const AllBoardsView = () => {
         : res.data;
 
       console.log("ALL BOARDS RAW API:", rawData);
+
       setBoards(rawData || []);
     } catch (err) {
       console.error("Failed to load boards:", err);
@@ -152,9 +136,7 @@ const AllBoardsView = () => {
     });
   };
 
-  const closeMovePanel = () => {
-    setMovePanel(null);
-  };
+  const closeMovePanel = () => setMovePanel(null);
 
   const handleMoveFieldChange = (field, value) => {
     setMovePanel((prev) => (prev ? { ...prev, [field]: value } : prev));
@@ -185,16 +167,12 @@ const AllBoardsView = () => {
     try {
       setLoadingMove(true);
 
-      await axios.post(
-        API_MOVE_TEAM,
-        {
-          team_name: teamName,
-          from_registration_id: fromRegId,
-          to_registration_id: toRegId,
-          effective_date: moveDate,
-        },
-        { headers: authHeaders() }
-      );
+      await axios.post(API_MOVE_TEAM, {
+        team_name: teamName,
+        from_registration_id: fromRegId,
+        to_registration_id: toRegId,
+        effective_date: moveDate,
+      });
 
       toast.success(`Team "${teamName}" moved successfully to new board.`, {
         autoClose: 3500,
@@ -208,6 +186,50 @@ const AllBoardsView = () => {
         err?.response?.data?.error ||
         err?.message ||
         "Failed to move team. Please try again.";
+      toast.error(msg, { autoClose: 5000 });
+    } finally {
+      setLoadingMove(false);
+    }
+  };
+
+  // -------- Remove team handler --------
+
+  const handleRemoveTeam = async (board, team) => {
+    if (!isAdmin) {
+      toast.info("Only admin users can remove teams from boards.");
+      return;
+    }
+
+    const teamName = team?.team_name;
+    if (!teamName) return;
+
+    const ok = window.confirm(
+      `Remove team "${teamName}" from ${board.board_name}?`
+    );
+    if (!ok) return;
+
+    try {
+      setLoadingMove(true);
+      const todayIso = new Date().toISOString().slice(0, 10);
+
+      await axios.post(API_REMOVE_TEAM, {
+        registration_id: board.registration_id,
+        team_name: teamName,
+        effective_date: todayIso,
+      });
+
+      toast.success(
+        `Team "${teamName}" removed from ${board.board_name} (history preserved).`,
+        { autoClose: 3500 }
+      );
+
+      await fetchBoards();
+    } catch (err) {
+      console.error("Remove team failed:", err);
+      const msg =
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to remove team. Please try again.";
       toast.error(msg, { autoClose: 5000 });
     } finally {
       setLoadingMove(false);
@@ -228,9 +250,7 @@ const AllBoardsView = () => {
     e.dataTransfer.setData("text/plain", teamName);
   };
 
-  const handleDragEnd = () => {
-    setDragContext(null);
-  };
+  const handleDragEnd = () => setDragContext(null);
 
   const handleDragOverBoard = (e, board) => {
     if (!dragContext || !isAdmin) return;
@@ -257,76 +277,6 @@ const AllBoardsView = () => {
     setDragContext(null);
   };
 
-  // -------- Delete team / delete board (admin) --------
-
-  // "Delete" team = remove from active list → backend marks left_at via /update
-  const handleRemoveTeam = async (board, teamName) => {
-    if (!isAdmin) return;
-    if (
-      !window.confirm(
-        `Remove team "${teamName}" from board ${board.board_name}?`
-      )
-    )
-      return;
-
-    // convert from {team_name, ...} objects → string[]
-    const allNames = (board.teams || []).map((t) => t.team_name);
-    const newTeams = allNames.filter((n) => n !== teamName);
-
-    const payload = {
-      board_name: board.board_name,
-      owner_name: board.owner_name,
-      registration_date: board.registration_date,
-      owner_email: board.owner_email,
-      teams: newTeams,
-    };
-
-    try {
-      await axios.put(
-        `${API_UPDATE_BOARD}/${board.registration_id}`,
-        payload,
-        { headers: authHeaders() }
-      );
-      toast.success(
-        `Team "${teamName}" removed from ${board.board_name} (history preserved).`,
-        { autoClose: 3500 }
-      );
-      fetchBoards();
-    } catch (err) {
-      console.error("Remove team failed:", err);
-      toast.error(
-        err?.response?.data?.error || "Failed to remove team from board.",
-        { autoClose: 4000 }
-      );
-    }
-  };
-
-  const handleDeleteBoard = async (board) => {
-    if (!isAdmin) return;
-    if (
-      !window.confirm(
-        `Delete entire board "${board.board_name}"? This will remove all its team memberships.`
-      )
-    )
-      return;
-
-    try {
-      await axios.delete(`${API_DELETE_BOARD}/${board.registration_id}`, {
-        headers: authHeaders(),
-      });
-      toast.success(`Board "${board.board_name}" deleted.`, {
-        autoClose: 3500,
-      });
-      fetchBoards();
-    } catch (err) {
-      console.error("Delete board failed:", err);
-      toast.error(
-        err?.response?.data?.error || "Failed to delete board.",
-        { autoClose: 4000 }
-      );
-    }
-  };
-
   // -------- Helpers --------
 
   const formatDate = (d) => {
@@ -344,7 +294,6 @@ const AllBoardsView = () => {
     }
   };
 
-  // Boards + teams (normalize just the team fields we care about)
   const effectiveBoards = useMemo(
     () =>
       boards.map((b) => {
@@ -432,7 +381,7 @@ const AllBoardsView = () => {
       <ToastContainer />
 
       <header className="abv-header">
-        <h1 className="abv-title">View Boards & Teams</h1>
+        <h1 className="abv-title">View Boards &amp; Teams</h1>
         <p className="abv-subtitle">
           All registered cricket boards, their core details and teams.{" "}
           {isAdmin ? (
@@ -442,17 +391,34 @@ const AllBoardsView = () => {
             </span>
           ) : (
             <span className="abv-role-pill abv-role-viewer">
-              Viewer mode: you can view boards & teams (changes disabled).
+              Viewer mode: you can view boards &amp; teams (changes disabled).
             </span>
           )}
         </p>
       </header>
 
+      {/* Legend & filter */}
       <div className="abv-legend">
-        <span className="abv-legend-chip abv-chip-active">Active Team</span>
-        <span className="abv-legend-chip abv-chip-archived">
+        <button
+          type="button"
+          className={
+            "abv-legend-chip" +
+            (teamFilter === "active" ? " abv-chip-active" : "")
+          }
+          onClick={() => setTeamFilter("active")}
+        >
+          Active Team
+        </button>
+        <button
+          type="button"
+          className={
+            "abv-legend-chip" +
+            (teamFilter === "archived" ? " abv-chip-archived" : "")
+          }
+          onClick={() => setTeamFilter("archived")}
+        >
           Archived / Left Team
-        </span>
+        </button>
         {isAdmin && (
           <span className="abv-legend-chip abv-chip-move">
             Drag a team row onto another board OR click Move → preserves all
@@ -461,6 +427,7 @@ const AllBoardsView = () => {
         )}
       </div>
 
+      {/* Move panel */}
       {movePanel && (
         <div className="abv-move-overlay">
           <div className="abv-move-card">
@@ -561,10 +528,23 @@ const AllBoardsView = () => {
         {effectiveBoards.map((board) => {
           const teams = board.teams || [];
 
+          const visibleTeams = teams.filter((t) => {
+            if (teamFilter === "active") return !t.left_at;
+            if (teamFilter === "archived") return !!t.left_at;
+            return true;
+          });
+
           const isDropTargetActive =
             dragContext &&
             isAdmin &&
             String(board.registration_id) !== String(dragContext.fromRegId);
+
+          const noTeamsMessage =
+            teams.length === 0
+              ? "No teams registered yet for this board."
+              : teamFilter === "active"
+              ? "No active teams for this board."
+              : "No archived / left teams for this board.";
 
           return (
             <div
@@ -598,22 +578,11 @@ const AllBoardsView = () => {
                   <div className="abv-owner-email">
                     {board.owner_email || ""}
                   </div>
-                  {isAdmin && (
-                    <button
-                      type="button"
-                      className="abv-btn abv-btn-ghost abv-delete-board-btn"
-                      onClick={() => handleDeleteBoard(board)}
-                    >
-                      Delete Board
-                    </button>
-                  )}
                 </div>
               </div>
 
-              {teams.length === 0 ? (
-                <div className="abv-no-teams">
-                  No teams registered yet for this board.
-                </div>
+              {visibleTeams.length === 0 ? (
+                <div className="abv-no-teams">{noTeamsMessage}</div>
               ) : (
                 <div className="abv-team-table-wrapper">
                   <table className="abv-team-table">
@@ -627,7 +596,7 @@ const AllBoardsView = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {teams.map((team, idx) => {
+                      {visibleTeams.map((team, idx) => {
                         const tid = team.id ?? `${board.board_id}-${idx}`;
                         const isArchived = !!team.left_at;
 
@@ -657,20 +626,22 @@ const AllBoardsView = () => {
 
                             {isAdmin && (
                               <td className="abv-actions-cell">
+                                {!isArchived && (
+                                  <button
+                                    className="abv-btn abv-btn-move"
+                                    type="button"
+                                    onClick={() =>
+                                      openMovePanel(board, team.team_name)
+                                    }
+                                  >
+                                    Move
+                                  </button>
+                                )}
                                 <button
-                                  className="abv-btn abv-btn-move"
+                                  className="abv-btn abv-btn-small"
                                   type="button"
                                   onClick={() =>
-                                    openMovePanel(board, team.team_name)
-                                  }
-                                >
-                                  Move
-                                </button>
-                                <button
-                                  className="abv-btn abv-btn-ghost abv-btn-small"
-                                  type="button"
-                                  onClick={() =>
-                                    handleRemoveTeam(board, team.team_name)
+                                    handleRemoveTeam(board, team)
                                   }
                                 >
                                   Remove
