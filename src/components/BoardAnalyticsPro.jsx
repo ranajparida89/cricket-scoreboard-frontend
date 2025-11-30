@@ -34,10 +34,10 @@ import {
   FaTrash,
 } from "react-icons/fa";
 import "./BoardAnalyticsPro.css";
-// ⬇️ NEW: pull current user to decide admin-only controls
 import { useAuth } from "../services/auth";
 
 const API = "https://cricket-scoreboard-backend.onrender.com";
+
 const PALETTE = [
   "#22c55e",
   "#3b82f6",
@@ -50,12 +50,15 @@ const PALETTE = [
   "#10b981",
   "#eab308",
 ];
+
 const SERIES = {
   ODI: "#3b82f6",
   T20: "#06b6d4",
   TEST: "#a855f7",
-}; // T20 moved to cyan for contrast
+};
+
 const fmts = ["ALL", "ODI", "T20", "TEST"];
+
 const months = [
   { v: 1, l: "Jan" },
   { v: 2, l: "Feb" },
@@ -70,6 +73,7 @@ const months = [
   { v: 11, l: "Nov" },
   { v: 12, l: "Dec" },
 ];
+
 const nf = (n) => new Intl.NumberFormat().format(n ?? 0);
 const fmtOrZero = (b, f, k) => Number(b?.formats?.[f]?.[k] ?? 0);
 const pc = (n) => (isFinite(n) ? Number(n.toFixed(2)) : 0);
@@ -115,13 +119,13 @@ function Info({ title, children }) {
   );
 }
 
-/* Format chip with high-contrast per type (fixes #2) */
+/* Format chip with high-contrast per type */
 function FormatChip({ type }) {
   const fmt = String(type || "").toUpperCase();
   return <span className={`fmt-chip ${fmt.toLowerCase()}`}>{fmt}</span>;
 }
 
-/* Crown banner — moved to the left of the title so it never collides with page-level X (fixes #3) */
+/* Crown banner */
 function TopBoardBadge({ name }) {
   if (!name) return null;
   return (
@@ -136,7 +140,6 @@ function TopBoardBadge({ name }) {
 
 /* Visible chain connector between trophies (responsive SVG) */
 function ChainConnector({ className = "", tone = "#93a4b8" }) {
-  // width/height are controlled by CSS container; SVG scales via viewBox
   return (
     <div className={`hof-chain-connector ${className}`}>
       <svg viewBox="0 0 160 28" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -157,14 +160,11 @@ function ChainConnector({ className = "", tone = "#93a4b8" }) {
           </filter>
         </defs>
 
-        {/* 5 interlocking links, alternating rotation */}
-        {[
-          { x: 18, r: -18 },
+        {[{ x: 18, r: -18 },
           { x: 52, r: 18 },
           { x: 86, r: -18 },
           { x: 120, r: 18 },
-          { x: 154, r: -18 },
-        ].map((p, i) => (
+          { x: 154, r: -18 }].map((p, i) => (
           <g key={i} transform={`translate(${p.x} 14) rotate(${p.r})`}>
             <rect
               x="-18"
@@ -181,7 +181,6 @@ function ChainConnector({ className = "", tone = "#93a4b8" }) {
           </g>
         ))}
 
-        {/* subtle guide line under the links for continuity */}
         <path d="M6 14 L154 14" stroke={tone} strokeOpacity="0.25" strokeWidth="3" />
       </svg>
     </div>
@@ -189,10 +188,10 @@ function ChainConnector({ className = "", tone = "#93a4b8" }) {
 }
 
 export default function BoardAnalyticsPro() {
-  // ⬇️ NEW: admin detection pulled in once here
   const { currentUser } = useAuth();
   const isAdmin =
     currentUser?.role === "admin" || localStorage.getItem("isAdmin") === "true";
+
   // ====== analytics state ======
   const [boards, setBoards] = useState([]);
   const [selected, setSelected] = useState([]);
@@ -207,8 +206,8 @@ export default function BoardAnalyticsPro() {
   const [activeTab, setActiveTab] = useState("analytics");
   const [hofWall, setHofWall] = useState([]);
   const [hofStats, setHofStats] = useState({});
-  const [hofMeta, setHofMeta] = useState({ tournaments: [], years: [], teams: [] }); // filters
-  const [hofAddMeta, setHofAddMeta] = useState({ tournaments: [], teams: [], boards: [] }); // modal
+  const [hofMeta, setHofMeta] = useState({ tournaments: [], years: [], teams: [] });
+  const [hofAddMeta, setHofAddMeta] = useState({ tournaments: [], teams: [], boards: [] });
   const [hofFilters, setHofFilters] = useState({
     tournament: "",
     year: "",
@@ -233,7 +232,9 @@ export default function BoardAnalyticsPro() {
   });
 
   useEffect(() => {
-    axios.get(`${API}/api/boards/analytics/boards`).then((r) => setBoards(r.data.boards || []));
+    axios
+      .get(`${API}/api/boards/analytics/boards`)
+      .then((r) => setBoards(r.data.boards || []));
     const today = new Date();
     const past = new Date();
     past.setDate(past.getDate() - 365);
@@ -359,7 +360,7 @@ export default function BoardAnalyticsPro() {
     });
   }, [summary, activeFmt]);
 
-  // dynamic Y ticks for Points-by-Format (fix #5 readability)
+  // dynamic Y ticks for Points-by-Format
   const yTicks = useMemo(() => {
     const vals = [];
     perFormatLine.forEach((r) => vals.push(r.ODI, r.T20, r.TEST));
@@ -370,20 +371,25 @@ export default function BoardAnalyticsPro() {
     return ticks;
   }, [perFormatLine]);
 
-  // info text
+  // ====== INFO TEXT (UPDATED TO CURRENT POINT RULE) ======
   const scoringInfo = (
     <ul className="mb-0">
       <li>
-        <b>ODI/T20</b> — Win: <b>10</b>, Draw: <b>5</b>, Loss: <b>2</b>
+        <b>ODI</b> — Win: <b>8</b> pts, Draw: <b>2</b> pts
       </li>
       <li>
-        <b>Test</b> — Win: <b>18</b>, Draw: <b>9</b>, Loss: <b>4</b>
+        <b>T20</b> — Win: <b>5</b> pts, Draw: <b>2</b> pts
+      </li>
+      <li>
+        <b>Test</b> — Win: <b>12</b> pts, Draw: <b>4</b> pts, Loss: <b>6</b> pts
+        {" "} (reward for long-format effort)
       </li>
       <li>
         “Board Points” also include any <b>Champion Bonus</b> (25 ODI/T20, 50 Test).
       </li>
     </ul>
   );
+
   const timelineInfo = (
     <div>
       <p>
@@ -395,10 +401,14 @@ export default function BoardAnalyticsPro() {
           <b>Hover</b> to see the leading board and its cumulative points on that date.
         </li>
         <li>Dates shown on the axis are cleaned and evenly spaced for readability.</li>
-        <li>The right panel summarizes how often leadership changed and how many days a board stayed at #1.</li>
+        <li>
+          The right panel summarizes how often leadership changed and how many days a board stayed at
+          #1.
+        </li>
       </ul>
     </div>
   );
+
   const radarInfo = (
     <div>
       <p>
@@ -411,6 +421,7 @@ export default function BoardAnalyticsPro() {
       </ul>
     </div>
   );
+
   const marginInfo = (
     <div>
       <p>
@@ -423,6 +434,7 @@ export default function BoardAnalyticsPro() {
       </ul>
     </div>
   );
+
   const byFormatInfo = (
     <div>
       <p>
@@ -435,6 +447,7 @@ export default function BoardAnalyticsPro() {
       </ul>
     </div>
   );
+
   const timelineStatsInfo = (
     <div>
       <p>
@@ -566,7 +579,7 @@ export default function BoardAnalyticsPro() {
     setShowHofModal(true);
   };
 
-  // de-duplicate team list by name (fix duplicate options)
+  // de-duplicate team list by name
   const dedupTeams = useMemo(() => {
     const seen = new Map();
     (hofAddMeta.teams || []).forEach((t) => {
@@ -576,7 +589,6 @@ export default function BoardAnalyticsPro() {
     return Array.from(seen.values());
   }, [hofAddMeta.teams]);
 
-  // runner-up options (distinct and not equal to champion)
   const ruTeamOptions = useMemo(() => {
     const champ = String(hofForm.champion_team || "").toLowerCase();
     return dedupTeams.filter((t) => String(t.name).toLowerCase() !== champ);
@@ -591,7 +603,7 @@ export default function BoardAnalyticsPro() {
 
   return (
     <div className="board-analytics-container">
-      {/* Header — crown badge moved next to the title (fixes #3) */}
+      {/* Header */}
       <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
         <h2 className="analytics-section-title mb-0">
           CrickEdge • Board Analytics
@@ -916,7 +928,9 @@ export default function BoardAnalyticsPro() {
                   <div className="card-body">
                     <div className="chart-title">
                       Wins / Draws / Losses{" "}
-                      <Info title="W/D/L">Counts of outcomes for the selected format (or ALL).</Info>
+                      <Info title="W/D/L">
+                        Counts of outcomes for the selected format (or ALL).
+                      </Info>
                     </div>
                     <div className="chart-frame">
                       <ResponsiveContainer width="100%" height="100%">
@@ -1017,7 +1031,7 @@ export default function BoardAnalyticsPro() {
                 </div>
               </div>
 
-              {/* Points by Format — modern look (fix #5) */}
+              {/* Points by Format — line */}
               <div className="col-12">
                 <div className="card chart-card">
                   <div className="card-body">
@@ -1311,7 +1325,6 @@ export default function BoardAnalyticsPro() {
                             </div>
                           </div>
 
-                          {/* connector between items */}
                           {!isLast && <ChainConnector />}
                         </React.Fragment>
                       );
@@ -1371,7 +1384,8 @@ export default function BoardAnalyticsPro() {
                             <div className="hof-card-remarks">{item.remarks}</div>
                           ) : null}
                         </div>
-                        {/* [CRICKEDGE-ADMIN-GUARD] Delete visible only for admin */}
+
+                        {/* Delete visible only for admin */}
                         {isAdmin && (
                           <div className="hof-card-actions">
                             <button
