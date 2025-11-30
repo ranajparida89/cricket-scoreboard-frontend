@@ -37,7 +37,29 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Helper to build form state from a board object (or empty for new)
+/* ---- helper: extract clean team name strings from board ---- */
+const extractTeamsFromBoard = (board) => {
+  if (!board) return [""];
+
+  const rawTeams = Array.isArray(board.teams) ? board.teams : [];
+
+  const names = rawTeams.map((t) => {
+    if (typeof t === "string") return t.trim();
+    // object case → try all possible fields
+    return (
+      t.team_name ||
+      t.teamName ||
+      t.name ||
+      t.team ||
+      t.team_title ||
+      ""
+    ).toString().trim();
+  });
+
+  return names.length ? names : [""];
+};
+
+/* Helper to build form state from a board object (or empty for new) */
 const buildInitialForm = (board) => {
   const today = getTodayLocal();
 
@@ -52,16 +74,19 @@ const buildInitialForm = (board) => {
     };
   }
 
-  // Existing board → prefill
+  // Try to normalize date to YYYY-MM-DD (handles ISO with time)
+  let regDate = today;
+  if (board.registration_date) {
+    const raw = String(board.registration_date);
+    regDate = raw.length >= 10 ? raw.slice(0, 10) : today;
+  }
+
   return {
     board_name: board.board_name || "",
     owner_name: board.owner_name || "",
-    registration_date: board.registration_date || today, // already YYYY-MM-DD
+    registration_date: regDate,
     owner_email: board.owner_email || "",
-    teams:
-      Array.isArray(board.teams) && board.teams.length
-        ? board.teams
-        : [""],
+    teams: extractTeamsFromBoard(board),
   };
 };
 
