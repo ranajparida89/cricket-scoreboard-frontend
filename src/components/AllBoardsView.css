@@ -171,7 +171,10 @@
   font-style: italic;
 }
 
-/* Table wrapper + table */
+/* ================================
+   Table wrapper + table (dark)
+   ================================ */
+
 .abv-team-table-wrapper {
   margin-top: 0.4rem;
   border-radius: 14px;
@@ -186,19 +189,24 @@
   font-size: 0.86rem;
 }
 
-.abv-team-table thead {
-  background: linear-gradient(90deg, #0f172a 0%, #111827 100%);
+/* FORCE dark header – override any global white header */
+.abv-team-table thead tr {
+  background: linear-gradient(90deg, #020617 0%, #0b1220 40%, #020617 100%) !important;
+  box-shadow: none !important;
 }
 
 .abv-team-table thead th {
   padding: 0.55rem 0.75rem;
   text-align: left;
-  color: #e5edf9;
+  color: #e5edf9 !important;
   font-weight: 600;
   letter-spacing: 0.05em;
   font-size: 0.75rem;
   text-transform: uppercase;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.5);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+  background: transparent !important;
+  background-image: none !important;
+  border-radius: 0 !important;
 }
 
 .abv-team-table thead th:first-child {
