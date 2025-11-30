@@ -1,6 +1,6 @@
 // src/components/AllBoardsView.js
 // 10-AUG-2025 — Board overview + admin actions + Move Team between boards (no data loss)
-// [Updated: role detection + robust team normalization + move-team alignment]
+// [Updated: role detection + robust team normalization + move-team alignment + drag-to-move]
 
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
@@ -63,6 +63,10 @@ const AllBoardsView = () => {
   // { fromRegId, toRegId, teamName, moveDate }
   const [movePanel, setMovePanel] = useState(null);
 
+  // Drag context for drag-to-move
+  // { fromRegId, teamName }
+  const [dragContext, setDragContext] = useState(null);
+
   // -------- Auth / Role --------
   const user = useMemo(() => {
     try {
@@ -109,7 +113,7 @@ const AllBoardsView = () => {
     fetchBoards();
   }, []);
 
-  // -------- Move team handlers --------
+  // -------- Move team handlers (panel) --------
 
   // open move panel with board object + team name
   const openMovePanel = (board, teamName) => {
@@ -195,6 +199,52 @@ const AllBoardsView = () => {
     }
   };
 
+  // -------- Drag handlers (drag-to-move) --------
+
+  const handleDragStart = (e, board, team) => {
+    if (!isAdmin || !team || team.left_at) return;
+    const fromRegId = board.registration_id;
+    const teamName = team.team_name;
+    if (!fromRegId || !teamName) return;
+
+    setDragContext({ fromRegId, teamName });
+
+    // basic drag data (not really used, but good practice)
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", teamName);
+  };
+
+  const handleDragEnd = () => {
+    setDragContext(null);
+  };
+
+  const handleDragOverBoard = (e, board) => {
+    if (!dragContext || !isAdmin) return;
+    if (String(board.registration_id) === String(dragContext.fromRegId)) return;
+    // allow drop
+    e.preventDefault();
+  };
+
+  const handleDropOnBoard = (e, board) => {
+    e.preventDefault();
+    if (!dragContext || !isAdmin) return;
+
+    const toRegId = board.registration_id;
+    if (String(toRegId) === String(dragContext.fromRegId)) return;
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    // Open the move panel with from/to pre-filled
+    setMovePanel({
+      fromRegId: dragContext.fromRegId,
+      toRegId,
+      teamName: dragContext.teamName,
+      moveDate: today,
+    });
+
+    setDragContext(null);
+  };
+
   // -------- Helpers --------
 
   const formatDate = (d) => {
@@ -225,7 +275,7 @@ const AllBoardsView = () => {
             t.name ??
             t.team ??
             t.team_title ??
-            "";
+            (typeof t === "string" ? t : "");
 
           const joined =
             t.joined_at ??
@@ -305,7 +355,8 @@ const AllBoardsView = () => {
           All registered cricket boards, their core details and teams.{" "}
           {isAdmin ? (
             <span className="abv-role-pill abv-role-admin">
-              Admin mode: you can update, delete or move teams between boards.
+              Admin mode: you can update, delete or move teams between boards
+              (drag team row or use Move button).
             </span>
           ) : (
             <span className="abv-role-pill abv-role-viewer">
@@ -323,7 +374,8 @@ const AllBoardsView = () => {
         </span>
         {isAdmin && (
           <span className="abv-legend-chip abv-chip-move">
-            Move Team → preserves all past matches under old board
+            Drag a team row onto another board OR click Move → preserves all
+            past matches under old board
           </span>
         )}
       </div>
@@ -429,8 +481,22 @@ const AllBoardsView = () => {
         {effectiveBoards.map((board) => {
           const teams = board.teams || [];
 
+          const isDropTargetActive =
+            dragContext &&
+            isAdmin &&
+            String(board.registration_id) !== String(dragContext.fromRegId);
+
           return (
-            <div key={board.board_id} className="abv-board-card">
+            <div
+              key={board.board_id}
+              className={
+                "abv-board-card" +
+                (isDropTargetActive ? " abv-board-drop-target" : "")
+              }
+              onDragOver={(e) => handleDragOverBoard(e, board)}
+              onDragEnter={(e) => handleDragOverBoard(e, board)}
+              onDrop={(e) => handleDropOnBoard(e, board)}
+            >
               <div className="abv-board-header">
                 <div>
                   <h2 className="abv-board-name">{board.board_name}</h2>
@@ -477,12 +543,22 @@ const AllBoardsView = () => {
                         const tid = team.id ?? `${board.board_id}-${idx}`;
                         const isArchived = !!team.left_at;
 
+                        const rowClasses = [
+                          isArchived ? "abv-row-archived" : "abv-row-active",
+                        ];
+                        if (isAdmin && !isArchived) {
+                          rowClasses.push("abv-row-draggable");
+                        }
+
                         return (
                           <tr
                             key={tid}
-                            className={
-                              isArchived ? "abv-row-archived" : "abv-row-active"
+                            className={rowClasses.join(" ")}
+                            draggable={isAdmin && !isArchived}
+                            onDragStart={(e) =>
+                              handleDragStart(e, board, team)
                             }
+                            onDragEnd={handleDragEnd}
                           >
                             <td>{idx + 1}</td>
                             <td>{team.team_name}</td>
