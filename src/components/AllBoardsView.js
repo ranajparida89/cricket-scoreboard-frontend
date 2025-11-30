@@ -13,6 +13,11 @@ const API_ALL_BOARDS = `${API_BASE}/api/boards/all-boards`;
 const API_MOVE_TEAM = `${API_BASE}/api/boards/move-team`;
 const API_REMOVE_TEAM = `${API_BASE}/api/boards/remove-team`;
 
+/* ---------------- helpers: role / email detection ---------------- */
+
+// hard-coded admin email so you always get admin powers
+const ADMIN_EMAILS = ["ranajparida89@gmail.com"];
+
 // ---- helper to derive role from different shapes of user object ----
 const getRoleFromUser = (u) => {
   if (!u) return null;
@@ -36,6 +41,34 @@ const getRoleFromUser = (u) => {
       u.user.userType ??
       u.user.accessRole;
     if (nestedRole) return String(nestedRole).toLowerCase();
+  }
+
+  return null;
+};
+
+// try to extract an email from various possible shapes
+const getEmailFromUser = (u) => {
+  if (!u) return null;
+
+  const direct =
+    u.email ??
+    u.user_email ??
+    u.username ??
+    u.userName ??
+    u.login ??
+    u.loginId;
+
+  if (direct) return String(direct);
+
+  if (u.user) {
+    const nested =
+      u.user.email ??
+      u.user.user_email ??
+      u.user.username ??
+      u.user.userName ??
+      u.user.login ??
+      u.user.loginId;
+    if (nested) return String(nested);
   }
 
   return null;
@@ -81,7 +114,16 @@ const AllBoardsView = () => {
     }
   }, []);
 
-  const isAdmin = getRoleFromUser(user) === "admin";
+  const role = getRoleFromUser(user);
+  const email = getEmailFromUser(user);
+
+  // admin if role === "admin" OR email in ADMIN_EMAILS list
+  const isAdmin =
+    (role && role.toLowerCase() === "admin") ||
+    (email &&
+      ADMIN_EMAILS.some(
+        (e) => e.toLowerCase() === String(email).toLowerCase()
+      ));
 
   // -------- Load boards --------
   const fetchBoards = async () => {
@@ -356,7 +398,7 @@ const AllBoardsView = () => {
         <ToastContainer />
         <div className="abv-loading-card">
           <div className="abv-spinner" />
-          <p>Loading boards & teams…</p>
+          <p>Loading boards &amp; teams…</p>
         </div>
       </div>
     );
