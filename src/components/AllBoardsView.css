@@ -322,6 +322,28 @@
   transform: translateY(-1px);
 }
 
+/* Small button (for Remove, etc.) */
+.abv-btn-small {
+  font-size: 0.72rem;
+  padding: 0.25rem 0.55rem;
+  margin-left: 0.4rem;
+}
+
+/* Delete board button (top-right in card) */
+.abv-delete-board-btn {
+  margin-top: 6px;
+  font-size: 0.74rem;
+  padding: 0.25rem 0.8rem;
+  border-color: rgba(239, 68, 68, 0.9);
+  color: #fecaca;
+}
+
+.abv-delete-board-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(248, 113, 113, 1);
+  color: #fee2e2;
+}
+
 /* Empty state */
 .abv-empty-state {
   grid-column: 1 / -1;
@@ -450,6 +472,7 @@
     text-align: left;
   }
 }
+
 /* Drag & drop visual states */
 .abv-row-draggable {
   cursor: grab;
