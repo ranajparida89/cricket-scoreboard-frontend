@@ -1,5 +1,6 @@
 // src/components/AllBoardsView.js
 // 10-AUG-2025 — Board overview + admin actions + Move Team between boards (no data loss)
+// [Updated: role detection + team field normalization]
 
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
@@ -11,6 +12,21 @@ const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
 
 const API_ALL_BOARDS = `${API_BASE}/api/boards/all-boards`;
 const API_MOVE_TEAM = `${API_BASE}/api/boards/move-team`;
+
+// ---- helper to derive role from different shapes of user object ----
+const getRoleFromUser = (u) => {
+  if (!u) return null;
+
+  const possibleRole =
+    u.role ??
+    u.userRole ??
+    u.user_role ??
+    u.type ??
+    u.userType ??
+    u.accessRole;
+
+  return possibleRole ? String(possibleRole).toLowerCase() : null;
+};
 
 const AllBoardsView = () => {
   const [boards, setBoards] = useState([]);
@@ -35,7 +51,7 @@ const AllBoardsView = () => {
     }
   }, []);
 
-  const isAdmin = user?.role === "admin";
+  const isAdmin = getRoleFromUser(user) === "admin";
 
   // -------- Load boards --------
   const fetchBoards = async () => {
@@ -44,22 +60,14 @@ const AllBoardsView = () => {
       setError(null);
 
       const res = await axios.get(API_ALL_BOARDS);
-      // Expecting something like:
-      // [
-      //   {
-      //     id,
-      //     registration_id,
-      //     board_name,
-      //     owner_name,
-      //     owner_email,
-      //     registration_date,
-      //     teams: [
-      //       { id / team_id, team_name, joined_at, left_at }
-      //     ]
-      //   }
-      // ]
-      const data = Array.isArray(res.data?.boards) ? res.data.boards : res.data;
-      setBoards(data || []);
+
+      // backend may return either { boards: [...] } or direct array
+      const rawData = Array.isArray(res.data?.boards) ? res.data.boards : res.data;
+
+      // log once to help debug shape in browser DevTools
+      console.log("ALL BOARDS RAW API:", rawData);
+
+      setBoards(rawData || []);
     } catch (err) {
       console.error("Failed to load boards:", err);
       setError("Failed to load boards. Please try again.");
@@ -84,11 +92,12 @@ const AllBoardsView = () => {
     const today = new Date().toISOString().slice(0, 10);
 
     // Default target board → first board that is not this one
-    const fallbackTarget = boards.find((b) => b.id !== boardId || b.board_id !== boardId);
-    const targetId =
-      fallbackTarget?.id ||
-      fallbackTarget?.board_id ||
-      null;
+    const fallbackTarget = boards.find(
+      (b) => (b.id ?? b.board_id) !== boardId
+    );
+    const targetId = fallbackTarget
+      ? fallbackTarget.id ?? fallbackTarget.board_id
+      : null;
 
     setMovePanel({
       fromBoardId: boardId,
@@ -138,10 +147,9 @@ const AllBoardsView = () => {
         moveDate,
       });
 
-      toast.success(
-        `Team "${teamName}" moved successfully to new board.`,
-        { autoClose: 3500 }
-      );
+      toast.success(`Team "${teamName}" moved successfully to new board.`, {
+        autoClose: 3500,
+      });
 
       setMovePanel(null);
       fetchBoards();
@@ -174,18 +182,56 @@ const AllBoardsView = () => {
     }
   };
 
+  // IMPORTANT: normalize team field names from API → team_name, joined_at, left_at
   const effectiveBoards = useMemo(
     () =>
-      boards.map((b) => ({
-        id: b.id ?? b.board_id,
-        board_id: b.id ?? b.board_id,
-        registration_id: b.registration_id,
-        board_name: b.board_name,
-        owner_name: b.owner_name,
-        owner_email: b.owner_email,
-        registration_date: b.registration_date,
-        teams: Array.isArray(b.teams) ? b.teams : [],
-      })),
+      boards.map((b) => {
+        const rawTeams = Array.isArray(b.teams) ? b.teams : [];
+
+        const normalizedTeams = rawTeams.map((t, idx) => {
+          const teamName =
+            t.team_name ??
+            t.teamName ??
+            t.name ??
+            t.team ??
+            t.team_title ??
+            "";
+
+          const joined =
+            t.joined_at ??
+            t.joinedAt ??
+            t.joined_date ??
+            t.joined ??
+            t.start_date ??
+            null;
+
+          const left =
+            t.left_at ??
+            t.leftAt ??
+            t.left_date ??
+            t.left ??
+            t.end_date ??
+            null;
+
+          return {
+            id: t.team_id ?? t.id ?? `${b.board_id ?? b.id}-${idx}`,
+            team_name: teamName,
+            joined_at: joined,
+            left_at: left,
+          };
+        });
+
+        return {
+          id: b.id ?? b.board_id,
+          board_id: b.id ?? b.board_id,
+          registration_id: b.registration_id,
+          board_name: b.board_name,
+          owner_name: b.owner_name,
+          owner_email: b.owner_email,
+          registration_date: b.registration_date,
+          teams: normalizedTeams,
+        };
+      }),
     [boards]
   );
 
@@ -345,15 +391,10 @@ const AllBoardsView = () => {
           const teams = board.teams || [];
 
           return (
-            <div
-              key={board.board_id}
-              className="abv-board-card"
-            >
+            <div key={board.board_id} className="abv-board-card">
               <div className="abv-board-header">
                 <div>
-                  <h2 className="abv-board-name">
-                    {board.board_name}
-                  </h2>
+                  <h2 className="abv-board-name">{board.board_name}</h2>
                   <div className="abv-board-meta">
                     <span className="abv-badge">
                       Reg ID: {board.registration_id || "—"}
@@ -394,7 +435,7 @@ const AllBoardsView = () => {
                     </thead>
                     <tbody>
                       {teams.map((team, idx) => {
-                        const tid = team.team_id ?? team.id ?? `${board.board_id}-${idx}`;
+                        const tid = team.id ?? `${board.board_id}-${idx}`;
                         const isArchived = !!team.left_at;
 
                         return (
@@ -407,11 +448,12 @@ const AllBoardsView = () => {
                             <td>{idx + 1}</td>
                             <td>{team.team_name}</td>
                             <td>{formatDate(team.joined_at)}</td>
-                            <td>{team.left_at ? formatDate(team.left_at) : "—"}</td>
+                            <td>
+                              {team.left_at ? formatDate(team.left_at) : "—"}
+                            </td>
 
                             {isAdmin && (
                               <td className="abv-actions-cell">
-                                {/* Existing admin actions (edit/delete) can stay here if you had them earlier */}
                                 <button
                                   className="abv-btn abv-btn-move"
                                   type="button"
