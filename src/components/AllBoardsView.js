@@ -1,6 +1,6 @@
 // src/components/AllBoardsView.js
 // 10-AUG-2025 — Board overview + admin actions + Move Team between boards (no data loss)
-// [Updated: role detection + team field normalization]
+// [Updated: role detection + robust team normalization + move-team alignment]
 
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
@@ -17,6 +17,7 @@ const API_MOVE_TEAM = `${API_BASE}/api/boards/move-team`;
 const getRoleFromUser = (u) => {
   if (!u) return null;
 
+  // direct role fields
   const possibleRole =
     u.role ??
     u.userRole ??
@@ -25,7 +26,31 @@ const getRoleFromUser = (u) => {
     u.userType ??
     u.accessRole;
 
-  return possibleRole ? String(possibleRole).toLowerCase() : null;
+  if (possibleRole) return String(possibleRole).toLowerCase();
+
+  // nested "user" object (e.g. { user: { role: 'admin' } })
+  if (u.user) {
+    const nestedRole =
+      u.user.role ??
+      u.user.userRole ??
+      u.user.user_role ??
+      u.user.type ??
+      u.user.userType ??
+      u.user.accessRole;
+    if (nestedRole) return String(nestedRole).toLowerCase();
+  }
+
+  return null;
+};
+
+// ---- helper: safely get the teams array from board ----
+const getTeamsFromBoard = (b) => {
+  if (!b) return [];
+  if (Array.isArray(b.teams)) return b.teams;
+  if (Array.isArray(b.boardTeams)) return b.boardTeams;
+  if (Array.isArray(b.board_teams)) return b.board_teams;
+  if (Array.isArray(b.teams_with_history)) return b.teams_with_history;
+  return [];
 };
 
 const AllBoardsView = () => {
@@ -35,8 +60,8 @@ const AllBoardsView = () => {
   const [error, setError] = useState(null);
 
   // Move-team state
+  // { fromRegId, toRegId, teamName, moveDate }
   const [movePanel, setMovePanel] = useState(null);
-  // { fromBoardId, teamName, toBoardId, moveDate }
 
   // -------- Auth / Role --------
   const user = useMemo(() => {
@@ -45,7 +70,9 @@ const AllBoardsView = () => {
         localStorage.getItem("user") ||
         localStorage.getItem("loggedInUser") ||
         localStorage.getItem("authUser");
-      return raw ? JSON.parse(raw) : null;
+      const parsed = raw ? JSON.parse(raw) : null;
+      console.log("AllBoardsView: user from localStorage =", parsed);
+      return parsed;
     } catch {
       return null;
     }
@@ -62,9 +89,10 @@ const AllBoardsView = () => {
       const res = await axios.get(API_ALL_BOARDS);
 
       // backend may return either { boards: [...] } or direct array
-      const rawData = Array.isArray(res.data?.boards) ? res.data.boards : res.data;
+      const rawData = Array.isArray(res.data?.boards)
+        ? res.data.boards
+        : res.data;
 
-      // log once to help debug shape in browser DevTools
       console.log("ALL BOARDS RAW API:", rawData);
 
       setBoards(rawData || []);
@@ -83,26 +111,27 @@ const AllBoardsView = () => {
 
   // -------- Move team handlers --------
 
-  const openMovePanel = (boardId, teamName) => {
+  // open move panel with board object + team name
+  const openMovePanel = (board, teamName) => {
     if (!isAdmin) {
       toast.info("Only admin users can move teams between boards.");
       return;
     }
+    if (!board) return;
 
+    const fromRegId = board.registration_id;
     const today = new Date().toISOString().slice(0, 10);
 
-    // Default target board → first board that is not this one
+    // Default target board → first board with different registration_id
     const fallbackTarget = boards.find(
-      (b) => (b.id ?? b.board_id) !== boardId
+      (b) => b.registration_id !== fromRegId
     );
-    const targetId = fallbackTarget
-      ? fallbackTarget.id ?? fallbackTarget.board_id
-      : null;
+    const targetRegId = fallbackTarget?.registration_id || "";
 
     setMovePanel({
-      fromBoardId: boardId,
+      fromRegId,
+      toRegId: targetRegId,
       teamName,
-      toBoardId: targetId,
       moveDate: today,
     });
   };
@@ -118,14 +147,14 @@ const AllBoardsView = () => {
   const handleConfirmMove = async () => {
     if (!movePanel) return;
 
-    const { fromBoardId, teamName, toBoardId, moveDate } = movePanel;
+    const { fromRegId, toRegId, teamName, moveDate } = movePanel;
 
-    if (!fromBoardId || !teamName || !toBoardId) {
+    if (!fromRegId || !teamName || !toRegId) {
       toast.warning("Please select a target board.", { autoClose: 3000 });
       return;
     }
 
-    if (Number(fromBoardId) === Number(toBoardId)) {
+    if (fromRegId === toRegId) {
       toast.warning("Target board must be different from current board.", {
         autoClose: 3000,
       });
@@ -140,11 +169,12 @@ const AllBoardsView = () => {
     try {
       setLoadingMove(true);
 
+      // Align with backend /move-team API
       await axios.post(API_MOVE_TEAM, {
-        fromBoardId,
-        toBoardId,
-        teamName,
-        moveDate,
+        team_name: teamName,
+        from_registration_id: fromRegId,
+        to_registration_id: toRegId,
+        effective_date: moveDate,
       });
 
       toast.success(`Team "${teamName}" moved successfully to new board.`, {
@@ -182,11 +212,11 @@ const AllBoardsView = () => {
     }
   };
 
-  // IMPORTANT: normalize team field names from API → team_name, joined_at, left_at
+  // Boards + teams (normalize just the team fields we care about)
   const effectiveBoards = useMemo(
     () =>
       boards.map((b) => {
-        const rawTeams = Array.isArray(b.teams) ? b.teams : [];
+        const rawTeams = getTeamsFromBoard(b);
 
         const normalizedTeams = rawTeams.map((t, idx) => {
           const teamName =
@@ -203,6 +233,7 @@ const AllBoardsView = () => {
             t.joined_date ??
             t.joined ??
             t.start_date ??
+            t.effective_from ??
             null;
 
           const left =
@@ -211,10 +242,11 @@ const AllBoardsView = () => {
             t.left_date ??
             t.left ??
             t.end_date ??
+            t.effective_to ??
             null;
 
           return {
-            id: t.team_id ?? t.id ?? `${b.board_id ?? b.id}-${idx}`,
+            id: t.id ?? t.team_id ?? `${b.id ?? b.board_id}-${idx}`,
             team_name: teamName,
             joined_at: joined,
             left_at: left,
@@ -316,10 +348,12 @@ const AllBoardsView = () => {
                 <div className="abv-move-bold">
                   {
                     effectiveBoards.find(
-                      (b) => Number(b.board_id) === Number(movePanel.fromBoardId)
+                      (b) =>
+                        String(b.registration_id) ===
+                        String(movePanel.fromRegId)
                     )?.board_name
                   }{" "}
-                  (ID: {movePanel.fromBoardId})
+                  (Reg ID: {movePanel.fromRegId})
                 </div>
               </div>
 
@@ -328,19 +362,24 @@ const AllBoardsView = () => {
                 <select
                   id="move-to-board"
                   className="abv-input"
-                  value={movePanel.toBoardId || ""}
+                  value={movePanel.toRegId || ""}
                   onChange={(e) =>
-                    handleMoveFieldChange("toBoardId", Number(e.target.value))
+                    handleMoveFieldChange("toRegId", e.target.value)
                   }
                 >
                   <option value="">-- Select board --</option>
                   {effectiveBoards
                     .filter(
-                      (b) => Number(b.board_id) !== Number(movePanel.fromBoardId)
+                      (b) =>
+                        String(b.registration_id) !==
+                        String(movePanel.fromRegId)
                     )
                     .map((b) => (
-                      <option key={b.board_id} value={b.board_id}>
-                        {b.board_name} (ID: {b.board_id})
+                      <option
+                        key={b.registration_id}
+                        value={b.registration_id}
+                      >
+                        {b.board_name} (Reg ID: {b.registration_id})
                       </option>
                     ))}
                 </select>
@@ -358,9 +397,9 @@ const AllBoardsView = () => {
                   }
                 />
                 <small className="abv-hint">
-                  Old board membership will be closed on this date, and new board
-                  membership will start from this date. All historical matches
-                  before this date stay with the old board.
+                  Old board membership will be closed on this date, and new
+                  board membership will start from this date. All historical
+                  matches before this date stay with the old board.
                 </small>
               </div>
             </div>
@@ -458,7 +497,7 @@ const AllBoardsView = () => {
                                   className="abv-btn abv-btn-move"
                                   type="button"
                                   onClick={() =>
-                                    openMovePanel(board.board_id, team.team_name)
+                                    openMovePanel(board, team.team_name)
                                   }
                                 >
                                   Move
