@@ -214,6 +214,12 @@
   text-align: center;
 }
 
+/* Give Actions column breathing space (only when it exists) */
+.abv-team-table thead th:last-child,
+.abv-team-table tbody td:last-child {
+  min-width: 165px;
+}
+
 .abv-team-table tbody tr {
   background: rgba(15, 23, 42, 0.96);
   border-bottom: 1px solid rgba(15, 23, 42, 0.95);
@@ -260,8 +266,11 @@
 
 /* Actions cell */
 .abv-actions-cell {
-  text-align: right;
-  white-space: nowrap;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: normal; /* allow wrap instead of clipping */
 }
 
 /* Buttons (generic) */
@@ -325,8 +334,7 @@
 /* Small button (for Remove, etc.) */
 .abv-btn-small {
   font-size: 0.72rem;
-  padding: 0.25rem 0.55rem;
-  margin-left: 0.4rem;
+  padding: 0.25rem 0.7rem;
 }
 
 /* Delete board button (top-right in card) */
