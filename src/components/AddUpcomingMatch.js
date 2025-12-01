@@ -102,10 +102,7 @@ export default function AddUpcomingMatch({ isAdmin: isAdminProp = true }) {
         // normalise / derive remaining ms
         let ms = 0;
         if (t.status === "running") {
-          ms = Math.max(
-            new Date(t.end_at).getTime() - Date.now(),
-            0
-          );
+          ms = Math.max(new Date(t.end_at).getTime() - Date.now(), 0);
         } else if (t.status === "paused") {
           ms = Number(t.remaining_ms || 0);
         }
@@ -143,10 +140,10 @@ export default function AddUpcomingMatch({ isAdmin: isAdminProp = true }) {
 
   const tourCountdownParts = msToParts(timeLeftMs);
   const isUrgent =
-  tournament &&
-  tournament.status !== "completed" &&
-  tourCountdownParts.days <= 2 &&
-  timeLeftMs > 0;
+    tournament &&
+    tournament.status !== "completed" &&
+    tourCountdownParts.days <= 2 &&
+    timeLeftMs > 0;
 
   // shared toast for both panels
   const [toast, setToast] = useState("");
@@ -242,6 +239,29 @@ export default function AddUpcomingMatch({ isAdmin: isAdminProp = true }) {
     }
   };
 
+  const handleDeleteTournament = async () => {
+    if (!isAdmin || !tournament) return;
+    try {
+      setTourSubmitting(true);
+      await axios.post(`${API_BASE}/api/tournament/delete`, {
+        id: tournament.id,
+      });
+      setTournament(null);
+      setTimeLeftMs(0);
+      setTourForm({ name: "", startDate: "", durationDays: "" });
+      setTourEndDate("");
+      showToast("Tournament deleted 🗑️");
+    } catch (err) {
+      const msg =
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to delete tournament.";
+      showToast(msg, 3400);
+    } finally {
+      setTourSubmitting(false);
+    }
+  };
+
   const renderTimerBox = () => {
     if (!tournament) {
       return (
@@ -273,11 +293,7 @@ export default function AddUpcomingMatch({ isAdmin: isAdminProp = true }) {
     return (
       <div className="aum-ongoing-timer-box">
         <div className="aum-ongoing-timer-label">Countdown</div>
-        <div
-          className={
-            "aum-ongoing-timer " + (isUrgent ? "red" : "green")
-          }
-        >
+        <div className={"aum-ongoing-timer " + (isUrgent ? "red" : "green")}>
           {days} Days {pad2(hours)} hr : {pad2(minutes)} min :{" "}
           {pad2(seconds)} sec
         </div>
@@ -339,9 +355,7 @@ export default function AddUpcomingMatch({ isAdmin: isAdminProp = true }) {
       !form.match_date ||
       !form.match_time
     ) {
-      showToast(
-        "Please fill Match Name, Team 1, Team 2, Date and Time."
-      );
+      showToast("Please fill Match Name, Team 1, Team 2, Date and Time.");
       return;
     }
 
@@ -407,7 +421,7 @@ export default function AddUpcomingMatch({ isAdmin: isAdminProp = true }) {
             <h3 className="aum-ongoing-title">🏆 Ongoing Tournament</h3>
             <p className="aum-ongoing-sub">
               {isAdmin
-                ? "Admins can start, pause or resume the tournament timer."
+                ? "Admins can start, pause, resume or delete the tournament timer."
                 : "View live tournament timer here."}
             </p>
           </div>
@@ -463,9 +477,7 @@ export default function AddUpcomingMatch({ isAdmin: isAdminProp = true }) {
                       className="aum-input"
                       value={
                         tourEndDate
-                          ? new Date(tourEndDate).toLocaleDateString(
-                              "en-GB"
-                            )
+                          ? new Date(tourEndDate).toLocaleDateString("en-GB")
                           : ""
                       }
                       placeholder="Auto from Start + Duration"
@@ -476,47 +488,49 @@ export default function AddUpcomingMatch({ isAdmin: isAdminProp = true }) {
                 </div>
 
                 <div className="aum-ongoing-actions">
-                  {(!tournament ||
-                    tournament.status === "completed") && (
+                  {(!tournament || tournament.status === "completed") && (
                     <button
                       type="button"
                       className="aum-ongoing-btn"
                       onClick={handleStartTournament}
                       disabled={tourSubmitting}
                     >
-                      {tourSubmitting
-                        ? "Starting..."
-                        : "Start Tournament"}
+                      {tourSubmitting ? "Starting..." : "Start Tournament"}
                     </button>
                   )}
 
-                  {tournament &&
-                    tournament.status === "running" && (
-                      <button
-                        type="button"
-                        className="aum-ongoing-btn secondary"
-                        onClick={handlePauseTournament}
-                        disabled={tourSubmitting}
-                      >
-                        {tourSubmitting
-                          ? "Pausing..."
-                          : "Pause Tournament"}
-                      </button>
-                    )}
+                  {tournament && tournament.status === "running" && (
+                    <button
+                      type="button"
+                      className="aum-ongoing-btn secondary"
+                      onClick={handlePauseTournament}
+                      disabled={tourSubmitting}
+                    >
+                      {tourSubmitting ? "Pausing..." : "Pause Tournament"}
+                    </button>
+                  )}
 
-                  {tournament &&
-                    tournament.status === "paused" && (
-                      <button
-                        type="button"
-                        className="aum-ongoing-btn"
-                        onClick={handleResumeTournament}
-                        disabled={tourSubmitting}
-                      >
-                        {tourSubmitting
-                          ? "Resuming..."
-                          : "Resume Tournament"}
-                      </button>
-                    )}
+                  {tournament && tournament.status === "paused" && (
+                    <button
+                      type="button"
+                      className="aum-ongoing-btn"
+                      onClick={handleResumeTournament}
+                      disabled={tourSubmitting}
+                    >
+                      {tourSubmitting ? "Resuming..." : "Resume Tournament"}
+                    </button>
+                  )}
+
+                  {tournament && (
+                    <button
+                      type="button"
+                      className="aum-ongoing-btn danger"
+                      onClick={handleDeleteTournament}
+                      disabled={tourSubmitting}
+                    >
+                      {tourSubmitting ? "Deleting..." : "Delete Tournament"}
+                    </button>
+                  )}
                 </div>
               </div>
 
