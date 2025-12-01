@@ -203,3 +203,133 @@ input[type="time"].aum-input::-webkit-calendar-picker-indicator{
   color:#fff !important;
   border-color:#2e2e34 !important;
 }
+/* ---------- Ongoing Tournament panel ---------- */
+
+.aum-ongoing {
+  margin-bottom: 24px;
+}
+
+.aum-ongoing-card {
+  background: #11141a;
+  border-radius: 16px;
+  padding: 14px 16px 16px;
+  border: 1px solid rgba(36, 224, 126, 0.45);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.65);
+}
+
+.aum-ongoing-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.aum-ongoing-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.aum-ongoing-sub {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.aum-ongoing-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .aum-ongoing-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.aum-ongoing-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.aum-ongoing-form-row .aum-field {
+  margin-bottom: 6px;
+}
+
+.aum-ongoing-timer-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #050809;
+  border: 1px solid rgba(36, 224, 126, 0.4);
+  min-height: 88px;
+}
+
+.aum-ongoing-timer-label {
+  font-size: 0.82rem;
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+
+.aum-ongoing-timer {
+  font-family: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #02140b;
+  border: 1px solid rgba(36, 224, 126, 0.8);
+}
+
+.aum-ongoing-timer.green {
+  color: #3cff9a;
+}
+
+.aum-ongoing-timer.red {
+  color: #ff5757;
+  background: #220307;
+  border-color: #ff5757;
+}
+
+.aum-ongoing-status {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.aum-ongoing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+button.aum-ongoing-btn {
+  padding: 8px 14px;
+  border-radius: 9px;
+  border: none;
+  background: linear-gradient(90deg, #22c1c3 0%, #24e07e 100%);
+  color: #121212;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.9rem;
+  letter-spacing: 0.3px;
+}
+
+button.aum-ongoing-btn.secondary {
+  background: #23272f;
+  color: #eaf6ff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+button.aum-ongoing-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}

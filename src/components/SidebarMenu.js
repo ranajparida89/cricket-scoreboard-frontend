@@ -2,6 +2,7 @@
 // ✅ [01-JUL-2025 Ranaj Parida | Admin-only "Manage Admins" menu item]
 // ✅ [04-NOV-2025 Ranaj Parida | Added "Man of the Match Insights" module + Squad/Lineup restored safely]
 // ✅ [27-NOV-2025 Ranaj Parida | Added "Crickedge Player Report Card" module]
+// ✅ [30-NOV-2025 Ranaj Parida | Add Upcoming Match visible for Admin only]
 
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -119,11 +120,13 @@ const SidebarMenu = () => {
         </li>
 
         {/* 🧮 Upcoming Matches */}
-        <li>
-          <Link to="/add-upcoming-match" onClick={handleClose}>
-            <FaPlus className="me-2" /> Add Upcoming Match
-          </Link>
-        </li>
+        {isAdmin && (
+          <li>
+            <Link to="/add-upcoming-match" onClick={handleClose}>
+              <FaPlus className="me-2" /> Add Upcoming Match
+            </Link>
+          </li>
+        )}
         <li>
           <Link to="/upcoming-matches" onClick={handleClose}>
             <FaChartLine className="me-2" /> Upcoming Match Details
