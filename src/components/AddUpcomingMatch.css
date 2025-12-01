@@ -127,7 +127,7 @@ input[type="time"].aum-input::-webkit-calendar-picker-indicator{
   box-shadow: 0 2px 8px #181c2440; letter-spacing:.5px;
   transition: filter .18s, transform .06s, background .22s;
 }
-.aum-btn:hover{ background: linear-gradient(90deg, #24e07e 0%, #22c1c3 100%) }
+.aum-btn:hover{ background: linear-gradient(90deg, #24e07e 0%, #22c1c3 100%); transform: translateY(-1px); }
 .aum-btn.ghost{ background: transparent; color:#eaf6ff; border:1px solid rgba(255,255,255,.2); }
 .aum-btn.loading{ opacity:.85; pointer-events:none; position:relative; }
 .aum-btn.loading::after{
@@ -203,18 +203,40 @@ input[type="time"].aum-input::-webkit-calendar-picker-indicator{
   color:#fff !important;
   border-color:#2e2e34 !important;
 }
-/* ---------- Ongoing Tournament panel ---------- */
+
+/* ===============================================================
+   Ongoing Tournament panel – enhanced neon / glass look
+   =============================================================== */
 
 .aum-ongoing {
   margin-bottom: 24px;
 }
 
+/* glassy card with subtle colour wash */
 .aum-ongoing-card {
-  background: #11141a;
-  border-radius: 16px;
-  padding: 14px 16px 16px;
-  border: 1px solid rgba(36, 224, 126, 0.45);
-  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.65);
+  position: relative;
+  padding: 16px 18px 18px;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(79,209,197,.16), transparent 55%),
+    radial-gradient(circle at bottom right, rgba(36,224,126,.18), transparent 55%),
+    #0b1016;
+  border: 1px solid rgba(36, 224, 126, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(10, 18, 26, 0.8) inset,
+    0 12px 28px rgba(0, 0, 0, 0.7);
+}
+
+/* faint glow frame */
+.aum-ongoing-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(120deg, rgba(36,224,126,.28), rgba(137,196,244,.12), rgba(36,224,126,.24));
+  opacity: .22;
+  z-index: -1;
 }
 
 .aum-ongoing-header {
@@ -222,31 +244,61 @@ input[type="time"].aum-input::-webkit-calendar-picker-indicator{
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .aum-ongoing-title {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: 0.3px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.35px;
+  color: #f9f9ff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.aum-ongoing-title::after {
+  content: "LIVE TIMER";
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(10, 255, 185, 0.16);
+  border: 1px solid rgba(36, 224, 126, 0.7);
+  color: #9fffd0;
 }
 
 .aum-ongoing-sub {
   margin: 0;
   font-size: 0.8rem;
-  opacity: 0.75;
+  opacity: 0.8;
+  color: #a7c9ff;
+  text-align: right;
 }
 
+/* layout: left form, right timer */
 .aum-ongoing-grid {
   display: grid;
-  grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
-  gap: 12px;
+  grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.3fr);
+  gap: 14px;
 }
 
 @media (max-width: 768px) {
   .aum-ongoing-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* subtle vertical divider between form & timer on wide screens */
+@media (min-width: 769px) {
+  .aum-ongoing-grid > :first-child {
+    border-right: 1px solid rgba(255,255,255,.08);
+    padding-right: 10px;
+  }
+  .aum-ongoing-grid > :last-child {
+    padding-left: 4px;
   }
 }
 
@@ -260,76 +312,130 @@ input[type="time"].aum-input::-webkit-calendar-picker-indicator{
   margin-bottom: 6px;
 }
 
+/* timer box */
 .aum-ongoing-timer-box {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: #050809;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at top, rgba(0,0,0,.7), rgba(0,0,0,1)),
+    #050809;
   border: 1px solid rgba(36, 224, 126, 0.4);
-  min-height: 88px;
+  min-height: 96px;
+  box-shadow: 0 0 16px rgba(0,0,0,.9);
 }
 
 .aum-ongoing-timer-label {
   font-size: 0.82rem;
   opacity: 0.7;
   margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .aum-ongoing-timer {
   font-family: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
-  font-size: 1rem;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  padding: 6px 10px;
+  border-radius: 10px;
   background: #02140b;
-  border: 1px solid rgba(36, 224, 126, 0.8);
+  border: 1px solid rgba(36, 224, 126, 0.9);
+  letter-spacing: 0.04em;
+  min-width: 100%;
+  text-align: center;
 }
 
+/* green (safe) state */
 .aum-ongoing-timer.green {
-  color: #3cff9a;
+  color: #66ffb5;
+  text-shadow: 0 0 6px rgba(12, 255, 171, 0.8);
+  box-shadow: 0 0 0 1px rgba(12, 255, 171, 0.3),
+              0 0 18px rgba(12, 255, 171, 0.25);
 }
 
+/* red (urgent / finished) state */
 .aum-ongoing-timer.red {
-  color: #ff5757;
-  background: #220307;
+  color: #ff8b8b;
+  background: radial-gradient(circle at top, #3b0505, #1a0204);
   border-color: #ff5757;
+  text-shadow: 0 0 7px rgba(255, 70, 70, 0.9);
+  box-shadow: 0 0 0 1px rgba(255, 70, 70, 0.32),
+              0 0 18px rgba(255, 50, 50, 0.3);
 }
 
 .aum-ongoing-status {
-  margin-top: 6px;
-  font-size: 0.85rem;
-  opacity: 0.85;
+  margin-top: 7px;
+  font-size: 0.86rem;
+  opacity: 0.9;
+  color: #eaf6ff;
 }
 
+/* small coloured dot before status text */
+.aum-ongoing-status::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #24e07e;
+  box-shadow: 0 0 6px rgba(36,224,126,.9);
+}
+.aum-ongoing-timer.red + .aum-ongoing-status::before {
+  background: #ff5757;
+  box-shadow: 0 0 6px rgba(255,87,87,.9);
+}
+
+/* buttons row */
 .aum-ongoing-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 button.aum-ongoing-btn {
-  padding: 8px 14px;
-  border-radius: 9px;
+  padding: 8px 16px;
+  border-radius: 999px;
   border: none;
-  background: linear-gradient(90deg, #22c1c3 0%, #24e07e 100%);
+  background: linear-gradient(120deg, #22c1c3 0%, #24e07e 100%);
   color: #121212;
   font-weight: 700;
   cursor: pointer;
   font-size: 0.9rem;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.35px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.65);
+  transition: transform .08s ease, box-shadow .12s ease, filter .15s ease, background .2s ease;
+}
+
+button.aum-ongoing-btn:hover:not(:disabled){
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 9px 20px rgba(0,0,0,.8);
 }
 
 button.aum-ongoing-btn.secondary {
-  background: #23272f;
+  background: radial-gradient(circle at top, #343b46, #20242c);
   color: #eaf6ff;
   border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* danger style for Delete Tournament */
+button.aum-ongoing-btn.danger {
+  background: linear-gradient(120deg, #ff4b4b 0%, #ff8a3d 100%);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(255, 77, 77, 0.65);
+}
+button.aum-ongoing-btn.danger:hover:not(:disabled){
+  filter: brightness(1.08);
 }
 
 button.aum-ongoing-btn:disabled {
   opacity: 0.7;
   cursor: default;
+  box-shadow: 0 3px 8px rgba(0,0,0,.5);
 }
