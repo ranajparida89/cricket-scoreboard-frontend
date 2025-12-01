@@ -8,6 +8,7 @@ import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { playSound } from "../utils/playSound";
 import "../styles/theme.css";
+import TournamentTicker from "./TournamentTicker";
 
 const AppNavbar = ({ onAuthClick }) => {
   const [loggedInUser, setLoggedInUser] = useState(null);
@@ -287,6 +288,11 @@ const AppNavbar = ({ onAuthClick }) => {
               🔐 Sign In / Create User
             </Button>
           )}
+
+          {/* ----- Tournament countdown ticker (visible for all users) ----- */}
+          <div className="ms-lg-3 mt-2 mt-lg-0 d-flex align-items-center">
+            <TournamentTicker />
+          </div>
 
           {/* ----- Actions ----- */}
           <div
