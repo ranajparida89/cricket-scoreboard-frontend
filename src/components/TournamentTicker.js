@@ -76,7 +76,7 @@ const TournamentTicker = () => {
   }
 
   const parts = msToParts(remainingMs);
-  const isUrgent = parts.days === 0;
+  const isUrgent = parts.days <= 2;
   const timerClass = "tt-timer " + (isUrgent ? "red" : "green");
 
   const label =

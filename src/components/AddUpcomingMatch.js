@@ -142,7 +142,11 @@ export default function AddUpcomingMatch({ isAdmin: isAdminProp = true }) {
   }, [tournament?.status, timeLeftMs]);
 
   const tourCountdownParts = msToParts(timeLeftMs);
-  const isUrgent = tournament && tournament.status !== "completed" && tourCountdownParts.days === 0 && timeLeftMs > 0;
+  const isUrgent =
+  tournament &&
+  tournament.status !== "completed" &&
+  tourCountdownParts.days <= 2 &&
+  timeLeftMs > 0;
 
   // shared toast for both panels
   const [toast, setToast] = useState("");

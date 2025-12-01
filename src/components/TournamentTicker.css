@@ -1,34 +1,36 @@
-/* ✅ Small pill bar that sits in top header */
+/* ✅ Bigger, more visible tournament ticker pill */
 
 .tt-bar {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 10px;
+  gap: 10px;
+  padding: 6px 16px;
   border-radius: 999px;
-  background: rgba(3, 34, 63, 0.88);
-  border: 1px solid rgba(36, 224, 126, 0.55);
-  font-size: 0.78rem;
+  background: rgba(3, 34, 63, 0.92);
+  border: 1px solid rgba(36, 224, 126, 0.7);
+  font-size: 0.9rem;       /* bigger text */
   color: #eaf6ff;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 0 14px rgba(0, 0, 0, 0.6);
   white-space: nowrap;
 }
 
 .tt-label {
-  opacity: 0.85;
+  opacity: 0.9;
+  font-weight: 500;
 }
 
 .tt-name {
   font-weight: 700;
-  max-width: 220px;
+  max-width: 260px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .tt-timer {
   font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 1.05rem;      /* bigger timer digits */
   font-weight: 700;
-  padding: 2px 8px;
+  padding: 4px 10px;
   border-radius: 999px;
   border: 1px solid transparent;
   margin-left: 4px;
@@ -37,23 +39,30 @@
 .tt-timer.green {
   color: #3cff9a;
   background: #02140b;
-  border-color: rgba(36, 224, 126, 0.8);
+  border-color: rgba(36, 224, 126, 0.9);
 }
 
 .tt-timer.red {
   color: #ff7474;
   background: #220307;
   border-color: #ff7474;
+  box-shadow: 0 0 12px rgba(255, 116, 116, 0.55);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .tt-bar {
     max-width: 100%;
     white-space: normal;
-    border-radius: 12px;
+    border-radius: 14px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
   }
 
   .tt-name {
-    max-width: 140px;
+    max-width: 180px;
+  }
+
+  .tt-timer {
+    font-size: 0.95rem;
   }
 }
