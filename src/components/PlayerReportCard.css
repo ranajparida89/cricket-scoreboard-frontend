@@ -887,149 +887,94 @@
   opacity: 0.95;
   text-shadow: 0 0 1px rgba(0,0,0,0.18);
 }
-/* ======== Strong visibility overrides - paste at EOF of PlayerReportCard.css ======== */
+/* ======= Guaranteed contrast for #1 highlighted row (paste at EOF) ======= */
 
-/* Remove any heavy overlay on list cards that causes washed-out text */
-.prc-list-panel,
-.prc-row-card {
-  background-blend-mode: normal !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-}
+/* Default fallback for any highlight: dark text on light highlight, light text on dark highlight.
+   We assume many highlights are either "light/golden" or "dark/colored". We'll cover both. */
 
-/* Make card inner area solid-ish to improve text contrast (keeps visual style) */
-.prc-row-card {
-  background-color: rgba(255,255,255,0.96) !important;
-  border: 1px solid rgba(15,23,42,0.85) !important;
-}
-
-/* Ensure primary + secondary text is always using the section variables unless explicitly overridden */
-.prc-row-primary { color: var(--prc-card-text) !important; }
-.prc-row-secondary { color: var(--prc-card-secondary) !important; }
-
-/* Tiny readability helpers for small/secondary text */
-.prc-row-card .prc-row-secondary,
-.prc-runs-vs,
-.prc-row-card .prc-row-primary {
-  text-shadow: 0 1px 0 rgba(0,0,0,0.28) !important;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* Make the value container always clearly visible */
-.prc-row-value {
-  box-shadow: 0 4px 10px rgba(0,0,0,0.45);
-  color: var(--prc-value-text) !important;
-}
-
-/* ---------- Section-specific distinct high-contrast rules ---------- */
-
-/* HIGHEST SCORE: white cards with deep-navy primary text */
-.prc-section--highest-score .prc-row-card,
-.prc-section--highest-score .prc-row-card .prc-row-main {
-  background: #ffffff !important;
-  color: #0b1320 !important;
-}
-.prc-section--highest-score .prc-row-primary { color: #0b1320 !important; }
-.prc-section--highest-score .prc-row-secondary,
-.prc-section--highest-score .prc-runs-vs { color: #7b8086 !important; }
-
-/* BATTING AVERAGE: gold / cream hero — ensure dark text on cream */
-.prc-section--batting-average .prc-row-card,
-.prc-section--batting-average .prc-row-main {
-  background: #fefce8 !important;
-  color: #1f2933 !important;
-}
-.prc-section--batting-average .prc-row-primary { color: #1f2933 !important; }
-.prc-section--batting-average .prc-row-secondary { color: #6b4f2a !important; }
-
-/* MOST FIFTIES: white cards with deep-cyan primary */
-.prc-section--fifties .prc-row-card,
-.prc-section--fifties .prc-row-main {
-  background: #ffffff !important;
-  color: #083344 !important;
-}
-.prc-section--fifties .prc-row-primary { color: #083344 !important; }
-.prc-section--fifties .prc-row-secondary,
-.prc-section--fifties .prc-runs-vs { color: #6b7280 !important; }
-
-/* MOST HUNDREDS: cream cards with warm dark-brown primary */
-.prc-section--hundreds .prc-row-card,
-.prc-section--hundreds .prc-row-main {
-  background: #fefce8 !important;
-  color: #3b2416 !important;
-}
-.prc-section--hundreds .prc-row-primary { color: #3b2416 !important; }
-.prc-section--hundreds .prc-row-secondary { color: #6b6b6b !important; }
-
-/* ---------- Highlighted (#1) row rules - guarantee contrast on gradients ---------- */
-/* Generic: when prc-row-card--highlight is used, always force readable text */
-.prc-row-card--highlight {
-  /* keep the visual highlight gradient but ensure text is readable */
+/* 1) Sections with LIGHT highlight (cream / pale gold) -> force dark primary text */
+.prc-section--highest-score .prc-row-card--highlight,
+.prc-section--fifties .prc-row-card--highlight,
+.prc-section--hundreds .prc-row-card--highlight,
+.prc-section--batting-average .prc-row-card--highlight {
+  /* keep background as designed but ensure text is dark */
   color: #111827 !important;
-  box-shadow: 0 20px 46px rgba(0,0,0,0.6) !important;
 }
-.prc-row-card--highlight .prc-row-primary,
-.prc-row-card--highlight .prc-runs-name {
-  color: #111827 !important;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.25) !important;
-}
-
-/* If the highlight is a pale/golden strip (most fifties / highest score),
-   use a warm dark primary so it stands out */
+.prc-section--highest-score .prc-row-card--highlight .prc-row-primary,
 .prc-section--fifties .prc-row-card--highlight .prc-row-primary,
-.prc-section--highest-score .prc-row-card--highlight .prc-row-primary {
-  color: #78350f !important;
+.prc-section--hundreds .prc-row-card--highlight .prc-row-primary,
+.prc-section--batting-average .prc-row-card--highlight .prc-row-primary {
+  color: #111827 !important;   /* strong dark text */
   text-shadow: 0 1px 0 rgba(255,255,255,0.6) !important;
 }
-
-/* Fastest Fifty: teal highlight — use dark text for contrast */
-.prc-section--fast50 .prc-row-card--highlight {
-  background: linear-gradient(90deg, #0f766e, #14b8a6) !important;
-  color: #ecfeff !important;
-}
-.prc-section--fast50 .prc-row-card--highlight .prc-row-primary {
-  color: #ecfeff !important;
-  text-shadow: 0 1px 0 rgba(0,0,0,0.35) !important;
+.prc-section--highest-score .prc-row-card--highlight .prc-row-secondary,
+.prc-section--fifties .prc-row-card--highlight .prc-row-secondary,
+.prc-section--hundreds .prc-row-card--highlight .prc-row-secondary,
+.prc-section--batting-average .prc-row-card--highlight .prc-row-secondary {
+  color: rgba(17,24,39,0.65) !important;
 }
 
-/* Fastest Hundred: ensure orange highlight uses pale text */
-.prc-section--fast100 .prc-row-card--highlight {
-  background: linear-gradient(90deg, #7c2d12, #f97316) !important;
-  color: #fff7ed !important;
+/* 2) Sections with DARK / COLOR highlight -> force light primary text */
+.prc-section--bowling-average .prc-row-card--highlight,
+.prc-section--most-wickets .prc-row-card--highlight,
+.prc-section--fast50 .prc-row-card--highlight,
+.prc-section--fast100 .prc-row-card--highlight,
+.prc-section--strike-rate .prc-row-card--highlight,
+.prc-section--best-figures .prc-row-card--highlight,
+.prc-section--ducks .prc-row-card--highlight,
+.prc-section--double-tons .prc-row-card--highlight {
+  color: #f8fafc !important; /* pale/white for dark backgrounds */
 }
-.prc-section--fast100 .prc-row-card--highlight .prc-row-primary {
-  color: #fff7ed !important;
+.prc-section--bowling-average .prc-row-card--highlight .prc-row-primary,
+.prc-section--most-wickets .prc-row-card--highlight .prc-row-primary,
+.prc-section--fast50 .prc-row-card--highlight .prc-row-primary,
+.prc-section--fast100 .prc-row-card--highlight .prc-row-primary,
+.prc-section--strike-rate .prc-row-card--highlight .prc-row-primary,
+.prc-section--best-figures .prc-row-card--highlight .prc-row-primary,
+.prc-section--ducks .prc-row-card--highlight .prc-row-primary,
+.prc-section--double-tons .prc-row-card--highlight .prc-row-primary {
+  color: #f8fafc !important;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.45) !important;
+}
+.prc-section--bowling-average .prc-row-card--highlight .prc-row-secondary,
+.prc-section--most-wickets .prc-row-card--highlight .prc-row-secondary,
+.prc-section--fast50 .prc-row-card--highlight .prc-row-secondary,
+.prc-section--fast100 .prc-row-card--highlight .prc-row-secondary,
+.prc-section--strike-rate .prc-row-card--highlight .prc-row-secondary,
+.prc-section--best-figures .prc-row-card--highlight .prc-row-secondary,
+.prc-section--ducks .prc-row-card--highlight .prc-row-secondary,
+.prc-section--double-tons .prc-row-card--highlight .prc-row-secondary {
+  color: rgba(248,250,252,0.85) !important;
 }
 
-/* Strike Rate: neon green highlight - force very legible contrast */
-.prc-section--strike-rate .prc-row-card--highlight {
-  background: linear-gradient(90deg, #166534, #22c55e) !important;
-  color: #ecfdf3 !important;
-}
-.prc-section--strike-rate .prc-row-card--highlight .prc-row-primary {
-  color: #ecfdf3 !important;
+/* 3) Ensure numeric value badge contrasts the highlight */
+.prc-row-card--highlight .prc-row-value {
+  background: rgba(0,0,0,0.12) !important; /* soft fallback */
+  color: #ffffff !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45) !important;
 }
 
-/* ---------- Defensive rules to prevent other styles from washing text out ---------- */
-/* If a gradient overlay is applied inside .prc-row-card, ensure text sits above it */
-.prc-row-card::before,
-.prc-row-card::after {
+/* If the highlight is pale and you want a colored accent for the #1 text (e.g. blue/dark-blue),
+   set per-section accent color — you can change these hex values to taste. */
+.prc-section--highest-score .prc-row-card--highlight .prc-row-primary { color: #0b4db8 !important; } /* deep blue */
+.prc-section--fifties .prc-row-card--highlight .prc-row-primary { color: #0b4db8 !important; }       /* deep blue */
+.prc-section--hundreds .prc-row-card--highlight .prc-row-primary { color: #7a3d0a !important; }    /* warm brown */
+
+/* 4) Defensive: remove overlays that may wash text */
+.prc-row-card--highlight::before,
+.prc-row-card--highlight::after {
   opacity: 0 !important;
   pointer-events: none !important;
 }
 
-/* Ensure small numeric badges remain crisp */
-.prc-row-value { 
-  border-radius: 10px !important;
-  font-weight: 900 !important;
-  letter-spacing: 0.02em !important;
+/* 5) Final fail-safe: if any highlighted element still visually matches background,
+   invert color of primary text once (this is aggressive — use only if needed). */
+.prc-row-card--highlight[data-contrast="invert"] .prc-row-primary {
+  color: invert(#ffffff) !important; /* for legacy support; better to set explicit color above */
 }
 
-/* Final fallback: if any piece of text still looks faint, make it fully opaque */
-.prc-row-card * {
-  opacity: 1 !important;
-  filter: none !important;
-}
+/* Utility: if you ever want to toggle a specific card to the alternate contrast manually,
+   add attribute data-contrast="invert" to the .prc-row-card--highlight element via JS. */
 
-/* End visibility overrides */
+/* End of #1 contrast rules */
 
