@@ -305,6 +305,22 @@ const PlayerReportCard = () => {
     return Number(n).toLocaleString("en-IN");
   };
 
+  const formatPrimary = (row) => {
+    if (!row) return "";
+    if (row.teamName) {
+      return `${row.playerName} (${row.teamName})`;
+    }
+    return row.playerName;
+  };
+
+  const formatVs = (row) => {
+    if (!row) return "";
+    if (row.opponentTeam) {
+      return `vs ${row.opponentTeam}`;
+    }
+    return "";
+  };
+
   // Individual tab UI (hero title + list)
 
   const HighestScoreTab = () => (
@@ -324,8 +340,12 @@ const PlayerReportCard = () => {
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
-                primary={row.playerName}
-                secondary="INDIVIDUAL ODI INNINGS"
+                primary={formatPrimary(row)}
+                secondary={
+                  formatVs(row)
+                    ? `${formatVs(row)} · INDIVIDUAL ODI INNINGS`
+                    : "INDIVIDUAL ODI INNINGS"
+                }
                 value={`${row.score}${row.notOut ? "*" : ""}`}
                 highlight={row.rank === 1}
               />
@@ -368,8 +388,12 @@ const PlayerReportCard = () => {
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
-                primary={row.playerName}
-                secondary={`${row.totalWickets} wkts`}
+                primary={formatPrimary(row)}
+                secondary={
+                  formatVs(row)
+                    ? `${formatVs(row)} · ${row.totalWickets} wkts`
+                    : `${row.totalWickets} wkts`
+                }
                 value={
                   row.bowlingAvg != null
                     ? Number(row.bowlingAvg).toFixed(2)
@@ -417,8 +441,12 @@ const PlayerReportCard = () => {
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
-                primary={row.playerName}
-                secondary="TOTAL WICKETS"
+                primary={formatPrimary(row)}
+                secondary={
+                  formatVs(row)
+                    ? `${formatVs(row)} · TOTAL WICKETS`
+                    : "TOTAL WICKETS"
+                }
                 value={row.totalWickets}
                 highlight={row.rank === 1}
               />
@@ -463,8 +491,12 @@ const PlayerReportCard = () => {
                 <StatRowCard
                   key={row.rank}
                   rank={row.rank}
-                  primary={row.playerName}
-                  secondary={`${row.totalRuns} runs · ${row.innings} inns`}
+                  primary={formatPrimary(row)}
+                  secondary={
+                    formatVs(row)
+                      ? `${formatVs(row)} · ${row.totalRuns} runs · ${row.innings} inns`
+                      : `${row.totalRuns} runs · ${row.innings} inns`
+                  }
                   value={
                     row.battingAvg != null
                       ? Number(row.battingAvg).toFixed(2)
@@ -497,12 +529,21 @@ const PlayerReportCard = () => {
               const rowClass = isTop
                 ? "prc-runs-row prc-runs-row--highlight"
                 : "prc-runs-row";
+              const nameLine = formatPrimary(row);
+              const vsLine = formatVs(row);
               return (
                 <div key={row.rank} className={rowClass}>
                   <div className="prc-runs-rank">{row.rank}</div>
-                  <div className="prc-runs-name">
-                    {row.playerName}
-                    {isTop && <span className="prc-runs-crown">👑</span>}
+                  <div className="prc-runs-name-block">
+                    <div className="prc-runs-name">
+                      {nameLine}
+                      {isTop && <span className="prc-runs-crown">👑</span>}
+                    </div>
+                    {vsLine && (
+                      <div className="prc-runs-vs">
+                        {vsLine}
+                      </div>
+                    )}
                   </div>
                   <div className="prc-runs-value">
                     {Number(row.totalRuns).toLocaleString("en-IN")}
@@ -532,8 +573,12 @@ const PlayerReportCard = () => {
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
-                primary={row.playerName}
-                secondary="TOTAL FIFTIES"
+                primary={formatPrimary(row)}
+                secondary={
+                  formatVs(row)
+                    ? `${formatVs(row)} · TOTAL FIFTIES`
+                    : "TOTAL FIFTIES"
+                }
                 value={row.totalFifties}
                 highlight={row.rank === 1}
               />
@@ -560,8 +605,12 @@ const PlayerReportCard = () => {
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
-                primary={row.playerName}
-                secondary="TOTAL HUNDREDS"
+                primary={formatPrimary(row)}
+                secondary={
+                  formatVs(row)
+                    ? `${formatVs(row)} · TOTAL HUNDREDS`
+                    : "TOTAL HUNDREDS"
+                }
                 value={row.totalHundreds}
                 highlight={row.rank === 1}
               />
@@ -590,8 +639,12 @@ const PlayerReportCard = () => {
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
-                primary={row.playerName}
-                secondary="TEST DOUBLE HUNDREDS"
+                primary={formatPrimary(row)}
+                secondary={
+                  formatVs(row)
+                    ? `${formatVs(row)} · TEST DOUBLE HUNDREDS`
+                    : "TEST DOUBLE HUNDREDS"
+                }
                 value={row.doubleCenturies}
                 highlight={row.rank === 1}
               />
@@ -633,8 +686,12 @@ const PlayerReportCard = () => {
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
-                primary={row.playerName}
-                secondary={`${row.runs} runs · ${row.balls} balls · ${row.matchType}`}
+                primary={formatPrimary(row)}
+                secondary={
+                  formatVs(row)
+                    ? `${formatVs(row)} · ${row.runs} runs · ${row.balls} balls · ${row.matchType}`
+                    : `${row.runs} runs · ${row.balls} balls · ${row.matchType}`
+                }
                 value={`${row.balls} balls`}
                 highlight={row.rank === 1}
               />
@@ -676,8 +733,12 @@ const PlayerReportCard = () => {
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
-                primary={row.playerName}
-                secondary={`${row.runs} runs · ${row.balls} balls · ${row.matchType}`}
+                primary={formatPrimary(row)}
+                secondary={
+                  formatVs(row)
+                    ? `${formatVs(row)} · ${row.runs} runs · ${row.balls} balls · ${row.matchType}`
+                    : `${row.runs} runs · ${row.balls} balls · ${row.matchType}`
+                }
                 value={`${row.balls} balls`}
                 highlight={row.rank === 1}
               />
@@ -732,8 +793,12 @@ const PlayerReportCard = () => {
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
-                primary={row.playerName}
-                secondary={`${row.totalRuns} runs · ${row.totalBalls} balls`}
+                primary={formatPrimary(row)}
+                secondary={
+                  formatVs(row)
+                    ? `${formatVs(row)} · ${row.totalRuns} runs · ${row.totalBalls} balls`
+                    : `${row.totalRuns} runs · ${row.totalBalls} balls`
+                }
                 value={
                   row.strikeRate != null
                     ? row.strikeRate.toFixed(2)
@@ -779,8 +844,12 @@ const PlayerReportCard = () => {
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
-                primary={row.playerName}
-                secondary={`${row.wickets}/${row.runs} · ${row.matchType}`}
+                primary={formatPrimary(row)}
+                secondary={
+                  formatVs(row)
+                    ? `${formatVs(row)} · ${row.wickets}/${row.runs} · ${row.matchType}`
+                    : `${row.wickets}/${row.runs} · ${row.matchType}`
+                }
                 value={`${row.wickets}/${row.runs}`}
                 highlight={row.rank === 1}
               />
@@ -824,8 +893,12 @@ const PlayerReportCard = () => {
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
-                primary={row.playerName}
-                secondary="TOTAL WICKETS"
+                primary={formatPrimary(row)}
+                secondary={
+                  formatVs(row)
+                    ? `${formatVs(row)} · TOTAL WICKETS`
+                    : "TOTAL WICKETS"
+                }
                 value={row.totalWickets}
                 highlight={row.rank === 1}
               />
@@ -852,8 +925,12 @@ const PlayerReportCard = () => {
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
-                primary={row.playerName}
-                secondary="TOTAL DUCKS"
+                primary={formatPrimary(row)}
+                secondary={
+                  formatVs(row)
+                    ? `${formatVs(row)} · TOTAL DUCKS`
+                    : "TOTAL DUCKS"
+                }
                 value={row.ducks}
                 highlight={row.rank === 1}
               />
@@ -880,8 +957,12 @@ const PlayerReportCard = () => {
               <StatRowCard
                 key={row.rank}
                 rank={row.rank}
-                primary={row.playerName}
-                secondary="TOTAL BALLS FACED (TEST)"
+                primary={formatPrimary(row)}
+                secondary={
+                  formatVs(row)
+                    ? `${formatVs(row)} · TOTAL BALLS FACED (TEST)`
+                    : "TOTAL BALLS FACED (TEST)"
+                }
                 value={formatBalls(row.totalBalls)}
                 highlight={row.rank === 1}
               />
@@ -930,7 +1011,7 @@ const PlayerReportCard = () => {
     }
   };
 
-    return (
+  return (
     <div className="prc-page">
       {/* Module heading */}
       <div className="prc-header-half-circle">

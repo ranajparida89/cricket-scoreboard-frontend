@@ -431,6 +431,13 @@
   font-weight: 800;
 }
 
+/* left block that holds name + vs line */
+.prc-runs-name-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .prc-runs-name {
   font-weight: 700;
   text-transform: uppercase;
@@ -438,6 +445,13 @@
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.prc-runs-vs {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(148, 163, 184, 0.9);
 }
 
 .prc-runs-value {
@@ -455,6 +469,10 @@
 
 .prc-runs-row--highlight .prc-runs-name {
   font-size: 1.05rem;
+}
+
+.prc-runs-row--highlight .prc-runs-vs {
+  color: #92400e;
 }
 
 .prc-runs-row--highlight .prc-runs-value {
