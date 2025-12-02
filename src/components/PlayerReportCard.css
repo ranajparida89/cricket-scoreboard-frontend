@@ -1022,3 +1022,19 @@
 .prc-section .prc-hero {
   overflow: visible;
 }
+/* ==========================================
+   Most Balls Faced – highlight row text fix
+   ========================================== */
+
+/* Make #1 row text brighter on the dark bar */
+.prc-section--balls .prc-row-card--highlight .prc-row-primary,
+.prc-section--balls .prc-row-card--highlight .prc-row-secondary {
+  color: #fefcf5; /* near-white, high contrast */
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+/* Brighten the rank number & crown as well */
+.prc-section--balls .prc-row-card--highlight .prc-rank-number,
+.prc-section--balls .prc-row-card--highlight .prc-rank-crown {
+  color: #fff8c9; /* soft golden-white */
+}
