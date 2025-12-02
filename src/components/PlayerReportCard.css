@@ -977,4 +977,32 @@
    add attribute data-contrast="invert" to the .prc-row-card--highlight element via JS. */
 
 /* End of #1 contrast rules */
+/* ---------- Visibility fixes for Most 200s left hero ---------- */
+.prc-section--double-tons .prc-hero {
+  background: linear-gradient(90deg, #3b1a6b 0%, #20123b 55%, #081022 100%);
+  border: 1px solid rgba(177, 124, 255, 0.18);
+}
 
+.prc-section--double-tons .prc-hero-title {
+  color: #34f0ff !important;         /* bright cyan for headline */
+  text-shadow: 0 2px 8px rgba(0,0,0,0.55);
+}
+
+.prc-section--double-tons .prc-hero-sub {
+  color: rgba(220, 245, 255, 0.92) !important; /* readable pale-cyan */
+  opacity: 1 !important;
+  font-weight: 600;
+}
+
+/* ensure the left panel's small description is visible */
+.prc-section--double-tons .prc-list-panel,
+.prc-section--double-tons .prc-hero,
+.prc-section--double-tons .prc-row-card {
+  box-shadow: 0 12px 30px rgba(0,0,0,0.55);
+}
+
+/* small responsive tweak */
+@media (max-width: 900px) {
+  .prc-section--double-tons .prc-hero-title { font-size: 1.6rem; }
+  .prc-section--double-tons .prc-hero-sub { font-size: 0.95rem; }
+}
