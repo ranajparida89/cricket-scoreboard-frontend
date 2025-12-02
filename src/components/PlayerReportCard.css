@@ -132,12 +132,15 @@
 
 /* ============ Section base layout ============ */
 
+/* Default variables used by sections.
+   Individual themed sections override these variables below.
+*/
 .prc-section {
   --prc-hero-bg: radial-gradient(circle at top, #1f2937 0, #020617 70%);
   --prc-hero-border: rgba(148, 163, 184, 0.5);
   --prc-card-bg: #f9fafb;
   --prc-card-border: rgba(15, 23, 42, 0.75);
-  --prc-card-text: #111827;
+  --prc-card-text: #111827;        /* default card text (dark) */
   --prc-card-secondary: #6b7280;
   --prc-value-bg: #2563eb;
   --prc-value-text: #ffffff;
@@ -192,11 +195,12 @@
   margin-bottom: 8px;
 }
 
+/* ensure primary/sub text uses variables for consistent theming */
 .prc-hero-sub {
   position: relative;
   font-size: 0.9rem;
   max-width: 360px;
-  color: #e5e7eb;
+  color: var(--prc-card-text);
 }
 
 /* Filter row + MODERN DROPDOWN */
@@ -302,6 +306,15 @@
   color: var(--prc-card-text);
 }
 
+/* ensure primary/secondary text uses theme variables for readability */
+.prc-row-card .prc-row-primary {
+  color: var(--prc-card-text) !important;
+}
+
+.prc-row-card .prc-row-secondary {
+  color: var(--prc-card-secondary) !important;
+}
+
 /* ✅ Global "rank 1" 3D pop & bigger fonts */
 .prc-row-card--highlight {
   background: var(--prc-highlight-bg);
@@ -363,12 +376,13 @@
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  color: var(--prc-card-text); /* ensure primary text inherits variable */
 }
 
 .prc-row-secondary {
   margin-top: 2px;
   font-size: 0.75rem;
-  color: var(--prc-card-secondary);
+  color: var(--prc-card-secondary); /* ensure secondary text inherits variable */
 }
 
 .prc-row-card--highlight .prc-row-secondary {
@@ -486,13 +500,16 @@
 
 /* ============ Themed sections to match your images ============ */
 
-/* Highest Score – blue top bar, special golden top row */
+/* ---------------------------
+   HIGHEST SCORE – blue top bar
+   distinct text color: deep navy for card content
+   --------------------------- */
 .prc-section--highest-score {
   --prc-hero-bg: radial-gradient(circle at top, #1e293b 0, #020617 70%);
   --prc-hero-border: rgba(59, 130, 246, 0.8);
   --prc-card-bg: #ffffff;
   --prc-card-border: #111827;
-  --prc-card-text: #111827;
+  --prc-card-text: #0b1320;        /* deep navy - high contrast on white */
   --prc-card-secondary: #6b7280;
   --prc-value-bg: #1d4ed8;
   --prc-value-text: #ffffff;
@@ -508,13 +525,17 @@
   color: #78350f;
 }
 
-/* Bowling Average – navy with orange highlight row */
+/* ---------------------------
+   BOWLING AVERAGE – navy with orange highlight
+   change off-white list text to a soft pale-blue for better contrast
+   (distinct color #cfe8ff)
+   --------------------------- */
 .prc-section--bowling-average {
   --prc-hero-bg: radial-gradient(circle at top, #020617 0, #020617 70%);
   --prc-hero-border: rgba(15, 23, 42, 0.9);
   --prc-card-bg: #020617;
   --prc-card-border: rgba(55, 65, 81, 0.9);
-  --prc-card-text: #e5e7eb;
+  --prc-card-text: #cfe8ff;       /* pale sky blue to pop on dark bg */
   --prc-card-secondary: #9ca3af;
   --prc-value-bg: #0f172a;
   --prc-value-text: #f97316;
@@ -532,7 +553,9 @@
   color: #f97316;
 }
 
-/* Most Wickets by format – deep blue list like most test wickets */
+/* ---------------------------
+   MOST WICKETS theme (keeps previous styling)
+   --------------------------- */
 .prc-section--most-wickets,
 .prc-section--most-wickets-overall {
   --prc-hero-bg: radial-gradient(circle at top, #111827 0, #020617 70%);
@@ -546,7 +569,10 @@
   --prc-highlight-bg: #1d4ed8;
 }
 
-/* Batting Average – gold theme */
+/* ---------------------------
+   BATTING AVERAGE – gold theme (left hero)
+   keep as designed, text is dark already
+   --------------------------- */
 .prc-section--batting-average {
   --prc-hero-bg: radial-gradient(circle at top, #020617 0, #111827 70%);
   --prc-hero-border: rgba(250, 204, 21, 0.8);
@@ -559,13 +585,16 @@
   --prc-highlight-bg: #facc15;
 }
 
-/* Most fifties – blue headline */
+/* ---------------------------
+   MOST FIFTIES – blue headline
+   give card text a distinct deep cyan (#083344)
+   --------------------------- */
 .prc-section--fifties {
   --prc-hero-bg: radial-gradient(circle at top, #1d4ed8 0, #020617 70%);
   --prc-hero-border: rgba(59, 130, 246, 0.9);
   --prc-card-bg: #ffffff;
   --prc-card-border: #0f172a;
-  --prc-card-text: #111827;
+  --prc-card-text: #083344;       /* deep cyan - different from other sections */
   --prc-card-secondary: #6b7280;
   --prc-value-bg: #1d4ed8;
   --prc-value-text: #ffffff;
@@ -581,17 +610,25 @@
   color: #78350f;
 }
 
-/* Most hundreds – gold/blue hybrid */
+/* ---------------------------
+   MOST HUNDREDS – gold/blue hybrid
+   give card text a warm dark-brown (#3b2416) for contrast
+   --------------------------- */
 .prc-section--hundreds {
   --prc-hero-bg: radial-gradient(circle at top, #312e81 0, #020617 70%);
   --prc-hero-border: rgba(129, 140, 248, 0.9);
   --prc-card-bg: #fefce8;
   --prc-card-border: #1e293b;
-  --prc-card-text: #111827;
+  --prc-card-text: #3b2416;       /* warm dark-brown - unique color */
   --prc-card-secondary: #6b7280;
   --prc-value-bg: #f59e0b;
   --prc-value-text: #111827;
   --prc-highlight-bg: #fbbf24;
+}
+
+.prc-section--hundreds .prc-row-card--highlight {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  color: #111827;
 }
 
 /* Most ducks – DARK theme with orange highlight */
@@ -758,4 +795,21 @@
   --prc-value-bg: #38bdf8;
   --prc-value-text: #0f172a;
   --prc-highlight-bg: #1d4ed8;
+}
+
+/* final minor helpers to ensure contrast for icons and small text */
+.prc-row-card .prc-rank-number,
+.prc-row-card .prc-row-value,
+.prc-row-card .prc-row-primary {
+  text-shadow: 0 1px 0 rgba(0,0,0,0.15);
+}
+
+/* small responsive fixes */
+@media (max-width: 600px) {
+  .prc-row-card {
+    grid-template-columns: 1fr auto;
+  }
+  .prc-row-left {
+    grid-template-columns: 56px 1fr;
+  }
 }
