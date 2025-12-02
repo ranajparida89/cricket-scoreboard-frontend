@@ -321,6 +321,24 @@ const PlayerReportCard = () => {
     return "";
   };
 
+  // NEW: helper specifically for the 200s tab subtitle line
+  const formatDoubleInningsSecondary = (row) => {
+    if (!row) return "TEST DOUBLE HUNDREDS";
+
+    const bits = [];
+    const vs = formatVs(row);
+    if (vs) bits.push(vs);
+
+    if (row.runs != null && row.balls != null) {
+      bits.push(`${row.runs} in ${row.balls} balls`);
+    } else if (row.runs != null) {
+      bits.push(`${row.runs} runs`);
+    }
+
+    bits.push("TEST DOUBLE HUNDREDS");
+    return bits.join(" · ");
+  };
+
   // Individual tab UI (hero title + list)
 
   const HighestScoreTab = () => (
@@ -640,11 +658,7 @@ const PlayerReportCard = () => {
                 key={row.rank}
                 rank={row.rank}
                 primary={formatPrimary(row)}
-                secondary={
-                  formatVs(row)
-                    ? `${formatVs(row)} · TEST DOUBLE HUNDREDS`
-                    : "TEST DOUBLE HUNDREDS"
-                }
+                secondary={formatDoubleInningsSecondary(row)}
                 value={row.doubleCenturies}
                 highlight={row.rank === 1}
               />

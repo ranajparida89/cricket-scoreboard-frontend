@@ -1006,3 +1006,19 @@
   .prc-section--double-tons .prc-hero-title { font-size: 1.6rem; }
   .prc-section--double-tons .prc-hero-sub { font-size: 0.95rem; }
 }
+/* ============================================================
+   Global visibility fix for hero description lines
+   (Highest Score, Averages, Top Runs, 50s, 100s, Fast 50/100, SR)
+   ============================================================ */
+
+.prc-hero-sub {
+  color: rgba(228, 242, 255, 0.96);   /* bright, high-contrast */
+  opacity: 1;                         /* no fading */
+  font-weight: 500;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);  /* readable on any dark bg */
+}
+
+/* ensure hero blocks never clip the subtitle text */
+.prc-section .prc-hero {
+  overflow: visible;
+}
