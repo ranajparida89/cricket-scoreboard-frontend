@@ -10,7 +10,7 @@
     #020617 40%,
     #020617 100%
   );
-  color: #127ce6;
+  color: #ecf0f4;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -813,3 +813,78 @@
     grid-template-columns: 56px 1fr;
   }
 }
+/* --------- Strong overrides for visibility (paste at EOF of PlayerReportCard.css) --------- */
+
+/* Highest Score section — dark text on white cards */
+.prc-section--highest-score .prc-row-primary,
+.prc-section--highest-score .prc-runs-name,
+.prc-section--highest-score .prc-row-main,
+.prc-section--highest-score .prc-row-card {
+  color: #0b1320 !important;
+}
+.prc-section--highest-score .prc-row-secondary,
+.prc-section--highest-score .prc-runs-vs {
+  color: #8b8f95 !important;
+}
+
+/* Bowling Average section — pale sky blue primary text on dark bg */
+.prc-section--bowling-average .prc-row-primary,
+.prc-section--bowling-average .prc-runs-name,
+.prc-section--bowling-average .prc-row-main,
+.prc-section--bowling-average .prc-row-card {
+  color: #cfe8ff !important;
+}
+.prc-section--bowling-average .prc-row-secondary,
+.prc-section--bowling-average .prc-runs-vs {
+  color: #9aa6b2 !important;
+}
+
+/* Most Fifties section — deep cyan primary (on white background) */
+.prc-section--fifties .prc-row-primary,
+.prc-section--fifties .prc-runs-name,
+.prc-section--fifties .prc-row-main,
+.prc-section--fifties .prc-row-card {
+  color: #083344 !important;
+}
+.prc-section--fifties .prc-row-secondary,
+.prc-section--fifties .prc-runs-vs {
+  color: #6b7280 !important;
+}
+
+/* Most Hundreds section — warm dark-brown primary text on cream */
+.prc-section--hundreds .prc-row-primary,
+.prc-section--hundreds .prc-runs-name,
+.prc-section--hundreds .prc-row-main,
+.prc-section--hundreds .prc-row-card {
+  color: #3b2416 !important;
+}
+.prc-section--hundreds .prc-row-secondary,
+.prc-section--hundreds .prc-runs-vs {
+  color: #6b6b6b !important;
+}
+
+/* Ensure highlighted rows (#1) keep readable contrast */
+.prc-row-card--highlight .prc-row-primary,
+.prc-row-card--highlight .prc-runs-name {
+  color: #78350f !important;   /* keeps your golden highlight readable */
+}
+.prc-row-card--highlight .prc-row-secondary,
+.prc-runs-row--highlight .prc-runs-vs {
+  color: rgba(120, 60, 18, 0.85) !important;
+}
+
+/* Additional: runs-list specific rules (covers prc-runs-row usage in some lists) */
+.prc-runs-row .prc-runs-name,
+.prc-runs-row .prc-runs-vs,
+.prc-runs-row .prc-runs-value {
+  color: inherit !important;
+}
+
+/* Small readability boost for small/secondary text across modules */
+.prc-row-card .prc-row-secondary,
+.prc-runs-vs {
+  font-weight: 600;
+  opacity: 0.95;
+  text-shadow: 0 0 1px rgba(0,0,0,0.18);
+}
+
