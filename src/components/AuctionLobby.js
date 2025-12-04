@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import {
   fetchAuctionSessions,
   registerAsParticipant,
+  createAuctionSession,
   getCurrentUserId,
 } from "../services/auctionApi";
 import "./AuctionLobby.css";
@@ -20,11 +21,15 @@ const AuctionLobby = () => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
+  const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
 
   const navigate = useNavigate();
   const userId = getCurrentUserId();
+  const isAdmin =
+    localStorage.getItem("isAdmin") === "true" ||
+    localStorage.getItem("role") === "admin";
 
   const loadSessions = async () => {
     try {
@@ -67,16 +72,83 @@ const AuctionLobby = () => {
     navigate(`/auction/${auctionId}`);
   };
 
+  const handleMyPlayers = (auctionId) => {
+    navigate(`/auction/${auctionId}/my-players`);
+  };
+
+  const handleAdminConsole = (auctionId) => {
+    navigate(`/auction/${auctionId}/admin`);
+  };
+
+  const handleSummary = (auctionId) => {
+    navigate(`/auction/${auctionId}/summary`);
+  };
+
+  // Admin-only: quick create session using full player pool & default settings
+  const handleCreateSession = async () => {
+    const name = window.prompt(
+      "Enter auction name (e.g. 'IPL Mega Auction 2026'):"
+    );
+    if (!name || !name.trim()) {
+      return;
+    }
+    try {
+      setCreating(true);
+      setError("");
+      setInfo("");
+
+      const payload = {
+        name: name.trim(),
+        // useEntirePool = true by default in backend,
+        // but we pass it explicitly for clarity
+        useEntirePool: true,
+      };
+
+      const res = await createAuctionSession(payload);
+      setInfo(
+        res?.message ||
+          `Auction '${payload.name}' created with ${res?.session?.attachedPlayers ?? 0
+          } players.`
+      );
+      await loadSessions();
+    } catch (err) {
+      console.error("Error creating auction session:", err);
+      const msg =
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to create auction session.";
+      setError(msg);
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
     <div className="auction-lobby-page">
       <div className="auction-lobby-header">
-        <h1>CrickEdge Auction Lobby</h1>
-        <p className="auction-lobby-subtitle">
-          Join an ongoing auction or wait for admin to start a new one.
-        </p>
-        <button className="auction-lobby-refresh" onClick={loadSessions}>
-          Refresh
-        </button>
+        <div>
+          <h1>CrickEdge Auction Lobby</h1>
+          <p className="auction-lobby-subtitle">
+            Join an ongoing auction or, if you&apos;re admin, create a new one
+            from the player pool.
+          </p>
+        </div>
+
+        <div className="auction-lobby-header-actions">
+          <button className="auction-lobby-refresh" onClick={loadSessions}>
+            ⟳ Refresh
+          </button>
+
+          {isAdmin && (
+            <button
+              className="auction-lobby-create"
+              onClick={handleCreateSession}
+              disabled={creating}
+            >
+              {creating ? "Creating..." : "➕ Create Auction Session"}
+            </button>
+          )}
+        </div>
       </div>
 
       {error && <div className="auction-lobby-alert error">{error}</div>}
@@ -86,7 +158,19 @@ const AuctionLobby = () => {
         <div className="auction-lobby-loading">Loading sessions...</div>
       ) : sessions.length === 0 ? (
         <div className="auction-lobby-empty">
-          No auction sessions found. Please ask admin to create one.
+          {isAdmin ? (
+            <>
+              No auction sessions found yet.
+              <br />
+              Use <strong>&quot;➕ Create Auction Session&quot;</strong> to
+              create one using the current Auction Player Pool.
+            </>
+          ) : (
+            <>
+              No auction sessions found. Please contact your admin to create a
+              new auction.
+            </>
+          )}
         </div>
       ) : (
         <div className="auction-lobby-grid">
@@ -96,7 +180,9 @@ const AuctionLobby = () => {
                 <h2>{s.name}</h2>
                 <span
                   className="auction-status-pill"
-                  style={{ backgroundColor: statusColors[s.status] || "#64748b" }}
+                  style={{
+                    backgroundColor: statusColors[s.status] || "#64748b",
+                  }}
                 >
                   {s.status}
                 </span>
@@ -136,6 +222,33 @@ const AuctionLobby = () => {
                 >
                   Enter Room
                 </button>
+
+                <button
+                  className="auction-btn ghost"
+                  onClick={() => handleMyPlayers(s.auctionId)}
+                >
+                  My Players
+                </button>
+
+                {isAdmin && (
+                  <>
+                    <button
+                      className="auction-btn ghost"
+                      onClick={() => handleAdminConsole(s.auctionId)}
+                    >
+                      Admin Console
+                    </button>
+
+                    {s.status === "ENDED" && (
+                      <button
+                        className="auction-btn ghost"
+                        onClick={() => handleSummary(s.auctionId)}
+                      >
+                        Summary
+                      </button>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           ))}
