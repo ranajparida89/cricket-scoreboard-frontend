@@ -25,9 +25,16 @@ const AuctionPlayerPoolPage = () => {
   const loadPool = async () => {
     try {
       setLoading(true);
-      const data = await listPlayerPool();
-      setPlayers(data.players || []);
       setError("");
+
+      const data = await listPlayerPool();
+
+      // ✅ Support both shapes: array or { players: [...] }
+      const playersArray = Array.isArray(data)
+        ? data
+        : data?.players || data?.data || [];
+
+      setPlayers(playersArray || []);
     } catch (err) {
       console.error(err);
       setError(
@@ -35,6 +42,7 @@ const AuctionPlayerPoolPage = () => {
           err?.message ||
           "Failed to load player pool."
       );
+      setPlayers([]);
     } finally {
       setLoading(false);
     }
@@ -46,8 +54,8 @@ const AuctionPlayerPoolPage = () => {
 
   // FILTER LOGIC
   const filteredPlayers = players.filter((p) => {
-    const n = p.playerName.toLowerCase();
-    if (search && !n.includes(search.toLowerCase())) return false;
+    const name = (p.playerName || "").toLowerCase();
+    if (search && !name.includes(search.toLowerCase())) return false;
     if (skillFilter && p.skillType !== skillFilter) return false;
     if (categoryFilter && p.category !== categoryFilter) return false;
     if (countryFilter && p.country !== countryFilter) return false;
@@ -143,13 +151,19 @@ const AuctionPlayerPoolPage = () => {
             </thead>
             <tbody>
               {filteredPlayers.map((p, idx) => (
-                <tr key={p.playerId}>
+                <tr
+                  key={
+                    p.playerId ||
+                    p.playerCode ||
+                    `${p.playerName}-${idx}`
+                  }
+                >
                   <td>{idx + 1}</td>
                   <td>{p.playerName}</td>
                   <td>{p.country}</td>
                   <td>{p.skillType}</td>
                   <td>{p.category}</td>
-                  <td>{p.baseBidAmount} cr</td>
+                  <td>{p.baseBidAmount ?? p.bidAmount} cr</td>
                 </tr>
               ))}
             </tbody>

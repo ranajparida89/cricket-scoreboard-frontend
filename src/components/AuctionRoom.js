@@ -10,6 +10,7 @@ import {
   exitAuction,
   getCurrentUserId,
 } from "../services/auctionApi";
+import { useAuth } from "../services/auth";   // ✅ NEW
 import "./AuctionRoom.css";
 
 const POLL_INTERVAL = 1500; // ms
@@ -17,8 +18,13 @@ const POLL_INTERVAL = 1500; // ms
 const AuctionRoom = () => {
   const { auctionId } = useParams();
   const navigate = useNavigate();
+
+  const { currentUser } = useAuth();          // ✅ NEW
   const userId = getCurrentUserId();
-  const isAdmin = localStorage.getItem("isAdmin") === "true";
+  const isAdmin =
+    currentUser?.role === "admin" ||
+    localStorage.getItem("isAdmin") === "true" ||
+    localStorage.getItem("role") === "admin"; // extra safety
 
   const [liveState, setLiveState] = useState(null);
   const [loading, setLoading] = useState(true);

@@ -11,10 +11,50 @@ const api = axios.create({
 });
 
 // -----------------------------------------------------------------------------
+// Attach auth token (same pattern as other modules)
+// -----------------------------------------------------------------------------
+api.interceptors.request.use((config) => {
+  try {
+    const token =
+      localStorage.getItem("token") ||
+      localStorage.getItem("authToken") ||
+      localStorage.getItem("auth_token");
+
+    if (token && !config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch (e) {
+    // fail silently – we will just call without token
+    console.warn("Auction API: unable to attach token", e);
+  }
+  return config;
+});
+
+// -----------------------------------------------------------------------------
 // Helper – current user
 // -----------------------------------------------------------------------------
 export function getCurrentUserId() {
-  // If you already store user in localStorage (like other modules), reuse that
+  // ✅ FIRST: read the standard "user" object that the rest of CrickEdge uses
+  try {
+    const raw = localStorage.getItem("user");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const id =
+        parsed?.id ??
+        parsed?.user_id ??
+        parsed?.userId ??
+        parsed?.uid ??
+        null;
+
+      if (id != null) {
+        return id;
+      }
+    }
+  } catch (e) {
+    console.warn("Auction API: failed to parse user from localStorage", e);
+  }
+
+  // ✅ SECOND: fall back to legacy id keys if present
   const fromStorage =
     localStorage.getItem("userId") ||
     localStorage.getItem("authUserId") ||
@@ -22,7 +62,7 @@ export function getCurrentUserId() {
 
   if (fromStorage) return fromStorage;
 
-  // TEMP: fallback to a synthetic id for testing
+  // ⚠️ LAST RESORT: synthetic temp id (mainly for local testing)
   let tempId = localStorage.getItem("tempAuctionUserId");
   if (!tempId) {
     tempId = `temp-user-${Math.random().toString(36).slice(2, 10)}`;
@@ -155,12 +195,12 @@ export async function importPlayerPool(players) {
 }
 
 /**
- * Optional helper to list current pool (if backend supports it).
+ * Helper to list current pool.
  * GET /api/auction/player-pool
  */
 export async function listPlayerPool(params = {}) {
   const res = await api.get("/player-pool", { params });
-  return res.data;
+  return res.data; // callers handle shape (array vs { players })
 }
 
 // -----------------------------------------------------------------------------
