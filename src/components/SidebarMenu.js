@@ -16,6 +16,7 @@ import {
   FaMedal,        // 🏅 MoM Insights
   FaPeopleArrows, // 👥 Squad/Lineup icon
   FaIdCard,       // 🪪 Player Report Card
+  FaGavel,        // 💰 Player Auction
 } from "react-icons/fa";
 import { FaRegNewspaper } from "react-icons/fa";
 import { FaHandshake } from "react-icons/fa";
@@ -119,6 +120,13 @@ const SidebarMenu = () => {
           </Link>
         </li>
 
+        {/* 💰 Player Auction */}
+        <li>
+          <Link to="/auction" onClick={handleClose}>
+            <FaGavel className="me-2 text-warning" /> Player Auction
+          </Link>
+        </li>
+
         {/* 🧮 Upcoming Matches */}
         {isAdmin && (
           <li>
@@ -180,6 +188,14 @@ const SidebarMenu = () => {
                 Create New Board
               </Link>
             </li>
+             <li>
+                <Link to="/auction-player-pool" onClick={handleClose}>
+                  <span role="img" aria-label="pool" style={{ marginRight: 6 }}>
+                    📥
+                  </span>
+                  Auction Player Pool
+                </Link>
+              </li>
           </>
         )}
 
