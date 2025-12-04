@@ -22,10 +22,17 @@ export const getCurrentUserId = () => {
   return raw;
 };
 
-// ---------------- Lobby / sessions ----------------
+// ---------------- Sessions / Lobby ----------------
 
 export const fetchAuctionSessions = async () => {
   const res = await api.get("/sessions");
+  return res.data;
+};
+
+// 🔹 MISSING EARLIER – now added
+export const createAuctionSession = async (payload) => {
+  // payload: { name, maxSquadSize, minExitSquadSize, initialWalletAmount, bidTimerSeconds, ... }
+  const res = await api.post("/sessions", payload);
   return res.data;
 };
 
