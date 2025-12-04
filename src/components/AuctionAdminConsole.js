@@ -1,8 +1,10 @@
 // src/components/AuctionAdminConsole.js
 // Dedicated Admin Console for controlling the auction
 
+// src/components/AuctionAdminConsole.js
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../services/auth";           // ⬅️ ADD THIS
 import {
   fetchLiveState,
   startAuction,
@@ -16,6 +18,7 @@ import {
   fetchParticipantsForAuction,
   getCurrentUserId,
 } from "../services/auctionApi";
+
 import "./AuctionAdminConsole.css";
 
 const VALID_SKILLS = [
@@ -30,8 +33,11 @@ const VALID_CATEGORIES = ["Legend", "Platinum", "Gold"];
 const AuctionAdminConsole = () => {
   const { auctionId } = useParams();
   const navigate = useNavigate();
+  const { currentUser } = useAuth(); 
   const userId = getCurrentUserId();
-  const isAdminFlag = localStorage.getItem("isAdmin") === "true";
+   const isAdminFlag =
+    currentUser?.role === "admin" ||
+    localStorage.getItem("isAdmin") === "true"; 
 
   const [liveState, setLiveState] = useState(null);
   const [pushRules, setPushRules] = useState([]);
