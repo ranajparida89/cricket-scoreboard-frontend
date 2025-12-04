@@ -1,5 +1,5 @@
 // src/services/auctionApi.js
-// Thin axios wrapper for all Auction APIs
+// Thin client for CrickEdge Auction backend
 
 import axios from "axios";
 
@@ -10,125 +10,167 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Try to derive current user id from localStorage
-export const getCurrentUserId = () => {
-  const raw =
-    localStorage.getItem("crickedge_user_id") ||
+// -----------------------------------------------------------------------------
+// Helper – current user
+// -----------------------------------------------------------------------------
+export function getCurrentUserId() {
+  // If you already store user in localStorage (like other modules), reuse that
+  const fromStorage =
     localStorage.getItem("userId") ||
     localStorage.getItem("authUserId") ||
-    localStorage.getItem("currentUserId");
+    localStorage.getItem("user_id");
 
-  if (!raw || raw === "undefined" || raw === "null") return null;
-  return raw;
-};
+  if (fromStorage) return fromStorage;
 
-// ---------------- Sessions / Lobby ----------------
+  // TEMP: fallback to a synthetic id for testing
+  let tempId = localStorage.getItem("tempAuctionUserId");
+  if (!tempId) {
+    tempId = `temp-user-${Math.random().toString(36).slice(2, 10)}`;
+    localStorage.setItem("tempAuctionUserId", tempId);
+  }
+  return tempId;
+}
 
-export const fetchAuctionSessions = async () => {
+// -----------------------------------------------------------------------------
+// Sessions
+// -----------------------------------------------------------------------------
+export async function fetchAuctionSessions() {
   const res = await api.get("/sessions");
   return res.data;
-};
+}
 
-// 🔹 MISSING EARLIER – now added
-export const createAuctionSession = async (payload) => {
-  // payload: { name, maxSquadSize, minExitSquadSize, initialWalletAmount, bidTimerSeconds, ... }
+export async function createAuctionSession(payload) {
   const res = await api.post("/sessions", payload);
   return res.data;
-};
+}
 
-export const registerAsParticipant = async (auctionId, userId) => {
-  if (!userId) {
-    throw new Error("No userId found in localStorage for auction.");
-  }
-
+// -----------------------------------------------------------------------------
+// Participants
+// -----------------------------------------------------------------------------
+export async function registerAsParticipant(auctionId, userId) {
   const res = await api.post(`/sessions/${auctionId}/participants`, {
     userId,
-  });
-
-  return res.data;
-};
-
-// ---------------- Live state ----------------
-
-export const fetchLiveState = async (auctionId, userId) => {
-  const res = await api.get(`/sessions/${auctionId}/live`, {
-    params: userId ? { userId } : {},
+    roleInAuction: "PARTICIPANT",
   });
   return res.data;
-};
+}
 
-// ---------------- Controls (Admin) ----------------
+export async function exitAuction(auctionId, userId) {
+  const res = await api.post(`/sessions/${auctionId}/participants/end`, {
+    userId,
+  });
+  return res.data;
+}
 
-export const startAuction = async (auctionId) => {
+// -----------------------------------------------------------------------------
+// Live state & control
+// -----------------------------------------------------------------------------
+export async function fetchLiveState(auctionId, userId) {
+  const params = userId ? { userId } : {};
+  const res = await api.get(`/sessions/${auctionId}/live`, { params });
+  return res.data;
+}
+
+export async function startAuction(auctionId) {
   const res = await api.post(`/sessions/${auctionId}/start`);
   return res.data;
-};
+}
 
-export const pauseAuction = async (auctionId) => {
+export async function pauseAuction(auctionId) {
   const res = await api.post(`/sessions/${auctionId}/pause`);
   return res.data;
-};
+}
 
-export const resumeAuction = async (auctionId) => {
+export async function resumeAuction(auctionId) {
   const res = await api.post(`/sessions/${auctionId}/resume`);
   return res.data;
-};
+}
 
-export const endAuction = async (auctionId) => {
+export async function endAuction(auctionId) {
   const res = await api.post(`/sessions/${auctionId}/end`);
   return res.data;
-};
+}
 
-export const closeCurrentRound = async (auctionId) => {
+export async function closeCurrentRound(auctionId) {
   const res = await api.post(`/sessions/${auctionId}/live/close`);
   return res.data;
-};
+}
 
-export const nextPlayer = async (auctionId) => {
+export async function nextPlayer(auctionId) {
   const res = await api.post(`/sessions/${auctionId}/next-player`);
   return res.data;
-};
+}
 
-// ---------------- Push rules ----------------
-
-export const fetchPushRules = async (auctionId) => {
-  const res = await api.get(`/sessions/${auctionId}/push-rules`);
+// -----------------------------------------------------------------------------
+// Bidding
+// -----------------------------------------------------------------------------
+export async function placeBid(auctionId, sessionPlayerId, bidAmount, userId) {
+  const res = await api.post(`/sessions/${auctionId}/bids`, {
+    userId,
+    sessionPlayerId,
+    bidAmount,
+  });
   return res.data;
-};
+}
 
-export const createPushRule = async (auctionId, payload) => {
+// -----------------------------------------------------------------------------
+// Admin push rules
+// -----------------------------------------------------------------------------
+export async function createPushRule(auctionId, payload) {
   const res = await api.post(`/sessions/${auctionId}/push-rules`, payload);
   return res.data;
-};
+}
 
-export const updatePushRule = async (ruleId, payload) => {
-  const res = await api.patch(`/push-rules/${ruleId}`, payload);
+export async function fetchPushRules(auctionId) {
+  const res = await api.get(`/sessions/${auctionId}/push-rules`);
   return res.data;
-};
+}
 
-export const deletePushRule = async (ruleId) => {
-  const res = await api.delete(`/push-rules/${ruleId}`);
-  return res.data;
-};
-
-// ---------------- Participants & squads ----------------
-
-export const fetchParticipantsForAuction = async (auctionId) => {
-  const res = await api.get(`/sessions/${auctionId}/participants`);
-  return res.data;
-};
-
-export const fetchMyAuctionPlayers = async (auctionId, userId) => {
+// -----------------------------------------------------------------------------
+// My players & participants
+// -----------------------------------------------------------------------------
+export async function fetchMyPlayers(auctionId, userId) {
   const res = await api.get(`/sessions/${auctionId}/my-players`, {
     params: { userId },
   });
   return res.data;
-};
+}
 
-// ---------------- Bids (participant) ----------------
-
-export const placeBid = async (auctionId, payload) => {
-  // payload: { userId, sessionPlayerId, bidAmount }
-  const res = await api.post(`/sessions/${auctionId}/bids`, payload);
+export async function fetchParticipantsForAuction(auctionId) {
+  const res = await api.get(`/sessions/${auctionId}/participants`);
   return res.data;
-};
+}
+
+// -----------------------------------------------------------------------------
+// Player pool import + listing (Phase 9)
+// -----------------------------------------------------------------------------
+/**
+ * Import player pool.
+ * Backend route: POST /api/auction/player-pool/import
+ * Body: { players: [ { playerCode, playerName, country, skillType, category, bidAmount } ] }
+ */
+export async function importPlayerPool(players) {
+  const res = await api.post("/player-pool/import", { players });
+  return res.data;
+}
+
+/**
+ * Optional helper to list current pool (if backend supports it).
+ * GET /api/auction/player-pool
+ */
+export async function listPlayerPool(params = {}) {
+  const res = await api.get("/player-pool", { params });
+  return res.data;
+}
+
+// -----------------------------------------------------------------------------
+// Auction summary (Phase 10)
+// -----------------------------------------------------------------------------
+/**
+ * Summary per auction:
+ * GET /api/auction/sessions/:auctionId/summary
+ */
+export async function fetchAuctionSummary(auctionId) {
+  const res = await api.get(`/sessions/${auctionId}/summary`);
+  return res.data;
+}
