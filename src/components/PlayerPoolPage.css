@@ -1,0 +1,93 @@
+/* src/components/PlayerPoolPage.css */
+
+.pool-page {
+  padding: 20px;
+  max-width: 900px;
+  margin: auto;
+  color: white;
+}
+
+.pool-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pool-actions button {
+  margin-left: 10px;
+  padding: 8px 12px;
+  background: #374151;
+  border: none;
+  border-radius: 6px;
+  color: white;
+}
+
+.notice {
+  padding: 10px;
+  border-radius: 6px;
+  margin: 10px 0;
+}
+.notice.error {
+  background: #ef4444;
+}
+.notice.success {
+  background: #22c55e;
+}
+
+.add-player-form {
+  background: #1f2937;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.add-player-form h2 {
+  margin-bottom: 10px;
+}
+
+.form-row {
+  margin-bottom: 12px;
+}
+.form-row label {
+  display: block;
+}
+.form-row input,
+.form-row select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #4b5563;
+  background: #111827;
+  color: white;
+}
+
+.add-btn {
+  width: 100%;
+  padding: 12px;
+  background: #10b981;
+  border: none;
+  color: white;
+  border-radius: 6px;
+}
+
+.pool-table-wrap {
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+.pool-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pool-table th,
+.pool-table td {
+  padding: 10px;
+  background: #1f2937;
+  border-bottom: 1px solid #374151;
+}
+
+.pool-table .empty {
+  text-align: center;
+  padding: 20px;
+}

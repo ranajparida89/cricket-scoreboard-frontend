@@ -1,256 +1,142 @@
 // src/components/AuctionRoom.js
+// Works with simplified auction backend (simpleAuctionRoutes)
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+
 import {
   fetchLiveState,
   placeBid,
   nextPlayer,
-  closeCurrentRound,
-  exitAuction,
+  closeRound,
+  endAuction,
+  fetchParticipants,
   getCurrentUserId,
 } from "../services/auctionApi";
-import { useAuth } from "../services/auth";   // ✅ NEW
+
 import "./AuctionRoom.css";
 
-const POLL_INTERVAL = 1500; // ms
+const POLL_INTERVAL = 1500;
 
 const AuctionRoom = () => {
   const { auctionId } = useParams();
   const navigate = useNavigate();
 
-  const { currentUser } = useAuth();          // ✅ NEW
   const userId = getCurrentUserId();
-  const isAdmin =
-    currentUser?.role === "admin" ||
-    localStorage.getItem("isAdmin") === "true" ||
-    localStorage.getItem("role") === "admin"; // extra safety
+  const isAdmin = localStorage.getItem("isAdmin") === "true";
 
   const [liveState, setLiveState] = useState(null);
   const [loading, setLoading] = useState(true);
   const [placingBid, setPlacingBid] = useState(false);
-  const [actionMsg, setActionMsg] = useState("");
+
+  const [participants, setParticipants] = useState([]);
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
+
   const pollRef = useRef(null);
 
+  // ---------------------------------------------------------
+  // LOAD LIVE STATE
+  // ---------------------------------------------------------
   const loadLive = async () => {
     try {
-      const data = await fetchLiveState(auctionId, userId);
+      const data = await fetchLiveState(auctionId);
       setLiveState(data);
       setError("");
     } catch (err) {
-      console.error("Error fetching live auction:", err);
-      const msg =
-        err?.response?.data?.error ||
-        err?.message ||
-        "Failed to fetch live state.";
-      setError(msg);
+      console.error("Error loading live auction:", err);
+      setError("Failed to load live auction state.");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    setLoading(true);
-    loadLive();
+  const loadParticipants = async () => {
+    try {
+      const res = await fetchParticipants(auctionId);
+      setParticipants(res.participants || []);
+    } catch (err) {
+      console.error("Failed to fetch participants:", err);
+    }
+  };
 
-    pollRef.current = setInterval(loadLive, POLL_INTERVAL);
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auctionId, userId]);
+  useEffect(() => {
+    loadLive();
+    loadParticipants();
+
+    pollRef.current = setInterval(() => {
+      loadLive();
+      loadParticipants();
+    }, POLL_INTERVAL);
+
+    return () => clearInterval(pollRef.current);
+  }, [auctionId]);
 
   const auction = liveState?.auction || null;
   const livePlayer = liveState?.livePlayer || null;
-  const userContext = liveState?.userContext || null;
+  const highestBid = liveState?.highestBid || null;
+  const timeLeft = liveState?.timeLeft ?? null;
 
-  const isAuctionRunning = auction?.status === "RUNNING";
-  const userSquadSize = userContext?.currentSquadSize || 0;
-  const userWallet = userContext?.walletBalance ?? null;
-  const minExitSquad = auction?.minExitSquadSize ?? 11;
-  const maxSquad = auction?.maxSquadSize ?? 13;
-
-  // server-side canBid (Phase 7)
-  const canBidFromServer = userContext?.canBid ?? false;
-
-  // Compute next bid value for the "big button"
-  const { minAllowedBid, suggestedBid } = useMemo(() => {
-    if (!auction || !livePlayer)
-      return { minAllowedBid: null, suggestedBid: null };
-
-    const base = Number(livePlayer.baseBidAmount || 0);
-    const last =
-      livePlayer.lastHighestBidAmount != null
-        ? Number(livePlayer.lastHighestBidAmount)
-        : null;
-    const minInc = Number(auction.minBidIncrement || 0.5);
-
-    const floorCurrent = last != null ? last : base;
-    const minAllowed = floorCurrent + minInc;
-    const suggestion = Number(minAllowed.toFixed(2));
-    return { minAllowedBid: minAllowed, suggestedBid: suggestion };
-  }, [auction, livePlayer]);
-
-  const timeRemaining = livePlayer?.timeRemainingSeconds ?? null;
-
-  // Reason why bidding is blocked – used in UI for friendly message
-  const bidBlockedReason = useMemo(() => {
-    if (!auction || !livePlayer || !userContext) return null;
-
-    if (auction.status !== "RUNNING") {
-      return `Auction is currently ${auction.status}. Bidding is paused.`;
-    }
-
-    if (timeRemaining != null && timeRemaining <= 0) {
-      return "Time is over for this player.";
-    }
-
-    if (
-      userContext.participantStatus &&
-      userContext.participantStatus !== "ACTIVE"
-    ) {
-      return `Your auction status is ${userContext.participantStatus}. You cannot bid now.`;
-    }
-
-    if (userContext.isActive === false) {
-      return "Your participation in this auction is closed (completed or exited).";
-    }
-
-    if (userSquadSize >= maxSquad) {
-      return `You already have full squad of ${maxSquad} players.`;
-    }
-
-    if (
-      userWallet != null &&
-      minAllowedBid != null &&
-      minAllowedBid > userWallet
-    ) {
-      return "Insufficient wallet balance for the next minimum bid.";
-    }
-
-    return null;
-  }, [
-    auction,
-    livePlayer,
-    userContext,
-    userSquadSize,
-    maxSquad,
-    timeRemaining,
-    userWallet,
-    minAllowedBid,
-  ]);
-
-  const effectiveCanBid =
-    isAuctionRunning &&
-    canBidFromServer &&
-    suggestedBid != null &&
-    timeRemaining != null &&
-    timeRemaining > 0;
-
+  // ---------------------------------------------------------
+  // HANDLE BID
+  // ---------------------------------------------------------
   const handleBid = async () => {
-    if (!auction || !livePlayer || suggestedBid == null) return;
+    if (!livePlayer) return;
 
-    if (!effectiveCanBid) {
-      // show a polite message instead of doing nothing
-      if (bidBlockedReason) {
-        setError(bidBlockedReason);
-      } else {
-        setError("You cannot place a bid at this moment.");
-      }
-      return;
-    }
-
-    if (userWallet != null && suggestedBid > userWallet) {
-      setError("You don't have enough wallet balance for this bid.");
-      return;
-    }
+    const nextBid =
+      highestBid != null
+        ? (highestBid + livePlayer.bidIncrement).toFixed(2)
+        : livePlayer.basePrice.toFixed(2);
 
     try {
       setPlacingBid(true);
-      setError("");
-      setActionMsg("");
-
-      const res = await placeBid(
-        auction.auctionId,
-        livePlayer.sessionPlayerId,
-        suggestedBid,
-        userId
-      );
-      setActionMsg(`Bid accepted at ${res.lastHighestBidAmount} cr.`);
-      // Live state will refresh on next poll
+      const res = await placeBid(auctionId, Number(nextBid), userId);
+      setInfo(res.message || "Bid placed.");
     } catch (err) {
-      console.error("Error placing bid:", err);
-      const msg =
-        err?.response?.data?.error ||
-        err?.message ||
-        "Failed to place bid.";
-      setError(msg);
+      console.error("Bid error:", err);
+      setError("Failed to place bid.");
     } finally {
       setPlacingBid(false);
     }
   };
 
-  const handleExitAuction = async () => {
-    if (
-      !window.confirm(
-        "Are you sure you want to end your auction participation?"
-      )
-    ) {
-      return;
-    }
-    try {
-      setError("");
-      setActionMsg("");
-      await exitAuction(auctionId, userId);
-      setActionMsg("You have exited this auction.");
-      // Optionally navigate away after some time
-      // navigate("/auction");
-    } catch (err) {
-      console.error("Error exiting auction:", err);
-      const msg =
-        err?.response?.data?.error ||
-        err?.message ||
-        "Unable to exit auction.";
-      setError(msg);
-    }
-  };
-
-  // Admin helpers – still available here but also in Admin Console
+  // ---------------------------------------------------------
+  // ADMIN ACTIONS
+  // ---------------------------------------------------------
   const handleAdminNextPlayer = async () => {
     try {
-      setError("");
       const res = await nextPlayer(auctionId);
-      setActionMsg(res.message || "Next player is live.");
+      setInfo(res.message || "Next player loaded.");
+      loadLive();
     } catch (err) {
-      console.error("Error setting next player:", err);
-      const msg =
-        err?.response?.data?.error ||
-        err?.message ||
-        "Unable to pick next player.";
-      setError(msg);
+      setError("Failed to load next player.");
     }
   };
 
   const handleAdminCloseRound = async () => {
     try {
-      setError("");
-      const res = await closeCurrentRound(auctionId);
-      setActionMsg(res.message || "Round closed.");
+      const res = await closeRound(auctionId);
+      setInfo(res.message || "Round closed.");
+      loadLive();
     } catch (err) {
-      console.error("Error closing round:", err);
-      const msg =
-        err?.response?.data?.error ||
-        err?.message ||
-        "Unable to close round.";
-      setError(msg);
+      setError("Failed to close round.");
     }
   };
 
-  const showExitButton =
-    userSquadSize >= minExitSquad &&
-    userContext?.participantStatus === "ACTIVE";
+  const handleAdminEndAuction = async () => {
+    if (!window.confirm("End the auction now?")) return;
+    try {
+      const res = await endAuction(auctionId);
+      setInfo(res.message || "Auction ended.");
+      loadLive();
+    } catch (err) {
+      setError("Failed to end auction.");
+    }
+  };
 
+  // ---------------------------------------------------------
+  // RENDER UI
+  // ---------------------------------------------------------
   return (
     <div className="auction-room-page">
       <div className="auction-room-header">
@@ -258,7 +144,7 @@ const AuctionRoom = () => {
           <h1>Auction Room</h1>
           {auction && (
             <p className="auction-room-subtitle">
-              {auction.name} &nbsp;•&nbsp; Status:{" "}
+              {auction.name} &nbsp;•&nbsp;
               <span className={`tag tag-${auction.status?.toLowerCase()}`}>
                 {auction.status}
               </span>
@@ -268,54 +154,22 @@ const AuctionRoom = () => {
 
         <div className="auction-room-header-actions">
           {isAdmin && (
-            <button
-              className="auction-room-back"
-              onClick={() => navigate(`/auction/${auctionId}/admin`)}
-            >
+            <button onClick={() => navigate(`/auction/${auctionId}/admin`)}>
               🛠 Admin Console
             </button>
           )}
-
-          {/* Phase 10 – link to summary when auction is ended */}
-          {auction?.status === "ENDED" && (
-            <button
-              className="auction-room-back"
-              onClick={() => navigate(`/auction/${auctionId}/summary`)}
-            >
-              📊 Summary
-            </button>
-          )}
-
-          <button
-            className="auction-room-back"
-            onClick={() => navigate(`/auction/${auctionId}/my-players`)}
-          >
+          <button onClick={() => navigate(`/auction/${auctionId}/my-players`)}>
             👥 My Players
           </button>
-          <button
-            className="auction-room-back"
-            onClick={() => navigate("/auction")}
-          >
-            ← Lobby
-          </button>
+          <button onClick={() => navigate("/auction")}>← Lobby</button>
         </div>
       </div>
 
-      {/* Phase 10 – soft info bar when auction is ended */}
-      {auction?.status === "ENDED" && (
-        <div className="auction-room-alert info" style={{ marginBottom: 8 }}>
-          This auction has ended. You can still review your squad and open the
-          full summary report.
-        </div>
-      )}
-
       {error && <div className="auction-room-alert error">{error}</div>}
-      {actionMsg && (
-        <div className="auction-room-alert info">{actionMsg}</div>
-      )}
+      {info && <div className="auction-room-alert info">{info}</div>}
 
       <div className="auction-room-layout">
-        {/* Left: Live Player Card */}
+        {/* --------------------------- LEFT: LIVE PLAYER --------------------------- */}
         <div className="auction-live-panel">
           {!livePlayer ? (
             <div className="auction-room-empty">
@@ -345,115 +199,69 @@ const AuctionRoom = () => {
                 </div>
                 <div className="row">
                   <span>Base Price</span>
-                  <strong>{livePlayer.baseBidAmount} cr</strong>
+                  <strong>{livePlayer.basePrice} cr</strong>
                 </div>
                 <div className="row">
                   <span>Highest Bid</span>
                   <strong>
-                    {livePlayer.lastHighestBidAmount != null
-                      ? `${livePlayer.lastHighestBidAmount} cr`
-                      : "-"}
+                    {highestBid != null ? `${highestBid} cr` : "-"}
                   </strong>
                 </div>
                 <div className="row">
                   <span>Time Left</span>
                   <strong>
-                    {timeRemaining != null ? `${timeRemaining}s` : "-"}
+                    {timeLeft != null ? `${timeLeft}s` : "-"}
                   </strong>
                 </div>
               </div>
 
+              {/* -------------------- BID BUTTON -------------------- */}
               <div className="auction-bid-panel">
-                <div className="bid-label">
-                  {effectiveCanBid
-                    ? "Your bid button (next allowed bid):"
-                    : "Bidding currently disabled for you:"}
-                </div>
                 <button
                   className="bid-main-btn"
-                  disabled={!effectiveCanBid || placingBid}
                   onClick={handleBid}
+                  disabled={!livePlayer || placingBid}
                 >
                   {placingBid
                     ? "Placing..."
-                    : suggestedBid != null
-                    ? `Bid ${suggestedBid} cr`
-                    : "Bid"}
+                    : highestBid != null
+                    ? `Bid ${(highestBid + livePlayer.bidIncrement).toFixed(2)} cr`
+                    : `Bid ${livePlayer.basePrice} cr`}
                 </button>
-                {minAllowedBid != null && (
-                  <div className="bid-min-text">
-                    Minimum allowed bid: <strong>{minAllowedBid} cr</strong>
-                  </div>
-                )}
-                {(!effectiveCanBid || bidBlockedReason) && (
-                  <div className="bid-min-text">
-                    {bidBlockedReason
-                      ? bidBlockedReason
-                      : "You cannot bid at this moment."}
-                  </div>
-                )}
               </div>
             </div>
           )}
         </div>
 
-        {/* Right: User info + Admin mini controls */}
+        {/* --------------------------- RIGHT: SIDE PANEL --------------------------- */}
         <div className="auction-side-panel">
+          {/* PARTICIPANTS */}
           <div className="auction-user-card">
-            <h3>My Auction Status</h3>
-            <div className="row">
-              <span>Wallet</span>
-              <strong>
-                {userWallet != null ? `${userWallet.toFixed(2)} cr` : "-"}
-              </strong>
-            </div>
-            <div className="row">
-              <span>Squad Size</span>
-              <strong>
-                {userSquadSize} / {maxSquad}
-              </strong>
-            </div>
-            <div className="row">
-              <span>Participant Status</span>
-              <strong>{userContext?.participantStatus || "-"}</strong>
-            </div>
-            <div className="row">
-              <span>Active in this auction?</span>
-              <strong>
-                {userContext?.isActive === false
-                  ? "No"
-                  : userContext?.isActive === true
-                  ? "Yes"
-                  : "-"}
-              </strong>
-            </div>
-
-            {showExitButton && (
-              <button className="exit-btn" onClick={handleExitAuction}>
-                End my auction (I have {userSquadSize} players)
-              </button>
-            )}
+            <h3>Participants</h3>
+            <ul className="participant-list">
+              {participants.map((p) => (
+                <li key={p.userId}>
+                  {p.userId}
+                  {p.userId === userId && " (You)"}
+                </li>
+              ))}
+            </ul>
           </div>
 
-          {/* Admin quick controls – only visible for admins */}
+          {/* ADMIN CONTROLS */}
           {isAdmin && (
             <div className="auction-admin-mini">
-              <h3>Admin quick controls</h3>
-              <button className="admin-btn" onClick={handleAdminCloseRound}>
-                Close current round
-              </button>
-              <button className="admin-btn" onClick={handleAdminNextPlayer}>
-                Next player
-              </button>
+              <h3>Admin Controls</h3>
+              <button onClick={handleAdminCloseRound}>❎ Close Round</button>
+              <button onClick={handleAdminNextPlayer}>⏭ Next Player</button>
+              <button onClick={handleAdminEndAuction}>⛔ End Auction</button>
             </div>
           )}
         </div>
       </div>
 
       {loading && (
-        <div className="auction-room-alert info" style={{ marginTop: 12 }}>
-          Loading live auction data...
-        </div>
+        <div className="auction-room-alert info">Loading auction data…</div>
       )}
     </div>
   );

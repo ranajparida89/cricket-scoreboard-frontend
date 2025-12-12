@@ -120,12 +120,12 @@ const SidebarMenu = () => {
           </Link>
         </li>
 
-        {/* 💰 Player Auction */}
+      {/* 💰 Player Auction */}
         <li>
           <Link to="/auction" onClick={handleClose}>
             <FaGavel className="me-2 text-warning" /> Player Auction
           </Link>
-        </li>
+        </li> 
 
         {/* 🧮 Upcoming Matches */}
         {isAdmin && (
@@ -188,14 +188,6 @@ const SidebarMenu = () => {
                 Create New Board
               </Link>
             </li>
-             <li>
-                <Link to="/auction-player-pool" onClick={handleClose}>
-                  <span role="img" aria-label="pool" style={{ marginRight: 6 }}>
-                    📥
-                  </span>
-                  Auction Player Pool
-                </Link>
-              </li>
           </>
         )}
 

@@ -1,0 +1,55 @@
+/* src/components/AuctionList.css */
+
+.auction-list-page {
+  padding: 20px;
+  max-width: 900px;
+  margin: auto;
+  color: #fff;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.alert {
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.alert.error {
+  background: #ff4d4d;
+}
+
+.alert.info {
+  background: #22c55e;
+}
+
+.create-box {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.create-box input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.session-grid {
+  display: grid;
+  gap: 15px;
+}
+
+.session-card {
+  padding: 15px;
+  border-radius: 8px;
+  background: #1f2937;
+}
+
+.session-actions button {
+  margin: 5px;
+  padding: 6px 14px;
+}

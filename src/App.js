@@ -72,11 +72,9 @@ import AuctionLobby from "./components/AuctionLobby";
 import AuctionRoom from "./components/AuctionRoom";
 import AuctionMyPlayers from "./components/AuctionMyPlayers";
 import AuctionAdminConsole from "./components/AuctionAdminConsole";
-import AuctionPlayerPoolImport from "./components/AuctionPlayerPoolImport";
 import AuctionSummary from "./components/AuctionSummary";
+import PlayerPoolPage from "./components/PlayerPoolPage";
 import AuctionPlayerImport from "./components/AuctionPlayerImport";
-import AuctionPlayerPoolPage from "./components/AuctionPlayerPoolPage";
-
 
 function HomePage() {
   return (
@@ -522,10 +520,10 @@ function App() {
           <Route path="/auction/:auctionId" element={<AuctionRoom />} />
           <Route path="/auction/:auctionId/my-players" element={<AuctionMyPlayers />} />
           <Route path="/auction/:auctionId/admin" element={<AuctionAdminConsole />} />
-          <Route path="/auction-player-pool" element={<AuctionPlayerPoolImport />} />
           <Route path="/auction/:auctionId/summary" element={<AuctionSummary />} />
+          <Route path="/auction/:auctionId/player-pool" element={<PlayerPoolPage />} />
           <Route path="/auction/:auctionId/import-players" element={<AuctionPlayerImport />} />
-          <Route path="/auction/:auctionId/player-pool" element={<AuctionPlayerPoolPage />} />
+          
 
           <Route
             path="/tournament-points"
