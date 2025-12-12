@@ -1,13 +1,16 @@
 // src/components/AuctionLobby.js
+// FINAL version compatible with simpleAuctionRoutes backend
 
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import {
   fetchAuctionSessions,
   registerAsParticipant,
   createAuctionSession,
   getCurrentUserId,
 } from "../services/auctionApi";
+
 import "./AuctionLobby.css";
 
 const statusColors = {
@@ -27,19 +30,39 @@ const AuctionLobby = () => {
 
   const navigate = useNavigate();
   const userId = getCurrentUserId();
+
   const isAdmin =
     localStorage.getItem("isAdmin") === "true" ||
     localStorage.getItem("role") === "admin";
 
+  // -------------------------------------------------------------
+  // LOAD ALL AUCTION SESSIONS
+  // -------------------------------------------------------------
   const loadSessions = async () => {
     try {
       setLoading(true);
       setError("");
-      const data = await fetchAuctionSessions();
-      setSessions(data || []);
+
+      const raw = await fetchAuctionSessions();
+
+      // Convert snake_case → camelCase mapping
+      const mapped = raw.sessions
+        ? raw.sessions.map((s) => ({
+            auctionId: s.auction_id,
+            name: s.name,
+            status: s.status,
+            maxSquadSize: s.max_squad_size,
+            initialWalletAmount: s.initial_wallet_amount,
+            bidTimerSeconds: s.bid_timer_seconds,
+            minIncrement: s.min_bid_increment,
+            totalPlayers: s.total_players ?? 0,
+          }))
+        : [];
+
+      setSessions(mapped);
     } catch (err) {
-      console.error("Error loading auction sessions:", err);
-      setError("Unable to load auction sessions. Please try again.");
+      console.error("Error loading sessions:", err);
+      setError("Unable to load auction sessions.");
     } finally {
       setLoading(false);
     }
@@ -49,88 +72,76 @@ const AuctionLobby = () => {
     loadSessions();
   }, []);
 
+  // -------------------------------------------------------------
+  // JOIN AUCTION
+  // -------------------------------------------------------------
   const handleJoin = async (auctionId) => {
     try {
       setBusyId(auctionId);
       setError("");
       setInfo("");
+
       await registerAsParticipant(auctionId, userId);
-      setInfo("You are registered for this auction.");
+      setInfo("You have joined this auction.");
     } catch (err) {
-      console.error("Error joining auction:", err);
-      const msg =
-        err?.response?.data?.error ||
-        err?.message ||
-        "Failed to join auction.";
-      setError(msg);
+      console.error("Join error:", err);
+      setError(err?.response?.data?.error || "Failed to join auction.");
     } finally {
       setBusyId(null);
     }
   };
 
-  const handleEnterRoom = (auctionId) => {
-    navigate(`/auction/${auctionId}`);
-  };
+  // -------------------------------------------------------------
+  // ENTER ROOM / MY PLAYERS / ADMIN
+  // -------------------------------------------------------------
+  const handleEnterRoom = (id) => navigate(`/auction/${id}`);
+  const handleMyPlayers = (id) => navigate(`/auction/${id}/my-players`);
+  const handleAdminConsole = (id) => navigate(`/auction/${id}/admin`);
+  const handleSummary = (id) => navigate(`/auction/${id}/summary`);
 
-  const handleMyPlayers = (auctionId) => {
-    navigate(`/auction/${auctionId}/my-players`);
-  };
-
-  const handleAdminConsole = (auctionId) => {
-    navigate(`/auction/${auctionId}/admin`);
-  };
-
-  const handleSummary = (auctionId) => {
-    navigate(`/auction/${auctionId}/summary`);
-  };
-
-  // Admin-only: quick create session using full player pool & default settings
+  // -------------------------------------------------------------
+  // CREATE NEW AUCTION SESSION (ADMIN ONLY)
+  // -------------------------------------------------------------
   const handleCreateSession = async () => {
-    const name = window.prompt(
-      "Enter auction name (e.g. 'IPL Mega Auction 2026'):"
-    );
-    if (!name || !name.trim()) {
-      return;
-    }
+    const name = window.prompt("Enter auction name:");
+    if (!name || !name.trim()) return;
+
     try {
       setCreating(true);
       setError("");
       setInfo("");
 
+      // backend expects only basic fields
       const payload = {
         name: name.trim(),
-        // useEntirePool = true by default in backend,
-        // but we pass it explicitly for clarity
-        useEntirePool: true,
+        maxSquadSize: 13,
+        initialWalletAmount: 120,
+        bidTimerSeconds: 30,
+        minBidIncrement: 0.5,
       };
 
       const res = await createAuctionSession(payload);
-      setInfo(
-        res?.message ||
-          `Auction '${payload.name}' created with ${res?.session?.attachedPlayers ?? 0
-          } players.`
-      );
-      await loadSessions();
+
+      setInfo(`Auction "${payload.name}" created successfully.`);
+      loadSessions();
     } catch (err) {
-      console.error("Error creating auction session:", err);
-      const msg =
-        err?.response?.data?.error ||
-        err?.message ||
-        "Failed to create auction session.";
-      setError(msg);
+      console.error("Create session error:", err);
+      setError(err?.response?.data?.error || "Failed to create auction.");
     } finally {
       setCreating(false);
     }
   };
 
+  // -------------------------------------------------------------
+  // UI
+  // -------------------------------------------------------------
   return (
     <div className="auction-lobby-page">
       <div className="auction-lobby-header">
         <div>
           <h1>CrickEdge Auction Lobby</h1>
           <p className="auction-lobby-subtitle">
-            Join an ongoing auction or, if you&apos;re admin, create a new one
-            from the player pool.
+            Join an ongoing auction, or create a new one (admin only).
           </p>
         </div>
 
@@ -154,23 +165,14 @@ const AuctionLobby = () => {
       {error && <div className="auction-lobby-alert error">{error}</div>}
       {info && <div className="auction-lobby-alert info">{info}</div>}
 
+      {/* ------------------- MAIN LIST ------------------- */}
       {loading ? (
         <div className="auction-lobby-loading">Loading sessions...</div>
       ) : sessions.length === 0 ? (
         <div className="auction-lobby-empty">
-          {isAdmin ? (
-            <>
-              No auction sessions found yet.
-              <br />
-              Use <strong>&quot;➕ Create Auction Session&quot;</strong> to
-              create one using the current Auction Player Pool.
-            </>
-          ) : (
-            <>
-              No auction sessions found. Please contact your admin to create a
-              new auction.
-            </>
-          )}
+          {isAdmin
+            ? "No auction sessions created yet. Use 'Create Auction Session'."
+            : "No auctions available. Contact your admin."}
         </div>
       ) : (
         <div className="auction-lobby-grid">
@@ -200,10 +202,6 @@ const AuctionLobby = () => {
                 <div className="auction-meta-row">
                   <span>Bid Timer:</span>
                   <strong>{s.bidTimerSeconds} sec</strong>
-                </div>
-                <div className="auction-meta-row">
-                  <span>Players in pool:</span>
-                  <strong>{s.totalPlayers}</strong>
                 </div>
               </div>
 

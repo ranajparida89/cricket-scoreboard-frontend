@@ -1,5 +1,5 @@
 // src/components/AuctionRoom.js
-// Works with simplified auction backend (simpleAuctionRoutes)
+// Updated to fully match simpleAuctionRoutes backend
 
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -51,7 +51,7 @@ const AuctionRoom = () => {
     }
   };
 
-  const loadParticipants = async () => {
+  const loadParticipantsList = async () => {
     try {
       const res = await fetchParticipants(auctionId);
       setParticipants(res.participants || []);
@@ -62,11 +62,11 @@ const AuctionRoom = () => {
 
   useEffect(() => {
     loadLive();
-    loadParticipants();
+    loadParticipantsList();
 
     pollRef.current = setInterval(() => {
       loadLive();
-      loadParticipants();
+      loadParticipantsList();
     }, POLL_INTERVAL);
 
     return () => clearInterval(pollRef.current);
@@ -74,24 +74,31 @@ const AuctionRoom = () => {
 
   const auction = liveState?.auction || null;
   const livePlayer = liveState?.livePlayer || null;
-  const highestBid = liveState?.highestBid || null;
+  const highestBid = liveState?.highestBid ?? null;
   const timeLeft = liveState?.timeLeft ?? null;
 
   // ---------------------------------------------------------
-  // HANDLE BID
+  // HANDLE BID — FIXED
   // ---------------------------------------------------------
   const handleBid = async () => {
     if (!livePlayer) return;
 
     const nextBid =
       highestBid != null
-        ? (highestBid + livePlayer.bidIncrement).toFixed(2)
-        : livePlayer.basePrice.toFixed(2);
+        ? (highestBid + livePlayer.bid_increment).toFixed(2)
+        : Number(livePlayer.base_bid_amount).toFixed(2);
 
     try {
       setPlacingBid(true);
-      const res = await placeBid(auctionId, Number(nextBid), userId);
-      setInfo(res.message || "Bid placed.");
+
+      await placeBid(
+        auctionId,
+        livePlayer.session_player_id, // FIXED
+        Number(nextBid),
+        userId
+      );
+
+      setInfo(`Bid placed: ${nextBid} cr`);
     } catch (err) {
       console.error("Bid error:", err);
       setError("Failed to place bid.");
@@ -169,18 +176,16 @@ const AuctionRoom = () => {
       {info && <div className="auction-room-alert info">{info}</div>}
 
       <div className="auction-room-layout">
-        {/* --------------------------- LEFT: LIVE PLAYER --------------------------- */}
+        {/* LEFT PANEL */}
         <div className="auction-live-panel">
           {!livePlayer ? (
             <div className="auction-room-empty">
-              {auction?.status === "RUNNING"
-                ? "Waiting for admin to start next player..."
-                : "No live player currently."}
+              Waiting for admin to load next player...
             </div>
           ) : (
             <div className="auction-live-card">
               <div className="auction-live-header">
-                <h2>{livePlayer.playerName}</h2>
+                <h2>{livePlayer.player_name}</h2>
                 <span className="live-tag">LIVE</span>
               </div>
 
@@ -191,7 +196,7 @@ const AuctionRoom = () => {
                 </div>
                 <div className="row">
                   <span>Skill</span>
-                  <strong>{livePlayer.skillType}</strong>
+                  <strong>{livePlayer.skill_type}</strong>
                 </div>
                 <div className="row">
                   <span>Category</span>
@@ -199,43 +204,38 @@ const AuctionRoom = () => {
                 </div>
                 <div className="row">
                   <span>Base Price</span>
-                  <strong>{livePlayer.basePrice} cr</strong>
+                  <strong>{livePlayer.base_bid_amount} cr</strong>
                 </div>
                 <div className="row">
                   <span>Highest Bid</span>
-                  <strong>
-                    {highestBid != null ? `${highestBid} cr` : "-"}
-                  </strong>
+                  <strong>{highestBid ?? "-"}</strong>
                 </div>
                 <div className="row">
                   <span>Time Left</span>
-                  <strong>
-                    {timeLeft != null ? `${timeLeft}s` : "-"}
-                  </strong>
+                  <strong>{timeLeft ?? "-"}s</strong>
                 </div>
               </div>
 
-              {/* -------------------- BID BUTTON -------------------- */}
+              {/* Bid Button */}
               <div className="auction-bid-panel">
                 <button
                   className="bid-main-btn"
                   onClick={handleBid}
-                  disabled={!livePlayer || placingBid}
+                  disabled={placingBid}
                 >
                   {placingBid
                     ? "Placing..."
                     : highestBid != null
-                    ? `Bid ${(highestBid + livePlayer.bidIncrement).toFixed(2)} cr`
-                    : `Bid ${livePlayer.basePrice} cr`}
+                    ? `Bid ${(highestBid + livePlayer.bid_increment).toFixed(2)} cr`
+                    : `Bid ${livePlayer.base_bid_amount} cr`}
                 </button>
               </div>
             </div>
           )}
         </div>
 
-        {/* --------------------------- RIGHT: SIDE PANEL --------------------------- */}
+        {/* RIGHT PANEL */}
         <div className="auction-side-panel">
-          {/* PARTICIPANTS */}
           <div className="auction-user-card">
             <h3>Participants</h3>
             <ul className="participant-list">
@@ -248,7 +248,6 @@ const AuctionRoom = () => {
             </ul>
           </div>
 
-          {/* ADMIN CONTROLS */}
           {isAdmin && (
             <div className="auction-admin-mini">
               <h3>Admin Controls</h3>

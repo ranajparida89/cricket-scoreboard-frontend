@@ -1,5 +1,5 @@
 // src/components/AuctionAdminConsole.js
-// Simple admin panel for simplified auction backend
+// Updated for simpleAuctionRoutes backend (FINAL)
 
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -60,7 +60,7 @@ const AuctionAdminConsole = () => {
   }, [auctionId]);
 
   // ---------------------------------------------------------
-  // ADMIN BUTTON ACTIONS
+  // ADMIN ACTIONS
   // ---------------------------------------------------------
   const handleStart = async () => {
     try {
@@ -155,17 +155,21 @@ const AuctionAdminConsole = () => {
           <button onClick={() => navigate(`/auction/${auctionId}`)}>
             ← Back to Room
           </button>
+
           <button onClick={() => navigate(`/auction/${auctionId}/import-players`)}>
             📦 Import Player Pool
           </button>
+
           <button onClick={() => navigate(`/auction/${auctionId}/player-pool`)}>
             👀 View Player Pool
           </button>
+
           {auction?.status === "ENDED" && (
             <button onClick={() => navigate(`/auction/${auctionId}/summary`)}>
               📊 Summary
             </button>
           )}
+
           <button onClick={loadAll}>⟳ Refresh</button>
           <button onClick={() => navigate("/auction")}>Lobby</button>
         </div>
@@ -208,7 +212,7 @@ const AuctionAdminConsole = () => {
           <div className="live-info">
             <div className="row">
               <span>Name</span>
-              <strong>{livePlayer.playerName}</strong>
+              <strong>{livePlayer.player_name}</strong>
             </div>
             <div className="row">
               <span>Country</span>
@@ -216,7 +220,7 @@ const AuctionAdminConsole = () => {
             </div>
             <div className="row">
               <span>Skill</span>
-              <strong>{livePlayer.skillType}</strong>
+              <strong>{livePlayer.skill_type}</strong>
             </div>
             <div className="row">
               <span>Category</span>
@@ -224,7 +228,7 @@ const AuctionAdminConsole = () => {
             </div>
             <div className="row">
               <span>Base Price</span>
-              <strong>{livePlayer.basePrice} cr</strong>
+              <strong>{livePlayer.base_bid_amount} cr</strong>
             </div>
             <div className="row">
               <span>Highest Bid</span>
