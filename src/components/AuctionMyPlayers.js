@@ -1,9 +1,9 @@
 // src/components/AuctionMyPlayers.js
-// "My Players" room – shows squad + wallet for current user in a given auction
+// Updated for NEW simplified auction system (simpleAuctionRoutes)
 
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { fetchMyPlayers, getCurrentUserId } from "../services/auctionApi";
+import { fetchAuctionSummary, getCurrentUserId } from "../services/auctionApi";
 import "./AuctionMyPlayers.css";
 
 const AuctionMyPlayers = () => {
@@ -11,7 +11,9 @@ const AuctionMyPlayers = () => {
   const navigate = useNavigate();
   const userId = getCurrentUserId();
 
-  const [data, setData] = useState(null);
+  const [players, setPlayers] = useState([]);
+  const [auction, setAuction] = useState(null);
+  const [wallet, setWallet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -19,8 +21,21 @@ const AuctionMyPlayers = () => {
     try {
       setLoading(true);
       setError("");
-      const res = await fetchMyPlayers(auctionId, userId);
-      setData(res);
+
+      const summary = await fetchAuctionSummary(auctionId);
+
+      // Auction details
+      setAuction(summary?.auction || null);
+
+      // Wallet filtering for this user
+      const myWallet = summary?.wallets?.find((w) => w.user_id === userId) || null;
+      setWallet(myWallet);
+
+      // Player filtering for this user
+      const myPlayers =
+        summary?.squads?.filter((p) => p.user_id === userId) || [];
+
+      setPlayers(myPlayers);
     } catch (err) {
       console.error("Error loading my players:", err);
       const msg =
@@ -35,17 +50,14 @@ const AuctionMyPlayers = () => {
 
   useEffect(() => {
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auctionId, userId]);
 
-  const auction = data?.auction || null;
-  const wallet = data?.wallet || null;
-  const players = data?.players || [];
-  const squadSize = data?.squadSize ?? 0;
-  const maxSquad = auction?.maxSquadSize ?? 13;
+  const squadSize = players.length;
+  const maxSquad = auction?.max_squad_size ?? 13;
 
   return (
     <div className="my-players-page">
+      {/* HEADER */}
       <div className="my-players-header">
         <div>
           <h1>My Players</h1>
@@ -66,13 +78,12 @@ const AuctionMyPlayers = () => {
           >
             ← Back to Auction Room
           </button>
+
           <button className="btn-outline" onClick={loadData}>
             ⟳ Refresh
           </button>
-          <button
-            className="btn-outline"
-            onClick={() => navigate("/auction")}
-          >
+
+          <button className="btn-outline" onClick={() => navigate("/auction")}>
             Lobby
           </button>
         </div>
@@ -80,29 +91,21 @@ const AuctionMyPlayers = () => {
 
       {error && <div className="my-players-alert error">{error}</div>}
 
+      {/* WALLET SECTION */}
       {wallet && (
         <div className="my-players-wallet">
           <div className="wallet-card">
             <span className="label">Initial Wallet</span>
-            <span className="value">{wallet.initialAmount} cr</span>
+            <span className="value">{wallet.initial_amount} cr</span>
           </div>
           <div className="wallet-card">
-            <span className="label">Spent</span>
-            <span className="value">{wallet.spent.toFixed(2)} cr</span>
-          </div>
-          <div className="wallet-card">
-            <span className="label">Remaining</span>
-            <span className="value">
-              {wallet.currentBalance.toFixed(2)} cr
-            </span>
-          </div>
-          <div className="wallet-card">
-            <span className="label">Status</span>
-            <span className="value">{wallet.status}</span>
+            <span className="label">Current Balance</span>
+            <span className="value">{wallet.current_balance} cr</span>
           </div>
         </div>
       )}
 
+      {/* PLAYERS TABLE */}
       {loading ? (
         <div className="my-players-loading">Loading your squad...</div>
       ) : players.length === 0 ? (
@@ -119,37 +122,20 @@ const AuctionMyPlayers = () => {
                 <th>Country</th>
                 <th>Skill</th>
                 <th>Category</th>
-                <th>Base Price</th>
                 <th>Purchase Price</th>
-                <th>Diff</th>
-                <th>Purchased At</th>
               </tr>
             </thead>
             <tbody>
-              {players.map((p, idx) => {
-                const base = Number(p.baseBidAmount || 0);
-                const price = Number(p.purchasePrice || 0);
-                const diff = Number((price - base).toFixed(2));
-                return (
-                  <tr key={p.squadPlayerId}>
-                    <td>{idx + 1}</td>
-                    <td>{p.playerName}</td>
-                    <td>{p.country}</td>
-                    <td>{p.skillType}</td>
-                    <td>{p.category}</td>
-                    <td>{base} cr</td>
-                    <td>{price} cr</td>
-                    <td className={diff >= 0 ? "pos" : "neg"}>
-                      {diff >= 0 ? `+${diff}` : diff} cr
-                    </td>
-                    <td>
-                      {p.createdAt
-                        ? new Date(p.createdAt).toLocaleString()
-                        : "-"}
-                    </td>
-                  </tr>
-                );
-              })}
+              {players.map((p, idx) => (
+                <tr key={p.squad_player_id}>
+                  <td>{idx + 1}</td>
+                  <td>{p.player_name}</td>
+                  <td>{p.country}</td>
+                  <td>{p.skill_type}</td>
+                  <td>{p.category}</td>
+                  <td>{p.purchase_price} cr</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
