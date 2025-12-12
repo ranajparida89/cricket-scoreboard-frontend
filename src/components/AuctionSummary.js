@@ -1,23 +1,26 @@
 // src/components/AuctionSummary.js
-// Phase 10 – Auction finish report & summary screen
+// Updated for simpleAuctionRoutes backend – removes old fetchParticipantsForAuction
 
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+
 import {
   fetchAuctionSummary,
-  fetchParticipantsForAuction,
+  fetchParticipants,      // ✅ FIXED
   getCurrentUserId,
 } from "../services/auctionApi";
+
 import "./AuctionSummary.css";
 
 const AuctionSummary = () => {
   const { auctionId } = useParams();
   const navigate = useNavigate();
-  const userId = getCurrentUserId(); // not strictly needed, but useful if later you want personal highlighting
+  const userId = getCurrentUserId();
   const isAdmin = localStorage.getItem("isAdmin") === "true";
 
   const [summary, setSummary] = useState(null);
   const [participantsData, setParticipantsData] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -27,13 +30,13 @@ const AuctionSummary = () => {
         setLoading(true);
         setError("");
 
-        const [sumRes, partRes] = await Promise.all([
+        const [summaryRes, participantsRes] = await Promise.all([
           fetchAuctionSummary(auctionId),
-          fetchParticipantsForAuction(auctionId),
+          fetchParticipants(auctionId),     // ✅ FIXED
         ]);
 
-        setSummary(sumRes);
-        setParticipantsData(partRes);
+        setSummary(summaryRes);
+        setParticipantsData(participantsRes);
       } catch (err) {
         console.error("Error loading auction summary:", err);
         const msg =
@@ -54,13 +57,14 @@ const AuctionSummary = () => {
   const participantCounts = summary?.participantCounts || null;
   const topSpenders = summary?.topSpenders || [];
   const soldPlayers = summary?.soldPlayers || [];
+
+  // New backend sends participants under participantsData.participants
   const participants = participantsData?.participants || [];
 
   const formatDateTime = (value) => {
     if (!value) return "-";
     try {
-      const d = new Date(value);
-      return d.toLocaleString();
+      return new Date(value).toLocaleString();
     } catch {
       return String(value);
     }
@@ -71,15 +75,18 @@ const AuctionSummary = () => {
       <div className="auction-summary-header">
         <div>
           <h1>Auction Summary</h1>
+
           {auction && (
             <p className="auction-summary-subtitle">
-              Auction: <strong>{auction.name}</strong> &nbsp;•&nbsp; Status:{" "}
+              Auction: <strong>{auction.name}</strong>
+              &nbsp;•&nbsp;
               <span className={`tag tag-${auction.status?.toLowerCase()}`}>
                 {auction.status}
               </span>
               <br />
-              Created: {formatDateTime(auction.createdAt)} &nbsp;|&nbsp; Ended:{" "}
-              {formatDateTime(auction.endedAt)}
+              Created: {formatDateTime(auction.createdAt)}
+              &nbsp;|&nbsp;
+              Ended: {formatDateTime(auction.endedAt)}
             </p>
           )}
         </div>
@@ -91,6 +98,7 @@ const AuctionSummary = () => {
           >
             ← Back to Auction Room
           </button>
+
           <button
             className="summary-btn-outline"
             onClick={() => navigate("/auction")}
@@ -103,16 +111,14 @@ const AuctionSummary = () => {
       {error && <div className="auction-summary-alert error">{error}</div>}
 
       {loading && !summary ? (
-        <div className="auction-summary-alert info">
-          Loading auction summary...
-        </div>
+        <div className="auction-summary-alert info">Loading auction summary...</div>
       ) : !summary ? (
         <div className="auction-summary-alert error">
-          No summary information found for this auction.
+          No summary found for this auction.
         </div>
       ) : (
         <>
-          {/* Top cards – players + participants overview */}
+          {/* PLAYER & PARTICIPANT OVERVIEW */}
           <div className="summary-top-grid">
             <div className="summary-card">
               <h3>Players</h3>
@@ -132,9 +138,8 @@ const AuctionSummary = () => {
                 <div>
                   <span>Pending/Reclaimed</span>
                   <strong>
-                    {((playerCounts?.pending || 0) +
-                      (playerCounts?.reclaimed || 0)) ??
-                      "-"}
+                    {(playerCounts?.pending || 0) +
+                      (playerCounts?.reclaimed || 0)}
                   </strong>
                 </div>
               </div>
@@ -170,31 +175,24 @@ const AuctionSummary = () => {
                   <strong>{auction?.maxSquadSize ?? "-"}</strong>
                 </div>
                 <div>
-                  <span>Min Exit Squad</span>
-                  <strong>{auction?.minExitSquadSize ?? "-"}</strong>
-                </div>
-                <div>
                   <span>Initial Wallet</span>
-                  <strong>
-                    {auction?.initialWalletAmount != null
-                      ? `${auction.initialWalletAmount} cr`
-                      : "-"}
-                  </strong>
+                  <strong>{auction?.initialWalletAmount ?? "-"} cr</strong>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Top spenders */}
+          {/* TOP SPENDERS */}
           <div className="summary-section-card">
             <div className="summary-section-header">
               <h3>Top Spenders</h3>
               <span className="summary-section-caption">
-                Based on wallet spent (initial - current)
+                Based on wallet spent
               </span>
             </div>
+
             {topSpenders.length === 0 ? (
-              <div className="summary-empty">No spending data available.</div>
+              <div className="summary-empty">No spenders yet.</div>
             ) : (
               <div className="summary-table-wrap">
                 <table className="summary-table">
@@ -202,26 +200,24 @@ const AuctionSummary = () => {
                     <tr>
                       <th>#</th>
                       <th>User ID</th>
-                      <th>Squad Size</th>
-                      <th>Wallet Initial</th>
-                      <th>Wallet Spent</th>
-                      <th>Wallet Balance</th>
+                      <th>Squad</th>
+                      <th>Initial</th>
+                      <th>Spent</th>
+                      <th>Balance</th>
                     </tr>
                   </thead>
                   <tbody>
                     {topSpenders.map((p, idx) => (
                       <tr
-                        key={`${p.userId}-${idx}`}
-                        className={
-                          p.userId === userId ? "summary-row-highlight" : ""
-                        }
+                        key={p.userId}
+                        className={p.userId === userId ? "summary-row-highlight" : ""}
                       >
                         <td>{idx + 1}</td>
                         <td>{p.userId}</td>
                         <td>{p.squadSize}</td>
-                        <td>{p.walletInitial} cr</td>
-                        <td>{p.walletSpent.toFixed(2)} cr</td>
-                        <td>{p.walletBalance.toFixed(2)} cr</td>
+                        <td>{p.walletInitial}</td>
+                        <td>{p.walletSpent.toFixed(2)}</td>
+                        <td>{p.walletBalance.toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -230,18 +226,14 @@ const AuctionSummary = () => {
             )}
           </div>
 
-          {/* Participants full table */}
+          {/* PARTICIPANTS TABLE */}
           <div className="summary-section-card">
             <div className="summary-section-header">
               <h3>Participants Overview</h3>
-              <span className="summary-section-caption">
-                All admins & bidders in this auction
-              </span>
             </div>
-            {!participantsData ? (
-              <div className="summary-empty">No participant data.</div>
-            ) : participants.length === 0 ? (
-              <div className="summary-empty">No one joined this auction.</div>
+
+            {participants.length === 0 ? (
+              <div className="summary-empty">No participants joined.</div>
             ) : (
               <div className="summary-table-wrap">
                 <table className="summary-table">
@@ -249,34 +241,17 @@ const AuctionSummary = () => {
                     <tr>
                       <th>#</th>
                       <th>User ID</th>
-                      <th>Role</th>
                       <th>Status</th>
                       <th>Active</th>
-                      <th>Squad Size</th>
-                      <th>Wallet Initial</th>
-                      <th>Wallet Spent</th>
-                      <th>Wallet Balance</th>
                     </tr>
                   </thead>
                   <tbody>
                     {participants.map((p, idx) => (
-                      <tr
-                        key={`${p.userId}-${p.roleInAuction}`}
-                        className={
-                          p.userId === userId ? "summary-row-highlight" : ""
-                        }
-                      >
+                      <tr key={p.userId}>
                         <td>{idx + 1}</td>
                         <td>{p.userId}</td>
-                        <td>{p.roleInAuction}</td>
                         <td>{p.status}</td>
                         <td>{p.isActive ? "Yes" : "No"}</td>
-                        <td>
-                          {p.squadSize} / {auction?.maxSquadSize ?? "-"}
-                        </td>
-                        <td>{p.walletInitial} cr</td>
-                        <td>{p.walletSpent.toFixed(2)} cr</td>
-                        <td>{p.walletBalance.toFixed(2)} cr</td>
                       </tr>
                     ))}
                   </tbody>
@@ -285,16 +260,14 @@ const AuctionSummary = () => {
             )}
           </div>
 
-          {/* Sold players list */}
+          {/* SOLD PLAYERS */}
           <div className="summary-section-card">
             <div className="summary-section-header">
               <h3>Sold Players</h3>
-              <span className="summary-section-caption">
-                Final list of bought players (with price & buyer)
-              </span>
             </div>
+
             {soldPlayers.length === 0 ? (
-              <div className="summary-empty">No players were SOLD.</div>
+              <div className="summary-empty">No players sold.</div>
             ) : (
               <div className="summary-table-wrap">
                 <table className="summary-table">
@@ -305,9 +278,9 @@ const AuctionSummary = () => {
                       <th>Country</th>
                       <th>Skill</th>
                       <th>Category</th>
-                      <th>Base Price</th>
+                      <th>Base</th>
                       <th>Sold Price</th>
-                      <th>Buyer (userId)</th>
+                      <th>Buyer</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -318,28 +291,14 @@ const AuctionSummary = () => {
                         <td>{sp.country}</td>
                         <td>{sp.skillType}</td>
                         <td>{sp.category}</td>
-                        <td>{sp.baseBidAmount} cr</td>
-                        <td>
-                          {sp.finalBidAmount != null
-                            ? `${sp.finalBidAmount.toFixed(2)} cr`
-                            : "-"}
-                        </td>
-                        <td>{sp.soldToUserId || "-"}</td>
+                        <td>{sp.baseBidAmount}</td>
+                        <td>{sp.finalBidAmount}</td>
+                        <td>{sp.soldToUserId}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            )}
-          </div>
-
-          {/* Small footer note */}
-          <div className="summary-footer-note">
-            {isAdmin && (
-              <span>
-                You are viewing as <strong>Admin</strong>. Use this report for
-                line-up planning or exporting data.
-              </span>
             )}
           </div>
         </>
