@@ -68,13 +68,13 @@ import PastMatchesHub from "./components/PastMatchesHub";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import PlayerReportCard from "./components/PlayerReportCard";
-import AuctionLobby from "./components/AuctionLobby";
-import AuctionRoom from "./components/AuctionRoom";
-import AuctionMyPlayers from "./components/AuctionMyPlayers";
-import AuctionAdminConsole from "./components/AuctionAdminConsole";
-import AuctionSummary from "./components/AuctionSummary";
-import PlayerPoolPage from "./components/PlayerPoolPage";
-import AuctionPlayerImport from "./components/AuctionPlayerImport";
+//import AuctionLobby from "./components/AuctionLobby";
+//import AuctionRoom from "./components/AuctionRoom";
+//import AuctionMyPlayers from "./components/AuctionMyPlayers";
+//import AuctionAdminConsole from "./components/AuctionAdminConsole";
+//import AuctionSummary from "./components/AuctionSummary";
+//import PlayerPoolPage from "./components/PlayerPoolPage";
+//import AuctionPlayerImport from "./components/AuctionPlayerImport";
 
 function HomePage() {
   return (
@@ -516,15 +516,7 @@ function App() {
           <Route path="/team-distributor" element={<TeamDistributor />} />
           <Route path="/past-matches" element={<PastMatchesHub />} />
           <Route path="/player-report-card" element={<PlayerReportCard />} />
-          <Route path="/auction" element={<AuctionLobby />} />
-          <Route path="/auction/:auctionId" element={<AuctionRoom />} />
-          <Route path="/auction/:auctionId/my-players" element={<AuctionMyPlayers />} />
-          <Route path="/auction/:auctionId/admin" element={<AuctionAdminConsole />} />
-          <Route path="/auction/:auctionId/summary" element={<AuctionSummary />} />
-          <Route path="/auction/:auctionId/player-pool" element={<PlayerPoolPage />} />
-          <Route path="/auction/:auctionId/import-players" element={<AuctionPlayerImport />} />
           
-
           <Route
             path="/tournament-points"
             element={
