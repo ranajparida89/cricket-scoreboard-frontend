@@ -1,13 +1,10 @@
-/* Dark premium theme + simpler 2-lane board + collapsible roster + GOLD soft-glow “i” button
-   UPDATED:
-   - Spacing/gaps increased (less compressed)
-   - Soft green highlight for multi-format players (.multi)
-   - Team row styles (+ Team)
-   - Danger zone styles for "Delete from ALL formats"
-   - Toast backgrounds for success/error
-   - OCR Import modal fully dark themed
-*/
+/* =========================================================
+   SquadLineup.css – MOBILE RESPONSIVE UPDATE
+   JS FILE: NO CHANGE REQUIRED
+   Author: CrickEdge (Ranaj)
+   ========================================================= */
 
+/* ===================== ROOT ===================== */
 :root{
   --panel:#0f1b28;
   --panel-2:#13263a;
@@ -19,275 +16,280 @@
   --danger:#ff6b6b;
   --ok:#32d296;
 
-  /* NEW – soft green highlight for multi-membership */
   --multi-bg: rgba(50, 210, 150, .10);
   --multi-br: rgba(50, 210, 150, .28);
 }
 
-.sq-wrap { padding:22px; color:var(--ink); } /* ↑ spacing */
+/* ===================== BASE ===================== */
+.sq-wrap {
+  padding:22px;
+  color:var(--ink);
+  max-width:100%;
+  overflow-x:hidden; /* 🔑 mobile safety */
+}
 
-/* Title & steps */
-.sq-title { display:flex; flex-direction:column; gap:8px; } /* ↑ gap */
-.sq-title-line { display:flex; align-items:center; gap:10px; } /* ↑ gap */
-.sq-big { font-size:1.5rem; font-weight:800; letter-spacing:.2px; }
-.sq-steps { display:flex; flex-wrap:wrap; gap:8px; opacity:.9; } /* ↑ gap */
-.sq-step { background:#0d2636; border:1px solid rgba(255,255,255,.08); padding:6px 10px; border-radius:999px; font-size:.85rem; }
+/* ===================== HEADER ===================== */
+.sq-header {
+  display:grid;
+  grid-template-columns: 1fr auto;
+  gap:18px;
+  align-items:center;
+  margin-bottom:14px;
+}
+
+@media (max-width: 900px){
+  .sq-header{
+    grid-template-columns:1fr;
+  }
+}
+
+.sq-ctlbar {
+  display:flex;
+  gap:18px;
+  align-items:flex-end;
+  justify-content:flex-end;
+  flex-wrap:wrap; /* 🔑 prevent overflow */
+}
+
+/* ===================== TITLE ===================== */
+.sq-title { display:flex; flex-direction:column; gap:8px; }
+.sq-title-line { display:flex; align-items:center; gap:10px; }
+.sq-big { font-size:1.5rem; font-weight:800; }
+.sq-steps { display:flex; flex-wrap:wrap; gap:8px; opacity:.9; }
+
+.sq-step {
+  background:#0d2636;
+  border:1px solid rgba(255,255,255,.08);
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:.85rem;
+}
 .sq-step.on { border-color: rgba(56,199,187,.35); }
 
-/* Header controls */
-.sq-header { display:grid; grid-template-columns: 1fr auto; gap:18px; align-items:center; margin-bottom:14px; } /* ↑ gaps */
-.sq-ctlbar { display:flex; gap:18px; align-items:flex-end; justify-content:flex-end; flex-wrap:wrap; }
-.sq-mini { font-size:.8rem; opacity:.8; display:block; margin-bottom:6px; } /* ↑ space */
+/* ===================== TEAM SELECT ===================== */
+.sq-team-select {
+  display:flex;
+  flex-direction:column;
+  min-width:220px;
+  width:100%;
+}
 
-.sq-team-select { display:flex; flex-direction:column; min-width:220px; } /* ↑ width for clarity */
-/* NEW – team row (selector + '+ Team' button) */
-.sq-team-row { display:flex; gap:10px; align-items:center; }
+.sq-team-row {
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap; /* 🔑 */
+  align-items:center;
+}
 
-.sq-select { background:var(--panel); color:var(--ink); border:1px solid rgba(255,255,255,.12); padding:12px 14px; border-radius:12px; } /* ↑ padding */
+/* ===================== INPUTS ===================== */
+.sq-input,
+.sq-select,
+.sq-role {
+  width:100%;
+  max-width:100%;
+  background:var(--panel);
+  color:var(--ink);
+  border:1px solid rgba(255,255,255,.14);
+  padding:12px 14px;
+  border-radius:12px;
+}
 
-.sq-format-tabs { display:flex; gap:10px; }
-.sq-tab { padding:10px 16px; border:1px solid rgba(255,255,255,.12); background:var(--panel); color:var(--ink); border-radius:12px; }
-.sq-tab.active { border-color:var(--accent); box-shadow:0 0 0 2px rgba(56,199,187,.15) inset; }
+/* ===================== TABS ===================== */
+.sq-format-tabs {
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
 
-.sq-import { display:flex; flex-direction:column; }
-.sq-import-row { display:flex; gap:10px; }
-.sq-btn.ghost { background:transparent; border:1px solid rgba(255,255,255,.18); color:var(--ink); padding:10px 14px; border-radius:10px; }
+.sq-tab {
+  padding:10px 16px;
+  border:1px solid rgba(255,255,255,.12);
+  background:var(--panel);
+  color:var(--ink);
+  border-radius:12px;
+}
+.sq-tab.active {
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(56,199,187,.15) inset;
+}
 
-/* Add bar */
-.sq-addbar { display:flex; gap:12px; align-items:center; margin-top:8px; } /* ↑ gap */
-.sq-add-left { position:relative; flex:1; min-width:480px; } /* make the typing field roomy */
-.sq-input { width:100%; background:var(--panel); color:var(--ink); border:1px solid rgba(255,255,255,.14); padding:12px 14px; border-radius:12px; } /* ↑ padding */
-.sq-role { background:var(--panel); color:var(--ink); border:1px solid rgba(255,255,255,.14); padding:12px 14px; border-radius:12px; }
-.sq-btn { background:#203652; color:var(--ink); border:1px solid rgba(255,255,255,.12); padding:12px 16px; border-radius:12px; transition:transform .05s ease, filter .15s ease; }
-.sq-btn:hover { filter:brightness(1.05); }
-.sq-btn.primary { background:var(--accent); color:#092026; border:none; }
-.sq-btn:active { transform:translateY(1px); }
+/* ===================== ADD BAR ===================== */
+.sq-addbar {
+  display:flex;
+  flex-wrap:wrap; /* 🔑 */
+  gap:12px;
+  align-items:center;
+  margin-top:8px;
+}
 
-/* Danger buttons (for Delete ALL) */
-.sq-btn.danger { background:#3a1f27; color:#ffd6d6; border-color:#6b2c2c; }
-.sq-btn.danger:hover { filter:brightness(1.06); }
+.sq-add-left {
+  position:relative;
+  flex:1 1 100%;
+  min-width:0; /* 🔑 removes 480px mobile break */
+}
 
-/* Icons / chips */
-.sq-icon-btn { background:transparent; border:1px solid rgba(255,255,255,.18); color:var(--ink); border-radius:10px; padding:6px 9px; }
-.sq-icon-btn.danger { border-color:#7a2f2f; }
+/* ===================== SUGGEST ===================== */
+.sq-suggest {
+  position:absolute;
+  top:48px;
+  left:0;
+  right:0;
+  background:var(--panel);
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:12px;
+  max-height:260px;
+  overflow-y:auto;
+  z-index:80;
+}
 
-/* === INFO “i” BUTTON — GOLD heartbeat + halo (more visible on dark) === */
-@media (prefers-reduced-motion: no-preference){
-  .sq-icon-btn.info{
-    display:inline-grid; place-items:center;
-    width:28px; height:28px; line-height:1;
-    border-radius:8px; cursor:pointer;
-    color:var(--gold);
-    border:1px solid rgba(232,202,164,.65);              /* gold edge */
-    background:rgba(232,202,164,.07);                    /* faint fill */
-    position:relative; overflow:visible;
-    font-weight:700;
-    will-change: transform, box-shadow;
-    animation: infoBeatGold 2.1s ease-in-out infinite;   /* heartbeat */
-    transform: translateZ(0);
-  }
-  .sq-icon-btn.info:hover{ background:rgba(232,202,164,.10); }
+/* ===================== FILTER BAR ===================== */
+.sq-toprow {
+  display:flex;
+  flex-wrap:wrap; /* 🔑 */
+  gap:12px;
+  justify-content:space-between;
+  align-items:center;
+  margin:12px 0 8px;
+}
 
-  /* inner gold ring */
-  .sq-icon-btn.info::before{
-    content:""; position:absolute; inset:0; border-radius:inherit;
-    box-shadow:
-      0 0 0 2px rgba(232,202,164,.28) inset,
-      0 0 10px rgba(232,202,164,.20);
-    pointer-events:none;
-  }
-  /* outer soft halo */
-  .sq-icon-btn.info::after{
-    content:""; position:absolute; inset:-10px; border-radius:inherit;
-    background:radial-gradient(closest-side, rgba(232,202,164,.30), rgba(232,202,164,0) 70%);
-    filter:blur(3px);
-    opacity:.22;
-    animation: infoHaloGold 2.1s ease-in-out infinite;
-    pointer-events:none;
-  }
+.sq-filters {
+  display:flex;
+  flex-wrap:wrap; /* 🔑 */
+  gap:12px;
+}
 
-  @keyframes infoBeatGold{
-    0%   { transform:translateZ(0) scale(1);     box-shadow:0 0 0 rgba(232,202,164,0); }
-    22%  { transform:translateZ(0) scale(1.06);  box-shadow:0 0 14px 3px rgba(232,202,164,.30); }
-    40%  { transform:translateZ(0) scale(1.07);  box-shadow:0 0 18px 4px rgba(232,202,164,.36); }
-    60%  { transform:translateZ(0) scale(1.04);  box-shadow:0 0 12px 2px rgba(232,202,164,.24); }
-    100% { transform:translateZ(0) scale(1);     box-shadow:0 0 0 rgba(232,202,164,0); }
-  }
-  @keyframes infoHaloGold{
-    0%   { opacity:.08; transform:scale(.94); }
-    32%  { opacity:.34; transform:scale(1.06); }
-    58%  { opacity:.22; transform:scale(1.08); }
-    100% { opacity:.08; transform:scale(.95); }
+/* ===================== ROSTER ===================== */
+.sq-roster {
+  background:var(--panel);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  padding:12px;
+  margin-bottom:14px;
+}
+
+.sq-roster-list {
+  max-height:360px;
+  overflow:auto;
+  padding-right:6px;
+}
+
+/* ===================== GRID BOARD ===================== */
+.grid-2 {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+
+@media (max-width: 980px){
+  .grid-2 {
+    grid-template-columns:1fr; /* 🔑 stack panels */
   }
 }
 
-/* Reduced motion – keep static with gold ring */
-@media (prefers-reduced-motion: reduce){
-  .sq-icon-btn.info{
-    width:28px; height:28px; border-radius:8px;
-    color:var(--gold);
-    border:1px solid rgba(232,202,164,.65);
-    background:rgba(232,202,164,.07);
-  }
-  .sq-icon-btn.info::before{
-    content:""; position:absolute; inset:0; border-radius:inherit;
-    box-shadow: 0 0 0 2px rgba(232,202,164,.28) inset, 0 0 12px rgba(232,202,164,.18);
+/* ===================== PANELS ===================== */
+.sq-panel {
+  background:var(--panel);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  padding:14px;
+  min-height:auto; /* 🔑 */
+}
+
+/* ===================== CARDS ===================== */
+.sq-card {
+  background:var(--panel-2);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:12px;
+  padding:12px;
+  margin:10px 0;
+  display:flex;
+  flex-direction:column; /* 🔑 mobile */
+  gap:10px;
+}
+
+@media (min-width: 700px){
+  .sq-card {
+    flex-direction:row;
+    justify-content:space-between;
+    align-items:center;
   }
 }
 
-/* Role fields */
-.sq-role-fields { margin-top:10px; } /* ↑ spacing */
-.sq-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.sq-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+.sq-card-left {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
 
-/* Suggestions */
-.sq-suggest { position:absolute; top:48px; left:0; right:0; background:var(--panel); border:1px solid rgba(255,255,255,.18); border-radius:12px; overflow:hidden; z-index:80; max-height:260px; overflow-y:auto; }
-.sq-suggest-item { padding:10px 12px; cursor:pointer; display:flex; justify-content:space-between; }
-.sq-suggest-item:hover { background:#132c45; }
-.sq-suggest-note { opacity:.78; font-size:.9em; }
-
-/* Filters / roster toggle */
-.sq-toprow { display:flex; justify-content:space-between; align-items:center; margin:12px 0 8px; gap:12px; }
-.sq-filters { display:flex; gap:12px; }
-
-/* Collapsible roster */
-.sq-roster { background:var(--panel); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:12px; margin-bottom:14px; }
-.sq-roster-head { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
-.sq-roster-list { max-height:360px; overflow:auto; padding-right:6px; }
-/* Subtle scrollbar on dark */
-.sq-roster-list::-webkit-scrollbar { width: 8px; }
-.sq-roster-list::-webkit-scrollbar-thumb { background:rgba(255,255,255,.12); border-radius: 8px; }
-
-/* Two-lane board */
-.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-@media (max-width: 980px){ .grid-2 { grid-template-columns:1fr; } }
-
-/* Panels + cards */
-.sq-panel { background:var(--panel); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:14px; min-height:320px; } /* ↑ padding/height */
-.sq-panel-title { padding:10px 12px; margin-bottom:8px; color:#00ffc6; border-bottom:1px dashed rgba(0,255,198,.2); font-weight:600; }
-
-.sq-card { background:var(--panel-2); border:1px solid rgba(255,255,255,.10); border-radius:12px; padding:12px; margin:10px; display:flex; align-items:center; justify-content:space-between; gap:10px; transition:background .2s ease, transform .2s ease, border-color .2s ease; }
-.sq-card:hover { background:#17344e; }
-.sq-card-left { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-.sq-name { font-weight:600; }
-.sq-sub { font-size:.9em; opacity:.85; }
-.sq-ico { font-size:1.2rem; }
-.sq-order { width:28px; height:28px; border-radius:50%; background:#203a56; display:grid; place-items:center; font-size:.9rem; }
-
-/* NEW – soft green highlight when present in multiple squads */
-.sq-card.multi{
+/* Multi-format highlight */
+.sq-card.multi {
   background:
     linear-gradient(0deg, var(--multi-bg), var(--multi-bg)),
     var(--panel-2);
   border-color: var(--multi-br);
-  box-shadow: inset 0 0 0 1px rgba(50,210,150,.12);
-}
-.sq-card.multi:hover{
-  background:
-    linear-gradient(0deg, rgba(50,210,150,.14), rgba(50,210,150,.14)),
-    #17344e;
 }
 
-.sq-tag { margin-left:8px; padding:2px 6px; border-radius:10px; background:#203a56; font-size:.8em; }
-.sq-tag.gold { background:#3a2b08; color:var(--gold); }
-.sq-tag.teal { background:#0c3538; color:var(--accent-2); }
+/* ===================== ACTIONS ===================== */
+.sq-actions {
+  display:flex;
+  flex-wrap:wrap; /* 🔑 */
+  gap:8px;
+  align-items:center;
+}
 
-.sq-actions { display:flex; align-items:center; gap:8px; } /* ↑ gap */
-.sq-chip { border:1px solid rgba(255,255,255,.20); background:var(--panel); color:var(--ink-dim); border-radius:999px; padding:5px 12px; }
-.sq-chip.on { background:var(--accent); color:#092026; border-color:var(--accent); }
-
-.sq-empty { opacity:.75; padding:14px; text-align:center; }
-
-/* Save bar */
-.sq-savebar { position:sticky; bottom:10px; display:flex; justify-content:space-between; align-items:center; background:var(--panel); border:1px solid rgba(255,255,255,.10); padding:12px 14px; border-radius:14px; margin-top:16px; z-index:2; }
-
-/* Modals */
-.sq-modal { position:fixed; inset:0; background:rgba(0,0,0,.55); display:grid; place-items:center; z-index:50; }
-.sq-modal-card { width:min(560px,92vw); background:var(--panel); border:1px solid rgba(255,255,255,.14); border-radius:16px; padding:18px; }
-.sq-modal-title { font-weight:700; margin-bottom:12px; }
-.sq-lab { display:block; margin:12px 0 8px; opacity:.85; }
-.sq-modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:14px; }
-.sq-help-list { margin:0; padding-left:18px; display:grid; gap:10px; }
-.sq-help-list li { line-height:1.5; }
-
-/* NEW – Danger zone in Edit modal */
-.sq-danger-zone{
+/* ===================== SAVE BAR ===================== */
+.sq-savebar {
+  position:sticky;
+  bottom:10px;
+  display:flex;
+  flex-wrap:wrap; /* 🔑 */
+  gap:10px;
+  justify-content:space-between;
+  align-items:center;
+  background:var(--panel);
+  border:1px solid rgba(255,255,255,.10);
+  padding:12px 14px;
+  border-radius:14px;
   margin-top:16px;
-  padding:12px;
-  border:1px dashed rgba(255,107,107,.35);
-  border-radius:12px;
-  background:rgba(255,107,107,.06);
+  z-index:2;
 }
 
-/* Toasts */
-.sq-toasts { position:fixed; top:12px; right:12px; display:flex; flex-direction:column; gap:8px; z-index:120; }
-.sq-toast { background:#0f2538; color:var(--ink); border:1px solid rgba(255,255,255,.16); border-radius:10px; padding:10px 12px; box-shadow: 0 8px 20px rgba(0,0,0,.22); animation: toastIn .25s ease; }
-.sq-toast.success { border-color: var(--ok); background: rgba(50,210,150,.10); }   /* NEW bg */
-.sq-toast.error   { border-color: var(--danger); background: rgba(255,107,107,.10); } /* NEW bg */
-@keyframes toastIn { from { transform: translateY(-6px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-/* Mobile tweaks */
 @media (max-width: 520px){
-  .sq-grid-3 { grid-template-columns:1fr; }
-  .sq-import-row { flex-wrap:wrap; }
-  .sq-header { grid-template-columns: 1fr; }
+  .sq-savebar {
+    flex-direction:column;
+    text-align:center;
+  }
+  .sq-savebar .sq-btn {
+    width:100%;
+  }
 }
 
-/* small “danger zone” style used by the Delete-from-ALL button */
-.sq-danger-zone { border-top: 1px dashed rgba(255,255,255,.15); margin-top: 12px; padding-top: 12px; }
-/* red-outline button */
-.sq-btn.danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
-/* layout for Team select + “+ Team” button */
-.sq-team-row { display:flex; gap:8px; align-items:center; }
-
-/* ---------- OCR Modal (dark) ---------- */
-.sq-modal .sq-modal-card {
-  background: #0f172a;        /* dark slate */
-  color: #e2e8f0;
-  border: 1px solid #23314f;
+/* ===================== MODALS ===================== */
+.sq-modal-card {
+  width:min(560px, 95vw);
+  max-height:90vh;
+  overflow-y:auto; /* 🔑 */
 }
 
-.sq-modal .sq-modal-title {
-  color: #a5b4fc;             /* soft indigo */
+/* ===================== TOASTS ===================== */
+.sq-toasts {
+  position:fixed;
+  top:12px;
+  left:12px;
+  right:12px; /* 🔑 center on mobile */
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  z-index:120;
 }
 
-/* Make the OCR table itself dark */
-.sq-modal table { width:100%; border-collapse:separate; border-spacing:0; background:#0b1220; color:#e2e8f0; border:1px solid #23314f; border-radius:12px; overflow:hidden; }
-.sq-modal thead { background:#0e1a2d; border-bottom:1px solid #23314f; }
-.sq-modal th { font-weight:600; color:#a5b4fc; text-align:left; }
-.sq-modal tbody tr { border-bottom:1px solid rgba(255,255,255,.06); }
-.sq-modal table.min-w-full th,
-.sq-modal table.min-w-full td { padding: 10px 12px; }
-
-/* Map Tailwind status row colors to dark variants */
-.sq-modal .bg-green-50 { background: rgba(34,197,94,0.10) !important; }
-.sq-modal .bg-gray-50  { background: rgba(148,163,184,0.06) !important; }
-.sq-modal .bg-yellow-50{ background: rgba(234,179,8,0.10) !important; }
-.sq-modal .bg-red-50   { background: rgba(239,68,68,0.10) !important; }
-
-/* Status chips inside the OCR grid */
-.sq-modal .bg-green-200{ background: rgba(34,197,94,.25) !important; color:#86efac !important; }
-.sq-modal .bg-gray-300 { background: rgba(148,163,184,.25) !important; color:#cbd5e1 !important; }
-.sq-modal .bg-yellow-200{ background: rgba(234,179,8,.25) !important; color:#fde68a !important; }
-.sq-modal .bg-red-200  { background: rgba(239,68,68,.25) !important; color:#fecaca !important; }
-
-/* Inputs/selects in the OCR modal */
-.sq-modal input[type="text"],
-.sq-modal select {
-  background:#0b1220;
-  color:#e2e8f0;
-  border:1px solid #334155;
-  border-radius:10px;
-  padding:8px 10px;
+/* ===================== MOBILE FINAL TWEAKS ===================== */
+@media (max-width: 520px){
+  .sq-grid-2,
+  .sq-grid-3 {
+    grid-template-columns:1fr;
+  }
+  .sq-big { font-size:1.25rem; }
+  .sq-chip { font-size:.8rem; padding:5px 10px; }
 }
-
-/* File input + buttons a bit bigger / less cramped */
-.sq-btn, .sq-btn.ghost, .sq-btn.primary { min-height: 38px; padding: 8px 14px; border-radius: 10px; }
-
-/* The “OCR from image” trigger button near Quick import */
-.sq-import .sq-btn.ghost { border: 1px solid #334155; background: #0b1220; }
-.sq-import .sq-btn.ghost:hover { background: #111a2f; }
-
-/* New badge + glow for newly added players */
-.new-chip { background: #22c55e; color: #0b1220; font-weight: 700; font-size: 10px; padding: 2px 6px; border-radius: 999px; margin-left: 8px; }
-.new-glow { box-shadow: 0 0 0 2px rgba(34,197,94,0.25), 0 0 20px rgba(34,197,94,0.45); transition: box-shadow 0.3s ease; }
