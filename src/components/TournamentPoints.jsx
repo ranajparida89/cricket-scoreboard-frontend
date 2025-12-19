@@ -898,98 +898,116 @@ export default function TournamentPoints({ isAdmin: isAdminProp }) {
         </div>
       </div>
 
-      {/* Standings */}
-      <div className="card tp-table-card">
-        <div className="card-head">Standings</div>
-        <div className="table-wrap">
-          <table className="tp-table">
-            <thead>
-              <tr>
-                <th>{headerLabel("rank")}</th>
-                <th>{headerLabel("team")}</th>
-                <th>{headerLabel("matches")}</th>
-                <th>{headerLabel("wins")}</th>
-                <th>{headerLabel("losses")}</th>
-                <th>{headerLabel("draws")}</th>
-                <th>{headerLabel("points")}</th>
-                <th>{headerLabel("nrr")}</th>
-                <th>{headerLabel("tournament")}</th>
-                <th>{headerLabel("year")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {table.length === 0 ? (
-                <tr>
-                  <td colSpan="10" className="empty-row">
-                    No data
-                  </td>
-                </tr>
-              ) : (
-                table.map((t, idx) => (
-                  <tr
-                    key={rowKeyOf(t)}
-                    className={`lb-row ${idx < 3 ? `top-${idx + 1}` : ""}`}
-                  >
-                    <td>
-                      <span className="rank-badge">#{idx + 1}</span>
-                    </td>
-                    <TD
-                      row={t}
-                      field="team_name"
-                      className={`tname ${idx < 3 ? "goldtxt" : ""}`}
-                    >
-                      {idx < 3 && (
-                        <span className="flag-emoji" title={t.team_name}>
-                          {flagForTeam(t.team_name)}
-                        </span>
-                      )}
-                      {displayTeam(t.team_name)}
-                    </TD>
-                    <TD row={t} field="matches_played">
-                      {safeNum(t.matches_played)}
-                    </TD>
+{/* Standings */}
+<div className="card tp-table-card">
+  <div className="card-head">Standings</div>
+  <div className="table-wrap">
+    <table className="tp-table">
+      
+      {/* 🔒 COLUMN MODEL – DO NOT REMOVE */}
+      <colgroup>
+        <col style={{ width: "64px" }} />   {/* Rank */}
+        <col style={{ width: "120px" }} />  {/* Team */}
+        <col style={{ width: "48px" }} />   {/* M */}
+        <col style={{ width: "48px" }} />   {/* W */}
+        <col style={{ width: "48px" }} />   {/* L */}
+        <col style={{ width: "48px" }} />   {/* D */}
+        <col style={{ width: "64px" }} />   {/* Pts */}
+        <col style={{ width: "80px" }} />   {/* NRR */}
+        <col style={{ width: "120px" }} />  {/* TN */}
+        <col style={{ width: "64px" }} />   {/* Yrs */}
+      </colgroup>
 
-                    <TD row={t} field="wins" className="good">
-                      {safeNum(t.wins)}
-                    </TD>
+      <thead>
+        <tr>
+          <th>{headerLabel("rank")}</th>
+          <th>{headerLabel("team")}</th>
+          <th>{headerLabel("matches")}</th>
+          <th>{headerLabel("wins")}</th>
+          <th>{headerLabel("losses")}</th>
+          <th>{headerLabel("draws")}</th>
+          <th>{headerLabel("points")}</th>
+          <th>{headerLabel("nrr")}</th>
+          <th>{headerLabel("tournament")}</th>
+          <th>{headerLabel("year")}</th>
+        </tr>
+      </thead>
 
-                    <TD row={t} field="losses" className="bad">
-                      {safeNum(t.losses)}
-                    </TD>
+      <tbody>
+        {table.length === 0 ? (
+          <tr>
+            <td colSpan="10" className="empty-row">
+              No data
+            </td>
+          </tr>
+        ) : (
+          table.map((t, idx) => (
+            <tr
+              key={rowKeyOf(t)}
+              className={`lb-row ${idx < 3 ? `top-${idx + 1}` : ""}`}
+            >
+              {/* Rank */}
+              <td>
+                <span className="rank-badge">#{idx + 1}</span>
+              </td>
 
-                    <TD row={t} field="draws">
-                      {safeNum(t.draws)}
-                    </TD>
+              {/* Team */}
+              <TD
+                row={t}
+                field="team_name"
+                className={`tname ${idx < 3 ? "goldtxt" : ""}`}
+              >
+                {idx < 3 && (
+                  <span className="flag-emoji" title={t.team_name}>
+                    {flagForTeam(t.team_name)}
+                  </span>
+                )}
+                {displayTeam(t.team_name)}
+              </TD>
 
-                    <TD row={t} field="points">
-                      <span className="points-chip">{safeNum(t.points)}</span>
-                    </TD>
+              <TD row={t} field="matches_played">
+                {safeNum(t.matches_played)}
+              </TD>
 
-                    <TD row={t} field="nrr">
-                      <span
-                        className={safeNum(t.nrr) >= 0 ? "good" : "bad"}
-                      >
-                        {safeNum(t.nrr).toFixed(2)}
-                        {safeNum(t.nrr) < 0 && (
-                          <span className="skull"> 💀</span>
-                        )}
-                      </span>
-                    </TD>
+              <TD row={t} field="wins" className="good">
+                {safeNum(t.wins)}
+              </TD>
 
-                    <TD row={t} field="tournament_name" className="muted">
-                      {norm(t.tournament_name) ? t.tournament_name : "—"}
-                    </TD>
+              <TD row={t} field="losses" className="bad">
+                {safeNum(t.losses)}
+              </TD>
 
-                    <TD row={t} field="season_year" className="muted">
-                      {safeNum(t.season_year) ? t.season_year : "—"}
-                    </TD>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              <TD row={t} field="draws">
+                {safeNum(t.draws)}
+              </TD>
+
+              <TD row={t} field="points">
+                <span className="points-chip">
+                  {safeNum(t.points)}
+                </span>
+              </TD>
+
+              <TD row={t} field="nrr">
+                <span className={safeNum(t.nrr) >= 0 ? "good" : "bad"}>
+                  {safeNum(t.nrr).toFixed(2)}
+                  {safeNum(t.nrr) < 0 && <span className="skull"> 💀</span>}
+                </span>
+              </TD>
+
+              <TD row={t} field="tournament_name" className="muted">
+                {norm(t.tournament_name) ? t.tournament_name : "—"}
+              </TD>
+
+              <TD row={t} field="season_year" className="muted">
+                {safeNum(t.season_year) ? t.season_year : "—"}
+              </TD>
+            </tr>
+          ))
+        )}
+      </tbody>
+    </table>
+  </div>
+</div>
 
       {/* Predictions */}
       <div className="card tp-predict">
