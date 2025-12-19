@@ -167,7 +167,22 @@
 }
 
 /* Rank + name */
-.rank-badge{ background:#1a2230; border:1px solid var(--soft2); color:#dfe7ff; padding:0 6px; border-radius:10px; font-weight:900; font-size:13px; }
+.rank-badge{
+  position: static;          /* 🔑 MOST IMPORTANT */
+  display: inline-flex;      /* keeps it centered & neat */
+  align-items: center;
+  justify-content: center;
+
+  background:#1a2230;
+  border:1px solid var(--soft2);
+  color:#dfe7ff;
+  padding:2px 8px;
+  border-radius:10px;
+  font-weight:900;
+  font-size:13px;
+  white-space: nowrap;
+}
+
 .tname{
   font-weight:1000; letter-spacing:.2px; text-align:left;
   display:flex; align-items:center; gap:8px;   /* to hold the flag nicely */

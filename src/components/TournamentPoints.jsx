@@ -903,33 +903,45 @@ export default function TournamentPoints({ isAdmin: isAdminProp }) {
   <div className="card-head">Standings</div>
   <div className="table-wrap">
     <table className="tp-table">
-      
-      {/* 🔒 COLUMN MODEL – DO NOT REMOVE */}
+
+      {/* COLUMN MODEL */}
       <colgroup>
-        <col style={{ width: "64px" }} />   {/* Rank */}
-        <col style={{ width: "120px" }} />  {/* Team */}
-        <col style={{ width: "48px" }} />   {/* M */}
-        <col style={{ width: "48px" }} />   {/* W */}
-        <col style={{ width: "48px" }} />   {/* L */}
-        <col style={{ width: "48px" }} />   {/* D */}
-        <col style={{ width: "64px" }} />   {/* Pts */}
-        <col style={{ width: "80px" }} />   {/* NRR */}
-        <col style={{ width: "120px" }} />  {/* TN */}
-        <col style={{ width: "64px" }} />   {/* Yrs */}
+        <col style={{ width: "64px" }} />
+        <col style={{ width: "120px" }} />
+        <col style={{ width: "48px" }} />
+        <col style={{ width: "48px" }} />
+        <col style={{ width: "48px" }} />
+        <col style={{ width: "48px" }} />
+        <col style={{ width: "64px" }} />
+        <col style={{ width: "80px" }} />
+        <col style={{ width: "120px" }} />
+        <col style={{ width: "64px" }} />
       </colgroup>
 
       <thead>
         <tr>
-          <th>{headerLabel("rank")}</th>
-          <th>{headerLabel("team")}</th>
-          <th>{headerLabel("matches")}</th>
-          <th>{headerLabel("wins")}</th>
-          <th>{headerLabel("losses")}</th>
-          <th>{headerLabel("draws")}</th>
-          <th>{headerLabel("points")}</th>
-          <th>{headerLabel("nrr")}</th>
-          <th>{headerLabel("tournament")}</th>
-          <th>{headerLabel("year")}</th>
+          {[
+            "rank",
+            "team",
+            "matches",
+            "wins",
+            "losses",
+            "draws",
+            "points",
+            "nrr",
+            "tournament",
+            "year",
+          ].map((h) => (
+            <th
+              key={h}
+              style={{
+                textAlign: "center",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {headerLabel(h)}
+            </th>
+          ))}
         </tr>
       </thead>
 
@@ -946,9 +958,17 @@ export default function TournamentPoints({ isAdmin: isAdminProp }) {
               key={rowKeyOf(t)}
               className={`lb-row ${idx < 3 ? `top-${idx + 1}` : ""}`}
             >
-              {/* Rank */}
-              <td>
-                <span className="rank-badge">#{idx + 1}</span>
+              {/* Rank — FIXED */}
+              <td style={{ textAlign: "center" }}>
+                <span
+                  style={{
+                    position: "static",   // 🚫 kills absolute positioning
+                    display: "inline-block",
+                    fontWeight: 800,
+                  }}
+                >
+                  {idx + 1}
+                </span>
               </td>
 
               {/* Team */}
@@ -965,29 +985,29 @@ export default function TournamentPoints({ isAdmin: isAdminProp }) {
                 {displayTeam(t.team_name)}
               </TD>
 
-              <TD row={t} field="matches_played">
+              <TD row={t} field="matches_played" className="center">
                 {safeNum(t.matches_played)}
               </TD>
 
-              <TD row={t} field="wins" className="good">
+              <TD row={t} field="wins" className="good center">
                 {safeNum(t.wins)}
               </TD>
 
-              <TD row={t} field="losses" className="bad">
+              <TD row={t} field="losses" className="bad center">
                 {safeNum(t.losses)}
               </TD>
 
-              <TD row={t} field="draws">
+              <TD row={t} field="draws" className="center">
                 {safeNum(t.draws)}
               </TD>
 
-              <TD row={t} field="points">
+              <TD row={t} field="points" className="center">
                 <span className="points-chip">
                   {safeNum(t.points)}
                 </span>
               </TD>
 
-              <TD row={t} field="nrr">
+              <TD row={t} field="nrr" className="center">
                 <span className={safeNum(t.nrr) >= 0 ? "good" : "bad"}>
                   {safeNum(t.nrr).toFixed(2)}
                   {safeNum(t.nrr) < 0 && <span className="skull"> 💀</span>}
@@ -998,8 +1018,8 @@ export default function TournamentPoints({ isAdmin: isAdminProp }) {
                 {norm(t.tournament_name) ? t.tournament_name : "—"}
               </TD>
 
-              <TD row={t} field="season_year" className="muted">
-                {safeNum(t.season_year) ? t.season_year : "—"}
+              <TD row={t} field="season_year" className="muted center">
+                {safeNum(t.season_year) || "—"}
               </TD>
             </tr>
           ))
@@ -1008,6 +1028,7 @@ export default function TournamentPoints({ isAdmin: isAdminProp }) {
     </table>
   </div>
 </div>
+
 
       {/* Predictions */}
       <div className="card tp-predict">
