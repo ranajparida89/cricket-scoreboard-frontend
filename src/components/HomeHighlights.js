@@ -1,4 +1,3 @@
-// src/components/HomeHighlights.js
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./HomeHighlights.css";
@@ -15,9 +14,11 @@ const HomeHighlights = () => {
     const loadData = async () => {
       try {
         // 1) player / general highlights
-        const highlightsPromise = axios.get(`${API_BASE}/api/home-highlights`);
+        const highlightsPromise = axios.get(
+          `${API_BASE}/api/home-highlights`
+        );
 
-        // 2) lightweight board insight (new route)
+        // 2) board insight (optional slide)
         const boardInsightPromise = axios.get(
           `${API_BASE}/api/boards/analytics/home/top-board-insight`
         );
@@ -27,12 +28,16 @@ const HomeHighlights = () => {
           boardInsightPromise,
         ]);
 
-        const baseHighlights = hlRes.data || [];
+        // ✅ FIX: backend returns { generated_at, highlights }
+        const baseHighlights = Array.isArray(hlRes.data?.highlights)
+          ? hlRes.data.highlights
+          : [];
+
         const insight = boardInsightRes.data?.insight || null;
 
         const finalHighlights = [...baseHighlights];
 
-        // if backend found a board with the longest streak, add it as a slide
+        // optional board crown slide
         if (insight) {
           const meta = [
             {
@@ -71,7 +76,9 @@ const HomeHighlights = () => {
   }, []);
 
   const handlePrev = () => {
-    setActiveIndex((prev) => (prev === 0 ? items.length - 1 : prev - 1));
+    setActiveIndex((prev) =>
+      prev === 0 ? items.length - 1 : prev - 1
+    );
   };
 
   const handleNext = () => {
@@ -82,9 +89,7 @@ const HomeHighlights = () => {
 
   const renderCard = (content) => (
     <div className="ce-hl-wrapper">
-      <div className="ce-hl-card">
-        {content}
-      </div>
+      <div className="ce-hl-card">{content}</div>
     </div>
   );
 
@@ -109,31 +114,31 @@ const HomeHighlights = () => {
   }
 
   const current = items[activeIndex];
-  const displayTag = current.tag ? current.tag.split("(")[0].trim() : "";
+  const displayTag = current.tag
+    ? current.tag.split("(")[0].trim()
+    : "";
 
-  // drop technical values like "Player ID"
+  // remove technical meta like Player ID
   const displayMeta = Array.isArray(current.meta)
-    ? current.meta.filter((m) => m.label && !/player\s*id/i.test(m.label))
+    ? current.meta.filter(
+        (m) => m.label && !/player\s*id/i.test(m.label)
+      )
     : [];
 
   return (
     <>
-      {/* 🌟 Cinematic side photo walls */}
+      {/* 🎥 Cinematic side photo walls */}
       <SidePhotoWall side="left" />
       <SidePhotoWall side="right" />
 
-      {/* Existing highlight hero card */}
       <div className="ce-hl-wrapper">
         <button className="ce-hl-nav left" onClick={handlePrev}>
           &lt;
         </button>
 
-        {/* spotlight on EVERY card now */}
         <div className="ce-hl-card ce-hl-card-spot">
-          {/* floor glow for spotlight */}
           <div className="ce-hl-spot-floor" />
 
-          {/* tiny, slower particle confetti */}
           <div className="ce-hl-confetti">
             {Array.from({ length: 110 }).map((_, i) => (
               <span
@@ -149,12 +154,15 @@ const HomeHighlights = () => {
           </div>
 
           <div className="ce-hl-content">
-            {displayTag && <div className="ce-hl-tag">{displayTag}</div>}
+            {displayTag && (
+              <div className="ce-hl-tag">{displayTag}</div>
+            )}
+
             <h2 className="ce-hl-title">{current.title}</h2>
 
-            {current.subtitle ? (
+            {current.subtitle && (
               <p className="ce-hl-subtitle">{current.subtitle}</p>
-            ) : null}
+            )}
 
             {displayMeta.length > 0 && (
               <div className="ce-hl-meta-grid">
@@ -177,7 +185,9 @@ const HomeHighlights = () => {
           {items.map((_, i) => (
             <span
               key={i}
-              className={`ce-hl-dot ${i === activeIndex ? "active" : ""}`}
+              className={`ce-hl-dot ${
+                i === activeIndex ? "active" : ""
+              }`}
               onClick={() => setActiveIndex(i)}
             />
           ))}
