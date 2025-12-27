@@ -129,16 +129,44 @@ const MatchHistory = () => {
   const particlesInit = async (engine) => { await loadFull(engine); };
 
   // Build distinct tournament + season options from a dataset
-  const computeOptions = (rows) => {
-    const tours = Array.from(
-      new Set(rows.map(r => r.tournament_name).filter(Boolean))
-    ).sort((a,b) => a.localeCompare(b));
-    const seasons = Array.from(
-      new Set(rows.map(r => (r.season_year != null ? String(r.season_year) : "")).filter(Boolean))
-    ).sort((a,b) => b.localeCompare(a)); // newest first
-    setTourOptions(tours);
-    setSeasonOptions(seasons);
-  };
+ const normalizeTournament = (t) =>
+  t
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+
+const computeOptions = (rows) => {
+  // ---- tournaments (canonicalized) ----
+  const tourMap = new Map();
+
+  rows.forEach((r) => {
+    if (!r.tournament_name) return;
+
+    const canon = normalizeTournament(r.tournament_name);
+
+    // keep first nice-looking version
+    if (!tourMap.has(canon)) {
+      tourMap.set(canon, r.tournament_name.trim());
+    }
+  });
+
+  const tours = Array.from(tourMap.values()).sort((a, b) =>
+    a.localeCompare(b)
+  );
+
+  // ---- seasons (unchanged logic, but kept clean) ----
+  const seasons = Array.from(
+    new Set(
+      rows
+        .map((r) => (r.season_year != null ? String(r.season_year) : ""))
+        .filter(Boolean)
+    )
+  ).sort((a, b) => b.localeCompare(a)); // newest first
+
+  setTourOptions(tours);
+  setSeasonOptions(seasons);
+};
+
 
   const fetchData = async (filterValues = {}) => {
     try {
