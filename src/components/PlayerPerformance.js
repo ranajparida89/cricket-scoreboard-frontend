@@ -64,8 +64,6 @@ export default function PlayerPerformance() {
   const [teams, setTeams]     = useState([]);
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
-  // 🔍 Player search (used for single & bulk)
-const [playerSearch, setPlayerSearch] = useState("");
 
   // single form
   const [form, setForm] = useState({
@@ -501,37 +499,21 @@ const [playerSearch, setPlayerSearch] = useState("");
 
         {mode === "single" ? (
           <form onSubmit={handleSubmit}>
-                          <div className="mb-2">
-                <label>Player Name</label>
+            <div className="mb-2">
+              <label>Player Name</label>
+              <select
+                className={`form-select ${isFilled(form.player_id) ? "field-filled" : ""}`}
+                value={form.player_id}
+                onChange={(e) => setForm({ ...form, player_id: e.target.value })}
+                required
+              >
+                <option value="">-- Select Player --</option>
+                {players.map((p) => (
+                  <option key={p.id} value={p.id}>{p.player_name}</option>
+                ))}
+              </select>
+            </div>
 
-                {/* 🔍 Search input (mobile friendly) */}
-                <input
-                  type="text"
-                  className="form-control mb-1"
-                  placeholder="Search player..."
-                  value={playerSearch}
-                  onChange={(e) => setPlayerSearch(e.target.value)}
-                />
-
-                <select
-                  className={`form-select ${isFilled(form.player_id) ? "field-filled" : ""}`}
-                  value={form.player_id}
-                  onChange={(e) => setForm({ ...form, player_id: e.target.value })}
-                  required
-                >
-                  <option value="">-- Select Player --</option>
-
-                  {players
-                    .filter(p =>
-                      p.player_name.toLowerCase().includes(playerSearch.toLowerCase())
-                    )
-                    .map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.player_name}
-                      </option>
-                    ))}
-                </select>
-              </div>
             <div className="row">
               {[
                 { label: "Runs Scored", key: "run_scored", disabled: false },
@@ -603,16 +585,6 @@ const [playerSearch, setPlayerSearch] = useState("");
                   <div className="row">
                     <div className="col-md-3 mb-2">
                       <label>Player</label>
-
-                      {/* 🔍 Search input – same pattern as single mode */}
-                      <input
-                        type="text"
-                        className="form-control mb-1"
-                        placeholder="Search player..."
-                        value={playerSearch}
-                        onChange={(e) => setPlayerSearch(e.target.value)}
-                      />
-
                       <select
                         className="form-select"
                         value={row.player_id}
@@ -623,16 +595,9 @@ const [playerSearch, setPlayerSearch] = useState("");
                         }}
                       >
                         <option value="">-- Select --</option>
-
-                        {players
-                          .filter(p =>
-                            p.player_name.toLowerCase().includes(playerSearch.toLowerCase())
-                          )
-                          .map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.player_name}
-                            </option>
-                          ))}
+                        {players.map((p) => (
+                          <option key={p.id} value={p.id}>{p.player_name}</option>
+                        ))}
                       </select>
                     </div>
                     <div className="col-md-2 mb-2">
