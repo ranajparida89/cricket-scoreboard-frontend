@@ -250,3 +250,36 @@
   .print-table{ color: #000 !important; background: #fff !important; }
   .print-table thead th{ border-bottom: 2px solid #000 !important; }
 }
+/* =========================================================
+   DARK THEME FIX — TEAM TYPE DROPDOWN
+   ========================================================= */
+
+/* main select */
+.teamdist select.form-select{
+  background-color: #0f172a !important;   /* dark slate */
+  color: #e5e7eb !important;              /* light text */
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+}
+
+/* remove browser default white arrow background */
+.teamdist select.form-select:focus{
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #22c55e;                  /* subtle green focus */
+  box-shadow:
+    0 0 0 2px rgba(34,197,94,0.25);
+}
+
+/* dropdown options */
+.teamdist select.form-select option{
+  background-color: #020617;              /* deep dark */
+  color: #e5e7eb;
+}
+
+/* hovered / selected option */
+.teamdist select.form-select option:checked,
+.teamdist select.form-select option:hover{
+  background-color: #1e293b;              /* highlight */
+  color: #ffffff;
+}
