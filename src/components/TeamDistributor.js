@@ -93,6 +93,9 @@ export default function TeamDistributor() {
   const [teamNamesRaw, setTeamNamesRaw] = useState("");
   const [weakPool, setWeakPool] = useState([]);
   const [strongPool, setStrongPool] = useState([]);
+  // 🔵 NEW – Moderate team pool
+  const [moderatePool, setModeratePool] = useState([]);
+
 
   // 👉 Wheel arming state: fairness is checked at build time only
   const [wheelGate, setWheelGate] = useState({
@@ -104,10 +107,15 @@ export default function TeamDistributor() {
     armedAt: 0,
   });
 
-  useEffect(() => {
-    const src = teamType === "Weak" ? weakPool : strongPool;
-    setTeamNamesRaw(src.join("\n"));
-  }, [teamType, weakPool, strongPool]);
+  // 🔵 UPDATED – include Moderate pool
+useEffect(() => {
+  let src = [];
+  if (teamType === "Weak") src = weakPool;
+  else if (teamType === "Moderate") src = moderatePool;
+  else src = strongPool;
+
+  setTeamNamesRaw(src.join("\n"));
+}, [teamType, weakPool, moderatePool, strongPool]);
 
   const parseLines = (raw) =>
     raw
@@ -171,9 +179,14 @@ export default function TeamDistributor() {
       pushToast(`Removed ${removedDupes} duplicate team name(s).`, "error", 3000);
     }
 
-    if (teamType === "Weak") setWeakPool(list);
-    else setStrongPool(list);
-
+    // 🔵 UPDATED – save to correct pool
+        if (teamType === "Weak") {
+          setWeakPool(list);
+        } else if (teamType === "Moderate") {
+          setModeratePool(list);
+        } else {
+          setStrongPool(list);
+        }
     // Arm/disarm fairness gate at build time (only if we have players)
     if (playersCount === 0) {
       setWheelGate({
@@ -228,7 +241,14 @@ export default function TeamDistributor() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [angle, setAngle] = useState(0);
 
-  const currentPool = teamType === "Weak" ? weakPool : strongPool;
+  // 🔵 UPDATED – include Moderate pool
+      const currentPool =
+        teamType === "Weak"
+          ? weakPool
+          : teamType === "Moderate"
+          ? moderatePool
+          : strongPool;
+
 
   const [orderQueue, setOrderQueue] = useState([]);
   const [turnPtr, setTurnPtr] = useState(0);
@@ -351,7 +371,10 @@ export default function TeamDistributor() {
 
     // local helper uses current teamType
     const getSegBaseHex = (i, total) => {
-      const startHue = teamType === "Weak" ? 270 : 170;
+            const startHue =
+        teamType === "Weak" ? 270 :
+        teamType === "Moderate" ? 210 :
+        170;
       const hue = (startHue + (360 * i) / total) % 360;
       return hslToHex(hue, 70, 45);
     };
@@ -480,10 +503,22 @@ export default function TeamDistributor() {
   const spinSnapRef = useRef(null);
 
   // ---------- Spin / Assign ----------
-  const [assignments, setAssignments] = useState({ Weak: {}, Strong: {} });
+  // 🔵 UPDATED – include Moderate
+        const [assignments, setAssignments] = useState({
+          Weak: {},
+          Moderate: {},
+          Strong: {},
+        });
 
-  const canSpin = teamsForWheel.length > 0 && !isSpinning && !!currentPlayer && wheelGate.ok;
+          const hasRemainingTeams =
+          weakPool.length + moderatePool.length + strongPool.length > 0;
 
+        const canSpin =
+          hasRemainingTeams &&
+          teamsForWheel.length > 0 &&
+          !isSpinning &&
+          !!currentPlayer &&
+          wheelGate.ok;
   const spin = () => {
     if (!currentPlayer) {
       pushToast("Add at least one board/player to start.", "error");
@@ -549,6 +584,67 @@ export default function TeamDistributor() {
     requestAnimationFrame(step);
   };
 
+  // ================= AUTO DISTRIBUTE (ONE CLICK) =================
+const autoDistributeAll = () => {
+  if (playersCount === 0) {
+    pushToast("Add at least one board/player.", "error");
+    return;
+  }
+
+  const pools = [
+    { type: "Weak", teams: [...weakPool] },
+    { type: "Moderate", teams: [...moderatePool] },
+    { type: "Strong", teams: [...strongPool] },
+  ];
+
+  // validation: every pool must be divisible by players
+  for (const p of pools) {
+    if (p.teams.length === 0) continue;
+    if (p.teams.length % playersCount !== 0) {
+            pushToast(
+        `${p.type} teams are not divisible by ${playersCount}. Please balance them first.`,
+        "error",
+        5000
+      );
+      return;
+    }
+  }
+
+  const shuffledPlayers = shuffle(playerNames);
+
+  const newAssignments = {
+    Weak: {},
+    Moderate: {},
+    Strong: {},
+  };
+
+  pools.forEach(({ type, teams }) => {
+    let idx = 0;
+    teams.forEach((team) => {
+      const player = shuffledPlayers[idx];
+      if (!newAssignments[type][player]) {
+        newAssignments[type][player] = [];
+      }
+      newAssignments[type][player].push(team);
+      idx = (idx + 1) % playersCount;
+    });
+  });
+
+  setAssignments(newAssignments);
+
+  // clear pools (so wheel is visually empty)
+  setWeakPool([]);
+  setModeratePool([]);
+  setStrongPool([]);
+
+  setTurnPtr(0);
+  setAngle(0);
+
+  fireConfetti(WHEEL_SIZE / 2, WHEEL_SIZE / 2);
+  pushToast("All teams distributed successfully 🎉", "success", 4000);
+};
+
+
   const finalizeSpin = () => {
     const snap = spinSnapRef.current;
     if (!snap) return;
@@ -564,17 +660,14 @@ export default function TeamDistributor() {
       return { ...prev, [typeSnapshot]: { ...bucket, [playerSnapshot]: list } };
     });
 
-    if (typeSnapshot === "Weak") {
-      setWeakPool((prev) => {
-        const i = prev.indexOf(selectedTeam);
-        return i === -1 ? prev : prev.slice(0, i).concat(prev.slice(i + 1));
-      });
-    } else {
-      setStrongPool((prev) => {
-        const i = prev.indexOf(selectedTeam);
-        return i === -1 ? prev : prev.slice(0, i).concat(prev.slice(i + 1));
-      });
-    }
+   // 🔵 UPDATED – remove from correct pool
+      if (typeSnapshot === "Weak") {
+        setWeakPool(prev => prev.filter(t => t !== selectedTeam));
+      } else if (typeSnapshot === "Moderate") {
+        setModeratePool(prev => prev.filter(t => t !== selectedTeam));
+      } else {
+        setStrongPool(prev => prev.filter(t => t !== selectedTeam));
+      }
 
     setTurnPtr((prev) => prev + 1);
 
@@ -688,7 +781,9 @@ export default function TeamDistributor() {
                 disabled={isSpinning}
               >
                 <option>Weak</option>
+                <option>Moderate</option>   {/* 🔵 NEW */}
                 <option>Strong</option>
+
               </select>
 
               <div className="mt-3">
@@ -709,10 +804,19 @@ export default function TeamDistributor() {
                     onClick={buildPool}
                     disabled={isSpinning}
                   >
-                    {teamType === "Weak" ? "Build Weak Wheel" : "Build Strong Wheel"}
+                   {teamType === "Weak"
+                  ? "Build Weak Wheel"
+                  : teamType === "Moderate"
+                  ? "Build Moderate Wheel"
+                  : "Build Strong Wheel"}
                   </button>
                   <span className="text-muted small align-self-center">
-                    {(teamType === "Weak" ? weakPool : strongPool).length} ready
+                    {teamType === "Weak"
+                    ? weakPool.length
+                    : teamType === "Moderate"
+                    ? moderatePool.length
+                    : strongPool.length}{" "}
+                  ready
                   </span>
                 </div>
               </div>
@@ -787,14 +891,15 @@ export default function TeamDistributor() {
               <thead>
                 <tr>
                   <th>Player / Board</th>
-                  <th>Weak Teams</th>
+                   <th>Weak Teams</th>
+                  <th>Moderate Teams</th>   {/* 🔵 NEW */}
                   <th>Strong Teams</th>
                 </tr>
               </thead>
               <tbody>
                 {playerNames.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="text-center text-secondary">
+                    <td colSpan={4} className="text-center text-secondary">
                       Add players to see allocations.
                     </td>
                   </tr>
@@ -803,6 +908,7 @@ export default function TeamDistributor() {
                     <tr key={p}>
                       <td>{p}</td>
                       <td>{(assignments.Weak[p] || []).join(", ") || "—"}</td>
+                      <td>{(assignments.Moderate[p] || []).join(", ") || "—"}</td>
                       <td>{(assignments.Strong[p] || []).join(", ") || "—"}</td>
                     </tr>
                   ))
