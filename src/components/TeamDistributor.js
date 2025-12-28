@@ -749,17 +749,25 @@ const autoDistributeAll = () => {
   const shuffledPlayers = shuffle(playerNames);
   const queue = [];
 
-  pools.forEach(({ type, teams }) => {
-    let idx = 0;
-    teams.forEach((team) => {
-      queue.push({
-        team,
-        player: shuffledPlayers[idx],
-        type,
-      });
-      idx = (idx + 1) % playersCount;
+pools.forEach(({ type, teams }) => {
+  let idx = 0;
+
+  teams.forEach((team) => {
+    const player = shuffledPlayers[idx];
+
+    // 🔴 APPLY FIXED RULE HERE (BEFORE QUEUE)
+    const forced = getFixedAssignmentForPlayer(player, type);
+    const finalTeam = normalizeTeamName(forced || team);
+
+    queue.push({
+      team: finalTeam,   // 🔥 IMPORTANT
+      player,
+      type,
     });
+
+    idx = (idx + 1) % playersCount;
   });
+});
 
   autoQueueRef.current = queue;
   autoAnimatingRef.current = true;
@@ -790,11 +798,7 @@ const autoDistributeAll = () => {
     const { playerSnapshot, typeSnapshot, selectedTeam } = snap;
 
     // 🔴 TEMPORARY FIXED ASSIGNMENT OVERRIDE
-    const forcedTeam = getFixedAssignmentForPlayer(
-      playerSnapshot,
-      typeSnapshot
-    );
-    const finalTeam = normalizeTeamName(forcedTeam || selectedTeam);
+    const finalTeam = normalizeTeamName(selectedTeam);
 
     if (!selectedTeam) return;
 
