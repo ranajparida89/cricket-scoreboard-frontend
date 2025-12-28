@@ -26,85 +26,6 @@ const isNameOk = (s) => /^[A-Za-z0-9 .'\-]{1,30}$/.test(s);
 const isTeamOk = (s) => /^[A-Za-z0-9 .'\-]{1,30}$/.test(s);
 /* ------------------------------------------------------------------- */
 
-/* =========================================================
-   TEMPORARY FIXED ASSIGNMENT RULES (SAFE TO REMOVE LATER)
-   ========================================================= */
-
-const FIXED_ASSIGNMENTS = [
-  {
-    match: /^(ranaj|dcc|ranaj-dcc|dcc-ranaj)$/i,
-    teams: {
-      Weak: "Scotland",
-      Moderate: "Kenya",
-      Strong: "England",
-    },
-  },
-  {
-    match: /^(rashmi|kcc|rashmi-kcc|kcc-rashmi)$/i,
-    teams: {
-      Weak: "Hong Kong",
-      Moderate: "Bangladesh",
-      Strong: "Pakistan",
-    },
-  },
-  {
-    match: /^(bikash|acc|bikash-acc|acc-bikash)$/i,
-    teams: {
-      Weak: "Nepal",
-      Moderate: "Afghanistan",
-      Strong: "Australia",
-    },
-  },
-];
-
-const getFixedAssignmentForPlayer = (playerName, type) => {
-  const normalized = playerName.replace(/\s+/g, "").toLowerCase();
-  for (const rule of FIXED_ASSIGNMENTS) {
-    if (rule.match.test(normalized)) {
-      return rule.teams[type] || null;
-    }
-  }
-  return null;
-};
-
-/* =========================================================
-   TEMPORARY TEAM NORMALIZATION (CASE + ALIAS INSENSITIVE)
-   SAFE TO REMOVE LATER
-   ========================================================= */
-
-const TEAM_ALIASES = {
-  australia: ["australia", "aus"],
-  nepal: ["nepal", "nep"],
-  afghanistan: ["afghanistan", "afg"],
-  "hong kong": ["hong kong", "hk"],
-  bangladesh: ["bangladesh", "ban"],
-  pakistan: ["pakistan", "pak"],
-  scotland: ["scotland", "sct"],
-  kenya: ["kenya", "ken"],
-  england: ["england", "eng"],
-};
-
-const toInitCap = (s) =>
-  s
-    .toLowerCase()
-    .split(" ")
-    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-
-const normalizeTeamName = (name) => {
-  if (!name) return null;
-
-  const n = name.replace(/\s+/g, " ").trim().toLowerCase();
-
-  for (const [canonical, aliases] of Object.entries(TEAM_ALIASES)) {
-    if (aliases.includes(n)) {
-      return toInitCap(canonical);
-    }
-  }
-  // fallback → still InitCap
-  return toInitCap(n);
-};
-
 // Mount a dedicated container and only portal after mount
 function useToastContainer() {
   const [container, setContainer] = useState(null);
@@ -239,13 +160,12 @@ useEffect(() => {
 
     // case-insensitive dedupe
     const seen = new Set();
-      // normalize + case-insensitive dedupe (FIXES duplicate / leftover bug)
-          const list = valids
-          .map(t => normalizeTeamName(t))   // canonical form ONLY
-          .filter(Boolean)
-          .filter((t, i, arr) =>
-            arr.findIndex(x => x === t) === i
-          );
+    const list = valids.filter((t) => {
+      const key = t.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 
     if (invalids.length > 0) {
       pushToast(
@@ -594,10 +514,7 @@ const spinToTeam = ({ team, player, type }) => {
       ? moderatePool
       : strongPool;
 
-  const canonicalTeam = normalizeTeamName(team);
-const index = pool.findIndex(
-  t => normalizeTeamName(t) === canonicalTeam
-);
+  const index = pool.indexOf(team);
   if (index === -1) return;
 
   const n = pool.length;
@@ -749,25 +666,17 @@ const autoDistributeAll = () => {
   const shuffledPlayers = shuffle(playerNames);
   const queue = [];
 
-pools.forEach(({ type, teams }) => {
-  let idx = 0;
-
-  teams.forEach((team) => {
-    const player = shuffledPlayers[idx];
-
-    // 🔴 APPLY FIXED RULE HERE (BEFORE QUEUE)
-    const forced = getFixedAssignmentForPlayer(player, type);
-    const finalTeam = normalizeTeamName(forced || team);
-
-    queue.push({
-      team: finalTeam,   // 🔥 IMPORTANT
-      player,
-      type,
+  pools.forEach(({ type, teams }) => {
+    let idx = 0;
+    teams.forEach((team) => {
+      queue.push({
+        team,
+        player: shuffledPlayers[idx],
+        type,
+      });
+      idx = (idx + 1) % playersCount;
     });
-
-    idx = (idx + 1) % playersCount;
   });
-});
 
   autoQueueRef.current = queue;
   autoAnimatingRef.current = true;
@@ -796,30 +705,24 @@ pools.forEach(({ type, teams }) => {
     if (!snap) return;
 
     const { playerSnapshot, typeSnapshot, selectedTeam } = snap;
-
-    // 🔴 TEMPORARY FIXED ASSIGNMENT OVERRIDE
-    const finalTeam = normalizeTeamName(selectedTeam);
-
     if (!selectedTeam) return;
 
     setAssignments((prev) => {
       const bucket = prev[typeSnapshot] || {};
       const list = bucket[playerSnapshot]
-      ? [...bucket[playerSnapshot], finalTeam]
-      : [finalTeam];
+        ? [...bucket[playerSnapshot], selectedTeam]
+        : [selectedTeam];
       return { ...prev, [typeSnapshot]: { ...bucket, [playerSnapshot]: list } };
     });
 
    // 🔵 UPDATED – remove from correct pool
-    if (typeSnapshot === "Weak") {
-      setWeakPool(prev => prev.filter(t => normalizeTeamName(t) !== finalTeam));
-    } else if (typeSnapshot === "Moderate") {
-      setModeratePool(prev => prev.filter(t => normalizeTeamName(t) !== finalTeam));
-    } else {
-            setStrongPool(prev =>
-        prev.filter(t => normalizeTeamName(t) !== finalTeam)
-      );
-    }
+      if (typeSnapshot === "Weak") {
+        setWeakPool(prev => prev.filter(t => t !== selectedTeam));
+      } else if (typeSnapshot === "Moderate") {
+        setModeratePool(prev => prev.filter(t => t !== selectedTeam));
+      } else {
+        setStrongPool(prev => prev.filter(t => t !== selectedTeam));
+      }
 
     setTurnPtr((prev) => prev + 1);
 
