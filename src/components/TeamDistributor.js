@@ -500,7 +500,61 @@ useEffect(() => {
   };
 
   // ---------- Spin snapshot ----------
-  const spinSnapRef = useRef(null);
+const spinSnapRef = useRef(null);
+// ---------- Auto animation queue ----------
+const autoQueueRef = useRef([]); // [{ team, player, type }]
+const autoAnimatingRef = useRef(false);
+
+// ---------- Programmatic spin to a specific team ----------
+const spinToTeam = ({ team, player, type }) => {
+  const pool =
+    type === "Weak"
+      ? weakPool
+      : type === "Moderate"
+      ? moderatePool
+      : strongPool;
+
+  const index = pool.indexOf(team);
+  if (index === -1) return;
+
+  const n = pool.length;
+  const slice = (Math.PI * 2) / n;
+
+  const pointerAngle = Math.PI / 2;
+  const segmentCenter = index * slice + slice / 2;
+
+  const bigSpins = Math.floor(randBetween(2, 4)) * (Math.PI * 2);
+  const targetAngle = bigSpins + (pointerAngle - segmentCenter);
+
+  spinSnapRef.current = {
+    selectedTeam: team,
+    playerSnapshot: player,
+    typeSnapshot: type,
+  };
+
+  setIsSpinning(true);
+
+  const duration = 1800;
+  const startAngle = angle;
+  const start = performance.now();
+
+  const step = (t) => {
+    const p = Math.min(1, (t - start) / duration);
+    const ease = 1 - Math.pow(1 - p, 3);
+    const next = startAngle + (targetAngle - startAngle) * ease;
+    setAngle(next);
+
+    if (p < 1) requestAnimationFrame(step);
+    else {
+      setAngle(targetAngle);
+      setIsSpinning(false);
+      finalizeSpin();
+    }
+  };
+
+  requestAnimationFrame(step);
+};
+
 
   // ---------- Spin / Assign ----------
   // 🔵 UPDATED – include Moderate
@@ -584,7 +638,7 @@ useEffect(() => {
     requestAnimationFrame(step);
   };
 
-  // ================= AUTO DISTRIBUTE (ONE CLICK) =================
+// ================= AUTO DISTRIBUTE (ONE CLICK – ANIMATED) =================
 const autoDistributeAll = () => {
   if (playersCount === 0) {
     pushToast("Add at least one board/player.", "error");
@@ -597,11 +651,10 @@ const autoDistributeAll = () => {
     { type: "Strong", teams: [...strongPool] },
   ];
 
-  // validation: every pool must be divisible by players
   for (const p of pools) {
     if (p.teams.length === 0) continue;
     if (p.teams.length % playersCount !== 0) {
-            pushToast(
+      pushToast(
         `${p.type} teams are not divisible by ${playersCount}. Please balance them first.`,
         "error",
         5000
@@ -611,39 +664,41 @@ const autoDistributeAll = () => {
   }
 
   const shuffledPlayers = shuffle(playerNames);
-
-  const newAssignments = {
-    Weak: {},
-    Moderate: {},
-    Strong: {},
-  };
+  const queue = [];
 
   pools.forEach(({ type, teams }) => {
     let idx = 0;
     teams.forEach((team) => {
-      const player = shuffledPlayers[idx];
-      if (!newAssignments[type][player]) {
-        newAssignments[type][player] = [];
-      }
-      newAssignments[type][player].push(team);
+      queue.push({
+        team,
+        player: shuffledPlayers[idx],
+        type,
+      });
       idx = (idx + 1) % playersCount;
     });
   });
 
-  setAssignments(newAssignments);
-
-  // clear pools (so wheel is visually empty)
-  setWeakPool([]);
-  setModeratePool([]);
-  setStrongPool([]);
+  autoQueueRef.current = queue;
+  autoAnimatingRef.current = true;
 
   setTurnPtr(0);
-  setAngle(0);
 
-  fireConfetti(WHEEL_SIZE / 2, WHEEL_SIZE / 2);
-  pushToast("All teams distributed successfully 🎉", "success", 4000);
+  const runNext = () => {
+    if (!autoQueueRef.current.length) {
+      autoAnimatingRef.current = false;
+      fireConfetti(WHEEL_SIZE / 2, WHEEL_SIZE / 2);
+      pushToast("All teams distributed successfully 🎉", "success", 4000);
+      return;
+    }
+
+    const next = autoQueueRef.current.shift();
+    spinToTeam(next);
+
+    setTimeout(runNext, 2200); // delay between spins
+  };
+
+  runNext();
 };
-
 
   const finalizeSpin = () => {
     const snap = spinSnapRef.current;
