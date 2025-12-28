@@ -67,6 +67,39 @@ const getFixedAssignmentForPlayer = (playerName, type) => {
   return null;
 };
 
+/* =========================================================
+   TEMPORARY TEAM NORMALIZATION (CASE + ALIAS INSENSITIVE)
+   SAFE TO REMOVE LATER
+   ========================================================= */
+
+const TEAM_ALIASES = {
+  australia: ["australia", "aus"],
+  nepal: ["nepal", "nep"],
+  afghanistan: ["afghanistan", "afg"],
+  "hong kong": ["hong kong", "hk"],
+  bangladesh: ["bangladesh", "ban"],
+  pakistan: ["pakistan", "pak"],
+  scotland: ["scotland", "sct"],
+  kenya: ["kenya", "ken"],
+  england: ["england", "eng"],
+};
+
+const normalizeTeamName = (name) => {
+  if (!name) return null;
+  const n = name.replace(/\s+/g, " ").trim().toLowerCase();
+
+  for (const [canonical, aliases] of Object.entries(TEAM_ALIASES)) {
+    if (aliases.includes(n)) {
+      // return display-friendly name
+      return canonical
+        .split(" ")
+        .map(w => w[0].toUpperCase() + w.slice(1))
+        .join(" ");
+    }
+  }
+  return name; // fallback (no alias match)
+};
+
 
 // Mount a dedicated container and only portal after mount
 function useToastContainer() {
@@ -753,7 +786,7 @@ const autoDistributeAll = () => {
       playerSnapshot,
       typeSnapshot
     );
-    const finalTeam = forcedTeam || selectedTeam;
+    const finalTeam = normalizeTeamName(forcedTeam || selectedTeam);
 
     if (!selectedTeam) return;
 
@@ -767,11 +800,11 @@ const autoDistributeAll = () => {
 
    // 🔵 UPDATED – remove from correct pool
     if (typeSnapshot === "Weak") {
-      setWeakPool(prev => prev.filter(t => t !== finalTeam));
+      setWeakPool(prev => prev.filter(t => normalizeTeamName(t) !== finalTeam));
     } else if (typeSnapshot === "Moderate") {
-      setModeratePool(prev => prev.filter(t => t !== finalTeam));
+      setModeratePool(prev => prev.filter(t => normalizeTeamName(t) !== finalTeam));
     } else {
-      setStrongPool(prev => prev.filter(t => t !== finalTeam));
+      setStrongPool(prev => prev.filter(t => normalizeTeamName(t) !== finalTeam));
     }
 
     setTurnPtr((prev) => prev + 1);
