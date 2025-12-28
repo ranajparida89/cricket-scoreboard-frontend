@@ -235,12 +235,12 @@ useEffect(() => {
 
     // case-insensitive dedupe
     const seen = new Set();
-    const list = valids.filter((t) => {
-      const key = t.toLowerCase();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+      // normalize + case-insensitive dedupe (FIXES duplicate / leftover bug)
+    const list = valids
+      .map(t => normalizeTeamName(t))   // normalize ONCE here
+      .filter((t, i, arr) =>
+        arr.findIndex(x => x.toLowerCase() === t.toLowerCase()) === i
+      );
 
     if (invalids.length > 0) {
       pushToast(
@@ -804,7 +804,7 @@ const autoDistributeAll = () => {
     } else if (typeSnapshot === "Moderate") {
       setModeratePool(prev => prev.filter(t => normalizeTeamName(t) !== finalTeam));
     } else {
-      setStrongPool(prev => prev.filter(t => normalizeTeamName(t) !== finalTeam));
+      setStrongPool(prev => prev.filter(t => t !== finalTeam));
     }
 
     setTurnPtr((prev) => prev + 1);
