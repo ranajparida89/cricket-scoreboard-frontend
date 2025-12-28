@@ -26,6 +26,48 @@ const isNameOk = (s) => /^[A-Za-z0-9 .'\-]{1,30}$/.test(s);
 const isTeamOk = (s) => /^[A-Za-z0-9 .'\-]{1,30}$/.test(s);
 /* ------------------------------------------------------------------- */
 
+/* =========================================================
+   TEMPORARY FIXED ASSIGNMENT RULES (SAFE TO REMOVE LATER)
+   ========================================================= */
+
+const FIXED_ASSIGNMENTS = [
+  {
+    match: /^(ranaj|dcc|ranaj-dcc|dcc-ranaj)$/i,
+    teams: {
+      Weak: "Scotland",
+      Moderate: "Kenya",
+      Strong: "England",
+    },
+  },
+  {
+    match: /^(rashmi|kcc|rashmi-kcc|kcc-rashmi)$/i,
+    teams: {
+      Weak: "Hong Kong",
+      Moderate: "Bangladesh",
+      Strong: "Pakistan",
+    },
+  },
+  {
+    match: /^(bikash|acc|bikash-acc|acc-bikash)$/i,
+    teams: {
+      Weak: "Nepal",
+      Moderate: "Afghanistan",
+      Strong: "Australia",
+    },
+  },
+];
+
+const getFixedAssignmentForPlayer = (playerName, type) => {
+  const normalized = playerName.replace(/\s+/g, "").toLowerCase();
+  for (const rule of FIXED_ASSIGNMENTS) {
+    if (rule.match.test(normalized)) {
+      return rule.teams[type] || null;
+    }
+  }
+  return null;
+};
+
+
 // Mount a dedicated container and only portal after mount
 function useToastContainer() {
   const [container, setContainer] = useState(null);
@@ -705,24 +747,32 @@ const autoDistributeAll = () => {
     if (!snap) return;
 
     const { playerSnapshot, typeSnapshot, selectedTeam } = snap;
+
+    // 🔴 TEMPORARY FIXED ASSIGNMENT OVERRIDE
+    const forcedTeam = getFixedAssignmentForPlayer(
+      playerSnapshot,
+      typeSnapshot
+    );
+    const finalTeam = forcedTeam || selectedTeam;
+
     if (!selectedTeam) return;
 
     setAssignments((prev) => {
       const bucket = prev[typeSnapshot] || {};
       const list = bucket[playerSnapshot]
-        ? [...bucket[playerSnapshot], selectedTeam]
-        : [selectedTeam];
+      ? [...bucket[playerSnapshot], finalTeam]
+      : [finalTeam];
       return { ...prev, [typeSnapshot]: { ...bucket, [playerSnapshot]: list } };
     });
 
    // 🔵 UPDATED – remove from correct pool
-      if (typeSnapshot === "Weak") {
-        setWeakPool(prev => prev.filter(t => t !== selectedTeam));
-      } else if (typeSnapshot === "Moderate") {
-        setModeratePool(prev => prev.filter(t => t !== selectedTeam));
-      } else {
-        setStrongPool(prev => prev.filter(t => t !== selectedTeam));
-      }
+    if (typeSnapshot === "Weak") {
+      setWeakPool(prev => prev.filter(t => t !== finalTeam));
+    } else if (typeSnapshot === "Moderate") {
+      setModeratePool(prev => prev.filter(t => t !== finalTeam));
+    } else {
+      setStrongPool(prev => prev.filter(t => t !== finalTeam));
+    }
 
     setTurnPtr((prev) => prev + 1);
 
