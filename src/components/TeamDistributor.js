@@ -84,22 +84,26 @@ const TEAM_ALIASES = {
   england: ["england", "eng"],
 };
 
+const toInitCap = (s) =>
+  s
+    .toLowerCase()
+    .split(" ")
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+
 const normalizeTeamName = (name) => {
   if (!name) return null;
+
   const n = name.replace(/\s+/g, " ").trim().toLowerCase();
 
   for (const [canonical, aliases] of Object.entries(TEAM_ALIASES)) {
     if (aliases.includes(n)) {
-      // return display-friendly name
-      return canonical
-        .split(" ")
-        .map(w => w[0].toUpperCase() + w.slice(1))
-        .join(" ");
+      return toInitCap(canonical);
     }
   }
-  return name; // fallback (no alias match)
+  // fallback → still InitCap
+  return toInitCap(n);
 };
-
 
 // Mount a dedicated container and only portal after mount
 function useToastContainer() {
@@ -236,11 +240,12 @@ useEffect(() => {
     // case-insensitive dedupe
     const seen = new Set();
       // normalize + case-insensitive dedupe (FIXES duplicate / leftover bug)
-    const list = valids
-      .map(t => normalizeTeamName(t))   // normalize ONCE here
-      .filter((t, i, arr) =>
-        arr.findIndex(x => x.toLowerCase() === t.toLowerCase()) === i
-      );
+          const list = valids
+          .map(t => normalizeTeamName(t))   // canonical form ONLY
+          .filter(Boolean)
+          .filter((t, i, arr) =>
+            arr.findIndex(x => x === t) === i
+          );
 
     if (invalids.length > 0) {
       pushToast(
@@ -589,7 +594,10 @@ const spinToTeam = ({ team, player, type }) => {
       ? moderatePool
       : strongPool;
 
-  const index = pool.indexOf(team);
+  const canonicalTeam = normalizeTeamName(team);
+const index = pool.findIndex(
+  t => normalizeTeamName(t) === canonicalTeam
+);
   if (index === -1) return;
 
   const n = pool.length;
@@ -804,7 +812,9 @@ const autoDistributeAll = () => {
     } else if (typeSnapshot === "Moderate") {
       setModeratePool(prev => prev.filter(t => normalizeTeamName(t) !== finalTeam));
     } else {
-      setStrongPool(prev => prev.filter(t => t !== finalTeam));
+            setStrongPool(prev =>
+        prev.filter(t => normalizeTeamName(t) !== finalTeam)
+      );
     }
 
     setTurnPtr((prev) => prev + 1);
