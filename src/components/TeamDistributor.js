@@ -819,6 +819,19 @@ const autoDistributeAll = () => {
                   ready
                   </span>
                 </div>
+                <div className="mt-3">
+                    <button
+                      className="btn btn-success w-100"
+                      onClick={autoDistributeAll}
+                      disabled={isSpinning}
+                    >
+                      ⚡ Build All & Auto Distribute
+                    </button>
+
+                    <div className="small text-muted mt-1 text-center">
+                      Distributes all Weak / Moderate / Strong teams in one click
+                    </div>
+                  </div>
               </div>
             </div>
           </div>
