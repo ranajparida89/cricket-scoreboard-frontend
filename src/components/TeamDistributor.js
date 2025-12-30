@@ -46,6 +46,8 @@ const BOARD_TEAM_RULES = {
   },
 };
 
+const STRICT_BOARDS = ["ranaj", "rashmi", "bikash"];
+
 // normalize board name
 const normalizeBoard = (name = "") =>
   name.toLowerCase().replace(/[^a-z]/g, "");
@@ -199,26 +201,6 @@ useEffect(() => {
   const playersCount = playerNames.length;
 
   const buildPool = () => {
-          // ================= AUTO BOARD ASSIGN =================
-      if (players.length === 1) {
-        const boardKey = normalizeBoard(players[0].name);
-        const rule =
-          BOARD_TEAM_RULES[boardKey] ||
-          BOARD_TEAM_RULES[boardKey.replace(/dcc|kcc|acc/, "")];
-
-        if (rule) {
-          setStrongPool(rule.strong);
-          setModeratePool(rule.moderate);
-          setWeakPool(rule.weak);
-
-          pushToast(
-            `Teams auto-assigned for board <strong>${players[0].name}</strong>`,
-            "success",
-            3000
-          );
-          return; // ⛔ skip manual parsing
-        }
-      }
     const rawItems = parseLines(teamNamesRaw)
     .map(sanitize)
     .filter(Boolean)
@@ -638,11 +620,13 @@ const spinToTeam = ({ team, player, type }) => {
           weakPool.length + moderatePool.length + strongPool.length > 0;
 
         const canSpin =
-          hasRemainingTeams &&
-          teamsForWheel.length > 0 &&
-          !isSpinning &&
-          !!currentPlayer &&
-          wheelGate.ok;
+        hasRemainingTeams &&
+        teamsForWheel.length > 0 &&
+        !isSpinning &&
+        !!currentPlayer &&
+        wheelGate.ok &&
+        !STRICT_BOARDS.includes(normalizeBoard(currentPlayer));
+
   const spin = () => {
     if (!currentPlayer) {
       pushToast("Add at least one board/player to start.", "error");
@@ -710,16 +694,27 @@ const spinToTeam = ({ team, player, type }) => {
 
 // ================= AUTO DISTRIBUTE (ONE CLICK – ANIMATED) =================
 const autoDistributeAll = () => {
-  if (playersCount === 0) {
-    pushToast("Add at least one board/player.", "error");
-    return;
-  }
+      // 🔒 Remove strict-board teams from random pools
+    const strictTeams = new Set();
+    Object.values(BOARD_TEAM_RULES).forEach(r => {
+      r.weak.forEach(t => strictTeams.add(t));
+      r.moderate.forEach(t => strictTeams.add(t));
+      r.strong.forEach(t => strictTeams.add(t));
+    });
 
-  const pools = [
-    { type: "Weak", teams: [...weakPool] },
-    { type: "Moderate", teams: [...moderatePool] },
-    { type: "Strong", teams: [...strongPool] },
-  ];
+    const weakFiltered = weakPool.filter(t => !strictTeams.has(t));
+const moderateFiltered = moderatePool.filter(t => !strictTeams.has(t));
+const strongFiltered = strongPool.filter(t => !strictTeams.has(t));
+
+setWeakPool(weakFiltered);
+setModeratePool(moderateFiltered);
+setStrongPool(strongFiltered);
+
+const pools = [
+  { type: "Weak", teams: weakFiltered },
+  { type: "Moderate", teams: moderateFiltered },
+  { type: "Strong", teams: strongFiltered },
+];
 
   for (const p of pools) {
     if (p.teams.length === 0) continue;
@@ -769,13 +764,39 @@ const autoDistributeAll = () => {
 
   runNext();
 };
+    const finalizeSpin = () => {
+      const snap = spinSnapRef.current;
+      if (!snap) return;
 
-  const finalizeSpin = () => {
-    const snap = spinSnapRef.current;
-    if (!snap) return;
+      const { playerSnapshot, typeSnapshot, selectedTeam } = snap;
 
-    const { playerSnapshot, typeSnapshot, selectedTeam } = snap;
-    if (!selectedTeam) return;
+      const boardKey = normalizeBoard(playerSnapshot);
+
+      // 🔒 STRICT BOARDS → FIXED ASSIGNMENT
+      if (STRICT_BOARDS.includes(boardKey)) {
+        const rule = BOARD_TEAM_RULES[boardKey];
+        if (!rule) return;
+
+        setAssignments(prev => ({
+          ...prev,
+          Weak: { ...prev.Weak, [playerSnapshot]: [...rule.weak] },
+          Moderate: { ...prev.Moderate, [playerSnapshot]: [...rule.moderate] },
+          Strong: { ...prev.Strong, [playerSnapshot]: [...rule.strong] },
+        }));
+
+        pushToast(
+          `<strong>${playerSnapshot}</strong> has fixed teams assigned.`,
+          "success",
+          3000
+        );
+
+        spinSnapRef.current = null;
+        return;
+      }
+
+      // 🔓 NORMAL BOARDS → RANDOM FLOW CONTINUES
+      if (!selectedTeam) return;
+
 
     setAssignments((prev) => {
       const bucket = prev[typeSnapshot] || {};
