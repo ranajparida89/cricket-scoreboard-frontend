@@ -26,57 +26,6 @@ const isNameOk = (s) => /^[A-Za-z0-9 .'\-]{1,30}$/.test(s);
 const isTeamOk = (s) => /^[A-Za-z0-9 .'\-]{1,30}$/.test(s);
 /* ------------------------------------------------------------------- */
 
-/* ================= BOARD → TEAM RULES ================= */
-
-const BOARD_TEAM_RULES = {
-  ranaj: {
-    strong: ["West Indies"],
-    moderate: ["Sri Lanka"],
-    weak: ["Scotland"],
-  },
-  rashmi: {
-    strong: ["Pakistan"],
-    moderate: ["Bangladesh"],
-    weak: ["Hong Kong"],
-  },
-  bikash: {
-    strong: ["Australia"],
-    moderate: ["Afghanistan"],
-    weak: ["Oman"],
-  },
-};
-
-const STRICT_BOARDS = ["ranaj", "rashmi", "bikash"];
-
-// normalize board name
-const normalizeBoard = (name = "") =>
-  name.toLowerCase().replace(/[^a-z]/g, "");
-
-// normalize team aliases → canonical InitCap
-const TEAM_ALIASES = {
-  australia: ["aus", "australia"],
-  pakistan: ["pak", "pakistan"],
-  bangladesh: ["ban", "bangladesh"],
-  "west indies": ["wi", "westindies", "west indies"],
-  "sri lanka": ["sl", "srilanka", "sri lanka"],
-  scotland: ["sco", "scotland"],
-  "hong kong": ["hk", "hongkong", "hong kong"],
-  afghanistan: ["afg", "afghanistan"],
-  oman: ["oman"],
-};
-
-// convert any input → canonical name
-const normalizeTeamName = (input = "") => {
-  const key = input.toLowerCase().replace(/\s+/g, "");
-  for (const [canonical, aliases] of Object.entries(TEAM_ALIASES)) {
-    if (aliases.some(a => key === a.replace(/\s+/g, ""))) {
-      return canonical.replace(/\b\w/g, c => c.toUpperCase());
-    }
-  }
-  return input.replace(/\b\w/g, c => c.toUpperCase());
-};
-
-
 // Mount a dedicated container and only portal after mount
 function useToastContainer() {
   const [container, setContainer] = useState(null);
@@ -202,10 +151,9 @@ useEffect(() => {
 
   const buildPool = () => {
     const rawItems = parseLines(teamNamesRaw)
-    .map(sanitize)
-    .filter(Boolean)
-    .map(normalizeTeamName)   // ⭐ normalize aliases → InitCap
-    .map(t => t.slice(0, 30));
+      .map(sanitize)
+      .filter(Boolean)
+      .map((t) => t.slice(0, 30));
 
     const invalids = rawItems.filter((t) => !isTeamOk(t));
     const valids = rawItems.filter((t) => isTeamOk(t));
@@ -620,13 +568,11 @@ const spinToTeam = ({ team, player, type }) => {
           weakPool.length + moderatePool.length + strongPool.length > 0;
 
         const canSpin =
-        hasRemainingTeams &&
-        teamsForWheel.length > 0 &&
-        !isSpinning &&
-        !!currentPlayer &&
-        wheelGate.ok &&
-        !STRICT_BOARDS.includes(normalizeBoard(currentPlayer));
-
+          hasRemainingTeams &&
+          teamsForWheel.length > 0 &&
+          !isSpinning &&
+          !!currentPlayer &&
+          wheelGate.ok;
   const spin = () => {
     if (!currentPlayer) {
       pushToast("Add at least one board/player to start.", "error");
@@ -694,27 +640,16 @@ const spinToTeam = ({ team, player, type }) => {
 
 // ================= AUTO DISTRIBUTE (ONE CLICK – ANIMATED) =================
 const autoDistributeAll = () => {
-      // 🔒 Remove strict-board teams from random pools
-    const strictTeams = new Set();
-    Object.values(BOARD_TEAM_RULES).forEach(r => {
-      r.weak.forEach(t => strictTeams.add(t));
-      r.moderate.forEach(t => strictTeams.add(t));
-      r.strong.forEach(t => strictTeams.add(t));
-    });
+  if (playersCount === 0) {
+    pushToast("Add at least one board/player.", "error");
+    return;
+  }
 
-    const weakFiltered = weakPool.filter(t => !strictTeams.has(t));
-const moderateFiltered = moderatePool.filter(t => !strictTeams.has(t));
-const strongFiltered = strongPool.filter(t => !strictTeams.has(t));
-
-setWeakPool(weakFiltered);
-setModeratePool(moderateFiltered);
-setStrongPool(strongFiltered);
-
-const pools = [
-  { type: "Weak", teams: weakFiltered },
-  { type: "Moderate", teams: moderateFiltered },
-  { type: "Strong", teams: strongFiltered },
-];
+  const pools = [
+    { type: "Weak", teams: [...weakPool] },
+    { type: "Moderate", teams: [...moderatePool] },
+    { type: "Strong", teams: [...strongPool] },
+  ];
 
   for (const p of pools) {
     if (p.teams.length === 0) continue;
@@ -764,39 +699,13 @@ const pools = [
 
   runNext();
 };
-    const finalizeSpin = () => {
-      const snap = spinSnapRef.current;
-      if (!snap) return;
 
-      const { playerSnapshot, typeSnapshot, selectedTeam } = snap;
+  const finalizeSpin = () => {
+    const snap = spinSnapRef.current;
+    if (!snap) return;
 
-      const boardKey = normalizeBoard(playerSnapshot);
-
-      // 🔒 STRICT BOARDS → FIXED ASSIGNMENT
-      if (STRICT_BOARDS.includes(boardKey)) {
-        const rule = BOARD_TEAM_RULES[boardKey];
-        if (!rule) return;
-
-        setAssignments(prev => ({
-          ...prev,
-          Weak: { ...prev.Weak, [playerSnapshot]: [...rule.weak] },
-          Moderate: { ...prev.Moderate, [playerSnapshot]: [...rule.moderate] },
-          Strong: { ...prev.Strong, [playerSnapshot]: [...rule.strong] },
-        }));
-
-        pushToast(
-          `<strong>${playerSnapshot}</strong> has fixed teams assigned.`,
-          "success",
-          3000
-        );
-
-        spinSnapRef.current = null;
-        return;
-      }
-
-      // 🔓 NORMAL BOARDS → RANDOM FLOW CONTINUES
-      if (!selectedTeam) return;
-
+    const { playerSnapshot, typeSnapshot, selectedTeam } = snap;
+    if (!selectedTeam) return;
 
     setAssignments((prev) => {
       const bucket = prev[typeSnapshot] || {};
