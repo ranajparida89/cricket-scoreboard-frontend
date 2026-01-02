@@ -1,13 +1,13 @@
 /* ======================================================
-   OVERLAY BACKGROUND (SEMI-TRANSPARENT)
+   OVERLAY BACKGROUND
    ====================================================== */
 .ny-overlay {
   position: fixed;
   inset: 0;
   background: radial-gradient(
     circle at top,
-    rgba(11, 18, 32, 0.45),
-    rgba(0, 0, 0, 0.65)
+    rgba(11,18,32,0.45),
+    rgba(0,0,0,0.65)
   );
   z-index: 99999;
   display: flex;
@@ -16,14 +16,14 @@
   overflow: hidden;
 }
 
-/* Soft vignette to focus center */
+/* Vignette */
 .ny-vignette {
   position: absolute;
   inset: 0;
   background: radial-gradient(
     circle,
-    transparent 40%,
-    rgba(0, 0, 0, 0.55) 90%
+    transparent 42%,
+    rgba(0,0,0,0.55) 90%
   );
 }
 
@@ -32,12 +32,12 @@
    ====================================================== */
 .ny-text-wrap {
   position: relative;
-  text-align: center;
   z-index: 2;
+  text-align: center;
 }
 
 /* ======================================================
-   MAIN TITLE – ONE LINE
+   TITLE BASE
    ====================================================== */
 .ny-title {
   display: flex;
@@ -50,12 +50,29 @@
   letter-spacing: 4px;
   color: gold;
   text-shadow:
-    0 0 22px rgba(255, 215, 0, 0.9),
-    0 0 65px rgba(255, 215, 0, 0.7);
+    0 0 22px rgba(255,215,0,0.9),
+    0 0 65px rgba(255,215,0,0.7);
 }
 
 /* ======================================================
-   WORD ANIMATION – SLOW ELASTIC IN + SEQUENTIAL OUT
+   BRAND GRADIENT SWEEP (ONE TIME – PRO)
+   ====================================================== */
+.ny-brand-sweep {
+  background: linear-gradient(
+    120deg,
+    #ffd700 20%,
+    #5fd0c7 35%,
+    #ffd700 50%
+  );
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: brandSweep 2.8s ease forwards;
+  animation-delay: 1.8s;
+}
+
+/* ======================================================
+   WORD ANIMATION
    ====================================================== */
 .ny-title span {
   opacity: 0;
@@ -65,91 +82,68 @@
     wordOut 1.8s ease forwards;
   animation-delay:
     calc(var(--i) * 0.45s),
-    calc(5.4s + var(--i) * 0.5s);
+    calc(5.6s + var(--i) * 0.5s);
 }
 
-/* Highlight year */
-.ny-title .year {
-  color: #ffd700;
+/* Year emphasis */
+.year {
   text-shadow:
     0 0 30px rgba(255,215,0,1),
     0 0 80px rgba(255,215,0,.9);
 }
 
 /* ======================================================
-   SUBTITLE – BIG, GOLDEN, BRAND MOMENT
+   SUBTITLE – BRAND MOMENT
    ====================================================== */
 .ny-subtitle {
-  margin-top: 32px;
-  font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+  margin-top: 34px;
+  font-size: clamp(1.9rem, 3.5vw, 2.5rem);
   font-weight: 600;
   letter-spacing: 1.6px;
   opacity: 0;
   animation:
     subtitleIn 1.4s ease forwards,
     subtitleOut 1.8s ease forwards;
-  animation-delay: 2.8s, 7.4s;
+  animation-delay: 2.9s, 7.6s;
 }
 
 .ny-golden {
   color: gold;
   text-shadow:
-    0 0 24px rgba(255,215,0,0.95),
-    0 0 60px rgba(255,215,0,0.75);
+    0 0 28px rgba(255,215,0,0.95),
+    0 0 65px rgba(255,215,0,0.75);
 }
 
 /* ======================================================
    ANIMATIONS
    ====================================================== */
-
-/* Elastic bounce IN */
 @keyframes elasticIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.25) translateY(110px);
-  }
-  60% {
-    opacity: 1;
-    transform: scale(1.25) translateY(-14px);
-  }
-  80% {
-    transform: scale(0.96) translateY(6px);
-  }
-  100% {
-    transform: scale(1) translateY(0);
-  }
+  0% { opacity: 0; transform: scale(0.25) translateY(110px); }
+  60% { opacity: 1; transform: scale(1.25) translateY(-14px); }
+  80% { transform: scale(0.96) translateY(6px); }
+  100% { transform: scale(1) translateY(0); }
 }
 
-/* Sequential fade OUT per word */
 @keyframes wordOut {
-  to {
-    opacity: 0;
-    transform: translateY(-26px);
-  }
+  to { opacity: 0; transform: translateY(-26px); }
 }
 
-/* Subtitle entrance */
 @keyframes subtitleIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Subtitle exit */
 @keyframes subtitleOut {
-  to {
-    opacity: 0;
-    transform: translateY(-24px);
-  }
+  to { opacity: 0; transform: translateY(-24px); }
+}
+
+@keyframes brandSweep {
+  from { background-position: 0% center; }
+  to { background-position: 100% center; }
 }
 
 /* ======================================================
-   MOBILE OPTIMIZATION
+   MOBILE
    ====================================================== */
 @media (max-width: 768px) {
   .ny-title {
@@ -159,7 +153,7 @@
   }
 
   .ny-subtitle {
-    font-size: clamp(1.4rem, 4vw, 1.8rem);
+    font-size: clamp(1.4rem, 4vw, 1.9rem);
     margin-top: 22px;
   }
 }

@@ -17,31 +17,30 @@ const NewYear2026Overlay = ({ onFinish }) => {
       return () => clearTimeout(timer);
     }
 
-    /* 🎆 Fireworks from text center */
+    // 🎆 Fireworks from text center (minimal & classy)
     const rect = textRef.current?.getBoundingClientRect();
     const x = rect ? (rect.left + rect.width / 2) / window.innerWidth : 0.5;
     const y = rect ? (rect.top + rect.height / 2) / window.innerHeight : 0.45;
 
     const fire = () => {
       confetti({
-        particleCount: 80,
-        spread: 360,
-        startVelocity: 45,
-        scalar: 1.2,
+        particleCount: 70,
+        spread: 300,
+        startVelocity: 42,
+        scalar: 1.15,
         gravity: 0.9,
-        ticks: 180,
+        ticks: 170,
         origin: { x, y }
       });
     };
 
     fire();
-    const interval = setInterval(fire, 700);
+    const interval = setInterval(fire, 900);
 
-    /* Full lifecycle end */
     const endTimer = setTimeout(() => {
       clearInterval(interval);
       onFinish();
-    }, 8500);
+    }, 9000);
 
     return () => {
       clearInterval(interval);
@@ -50,13 +49,13 @@ const NewYear2026Overlay = ({ onFinish }) => {
   }, [onFinish, isNewYear]);
 
   return (
-    <div className={`ny-overlay ${isNewYear ? "ny-newyear" : "ny-normal"}`}>
+    <div className="ny-overlay">
       <div className="ny-vignette" />
 
       <div className="ny-text-wrap" ref={textRef}>
         {isNewYear ? (
           <>
-            <h1 className="ny-title">
+            <h1 className="ny-title ny-brand-sweep">
               <span style={{ "--i": 0 }}>Happy</span>
               <span style={{ "--i": 1 }}>New</span>
               <span style={{ "--i": 2 }}>Year</span>
@@ -69,7 +68,7 @@ const NewYear2026Overlay = ({ onFinish }) => {
           </>
         ) : (
           <>
-            <h1 className="ny-title single">
+            <h1 className="ny-title single ny-brand-sweep">
               Welcome to <span className="brand">CrickEdge</span>
             </h1>
             <p className="ny-subtitle">
