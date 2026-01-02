@@ -36,11 +36,13 @@
   text-align: center;
   transform-origin: center center;
 
-  /* 🎬 Netflix / Dolby camera movement */
-  animation: textFadeZoomOut 6.8s cubic-bezier(.16,.84,.44,1) forwards;
-  animation-delay: 3.8s; /* reduced wait before zoom */
+  /* Netflix / Dolby camera push */
+  animation: textFadeZoomOut 7.2s cubic-bezier(.16,.84,.44,1) forwards;
+  animation-delay: 3.4s; /* reduced wait before zoom */
 
   will-change: transform, opacity, filter;
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 /* ======================================================
@@ -97,7 +99,7 @@
 
   opacity: 1;
   animation: subtitleIn 1.4s ease forwards;
-  animation-delay: 2.8s;
+  animation-delay: 2.6s;
 }
 
 .ny-golden {
@@ -137,7 +139,7 @@
   }
 }
 
-/* 🎬 TRUE NETFLIX / DOLBY CAMERA PUSH + SLOW FADE + MOTION BLUR */
+/* 🎬 NETFLIX / DOLBY CAMERA PUSH — SMOOTH, NO FREEZE */
 @keyframes textFadeZoomOut {
   0% {
     opacity: 1;
@@ -145,22 +147,25 @@
     filter: blur(0px);
   }
 
-  70% {
+  /* Main cinematic travel */
+  65% {
     opacity: 1;
-    transform: scale(4.5) translateZ(0);
+    transform: scale(4.6) translateZ(0);
     filter: blur(0px);
   }
 
+  /* Controlled final push */
   85% {
     opacity: 0.85;
-    transform: scale(6) translateZ(0);
-    filter: blur(1.5px);
+    transform: scale(5.6) translateZ(0);
+    filter: blur(0.8px);
   }
 
+  /* Fade finishes — no extra scaling */
   100% {
     opacity: 0;
-    transform: scale(8) translateZ(0);
-    filter: blur(4px);
+    transform: scale(5.6) translateZ(0);
+    filter: blur(1.2px);
   }
 }
 
