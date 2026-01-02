@@ -68,6 +68,7 @@ import PastMatchesHub from "./components/PastMatchesHub";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import PlayerReportCard from "./components/PlayerReportCard";
+import NewYear2026Overlay from "./components/NewYear2026Overlay";
 //import AuctionLobby from "./components/AuctionLobby";
 //import AuctionRoom from "./components/AuctionRoom";
 //import AuctionMyPlayers from "./components/AuctionMyPlayers";
@@ -110,8 +111,20 @@ function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [waitingWorker, setWaitingWorker] = useState(null);
-
+        // 🎆 New Year 2026 overlay state
+  const [showNewYear2026, setShowNewYear2026] = useState(false);
   const { currentUser } = useAuth();
+
+    // 🎆 Show New Year banner for entire January 2026
+  useEffect(() => {
+    const today = new Date();
+    const isJan2026 =
+      today.getFullYear() === 2026 && today.getMonth() === 0;
+
+    if (isJan2026) {
+      setShowNewYear2026(true);
+    }
+  }, []);
 
   useEffect(() => {
     document.body.className =
@@ -163,6 +176,11 @@ function App() {
 
   return (
     <div className={theme}>
+          {showNewYear2026 && (
+        <NewYear2026Overlay
+          onFinish={() => setShowNewYear2026(false)}
+        />
+      )}
       {/* ✅ golden slanted watermark background */}
       <div className="crickedge-bg" aria-hidden="true"></div>
 

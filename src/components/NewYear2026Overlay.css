@@ -1,0 +1,45 @@
+.ny2026-overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #020617, #000);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeOut 1s ease forwards;
+  animation-delay: 3s;
+}
+
+.ny2026-text {
+  color: gold;
+  font-size: 3rem;
+  font-weight: bold;
+  text-align: center;
+  text-shadow: 0 0 30px gold;
+  animation: popIn 0.8s ease;
+}
+
+.ny2026-text span {
+  display: block;
+  font-size: 1.3rem;
+  margin-top: 12px;
+  color: #e5e7eb;
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
