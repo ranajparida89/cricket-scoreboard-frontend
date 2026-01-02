@@ -1,113 +1,165 @@
+/* ======================================================
+   OVERLAY BACKGROUND (SEMI-TRANSPARENT)
+   ====================================================== */
 .ny-overlay {
   position: fixed;
   inset: 0;
   background: radial-gradient(
     circle at top,
-    rgba(11,18,32,0.6),
-    rgba(0,0,0,0.75)
+    rgba(11, 18, 32, 0.45),
+    rgba(0, 0, 0, 0.65)
   );
   z-index: 99999;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  animation: nyFadeOut 2.4s ease forwards;
-  animation-delay: 4s;
 }
 
+/* Soft vignette to focus center */
 .ny-vignette {
   position: absolute;
   inset: 0;
   background: radial-gradient(
     circle,
-    transparent 45%,
-    rgba(0,0,0,.65) 90%
+    transparent 40%,
+    rgba(0, 0, 0, 0.55) 90%
   );
 }
 
-/* Text wrapper */
+/* ======================================================
+   TEXT WRAPPER
+   ====================================================== */
 .ny-text-wrap {
+  position: relative;
   text-align: center;
-  animation: riseIn 1s cubic-bezier(.16,.84,.44,1);
+  z-index: 2;
 }
 
-/* Main title */
+/* ======================================================
+   MAIN TITLE – ONE LINE
+   ====================================================== */
 .ny-title {
   display: flex;
   gap: 18px;
   justify-content: center;
-  flex-wrap: wrap;
-  font-size: clamp(2.6rem, 5vw, 4.2rem);
+  align-items: center;
+  flex-wrap: nowrap;
+  font-size: clamp(2.8rem, 5vw, 4.6rem);
   font-weight: 900;
   letter-spacing: 4px;
   color: gold;
   text-shadow:
-    0 0 18px rgba(255,215,0,.9),
-    0 0 50px rgba(255,215,0,.7);
+    0 0 22px rgba(255, 215, 0, 0.9),
+    0 0 65px rgba(255, 215, 0, 0.7);
 }
 
-/* Elastic bounce per word */
+/* ======================================================
+   WORD ANIMATION – SLOW ELASTIC IN + SEQUENTIAL OUT
+   ====================================================== */
 .ny-title span {
   opacity: 0;
-  transform: scale(.3) translateY(80px);
-  animation: elasticPop 1.1s cubic-bezier(.34,1.56,.64,1) forwards;
-  animation-delay: calc(var(--d) * 0.18s);
+  transform: scale(0.25) translateY(110px);
+  animation:
+    elasticIn 1.7s cubic-bezier(.22,1.25,.36,1) forwards,
+    wordOut 1.8s ease forwards;
+  animation-delay:
+    calc(var(--i) * 0.45s),
+    calc(5.4s + var(--i) * 0.5s);
 }
 
-.ny-title.single span,
-.ny-title.single {
-  animation: elasticPop 1.2s cubic-bezier(.34,1.56,.64,1) forwards;
-}
-
-/* Year highlight */
-.year {
+/* Highlight year */
+.ny-title .year {
   color: #ffd700;
   text-shadow:
-    0 0 25px rgba(255,215,0,1),
-    0 0 70px rgba(255,215,0,.9);
+    0 0 30px rgba(255,215,0,1),
+    0 0 80px rgba(255,215,0,.9);
 }
 
-/* Subtitle */
+/* ======================================================
+   SUBTITLE – BIG, GOLDEN, BRAND MOMENT
+   ====================================================== */
 .ny-subtitle {
-  margin-top: 26px;
-  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  margin-top: 32px;
+  font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+  font-weight: 600;
+  letter-spacing: 1.6px;
   opacity: 0;
-  animation: fadeSlide 1s ease forwards;
-  animation-delay: 1.2s;
+  animation:
+    subtitleIn 1.4s ease forwards,
+    subtitleOut 1.8s ease forwards;
+  animation-delay: 2.8s, 7.4s;
 }
 
 .ny-golden {
   color: gold;
-  text-shadow: 0 0 20px rgba(255,215,0,.9);
+  text-shadow:
+    0 0 24px rgba(255,215,0,0.95),
+    0 0 60px rgba(255,215,0,0.75);
 }
 
-.brand {
-  color: gold;
+/* ======================================================
+   ANIMATIONS
+   ====================================================== */
+
+/* Elastic bounce IN */
+@keyframes elasticIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.25) translateY(110px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.25) translateY(-14px);
+  }
+  80% {
+    transform: scale(0.96) translateY(6px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
 }
 
-/* Animations */
-@keyframes elasticPop {
-  0% { opacity: 0; transform: scale(.3) translateY(80px); }
-  60% { opacity: 1; transform: scale(1.15) translateY(-10px); }
-  80% { transform: scale(.95) translateY(4px); }
-  100% { transform: scale(1) translateY(0); }
+/* Sequential fade OUT per word */
+@keyframes wordOut {
+  to {
+    opacity: 0;
+    transform: translateY(-26px);
+  }
 }
 
-@keyframes fadeSlide {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Subtitle entrance */
+@keyframes subtitleIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-@keyframes riseIn {
-  from { transform: translateY(30px); }
-  to { transform: translateY(0); }
+/* Subtitle exit */
+@keyframes subtitleOut {
+  to {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
 }
 
-@keyframes nyFadeOut {
-  to { opacity: 0; visibility: hidden; }
-}
-
-/* Mobile */
+/* ======================================================
+   MOBILE OPTIMIZATION
+   ====================================================== */
 @media (max-width: 768px) {
-  .ny-title { gap: 10px; letter-spacing: 2px; }
+  .ny-title {
+    gap: 10px;
+    letter-spacing: 2px;
+    font-size: clamp(2.2rem, 7vw, 3.2rem);
+  }
+
+  .ny-subtitle {
+    font-size: clamp(1.4rem, 4vw, 1.8rem);
+    margin-top: 22px;
+  }
 }

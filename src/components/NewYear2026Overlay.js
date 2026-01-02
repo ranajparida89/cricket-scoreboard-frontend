@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import confetti from "canvas-confetti";
 import "./NewYear2026Overlay.css";
 
@@ -9,56 +9,60 @@ const isJanuary2026 = () => {
 
 const NewYear2026Overlay = ({ onFinish }) => {
   const isNewYear = isJanuary2026();
+  const textRef = useRef(null);
 
   useEffect(() => {
     if (!isNewYear) {
-      const timer = setTimeout(onFinish, 3500);
+      const timer = setTimeout(onFinish, 4500);
       return () => clearTimeout(timer);
     }
 
-    const duration = 3500;
-    const end = Date.now() + duration;
+    /* 🎆 Fireworks from text center */
+    const rect = textRef.current?.getBoundingClientRect();
+    const x = rect ? (rect.left + rect.width / 2) / window.innerWidth : 0.5;
+    const y = rect ? (rect.top + rect.height / 2) / window.innerHeight : 0.45;
 
     const fire = () => {
       confetti({
-        particleCount: 120,
+        particleCount: 80,
         spread: 360,
-        startVelocity: 55,
-        scalar: 1.25,
+        startVelocity: 45,
+        scalar: 1.2,
         gravity: 0.9,
-        ticks: 220,
-        origin: {
-          x: Math.random(),
-          y: Math.random() * 0.45
-        }
+        ticks: 180,
+        origin: { x, y }
       });
     };
 
-    const interval = setInterval(() => {
-      if (Date.now() > end) {
-        clearInterval(interval);
-        onFinish();
-      } else {
-        fire();
-      }
-    }, 320);
+    fire();
+    const interval = setInterval(fire, 700);
 
-    return () => clearInterval(interval);
+    /* Full lifecycle end */
+    const endTimer = setTimeout(() => {
+      clearInterval(interval);
+      onFinish();
+    }, 8500);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(endTimer);
+    };
   }, [onFinish, isNewYear]);
 
   return (
     <div className={`ny-overlay ${isNewYear ? "ny-newyear" : "ny-normal"}`}>
       <div className="ny-vignette" />
 
-      <div className="ny-text-wrap">
+      <div className="ny-text-wrap" ref={textRef}>
         {isNewYear ? (
           <>
             <h1 className="ny-title">
-              <span style={{ "--d": 0 }}>Happy</span>
-              <span style={{ "--d": 1 }}>New</span>
-              <span style={{ "--d": 2 }}>Year</span>
-              <span style={{ "--d": 3 }} className="year">2026</span>
+              <span style={{ "--i": 0 }}>Happy</span>
+              <span style={{ "--i": 1 }}>New</span>
+              <span style={{ "--i": 2 }}>Year</span>
+              <span style={{ "--i": 3 }} className="year">2026</span>
             </h1>
+
             <p className="ny-subtitle ny-golden">
               Welcome to CrickEdge
             </p>
