@@ -16,7 +16,7 @@
   overflow: hidden;
 }
 
-/* Soft vignette */
+/* Soft vignette for focus */
 .ny-vignette {
   position: absolute;
   inset: 0;
@@ -28,20 +28,22 @@
 }
 
 /* ======================================================
-   TEXT WRAPPER — ONLY FADE POINT
+   TEXT WRAPPER — SINGLE FADE + ZOOM POINT
    ====================================================== */
 .ny-text-wrap {
   position: relative;
   z-index: 2;
   text-align: center;
-  opacity: 1;
-  animation: textFadeOut 2.6s ease forwards;
+
+  /* ONE clean cinematic exit */
+  animation: textFadeZoomOut 3.2s cubic-bezier(.22,.61,.36,1) forwards;
   animation-delay: 8s;
+
   will-change: opacity, transform;
 }
 
 /* ======================================================
-   TITLE
+   MAIN TITLE
    ====================================================== */
 .ny-title {
   display: flex;
@@ -49,40 +51,49 @@
   justify-content: center;
   align-items: center;
   flex-wrap: nowrap;
+
   font-size: clamp(2.8rem, 5vw, 4.6rem);
   font-weight: 900;
   letter-spacing: 4px;
+
   color: #ffd700;
   text-shadow:
     0 0 18px rgba(255,215,0,0.9),
     0 0 50px rgba(255,215,0,0.65);
+
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 /* ======================================================
-   WORD ENTRANCE — TRANSFORM ONLY (NO OPACITY EXIT)
+   WORD ENTRANCE — ELASTIC IN ONLY
    ====================================================== */
 .ny-title span {
-  transform: scale(0.3) translateY(120px);
   opacity: 1;
+  transform: scale(0.3) translateY(120px);
+
   animation: elasticIn 1.7s cubic-bezier(.22,1.25,.36,1) forwards;
   animation-delay: calc(var(--i) * 0.45s);
 }
 
 /* Year emphasis */
 .year {
+  color: #ffd700;
   text-shadow:
     0 0 26px rgba(255,215,0,1),
     0 0 75px rgba(255,215,0,0.9);
 }
 
 /* ======================================================
-   SUBTITLE — NO OPACITY EXIT
+   SUBTITLE
    ====================================================== */
 .ny-subtitle {
   margin-top: 34px;
+
   font-size: clamp(1.9rem, 3.5vw, 2.5rem);
   font-weight: 600;
   letter-spacing: 1.6px;
+
   opacity: 1;
   animation: subtitleIn 1.4s ease forwards;
   animation-delay: 2.8s;
@@ -98,28 +109,47 @@
 /* ======================================================
    ANIMATIONS
    ====================================================== */
+
+/* Elastic bounce IN */
 @keyframes elasticIn {
-  0% { transform: scale(0.3) translateY(120px); }
-  60% { transform: scale(1.25) translateY(-14px); }
-  80% { transform: scale(0.96) translateY(6px); }
-  100% { transform: scale(1) translateY(0); }
+  0% {
+    transform: scale(0.3) translateY(120px);
+  }
+  60% {
+    transform: scale(1.25) translateY(-14px);
+  }
+  80% {
+    transform: scale(0.96) translateY(6px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
 }
 
+/* Subtitle gentle rise */
 @keyframes subtitleIn {
-  from { transform: translateY(22px); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(22px);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
-/* SINGLE FADE — TITLE + SUBTITLE TOGETHER */
-@keyframes textFadeOut {
-  to {
+/* 🎬 CINEMATIC EXIT — ZOOM TOWARDS USER + FADE */
+@keyframes textFadeZoomOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
     opacity: 0;
-    transform: translateY(-16px);
+    transform: scale(1.25) translateY(-20px);
   }
 }
 
 /* ======================================================
-   MOBILE
+   MOBILE OPTIMIZATION
    ====================================================== */
 @media (max-width: 768px) {
   .ny-title {
