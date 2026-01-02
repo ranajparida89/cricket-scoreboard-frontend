@@ -16,7 +16,7 @@
   overflow: hidden;
 }
 
-/* Soft vignette to focus center */
+/* Soft vignette */
 .ny-vignette {
   position: absolute;
   inset: 0;
@@ -28,16 +28,18 @@
 }
 
 /* ======================================================
-   TEXT WRAPPER
+   TEXT WRAPPER – SINGLE FADE POINT
    ====================================================== */
 .ny-text-wrap {
   position: relative;
   z-index: 2;
   text-align: center;
+  animation: textFadeOut 2.2s ease forwards;
+  animation-delay: 7.6s; /* fade EVERYTHING together */
 }
 
 /* ======================================================
-   MAIN TITLE – SHARP GOLD TEXT
+   MAIN TITLE
    ====================================================== */
 .ny-title {
   position: relative;
@@ -58,13 +60,12 @@
 }
 
 /* ======================================================
-   BRAND LIGHT SWEEP (OVERLAY – NO BLUR)
+   BRAND LIGHT SWEEP (NO BLUR)
    ====================================================== */
 .ny-brand-sweep {
   position: relative;
 }
 
-/* Moving light overlay */
 .ny-brand-sweep::after {
   content: "";
   position: absolute;
@@ -85,18 +86,14 @@
 }
 
 /* ======================================================
-   WORD ANIMATION – ELASTIC IN + SEQUENTIAL OUT
+   WORD ENTRANCE (NO WORD EXIT)
    ====================================================== */
 .ny-title span {
   position: relative;
   opacity: 0;
   transform: scale(0.25) translateY(110px);
-  animation:
-    elasticIn 1.7s cubic-bezier(.22,1.25,.36,1) forwards,
-    wordOut 1.8s ease forwards;
-  animation-delay:
-    calc(var(--i) * 0.45s),
-    calc(5.6s + var(--i) * 0.5s);
+  animation: elasticIn 1.7s cubic-bezier(.22,1.25,.36,1) forwards;
+  animation-delay: calc(var(--i) * 0.45s);
 }
 
 /* Year emphasis */
@@ -116,10 +113,8 @@
   font-weight: 600;
   letter-spacing: 1.6px;
   opacity: 0;
-  animation:
-    subtitleIn 1.4s ease forwards,
-    subtitleOut 1.8s ease forwards;
-  animation-delay: 2.9s, 7.6s;
+  animation: subtitleIn 1.4s ease forwards;
+  animation-delay: 2.8s;
 }
 
 .ny-golden {
@@ -132,8 +127,6 @@
 /* ======================================================
    ANIMATIONS
    ====================================================== */
-
-/* Elastic bounce IN */
 @keyframes elasticIn {
   0% {
     opacity: 0;
@@ -151,15 +144,6 @@
   }
 }
 
-/* Sequential fade OUT per word */
-@keyframes wordOut {
-  to {
-    opacity: 0;
-    transform: translateY(-26px);
-  }
-}
-
-/* Subtitle entrance */
 @keyframes subtitleIn {
   from {
     opacity: 0;
@@ -171,15 +155,15 @@
   }
 }
 
-/* Subtitle exit */
-@keyframes subtitleOut {
+/* ONE clean fade for everything */
+@keyframes textFadeOut {
   to {
     opacity: 0;
-    transform: translateY(-24px);
+    transform: translateY(-18px);
   }
 }
 
-/* Brand sweep animation */
+/* Brand sweep */
 @keyframes sweepOverlay {
   0% {
     transform: translateX(-120%);
@@ -198,7 +182,7 @@
 }
 
 /* ======================================================
-   MOBILE OPTIMIZATION
+   MOBILE
    ====================================================== */
 @media (max-width: 768px) {
   .ny-title {
