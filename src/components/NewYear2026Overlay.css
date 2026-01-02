@@ -38,7 +38,7 @@
 
   /* 🎬 Netflix / Dolby camera movement */
   animation: textFadeZoomOut 6.8s cubic-bezier(.16,.84,.44,1) forwards;
-  animation-delay: 6.8s; /* reduced wait before zoom */
+  animation-delay: 3.8s; /* reduced wait before zoom */
 
   will-change: transform, opacity, filter;
 }
