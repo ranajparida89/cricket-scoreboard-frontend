@@ -28,18 +28,19 @@
 }
 
 /* ======================================================
-   TEXT WRAPPER — SINGLE FADE + ZOOM POINT
+   TEXT WRAPPER — SINGLE CINEMATIC EXIT POINT
    ====================================================== */
 .ny-text-wrap {
   position: relative;
   z-index: 2;
   text-align: center;
+  transform-origin: center center;
 
-  /* ONE clean cinematic exit */
-  animation: textFadeZoomOut 3.2s cubic-bezier(.22,.61,.36,1) forwards;
+  /* 🎬 Netflix-style camera push-in */
+  animation: textFadeZoomOut 3.6s cubic-bezier(.16,.84,.44,1) forwards;
   animation-delay: 8s;
 
-  will-change: opacity, transform;
+  will-change: transform, opacity;
 }
 
 /* ======================================================
@@ -66,11 +67,11 @@
 }
 
 /* ======================================================
-   WORD ENTRANCE — ELASTIC IN ONLY
+   WORD ENTRANCE — ELASTIC IN (NO EXIT PER WORD)
    ====================================================== */
 .ny-title span {
-  opacity: 1;
   transform: scale(0.3) translateY(120px);
+  opacity: 1;
 
   animation: elasticIn 1.7s cubic-bezier(.22,1.25,.36,1) forwards;
   animation-delay: calc(var(--i) * 0.45s);
@@ -136,15 +137,21 @@
   }
 }
 
-/* 🎬 CINEMATIC EXIT — ZOOM TOWARDS USER + FADE */
+/* 🎬 NETFLIX-STYLE CAMERA PUSH-IN + FADE */
 @keyframes textFadeZoomOut {
   0% {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: scale(1) translateZ(0);
   }
+
+  40% {
+    opacity: 1;
+    transform: scale(1.8) translateZ(0);
+  }
+
   100% {
     opacity: 0;
-    transform: scale(1.25) translateY(-20px);
+    transform: scale(3) translateZ(0);
   }
 }
 
