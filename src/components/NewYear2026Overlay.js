@@ -9,15 +9,15 @@ const NewYear2026Overlay = ({ onFinish }) => {
 
     const fire = () => {
       confetti({
-        particleCount: 180,
+        particleCount: 160,
         spread: 360,
-        startVelocity: 50,
-        scalar: 1.3,
-        gravity: 0.9,
-        ticks: 200,
+        startVelocity: 55,
+        scalar: 1.4,
+        gravity: 0.95,
+        ticks: 220,
         origin: {
           x: Math.random(),
-          y: Math.random() * 0.5
+          y: Math.random() * 0.45
         }
       });
     };
@@ -29,7 +29,7 @@ const NewYear2026Overlay = ({ onFinish }) => {
       } else {
         fire();
       }
-    }, 280);
+    }, 260);
 
     return () => clearInterval(interval);
   }, [onFinish]);
@@ -38,8 +38,14 @@ const NewYear2026Overlay = ({ onFinish }) => {
     <div className="ny2026-overlay">
       <div className="ny-vignette" />
 
-      <div className="ny-glass-card">
-        <h1 className="ny-title">🎆 Happy New Year 2026 🎆</h1>
+      <div className="ny-text-wrap">
+        <h1 className="ny-title">
+          <span>Happy</span>
+          <span>New</span>
+          <span>Year</span>
+          <span className="year">2026</span>
+        </h1>
+
         <p className="ny-subtitle">Welcome to CrickEdge</p>
       </div>
     </div>
