@@ -1,41 +1,47 @@
-/* Fullscreen cinematic canvas */
+/* Semi-transparent fullscreen overlay */
 .ny2026-overlay {
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at top, #0b1220, #000);
+  background: radial-gradient(
+    circle at top,
+    rgba(11, 18, 32, 0.65),
+    rgba(0, 0, 0, 0.75)
+  );
   z-index: 99999;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  animation: nyFadeOut 1.3s ease forwards;
+  animation: nyFadeOut 1.4s ease forwards;
   animation-delay: 3s;
 }
 
-/* Dark vignette */
+/* Soft vignette (lighter now) */
 .ny-vignette {
   position: absolute;
   inset: 0;
   background: radial-gradient(
     circle,
-    transparent 35%,
-    rgba(0, 0, 0, 0.9) 85%
+    transparent 45%,
+    rgba(0, 0, 0, 0.6) 90%
   );
   z-index: 1;
 }
 
-/* Text wrapper */
+/* Floating text wrapper */
 .ny-text-wrap {
   position: relative;
   z-index: 2;
   text-align: center;
-  animation: textRise 1s cubic-bezier(.18,.9,.2,1);
+  animation:
+    textRise 1s cubic-bezier(.18,.9,.2,1),
+    floatSlow 4s ease-in-out infinite;
 }
 
 /* Main title */
 .ny-title {
   display: flex;
-  gap: 18px;
+  gap: 16px;
   justify-content: center;
   flex-wrap: wrap;
   font-size: clamp(2.4rem, 5vw, 4rem);
@@ -43,11 +49,12 @@
   letter-spacing: 4px;
   color: gold;
   text-shadow:
-    0 0 15px rgba(255, 215, 0, 0.9),
-    0 0 40px rgba(255, 215, 0, 0.7);
+    0 0 12px rgba(255, 215, 0, 0.8),
+    0 0 35px rgba(255, 215, 0, 0.6);
+  animation: glowPulse 2.8s ease-in-out infinite;
 }
 
-/* Individual word animation */
+/* Word entrance */
 .ny-title span {
   opacity: 0;
   transform: scale(0.6) translateY(40px);
@@ -59,16 +66,29 @@
 .ny-title span:nth-child(3) { animation-delay: 0.4s; }
 .ny-title span:nth-child(4) { animation-delay: 0.55s; }
 
+/* Special year shine */
 .ny-title .year {
+  position: relative;
   color: #ffd700;
-  text-shadow:
-    0 0 20px rgba(255, 215, 0, 1),
-    0 0 60px rgba(255, 215, 0, 0.9);
+}
+
+.ny-title .year::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.8),
+    transparent
+  );
+  transform: translateX(-120%);
+  animation: shine 2.5s ease-in-out infinite;
 }
 
 /* Subtitle */
 .ny-subtitle {
-  margin-top: 22px;
+  margin-top: 20px;
   font-size: clamp(1.1rem, 2.5vw, 1.4rem);
   color: #e5e7eb;
   letter-spacing: 1.4px;
@@ -86,23 +106,29 @@
 }
 
 @keyframes subtitleFade {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes textRise {
-  from {
-    transform: translateY(30px);
-  }
-  to {
-    transform: translateY(0);
-  }
+  from { transform: translateY(30px); }
+  to { transform: translateY(0); }
+}
+
+@keyframes glowPulse {
+  0%,100% { text-shadow: 0 0 12px rgba(255,215,0,.7); }
+  50% { text-shadow: 0 0 28px rgba(255,215,0,1); }
+}
+
+@keyframes shine {
+  0% { transform: translateX(-120%); }
+  60% { transform: translateX(120%); }
+  100% { transform: translateX(120%); }
+}
+
+@keyframes floatSlow {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 
 @keyframes nyFadeOut {
