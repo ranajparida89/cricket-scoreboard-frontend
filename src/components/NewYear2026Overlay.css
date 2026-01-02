@@ -144,14 +144,14 @@
     transform: scale(1) translateZ(0);
   }
 
-  40% {
+  35% {
     opacity: 1;
-    transform: scale(1.8) translateZ(0);
+    transform: scale(2.5) translateZ(0);
   }
 
   100% {
     opacity: 0;
-    transform: scale(3) translateZ(0);
+    transform: scale(4.5) translateZ(0);
   }
 }
 
