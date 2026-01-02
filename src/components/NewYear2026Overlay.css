@@ -1,13 +1,14 @@
 /* ======================================================
    OVERLAY BACKGROUND
+   Semi-transparent so homepage is visible
    ====================================================== */
 .ny-overlay {
   position: fixed;
   inset: 0;
   background: radial-gradient(
     circle at top,
-    rgba(11,18,32,0.45),
-    rgba(0,0,0,0.65)
+    rgba(11, 18, 32, 0.45),
+    rgba(0, 0, 0, 0.65)
   );
   z-index: 99999;
   display: flex;
@@ -16,37 +17,42 @@
   overflow: hidden;
 }
 
-/* Soft vignette for focus */
+/* ======================================================
+   SOFT VIGNETTE
+   Focus attention on center text
+   ====================================================== */
 .ny-vignette {
   position: absolute;
   inset: 0;
   background: radial-gradient(
     circle,
     transparent 42%,
-    rgba(0,0,0,0.55) 90%
+    rgba(0, 0, 0, 0.55) 90%
   );
 }
 
 /* ======================================================
-   TEXT WRAPPER — CINEMATIC CAMERA PUSH
+   TEXT WRAPPER
+   Single cinematic exit point (IMPORTANT)
    ====================================================== */
 .ny-text-wrap {
   position: relative;
   z-index: 2;
   text-align: center;
-  transform-origin: center center;
 
-  /* Netflix / Dolby camera push */
+  /* GPU hint */
+  transform-origin: center center;
+  transform: translateZ(0);
+
+  /* 🎬 Netflix / Dolby camera push */
   animation: textFadeZoomOut 7.2s cubic-bezier(.16,.84,.44,1) forwards;
-  animation-delay: 3.4s; /* reduced wait before zoom */
+  animation-delay: 3.4s; /* reduced waiting before zoom */
 
   will-change: transform, opacity, filter;
-  backface-visibility: hidden;
-  perspective: 1000px;
 }
 
 /* ======================================================
-   MAIN TITLE
+   MAIN TITLE – HAPPY NEW YEAR 2026
    ====================================================== */
 .ny-title {
   display: flex;
@@ -61,38 +67,37 @@
 
   color: #ffd700;
   text-shadow:
-    0 0 18px rgba(255,215,0,0.9),
-    0 0 50px rgba(255,215,0,0.65);
+    0 0 18px rgba(255, 215, 0, 0.9),
+    0 0 50px rgba(255, 215, 0, 0.65);
 
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
 /* ======================================================
-   WORD ENTRANCE — ELASTIC IN ONLY
+   WORD ENTRANCE – ELASTIC BOUNCE (NO EXIT PER WORD)
    ====================================================== */
 .ny-title span {
-  transform: scale(0.3) translateY(120px);
   opacity: 1;
+  transform: scale(0.3) translateY(120px);
 
   animation: elasticIn 1.7s cubic-bezier(.22,1.25,.36,1) forwards;
   animation-delay: calc(var(--i) * 0.45s);
 }
 
-/* Year emphasis */
+/* Highlight year */
 .year {
   color: #ffd700;
   text-shadow:
-    0 0 26px rgba(255,215,0,1),
-    0 0 75px rgba(255,215,0,0.9);
+    0 0 26px rgba(255, 215, 0, 1),
+    0 0 75px rgba(255, 215, 0, 0.9);
 }
 
 /* ======================================================
-   SUBTITLE
+   SUBTITLE – WELCOME TO CRICKEDGE
    ====================================================== */
 .ny-subtitle {
   margin-top: 34px;
-
   font-size: clamp(1.9rem, 3.5vw, 2.5rem);
   font-weight: 600;
   letter-spacing: 1.6px;
@@ -113,7 +118,7 @@
    ANIMATIONS
    ====================================================== */
 
-/* Elastic bounce IN */
+/* Elastic bounce-in for title words */
 @keyframes elasticIn {
   0% {
     transform: scale(0.3) translateY(120px);
@@ -139,33 +144,40 @@
   }
 }
 
-/* 🎬 NETFLIX / DOLBY CAMERA PUSH — SMOOTH, NO FREEZE */
+/* ======================================================
+   🎬 FINAL CINEMATIC EXIT (NO FREEZE)
+   KEY POINT:
+   - Zoom finishes early
+   - Fade completes alone
+   - Motion blur only at very end
+   ====================================================== */
 @keyframes textFadeZoomOut {
+  /* Normal */
   0% {
     opacity: 1;
-    transform: scale(1) translateZ(0);
+    transform: scale(1);
     filter: blur(0px);
   }
 
-  /* Main cinematic travel */
-  65% {
+  /* Main camera push */
+  70% {
     opacity: 1;
-    transform: scale(4.6) translateZ(0);
+    transform: scale(5.2);
     filter: blur(0px);
   }
 
-  /* Controlled final push */
+  /* Stop scaling – begin emotional fade */
   85% {
-    opacity: 0.85;
-    transform: scale(5.6) translateZ(0);
-    filter: blur(0.8px);
+    opacity: 0.8;
+    transform: scale(5.2);
+    filter: blur(0.6px);
   }
 
-  /* Fade finishes — no extra scaling */
+  /* Clean exit – no GPU stall */
   100% {
     opacity: 0;
-    transform: scale(5.6) translateZ(0);
-    filter: blur(1.2px);
+    transform: scale(5.2);
+    filter: blur(1px);
   }
 }
 
