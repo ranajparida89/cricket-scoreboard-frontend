@@ -28,21 +28,22 @@
 }
 
 /* ======================================================
-   TEXT WRAPPER – SINGLE FADE POINT
+   TEXT WRAPPER — ONLY FADE POINT
    ====================================================== */
 .ny-text-wrap {
   position: relative;
   z-index: 2;
   text-align: center;
-  animation: textFadeOut 2.2s ease forwards;
-  animation-delay: 7.6s; /* fade EVERYTHING together */
+  opacity: 1;
+  animation: textFadeOut 2.6s ease forwards;
+  animation-delay: 8s;
+  will-change: opacity, transform;
 }
 
 /* ======================================================
-   MAIN TITLE
+   TITLE
    ====================================================== */
 .ny-title {
-  position: relative;
   display: flex;
   gap: 18px;
   justify-content: center;
@@ -55,64 +56,34 @@
   text-shadow:
     0 0 18px rgba(255,215,0,0.9),
     0 0 50px rgba(255,215,0,0.65);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
 }
 
 /* ======================================================
-   BRAND LIGHT SWEEP (NO BLUR)
-   ====================================================== */
-.ny-brand-sweep {
-  position: relative;
-}
-
-.ny-brand-sweep::after {
-  content: "";
-  position: absolute;
-  inset: -10%;
-  background: linear-gradient(
-    120deg,
-    transparent 20%,
-    rgba(255,215,0,0.95) 40%,
-    rgba(95,208,199,0.9) 50%,
-    rgba(255,215,0,0.95) 60%,
-    transparent 80%
-  );
-  mix-blend-mode: screen;
-  opacity: 0;
-  animation: sweepOverlay 2.6s ease forwards;
-  animation-delay: 1.6s;
-  pointer-events: none;
-}
-
-/* ======================================================
-   WORD ENTRANCE (NO WORD EXIT)
+   WORD ENTRANCE — TRANSFORM ONLY (NO OPACITY EXIT)
    ====================================================== */
 .ny-title span {
-  position: relative;
-  opacity: 0;
-  transform: scale(0.25) translateY(110px);
+  transform: scale(0.3) translateY(120px);
+  opacity: 1;
   animation: elasticIn 1.7s cubic-bezier(.22,1.25,.36,1) forwards;
   animation-delay: calc(var(--i) * 0.45s);
 }
 
 /* Year emphasis */
-.ny-title .year {
-  color: #ffd700;
+.year {
   text-shadow:
     0 0 26px rgba(255,215,0,1),
     0 0 75px rgba(255,215,0,0.9);
 }
 
 /* ======================================================
-   SUBTITLE – BRAND MOMENT
+   SUBTITLE — NO OPACITY EXIT
    ====================================================== */
 .ny-subtitle {
   margin-top: 34px;
   font-size: clamp(1.9rem, 3.5vw, 2.5rem);
   font-weight: 600;
   letter-spacing: 1.6px;
-  opacity: 0;
+  opacity: 1;
   animation: subtitleIn 1.4s ease forwards;
   animation-delay: 2.8s;
 }
@@ -128,56 +99,22 @@
    ANIMATIONS
    ====================================================== */
 @keyframes elasticIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.25) translateY(110px);
-  }
-  60% {
-    opacity: 1;
-    transform: scale(1.25) translateY(-14px);
-  }
-  80% {
-    transform: scale(0.96) translateY(6px);
-  }
-  100% {
-    transform: scale(1) translateY(0);
-  }
+  0% { transform: scale(0.3) translateY(120px); }
+  60% { transform: scale(1.25) translateY(-14px); }
+  80% { transform: scale(0.96) translateY(6px); }
+  100% { transform: scale(1) translateY(0); }
 }
 
 @keyframes subtitleIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { transform: translateY(22px); }
+  to { transform: translateY(0); }
 }
 
-/* ONE clean fade for everything */
+/* SINGLE FADE — TITLE + SUBTITLE TOGETHER */
 @keyframes textFadeOut {
   to {
     opacity: 0;
-    transform: translateY(-18px);
-  }
-}
-
-/* Brand sweep */
-@keyframes sweepOverlay {
-  0% {
-    transform: translateX(-120%);
-    opacity: 0;
-  }
-  25% {
-    opacity: 1;
-  }
-  60% {
-    transform: translateX(120%);
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
+    transform: translateY(-16px);
   }
 }
 
