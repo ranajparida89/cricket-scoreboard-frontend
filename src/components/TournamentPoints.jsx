@@ -102,7 +102,7 @@ const TEAM_ABBR = {
   "west indies": "WI",
   "papua new guinea": "PNG",
   "sri lanka": "SL",
-  "united states": "USA",
+  "united states of america": "USA",
   usa: "USA",
 };
 
