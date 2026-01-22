@@ -54,6 +54,7 @@ import AllBoardsView from "./components/AllBoardsView";
 import BoardRegistrationForm from "./components/BoardRegistrationForm";
 import BoardAnalyticsPro from "./components/BoardAnalyticsPro";
 import TournamentPoints from "./components/TournamentPoints";
+import RulesAndRegulations from "./components/RulesAndRegulations";
 
 // 🔥 NEW
 import PitchRandomizer from "./components/PitchRandomizer";
@@ -553,8 +554,15 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/rules-and-regulations"
+            element={
+              <PageWrapper>
+                <RulesAndRegulations user={{ role: isAdmin ? "admin" : "user" }} />
+              </PageWrapper>
+            }
+          />
         </Routes>
-
         <Footer />
       </Router>
     </div>

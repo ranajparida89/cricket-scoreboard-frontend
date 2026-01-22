@@ -1,0 +1,284 @@
+/* ===============================
+   ROOT CONTAINER
+================================ */
+.rules-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px 32px 60px;
+  background: #f6f8fb;
+  min-height: 100vh;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* ===============================
+   PAGE TITLE
+================================ */
+.rules-title {
+  text-align: center;
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 30px;
+  color: #1f2937;
+  letter-spacing: 0.3px;
+}
+
+/* ===============================
+   SECTION
+================================ */
+.rules-section {
+  margin-top: 40px;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 18px;
+  color: #111827;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+/* ===============================
+   RULE CARD
+================================ */
+.rule-card {
+  background: #ffffff;
+  padding: 18px 20px 20px;
+  margin-bottom: 18px;
+  border-radius: 10px;
+  border-left: 6px solid #c7cbd1;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.rule-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08);
+}
+
+/* Status colors */
+.rule-card.new {
+  border-left-color: #16a34a;
+}
+
+.rule-card.updated {
+  border-left-color: #f59e0b;
+}
+
+/* ===============================
+   RULE HEADER
+================================ */
+.rule-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.rule-number {
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.rule-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* ===============================
+   DESCRIPTION
+================================ */
+.rule-description {
+  margin-top: 12px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #374151;
+}
+
+/* ===============================
+   BADGES
+================================ */
+.badge {
+  margin-left: auto;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 4px;
+  color: #ffffff;
+  letter-spacing: 0.6px;
+}
+
+.badge.new {
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+}
+
+.badge.updated {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+}
+
+.badge.mandatory {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+}
+
+/* ===============================
+   ADMIN COMMENT
+================================ */
+.admin-comment {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: #f9fafb;
+  border-left: 4px solid #2563eb;
+  font-size: 14px;
+  color: #1e3a8a;
+  border-radius: 4px;
+}
+
+/* ===============================
+   ADMIN ACTION BUTTONS
+================================ */
+.add-btn {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #ffffff;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 25px;
+}
+
+.add-btn:hover {
+  background: linear-gradient(135deg, #1e40af, #2563eb);
+}
+
+.edit-btn {
+  margin-top: 14px;
+  background: transparent;
+  border: 1px solid #2563eb;
+  color: #2563eb;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.edit-btn:hover {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+/* ===============================
+   FORM (ADD / EDIT)
+================================ */
+.rule-form {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 26px;
+  margin-bottom: 35px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+.rule-form h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 18px;
+  color: #111827;
+}
+
+.rule-form input,
+.rule-form textarea,
+.rule-form select {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.rule-form textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.rule-form input:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.rule-form label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ===============================
+   FORM ACTIONS
+================================ */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.form-actions button {
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+}
+
+.form-actions button:first-child {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.form-actions button:first-child:hover {
+  background: #15803d;
+}
+
+.form-actions .cancel {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.form-actions .cancel:hover {
+  background: #d1d5db;
+}
+
+/* ===============================
+   STATUS TEXT
+================================ */
+.error {
+  color: #dc2626;
+  font-weight: 600;
+  margin-top: 20px;
+}
+
+/* ===============================
+   RESPONSIVE
+================================ */
+@media (max-width: 768px) {
+  .rules-container {
+    padding: 20px;
+  }
+
+  .rule-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .badge {
+    margin-left: 0;
+  }
+}

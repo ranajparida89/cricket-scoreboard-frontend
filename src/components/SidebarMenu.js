@@ -21,6 +21,7 @@ import {
 import { FaRegNewspaper } from "react-icons/fa";
 import { FaHandshake } from "react-icons/fa";
 import { FaBrain } from "react-icons/fa";
+import { FaBook } from "react-icons/fa"; // 📘 Rules & Regulations
 import "./SidebarMenu.css";
 
 const SidebarMenu = () => {
@@ -152,6 +153,12 @@ const SidebarMenu = () => {
             <FaChartLine className="me-2" /> Tournament Points
           </Link>
         </li>
+
+            <li>
+      <Link to="/rules-and-regulations" onClick={handleClose}>
+        <FaBook className="me-2 text-primary" /> Rules & Regulations
+      </Link>
+    </li>
 
         {/* ✅ NEW MODULE – Man of the Match Insights */}
         <li>
