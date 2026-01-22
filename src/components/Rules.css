@@ -75,8 +75,8 @@
 }
 
 .section-title {
-  font-size: 22px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 700;
   margin-bottom: 18px;
   color: #020617;
   padding-bottom: 8px;
@@ -127,9 +127,10 @@
 }
 
 .rule-title {
-  font-size: 17px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
   color: #020617;
+  text-transform: uppercase;
 }
 
 /* ==================================================
