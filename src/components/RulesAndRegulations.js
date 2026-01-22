@@ -77,19 +77,25 @@ function RulesAndRegulations({ user }) {
     }
 
     try {
-      if (isEdit) {
-        await axios.put(
-          `${API_BASE}/api/rules/${editingId}`,
-          form,
-          { withCredentials: true }
-        );
-      } else {
-        await axios.post(
-          `${API_BASE}/api/rules`,
-          form,
-          { withCredentials: true }
-        );
-      }
+   const authHeader = {
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`
+  }
+};
+
+if (isEdit) {
+  await axios.put(
+    `${API_BASE}/api/rules/${editingId}`,
+    form,
+    authHeader
+  );
+} else {
+  await axios.post(
+    `${API_BASE}/api/rules`,
+    form,
+    authHeader
+  );
+}
 
       setShowForm(false);
       setForm(EMPTY_RULE);
