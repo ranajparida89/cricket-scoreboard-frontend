@@ -2,8 +2,30 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./Rules.css";
 
-const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
+/* =====================================================
+   AXIOS INSTANCE (SAME PATTERN AS BOARD MODULE)
+===================================================== */
+const api = axios.create({
+  baseURL: "https://cricket-scoreboard-backend.onrender.com/api",
+  withCredentials: true
+});
 
+api.interceptors.request.use((config) => {
+  const token =
+    localStorage.getItem("token") ||
+    localStorage.getItem("authToken") ||
+    localStorage.getItem("accessToken");
+
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+/* =====================================================
+   CONSTANTS
+===================================================== */
 const EMPTY_RULE = {
   rule_number: "",
   title: "",
@@ -24,17 +46,16 @@ function RulesAndRegulations({ user }) {
   const [form, setForm] = useState(EMPTY_RULE);
   const [editingId, setEditingId] = useState(null);
 
-  // 🔍 Search & Filter
   const [searchText, setSearchText] = useState("");
   const [filterKey, setFilterKey] = useState("ALL");
 
-  /* ======================
+  /* =====================================================
      LOAD RULES
-  ====================== */
+  ===================================================== */
   const loadRules = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_BASE}/api/rules`);
+      const res = await api.get("/rules");
       setRules(res.data || []);
     } catch (err) {
       setError("Failed to load rules");
@@ -47,9 +68,9 @@ function RulesAndRegulations({ user }) {
     loadRules();
   }, []);
 
-  /* ======================
-     VALIDATIONS
-  ====================== */
+  /* =====================================================
+     VALIDATION
+  ===================================================== */
   const validateForm = () => {
     if (!form.rule_number) return "Rule number is required";
     if (!form.title.trim()) return "Title is required";
@@ -57,10 +78,7 @@ function RulesAndRegulations({ user }) {
     if (!form.category.trim()) return "Category is required";
     if (!form.format) return "Format is required";
 
-    if (
-      !isEdit &&
-      rules.some(r => r.rule_number === Number(form.rule_number))
-    ) {
+    if (!isEdit && rules.some(r => r.rule_number === Number(form.rule_number))) {
       return "Rule number already exists";
     }
 
@@ -71,9 +89,9 @@ function RulesAndRegulations({ user }) {
     return null;
   };
 
-  /* ======================
+  /* =====================================================
      SAVE (ADD / UPDATE)
-  ====================== */
+  ===================================================== */
   const handleSave = async () => {
     const validationError = validateForm();
     if (validationError) {
@@ -82,24 +100,10 @@ function RulesAndRegulations({ user }) {
     }
 
     try {
-      const authHeader = {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
-      };
-
       if (isEdit) {
-        await axios.put(
-          `${API_BASE}/api/rules/${editingId}`,
-          form,
-          authHeader
-        );
+        await api.put(`/rules/${editingId}`, form);
       } else {
-        await axios.post(
-          `${API_BASE}/api/rules`,
-          form,
-          authHeader
-        );
+        await api.post("/rules", form);
       }
 
       setShowForm(false);
@@ -112,9 +116,9 @@ function RulesAndRegulations({ user }) {
     }
   };
 
-  /* ======================
+  /* =====================================================
      EDIT MODE
-  ====================== */
+  ===================================================== */
   const handleEdit = (rule) => {
     setForm({
       rule_number: rule.rule_number,
@@ -130,9 +134,9 @@ function RulesAndRegulations({ user }) {
     setShowForm(true);
   };
 
-  /* ======================
-     SEARCH & FILTER LOGIC
-  ====================== */
+  /* =====================================================
+     SEARCH & FILTER
+  ===================================================== */
   const applySearchFilter = (rule) => {
     const text = `
       ${rule.rule_number}
@@ -154,9 +158,9 @@ function RulesAndRegulations({ user }) {
     return matchesSearch && matchesFilter;
   };
 
-  /* ======================
-     FORMAT-BASED SECTIONS
-  ====================== */
+  /* =====================================================
+     FORMAT SECTIONS
+  ===================================================== */
   const odiT20Rules = rules.filter(
     r =>
       (r.format === "ODI" || r.format === "T20" || r.format === "ALL") &&
@@ -169,14 +173,11 @@ function RulesAndRegulations({ user }) {
       applySearchFilter(r)
   );
 
-  /* ======================
-     RENDER SINGLE RULE
-  ====================== */
+  /* =====================================================
+     RENDER RULE
+  ===================================================== */
   const renderRule = (rule) => (
-    <div
-      key={rule.id}
-      className={`rule-card ${rule.rule_status?.toLowerCase()}`}
-    >
+    <div key={rule.id} className={`rule-card ${rule.rule_status?.toLowerCase()}`}>
       <div className="rule-header">
         <span className="rule-number">Rule {rule.rule_number}</span>
         <span className="rule-title">{rule.title}</span>
@@ -204,14 +205,13 @@ function RulesAndRegulations({ user }) {
     </div>
   );
 
-  /* ======================
+  /* =====================================================
      UI
-  ====================== */
+  ===================================================== */
   return (
     <div className="rules-container">
       <h1 className="rules-title">CrickEdge – Rules & Regulations</h1>
 
-      {/* 🔍 Search + Filter Toolbar */}
       <div className="rules-toolbar">
         <input
           type="text"
@@ -244,7 +244,6 @@ function RulesAndRegulations({ user }) {
         </button>
       )}
 
-      {/* ADD / EDIT FORM */}
       {showForm && (
         <div className="rule-form">
           <h3>{isEdit ? "Edit Rule" : "Add New Rule"}</h3>
@@ -333,7 +332,6 @@ function RulesAndRegulations({ user }) {
         </div>
       )}
 
-      {/* RULE SECTIONS */}
       <section className="rules-section">
         <h2 className="section-title">📘 ODI / T20 Rules</h2>
         {odiT20Rules.map(renderRule)}
