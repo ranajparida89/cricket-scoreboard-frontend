@@ -18,10 +18,15 @@ function RulesAndRegulations({ user }) {
   const [rules, setRules] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
   const [showForm, setShowForm] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [form, setForm] = useState(EMPTY_RULE);
   const [editingId, setEditingId] = useState(null);
+
+  // 🔍 Search & Filter
+  const [searchText, setSearchText] = useState("");
+  const [filterKey, setFilterKey] = useState("ALL");
 
   /* ======================
      LOAD RULES
@@ -30,7 +35,7 @@ function RulesAndRegulations({ user }) {
     try {
       setLoading(true);
       const res = await axios.get(`${API_BASE}/api/rules`);
-      setRules(res.data);
+      setRules(res.data || []);
     } catch (err) {
       setError("Failed to load rules");
     } finally {
@@ -77,25 +82,25 @@ function RulesAndRegulations({ user }) {
     }
 
     try {
-   const authHeader = {
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem("token")}`
-  }
-};
+      const authHeader = {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+      };
 
-if (isEdit) {
-  await axios.put(
-    `${API_BASE}/api/rules/${editingId}`,
-    form,
-    authHeader
-  );
-} else {
-  await axios.post(
-    `${API_BASE}/api/rules`,
-    form,
-    authHeader
-  );
-}
+      if (isEdit) {
+        await axios.put(
+          `${API_BASE}/api/rules/${editingId}`,
+          form,
+          authHeader
+        );
+      } else {
+        await axios.post(
+          `${API_BASE}/api/rules`,
+          form,
+          authHeader
+        );
+      }
 
       setShowForm(false);
       setForm(EMPTY_RULE);
@@ -126,18 +131,46 @@ if (isEdit) {
   };
 
   /* ======================
-     FILTER RULES
+     SEARCH & FILTER LOGIC
+  ====================== */
+  const applySearchFilter = (rule) => {
+    const text = `
+      ${rule.rule_number}
+      ${rule.title}
+      ${rule.description}
+      ${rule.category}
+    `.toLowerCase();
+
+    const matchesSearch =
+      !searchText || text.includes(searchText.toLowerCase());
+
+    const matchesFilter =
+      filterKey === "ALL" ||
+      (filterKey === "MANDATORY" && rule.is_mandatory) ||
+      rule.category?.toUpperCase().includes(filterKey) ||
+      rule.title?.toUpperCase().includes(filterKey) ||
+      rule.format?.toUpperCase().includes(filterKey);
+
+    return matchesSearch && matchesFilter;
+  };
+
+  /* ======================
+     FORMAT-BASED SECTIONS
   ====================== */
   const odiT20Rules = rules.filter(
-    r => r.format === "ODI" || r.format === "T20" || r.format === "ALL"
+    r =>
+      (r.format === "ODI" || r.format === "T20" || r.format === "ALL") &&
+      applySearchFilter(r)
   );
 
   const testRules = rules.filter(
-    r => r.format === "TEST" || r.format === "ALL"
+    r =>
+      (r.format === "TEST" || r.format === "ALL") &&
+      applySearchFilter(r)
   );
 
   /* ======================
-     RENDER RULE
+     RENDER SINGLE RULE
   ====================== */
   const renderRule = (rule) => (
     <div
@@ -164,10 +197,7 @@ if (isEdit) {
       )}
 
       {user?.role === "admin" && (
-        <button
-          className="edit-btn"
-          onClick={() => handleEdit(rule)}
-        >
+        <button className="edit-btn" onClick={() => handleEdit(rule)}>
           ✏️ Edit
         </button>
       )}
@@ -181,12 +211,40 @@ if (isEdit) {
     <div className="rules-container">
       <h1 className="rules-title">CrickEdge – Rules & Regulations</h1>
 
+      {/* 🔍 Search + Filter Toolbar */}
+      <div className="rules-toolbar">
+        <input
+          type="text"
+          className="rules-search"
+          placeholder="🔍 Search by rule number, keyword, text..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+
+        <select
+          className="rules-filter"
+          value={filterKey}
+          onChange={(e) => setFilterKey(e.target.value)}
+        >
+          <option value="ALL">All Rules</option>
+          <option value="MANDATORY">Mandatory</option>
+          <option value="BOWLING">Bowling</option>
+          <option value="BATTING">Batting</option>
+          <option value="FIELDING">Fielding</option>
+          <option value="PENALTY">Penalty</option>
+          <option value="CUSTOM">Custom Player</option>
+          <option value="TEST">Test</option>
+          <option value="ODI">ODI / T20</option>
+        </select>
+      </div>
+
       {user?.role === "admin" && (
         <button className="add-btn" onClick={() => setShowForm(true)}>
           ➕ Add Rule
         </button>
       )}
 
+      {/* ADD / EDIT FORM */}
       {showForm && (
         <div className="rule-form">
           <h3>{isEdit ? "Edit Rule" : "Add New Rule"}</h3>
@@ -195,7 +253,7 @@ if (isEdit) {
             type="number"
             placeholder="Rule Number"
             value={form.rule_number}
-            onChange={e =>
+            onChange={(e) =>
               setForm({ ...form, rule_number: e.target.value })
             }
             disabled={isEdit}
@@ -205,29 +263,31 @@ if (isEdit) {
             type="text"
             placeholder="Title"
             value={form.title}
-            onChange={e => setForm({ ...form, title: e.target.value })}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
           />
 
           <textarea
             placeholder="Description"
             value={form.description}
-            onChange={e =>
+            onChange={(e) =>
               setForm({ ...form, description: e.target.value })
             }
           />
 
           <input
             type="text"
-            placeholder="Category (Batting/Bowling/etc)"
+            placeholder="Category"
             value={form.category}
-            onChange={e =>
+            onChange={(e) =>
               setForm({ ...form, category: e.target.value })
             }
           />
 
           <select
             value={form.format}
-            onChange={e => setForm({ ...form, format: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, format: e.target.value })
+            }
           >
             <option value="ODI">ODI / T20</option>
             <option value="TEST">Test</option>
@@ -238,7 +298,7 @@ if (isEdit) {
             <input
               type="checkbox"
               checked={form.is_mandatory}
-              onChange={e =>
+              onChange={(e) =>
                 setForm({ ...form, is_mandatory: e.target.checked })
               }
             />
@@ -252,7 +312,7 @@ if (isEdit) {
                 : "Admin comment"
             }
             value={form.admin_comment}
-            onChange={e =>
+            onChange={(e) =>
               setForm({ ...form, admin_comment: e.target.value })
             }
           />
@@ -273,6 +333,7 @@ if (isEdit) {
         </div>
       )}
 
+      {/* RULE SECTIONS */}
       <section className="rules-section">
         <h2 className="section-title">📘 ODI / T20 Rules</h2>
         {odiT20Rules.map(renderRule)}
