@@ -353,7 +353,7 @@ const PlayerRankings = () => {
               <span className="bat"></span>{" "}
               {momOnly
                 ? "CrickEdge MoM Leaderboard"
-                : "CrickEdge Player Rankings"}
+                : "CrickEdge Player Ratings"}
             </h2>
           </header>
 
