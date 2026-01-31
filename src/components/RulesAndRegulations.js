@@ -144,6 +144,26 @@ function RulesAndRegulations({ user }) {
   };
 
   /* =====================================================
+   DELETE RULE (ADMIN)
+===================================================== */
+const handleDelete = async (ruleId) => {
+  const ok = window.confirm(
+    "Are you sure you want to delete this rule?\nThis action cannot be undone."
+  );
+
+  if (!ok) return;
+
+  try {
+    await api.delete(`/rules/${ruleId}`);
+    alert("Rule deleted successfully");
+    loadRules(); // refresh rules list
+  } catch (err) {
+    console.error("Delete rule failed:", err?.response || err);
+    alert("Failed to delete rule");
+  }
+};
+
+  /* =====================================================
      SEARCH & FILTER
   ===================================================== */
   const applySearchFilter = (rule) => {
@@ -206,11 +226,20 @@ function RulesAndRegulations({ user }) {
         </div>
       )}
 
-      {user?.role === "admin" && (
-        <button className="edit-btn" onClick={() => handleEdit(rule)}>
-          ✏️ Edit
-        </button>
-      )}
+     {user?.role === "admin" && (
+  <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+    <button className="edit-btn" onClick={() => handleEdit(rule)}>
+      ✏️ Edit
+    </button>
+
+    <button
+      className="delete-btn"
+      onClick={() => handleDelete(rule.id)}
+    >
+      🗑 Delete
+    </button>
+  </div>
+)}
     </div>
   );
 

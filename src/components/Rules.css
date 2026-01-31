@@ -377,3 +377,15 @@
 .rules-filter:focus {
   color: #000000 !important;
 }
+.delete-btn {
+  background: #ff4d4f;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #d9363e;
+}
