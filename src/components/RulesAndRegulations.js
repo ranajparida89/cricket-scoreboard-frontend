@@ -11,10 +11,12 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token =
-    localStorage.getItem("token") ||
-    localStorage.getItem("authToken") ||
-    localStorage.getItem("accessToken");
+ const token =
+  localStorage.getItem("admin_jwt") ||   // ✅ ADMIN TOKEN FIRST
+  localStorage.getItem("token") ||
+  localStorage.getItem("authToken") ||
+  localStorage.getItem("accessToken");
+
 
   if (token) {
     config.headers = config.headers || {};
