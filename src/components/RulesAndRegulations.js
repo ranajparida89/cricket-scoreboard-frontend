@@ -93,12 +93,17 @@ function RulesAndRegulations({ user }) {
      SAVE (ADD / UPDATE)
   ===================================================== */
   const handleSave = async () => {
+    console.log("✅ Save button clicked");
+    
     const validationError = validateForm();
+    console.log("🧪 Validation result:", validationError);
+
     if (validationError) {
       alert(validationError);
       return;
     }
 
+    console.log("🚀 Calling API now");
     try {
       if (isEdit) {
         await api.put(`/rules/${editingId}`, form);
@@ -106,12 +111,14 @@ function RulesAndRegulations({ user }) {
         await api.post("/rules", form);
       }
 
+      console.log("🎉 API success");
       setShowForm(false);
       setForm(EMPTY_RULE);
       setIsEdit(false);
       setEditingId(null);
       loadRules();
     } catch (err) {
+      console.error("❌ API error:", err?.response || err);
       alert("Operation failed. Please try again.");
     }
   };
