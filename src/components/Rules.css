@@ -398,3 +398,9 @@
   background-color: #d9363e;
 }
 
+.rule-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
