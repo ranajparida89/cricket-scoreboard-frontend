@@ -232,12 +232,13 @@ const handleDelete = async (ruleId) => {
       ✏️ Edit
     </button>
 
-    <button
-      className="delete-btn"
-      onClick={() => handleDelete(rule.id)}
-    >
-      🗑 Delete
-    </button>
+   <button
+  className="edit-btn delete-btn"
+  onClick={() => handleDelete(rule.id)}
+>
+  🗑 Delete
+</button>
+
   </div>
 )}
     </div>

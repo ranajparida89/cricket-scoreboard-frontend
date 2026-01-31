@@ -378,16 +378,12 @@
   color: #000000 !important;
 }
 .delete-btn {
-  background-color: #ff4d4f;
-  color: #ffffff;
-  border: none;
+  background-color: #ff4d4f !important;
+  color: #ffffff !important;
+}
 
-  /* 👇 MATCH EDIT BUTTON */
-  padding: 6px 14px;
-  font-size: 14px;
-  border-radius: 6px;
-  line-height: 1.2;
-
+.delete-btn:hover {
+  background-color: #d9363e !important;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
