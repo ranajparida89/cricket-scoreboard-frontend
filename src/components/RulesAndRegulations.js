@@ -202,6 +202,26 @@ const handleDelete = async (ruleId) => {
       applySearchFilter(r)
   );
 
+/* =====================================================
+   HIGHLIGHT SEARCH TEXT
+===================================================== */
+const highlightText = (text, search) => {
+  if (!search || !text) return text;
+
+  const regex = new RegExp(`(${search})`, "gi");
+  const parts = text.split(regex);
+
+  return parts.map((part, index) =>
+    part.toLowerCase() === search.toLowerCase() ? (
+      <span key={index} className="highlight">
+        {part}
+      </span>
+    ) : (
+      part
+    )
+  );
+};
+
   /* =====================================================
      RENDER RULE
   ===================================================== */
@@ -209,8 +229,7 @@ const handleDelete = async (ruleId) => {
     <div key={rule.id} className={`rule-card ${rule.rule_status?.toLowerCase()}`}>
       <div className="rule-header">
         <span className="rule-number">Rule {rule.rule_number}</span>
-        <span className="rule-title">{rule.title}</span>
-
+        <span className="rule-title">{highlightText(rule.title, searchText)}</span>
         {rule.is_mandatory && <span className="badge mandatory">MANDATORY</span>}
         {rule.rule_status === "NEW" && <span className="badge new">NEW</span>}
         {rule.rule_status === "UPDATED" && (
@@ -218,8 +237,7 @@ const handleDelete = async (ruleId) => {
         )}
       </div>
 
-      <div className="rule-description">{rule.description}</div>
-
+      <div className="rule-description">{highlightText(rule.description, searchText)}</div>
       {user?.role === "admin" && rule.admin_comment && (
         <div className="admin-comment">
           <strong>Admin Note:</strong> {rule.admin_comment}
