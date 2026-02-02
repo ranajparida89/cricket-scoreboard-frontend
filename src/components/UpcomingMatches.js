@@ -21,9 +21,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 export default function UpcomingMatches() {
 
   // ================= AUTH ROLE CHECK (STEP 10C) =================
-  const loggedInUser = JSON.parse(localStorage.getItem("user"));
-  const isAdmin = loggedInUser?.role === "admin";
-
+ // ================= ADMIN AUTH CHECK =================
+const isAdmin = localStorage.getItem("isAdmin") === "true";
 
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -431,10 +430,7 @@ if (!matches || matches.length === 0) {
   {highlightText(row.match_data[col] ?? "-", pendingSearch)}
 </td>
                 ))}
-                <td className="text-center">
-                <td className="text-center">
-  {isAdmin ? (
-    <td className="text-center">
+<td className="text-center">
   {isAdmin ? (
     <input
       type="checkbox"
@@ -454,14 +450,6 @@ if (!matches || matches.length === 0) {
     </span>
   )}
 </td>
-  ) : (
-    <span style={{ color: "#999", fontSize: "12px" }}>
-      Admin only
-    </span>
-  )}
-</td>
-
-                </td>
               </tr>
             ))}
           </tbody>
