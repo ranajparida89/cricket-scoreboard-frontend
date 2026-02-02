@@ -106,30 +106,25 @@ const fetchCompletedMatches = async (tournamentName, seasonYear) => {
 
 const markMatchCompleted = async (pendingId, tournamentId) => {
   try {
-    // 🔒 lock checkbox
     setCompletingId(pendingId);
 
-    // 🚀 OPTIMISTIC UI: remove row immediately
+    // Optimistic UI
     setPendingMatches(prev =>
       prev.filter(row => row.pending_id !== pendingId)
     );
 
-    // 🛰️ backend call (no UI wait)
     await fetch("/api/tournament/complete-match", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-      pending_id: pendingId,
-      tournament_id: tournamentId,
-      completed_by: loggedInUser?.email || "unknown-admin",
+        pending_id: pendingId,
+        tournament_id: tournamentId
       }),
     });
 
   } catch (err) {
     console.error("Failed to mark match completed:", err);
-
-    // 🔁 rollback if API fails
-    fetchPendingMatches(tournamentId);
+    fetchPendingMatches(tournamentId); // rollback
   } finally {
     setCompletingId(null);
   }
