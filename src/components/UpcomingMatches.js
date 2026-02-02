@@ -13,9 +13,11 @@ import {
   FaSearch,
 } from "react-icons/fa";
 import "./UpcomingMatches.css";
-import * as pdfjsLib from "pdfjs-dist";
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
+import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.entry";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+
 
 
 export default function UpcomingMatches() {
