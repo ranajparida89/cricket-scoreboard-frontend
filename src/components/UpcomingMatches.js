@@ -5,9 +5,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { getUpcomingMatchList } from "../services/api";
 
-// ✅ ADD THIS LINE
-const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
-
 import {
   FaClock,
   FaCalendarAlt,
@@ -16,12 +13,17 @@ import {
   FaInfo,
   FaSearch,
 } from "react-icons/fa";
-import "./UpcomingMatches.css";
+
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.entry";
 
+import "./UpcomingMatches.css";
+
+// ✅ PDF worker must be set AFTER imports
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
+// ✅ ADD THIS (MANDATORY)
+const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
 
 
 export default function UpcomingMatches() {
@@ -339,11 +341,11 @@ if (!matches || matches.length === 0) {
 }
 
     // 2️⃣ Upload to backend
-   await fetch(`${API_BASE}/api/tournament/upload-fixture`, {
+  await fetch(`${API_BASE}/api/tournament/upload-fixture`, {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
   },
   body: JSON.stringify({
     tournament_name: tournamentName,
@@ -353,21 +355,21 @@ if (!matches || matches.length === 0) {
   }),
 });
 
-  alert("Fixture uploaded successfully");
+ alert("Fixture uploaded successfully");
 
-// 🔁 Reload tournament list
+// 1️⃣ Reload tournament list
 const res = await fetch(`${API_BASE}/api/tournament/list`);
 const list = await res.json();
 setTournamentList(list);
 
-// ✅ Auto-select latest tournament
+// 2️⃣ Auto-select latest tournament
 const latestTournament = list[0];
 setSelectedTournament(latestTournament.tournament_id);
 
-// ✅ Load pending matches immediately
+// 3️⃣ Load pending matches immediately
 fetchPendingMatches(latestTournament.tournament_id);
 
-// reset form
+// 4️⃣ Reset form
 setTournamentName("");
 setSeasonYear("");
 setFixturePDF(null);
