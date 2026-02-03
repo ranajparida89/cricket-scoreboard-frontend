@@ -564,14 +564,6 @@ function App() {
               </PageWrapper>
             }
           />
-               <Route
-                path="/tournament-fixtures"
-                element={
-                  <PageWrapper>
-                    <TournamentFixtures />
-                  </PageWrapper>
-                }
-              />
         </Routes>
         <Footer />
       </Router>
