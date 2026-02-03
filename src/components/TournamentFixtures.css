@@ -1,221 +1,178 @@
-/* =====================================================
-   Tournament Fixtures – CrickEdge ELITE UI
-   Inspired by Standings / Rankings Table
-   ===================================================== */
+/* ===============================
+   CrickEdge Tournament Fixtures
+   Modern Pro UI
+   =============================== */
 
 .tournament-fixtures {
-  padding: 28px;
+  padding: 32px;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top, rgba(34,197,94,0.08), transparent 45%),
-    linear-gradient(180deg, #050814, #0b1220);
+  background: radial-gradient(circle at top, #0f172a, #020617);
   color: #e5e7eb;
-  font-family: "Inter", "Segoe UI", system-ui, -apple-system;
+  font-family: "Inter", system-ui;
 }
 
-/* ---------- Title ---------- */
-.tournament-fixtures h2 {
+.tf-title {
   text-align: center;
-  font-size: 1.6rem;
-  font-weight: 800;
-  letter-spacing: 0.6px;
+  font-size: 2rem;
+  font-weight: 700;
   margin-bottom: 28px;
   color: #38bdf8;
 }
 
-/* ---------- Card ---------- */
+/* ---------- Cards ---------- */
 .fixture-card {
-  background: linear-gradient(180deg, #0b1220, #020617);
+  background: linear-gradient(180deg, #020617, #020617);
   border-radius: 16px;
-  padding: 22px;
-  margin-bottom: 26px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-/* ---------- Section Title ---------- */
-.fixture-card h4 {
-  font-size: 1.1rem;
-  margin-bottom: 18px;
-  font-weight: 700;
-  color: #22c55e;
-}
-
-/* ---------- Controls ---------- */
-.fixture-controls {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-}
-
-.fixture-controls select,
-.fixture-controls input[type="file"] {
-  background: #020617;
-  border: 1px solid #1e293b;
-  color: #e5e7eb;
-  padding: 10px 14px;
-  border-radius: 10px;
-  min-width: 200px;
-  font-size: 0.9rem;
-}
-
-.fixture-controls select:focus {
-  outline: none;
-  border-color: #38bdf8;
-  box-shadow: 0 0 0 1px #38bdf8;
-}
-
-/* ---------- Table Wrapper ---------- */
-.fixture-table-wrapper {
-  overflow-x: auto;
-  border-radius: 14px;
-}
-
-/* ---------- Table ---------- */
-.fixture-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 10px; /* card-style rows */
-  font-size: 0.92rem;
-}
-
-/* ---------- Header ---------- */
-.fixture-table thead th {
-  text-align: left;
-  padding: 14px 16px;
-  font-weight: 700;
+.section-title {
+  margin-bottom: 14px;
   color: #93c5fd;
-  background: transparent;
-  white-space: nowrap;
+  font-weight: 600;
 }
 
-/* ---------- Row Card ---------- */
-.fixture-table tbody tr {
-  background: linear-gradient(
-    180deg,
-    rgba(15, 23, 42, 0.95),
-    rgba(2, 6, 23, 0.95)
-  );
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
-    0 6px 18px rgba(0, 0, 0, 0.45);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+/* ---------- Forms ---------- */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 14px;
 }
 
-.fixture-table tbody tr:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    inset 0 0 0 1px rgba(34, 197, 94, 0.35),
-    0 10px 28px rgba(0, 0, 0, 0.65);
-}
-
-/* ---------- Cells ---------- */
-.fixture-table td {
-  padding: 14px 16px;
+.tf-input,
+.tf-select {
+  background: #020617;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 10px 14px;
   color: #e5e7eb;
-  vertical-align: middle;
-  white-space: nowrap;
+  transition: all 0.2s;
 }
 
-/* ---------- Rounded Row Corners ---------- */
-.fixture-table tbody tr td:first-child {
-  border-top-left-radius: 14px;
-  border-bottom-left-radius: 14px;
+.tf-input:focus,
+.tf-select:focus {
+  border-color: #22c55e;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);
 }
 
-.fixture-table tbody tr td:last-child {
-  border-top-right-radius: 14px;
-  border-bottom-right-radius: 14px;
-}
-
-/* ---------- Match Highlight ---------- */
-.fixture-match {
-  font-weight: 700;
-  color: #f8fafc;
-}
-
-/* ---------- Group / Meta ---------- */
-.fixture-meta {
-  color: #94a3b8;
-  font-size: 0.85rem;
-}
-
-/* ---------- Status Badge ---------- */
-.status-badge {
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.status-pending {
-  background: rgba(251, 191, 36, 0.15);
-  color: #facc15;
-  border: 1px solid rgba(251, 191, 36, 0.35);
-}
-
-.status-completed {
-  background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
-  border: 1px solid rgba(34, 197, 94, 0.35);
-}
-
-/* ---------- Checkbox ---------- */
-.complete-checkbox {
-  transform: scale(1.2);
-  accent-color: #22c55e;
+.file-input {
+  background: #020617;
+  border: 1px dashed #334155;
+  padding: 10px;
+  border-radius: 10px;
   cursor: pointer;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.file-input input {
+  display: none;
 }
 
 /* ---------- Buttons ---------- */
-.fixture-btn {
+.primary-btn,
+.secondary-btn {
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.primary-btn {
   background: linear-gradient(135deg, #22c55e, #16a34a);
   color: #022c22;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.fixture-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.45);
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.35);
 }
 
-.fixture-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.secondary-btn {
+  background: linear-gradient(135deg, #38bdf8, #2563eb);
+  color: #020617;
 }
 
-/* ---------- Empty State ---------- */
-.fixture-empty {
+.secondary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.35);
+}
+
+/* ---------- Table ---------- */
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 14px;
+}
+
+.pro-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+  font-size: 0.92rem;
+}
+
+.pro-table thead th {
+  text-align: left;
+  padding: 12px;
+  background: #020617;
+  color: #93c5fd;
+  position: sticky;
+  top: 0;
+}
+
+.pro-table tbody tr {
+  background: linear-gradient(90deg, #020617, #020617);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.pro-table tbody tr:hover {
+  transform: scale(1.01);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.pro-table td {
+  padding: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ---------- Status ---------- */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-pill.pending {
+  background: rgba(251, 191, 36, 0.15);
+  color: #facc15;
+}
+
+.completed .status-pill {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+/* ---------- Empty ---------- */
+.empty {
   text-align: center;
-  padding: 36px;
+  padding: 28px;
   color: #94a3b8;
   font-style: italic;
 }
 
-/* ---------- Mobile ---------- */
-@media (max-width: 768px) {
-  .fixture-controls {
-    flex-direction: column;
-  }
-
-  .fixture-controls select,
-  .fixture-controls input {
-    width: 100%;
-  }
-
-  .fixture-table {
-    font-size: 0.85rem;
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .form-grid {
+    grid-template-columns: 1fr;
   }
 }
