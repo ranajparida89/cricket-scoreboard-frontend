@@ -1,8 +1,8 @@
 // ✅ src/components/TournamentFixtures.js
-// CrickEdge – Tournament Fixture Management (Public Backend Version)
-// Author: Ranaj Parida
+// CrickEdge – Tournament Fixture Management (Public Backend)
+// FINAL STABLE VERSION + GROUP COLLAPSE + STICKY HEADERS
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.entry";
 import "./TournamentFixtures.css";
@@ -21,8 +21,12 @@ export default function TournamentFixtures() {
   const [pendingMatches, setPendingMatches] = useState([]);
   const [completedMatches, setCompletedMatches] = useState([]);
 
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  // 🔥 NEW: collapse state per group
+  const [collapsedGroups, setCollapsedGroups] = useState({});
 
   /* ---------------- API ---------------- */
   const fetchTournamentList = async () => {
@@ -34,8 +38,10 @@ export default function TournamentFixtures() {
     if (!id) return;
     setLoading(true);
     const res = await fetch(`${API_BASE}/api/tournament/pending/${id}`);
-    setPendingMatches(await res.json());
+    const data = await res.json();
+    setPendingMatches(data);
     setCompletedMatches([]);
+    setCollapsedGroups({}); // reset collapse on tournament change
     setLoading(false);
   };
 
@@ -56,14 +62,12 @@ export default function TournamentFixtures() {
       }),
     });
 
-    setPendingMatches((prev) => {
-      const updated = prev.filter((p) => p.pending_id !== pendingId);
-      if (updated.length === 0) setCompletedMatches([]);
-      return updated;
-    });
+    setPendingMatches((prev) =>
+      prev.filter((p) => p.pending_id !== pendingId)
+    );
   };
 
-  /* ---------------- PDF ---------------- */
+  /* ---------------- PDF PARSER ---------------- */
   const parseFixturePDF = async (file) => {
     const pdf = await pdfjsLib.getDocument(URL.createObjectURL(file)).promise;
     let rows = [];
@@ -72,26 +76,39 @@ export default function TournamentFixtures() {
       const page = await pdf.getPage(i);
       const content = await page.getTextContent();
       const grouped = {};
+
       content.items.forEach((it) => {
         const y = Math.round(it.transform[5]);
         if (!grouped[y]) grouped[y] = [];
         grouped[y].push(it.str);
       });
+
       rows.push(...Object.values(grouped).map((r) => r.join(" ").trim()));
     }
 
     const headers = rows[0].split(/\s{2,}/);
-    return rows.slice(1).map((r) => {
-      const values = r.split(/\s{2,}/);
-      const obj = {};
-      headers.forEach((h, i) => (obj[h] = values[i] || ""));
-      return obj;
-    });
+
+    return rows
+      .slice(1)
+      .map((r) => {
+        const values = r.split(/\s{2,}/);
+        const obj = {};
+        headers.forEach((h, i) => (obj[h] = values[i] || ""));
+        return obj;
+      })
+      .filter(
+        (r) =>
+          r.Match &&
+          !r.Match.toLowerCase().includes("league") &&
+          !r.Match.toLowerCase().includes("validated") &&
+          !r.Match.toLowerCase().includes("match id")
+      );
   };
 
+  /* ---------------- Upload ---------------- */
   const uploadFixture = async () => {
     if (!tournamentName || !seasonYear || !fixturePDF) {
-      alert("All fields are required");
+      alert("All fields required");
       return;
     }
 
@@ -120,8 +137,38 @@ export default function TournamentFixtures() {
     fetchTournamentList();
   }, []);
 
-  const getColumns = () =>
-    pendingMatches.length ? Object.keys(pendingMatches[0].match_data) : [];
+  /* ---------------- GROUP + SEARCH ---------------- */
+  const filteredMatches = useMemo(() => {
+    if (!search) return pendingMatches;
+    const q = search.toLowerCase();
+    return pendingMatches.filter((m) =>
+      Object.values(m.match_data).some((v) =>
+        String(v).toLowerCase().includes(q)
+      )
+    );
+  }, [search, pendingMatches]);
+
+  const groupedByGroup = useMemo(() => {
+    const groups = {};
+    filteredMatches.forEach((m) => {
+      const g = m.match_data.Group || "Others";
+      if (!groups[g]) groups[g] = [];
+      groups[g].push(m);
+    });
+    return groups;
+  }, [filteredMatches]);
+
+  const columns =
+    filteredMatches.length > 0
+      ? Object.keys(filteredMatches[0].match_data)
+      : [];
+
+  const toggleGroup = (group) => {
+    setCollapsedGroups((prev) => ({
+      ...prev,
+      [group]: !prev[group],
+    }));
+  };
 
   /* ---------------- UI ---------------- */
   return (
@@ -158,73 +205,96 @@ export default function TournamentFixtures() {
         </div>
       </div>
 
-      {/* Select */}
+      {/* Select + Search */}
       <div className="fixture-card">
         <h4 className="section-title">Select Tournament</h4>
-        <select
-          className="tf-select"
-          value={selectedTournament}
-          onChange={(e) => {
-            setSelectedTournament(e.target.value);
-            fetchPendingMatches(e.target.value);
-          }}
-        >
-          <option value="">Select Tournament</option>
-          {tournamentList.map((t) => (
-            <option key={t.tournament_id} value={t.tournament_id}>
-              {t.tournament_name} ({t.season_year})
-            </option>
-          ))}
-        </select>
-      </div>
+        <div className="form-grid">
+          <select
+            className="tf-select"
+            value={selectedTournament}
+            onChange={(e) => {
+              setSelectedTournament(e.target.value);
+              fetchPendingMatches(e.target.value);
+            }}
+          >
+            <option value="">Select Tournament</option>
+            {tournamentList.map((t) => (
+              <option key={t.tournament_id} value={t.tournament_id}>
+                {t.tournament_name} ({t.season_year})
+              </option>
+            ))}
+          </select>
 
-      {/* Pending */}
-      <div className="fixture-card">
-        <h4 className="section-title">Pending Matches</h4>
-
-        <div className="table-wrap">
-          <table className="pro-table">
-            <thead>
-              <tr>
-                {getColumns().map((c) => (
-                  <th key={c}>{c}</th>
-                ))}
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="100%">Loading…</td>
-                </tr>
-              ) : pendingMatches.length === 0 ? (
-                <tr>
-                  <td colSpan="100%" className="empty">
-                    No pending matches
-                  </td>
-                </tr>
-              ) : (
-                pendingMatches.map((r) => (
-                  <tr key={r.pending_id}>
-                    {getColumns().map((c) => (
-                      <td key={c}>{r.match_data[c]}</td>
-                    ))}
-                    <td>
-                      <label className="status-pill pending">
-                        <input
-                          type="checkbox"
-                          onChange={() => markMatchCompleted(r.pending_id)}
-                        />
-                        Complete
-                      </label>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+          <input
+            className="tf-input"
+            placeholder="Search team / player / board…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
       </div>
+
+      {/* Pending by Group */}
+      {loading ? (
+        <p>Loading…</p>
+      ) : (
+        Object.entries(groupedByGroup).map(([group, matches]) => {
+          const collapsed = collapsedGroups[group];
+
+          return (
+            <div className="fixture-card group-card" key={group}>
+              <div
+                className="group-header"
+                onClick={() => toggleGroup(group)}
+              >
+                <span className="group-title">Group {group}</span>
+                <span className="group-toggle">
+                  {collapsed ? "▸" : "▾"}
+                </span>
+              </div>
+
+              <div
+                className={`group-content ${
+                  collapsed ? "collapsed" : "expanded"
+                }`}
+              >
+                <div className="table-wrap">
+                  <table className="pro-table">
+                    <thead>
+                      <tr>
+                        {columns.map((c) => (
+                          <th key={c}>{c}</th>
+                        ))}
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {matches.map((m) => (
+                        <tr key={m.pending_id}>
+                          {columns.map((c) => (
+                            <td key={c}>{m.match_data[c]}</td>
+                          ))}
+                          <td>
+                            <label className="status-pill pending">
+                              <input
+                                type="checkbox"
+                                onChange={() =>
+                                  markMatchCompleted(m.pending_id)
+                                }
+                              />
+                              Complete
+                            </label>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          );
+        })
+      )}
 
       {/* Completed */}
       <div className="fixture-card">
