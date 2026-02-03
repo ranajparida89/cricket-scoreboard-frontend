@@ -125,14 +125,17 @@ const markMatchCompleted = async (pendingId, tournamentId) => {
       prev.filter(row => row.pending_id !== pendingId)
     );
 
-    await fetch("/api/tournament/complete-match", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        pending_id: pendingId,
-        tournament_id: tournamentId
-      }),
-    });
+await fetch(`${API_BASE}/api/tournament/complete-match`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("admin_jwt")}`,
+  },
+  body: JSON.stringify({
+    pending_id: pendingId,
+    tournament_id: tournamentId,
+  }),
+});
 
   } catch (err) {
     console.error("Failed to mark match completed:", err);
@@ -341,11 +344,11 @@ if (!matches || matches.length === 0) {
 }
 
     // 2️⃣ Upload to backend
-  await fetch(`${API_BASE}/api/tournament/upload-fixture`, {
+ await fetch(`${API_BASE}/api/tournament/upload-fixture`, {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
+    Authorization: `Bearer ${localStorage.getItem("admin_jwt")}`,
   },
   body: JSON.stringify({
     tournament_name: tournamentName,
@@ -355,19 +358,33 @@ if (!matches || matches.length === 0) {
   }),
 });
 
+
  alert("Fixture uploaded successfully");
 
 // 1️⃣ Reload tournament list
-const res = await fetch(`${API_BASE}/api/tournament/list`);
-const list = await res.json();
+const listRes = await fetch(`${API_BASE}/api/tournament/list`, {
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem("admin_jwt")}`,
+  },
+});
+
+if (!listRes.ok) {
+  throw new Error("Failed to load tournament list");
+}
+
+const list = await listRes.json();
+
+if (!Array.isArray(list) || list.length === 0) {
+  alert("Fixture uploaded, but no tournament found");
+  return;
+}
+
 setTournamentList(list);
 
-// 2️⃣ Auto-select latest tournament
 const latestTournament = list[0];
 setSelectedTournament(latestTournament.tournament_id);
-
-// 3️⃣ Load pending matches immediately
 fetchPendingMatches(latestTournament.tournament_id);
+
 
 // 4️⃣ Reset form
 setTournamentName("");
