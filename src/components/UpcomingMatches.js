@@ -4,6 +4,10 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { getUpcomingMatchList } from "../services/api";
+
+// ✅ ADD THIS LINE
+const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
+
 import {
   FaClock,
   FaCalendarAlt,
@@ -68,7 +72,7 @@ const [historySeason, setHistorySeason] = useState("");
 
 const fetchTournamentList = async () => {
   try {
-    const res = await fetch("/api/tournament/list");
+    const res = await fetch(`${API_BASE}/api/tournament/list`);
     const data = await res.json();
     setTournamentList(data || []);
   } catch (err) {
@@ -76,11 +80,14 @@ const fetchTournamentList = async () => {
   }
 };
 
+
 const fetchPendingMatches = async (tournamentId) => {
   if (!tournamentId) return;
   setLoadingPending(true);
   try {
-    const res = await fetch(`/api/tournament/pending/${tournamentId}`);
+    const res = await fetch(
+      `${API_BASE}/api/tournament/pending/${tournamentId}`
+    );
     const data = await res.json();
     setPendingMatches(data || []);
   } catch (err) {
@@ -89,6 +96,7 @@ const fetchPendingMatches = async (tournamentId) => {
     setLoadingPending(false);
   }
 };
+
 
 const fetchCompletedMatches = async (tournamentName, seasonYear) => {
   if (!tournamentName || !seasonYear) return;
@@ -331,25 +339,39 @@ if (!matches || matches.length === 0) {
 }
 
     // 2️⃣ Upload to backend
-    await fetch("/api/tournament/upload-fixture", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        tournament_name: tournamentName,
-        season_year: seasonYear,
-        uploaded_pdf_name: fixturePDF.name,
-        created_by: "admin@crickedge",
-        matches,
-      }),
-    });
+   await fetch(`${API_BASE}/api/tournament/upload-fixture`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+  },
+  body: JSON.stringify({
+    tournament_name: tournamentName,
+    season_year: seasonYear,
+    uploaded_pdf_name: fixturePDF.name,
+    matches,
+  }),
+});
 
-    alert("Fixture uploaded successfully");
+  alert("Fixture uploaded successfully");
 
-    // 3️⃣ Refresh UI
-    await fetchTournamentList();
-    setTournamentName("");
-    setSeasonYear("");
-    setFixturePDF(null);
+// 🔁 Reload tournament list
+const res = await fetch(`${API_BASE}/api/tournament/list`);
+const list = await res.json();
+setTournamentList(list);
+
+// ✅ Auto-select latest tournament
+const latestTournament = list[0];
+setSelectedTournament(latestTournament.tournament_id);
+
+// ✅ Load pending matches immediately
+fetchPendingMatches(latestTournament.tournament_id);
+
+// reset form
+setTournamentName("");
+setSeasonYear("");
+setFixturePDF(null);
+
   } catch (err) {
     console.error("Upload fixture failed:", err);
     alert("Failed to upload fixture");
