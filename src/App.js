@@ -55,6 +55,8 @@ import BoardRegistrationForm from "./components/BoardRegistrationForm";
 import BoardAnalyticsPro from "./components/BoardAnalyticsPro";
 import TournamentPoints from "./components/TournamentPoints";
 import RulesAndRegulations from "./components/RulesAndRegulations";
+import TournamentFixtures from "./components/TournamentFixtures";
+
 
 // 🔥 NEW
 import PitchRandomizer from "./components/PitchRandomizer";
@@ -562,6 +564,14 @@ function App() {
               </PageWrapper>
             }
           />
+               <Route
+                path="/tournament-fixtures"
+                element={
+                  <PageWrapper>
+                    <TournamentFixtures />
+                  </PageWrapper>
+                }
+              />
         </Routes>
         <Footer />
       </Router>

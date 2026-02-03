@@ -153,7 +153,13 @@ const SidebarMenu = () => {
             <FaChartLine className="me-2" /> Tournament Points
           </Link>
         </li>
-
+                {isAdmin && (
+          <li>
+            <Link to="/tournament-fixtures" onClick={handleClose}>
+              <FaChartLine className="me-2" /> Tournament Fixtures
+            </Link>
+          </li>
+        )}
             <li>
       <Link to="/rules-and-regulations" onClick={handleClose}>
         <FaBook className="me-2 text-primary" /> Rules & Regulations
