@@ -1,3 +1,6 @@
+// src/components/TournamentFixtures.js
+// FINAL – Dynamic Column Detection from PDF
+
 import React, { useEffect, useMemo, useState } from "react";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.entry";
@@ -6,22 +9,13 @@ import "./TournamentFixtures.css";
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-/* 🔒 FIXED COLUMN ORDER – prevents alignment issues */
-const FIXED_COLUMNS = [
-  "SL NO",
-  "Match ID",
-  "Group",
-  "Match",
-  "Owner vs Owner"
-];
-
 export default function TournamentFixtures() {
-  /* ---------- Upload ---------- */
+  /* ---------------- Upload ---------------- */
   const [tournamentName, setTournamentName] = useState("");
   const [seasonYear, setSeasonYear] = useState("");
   const [fixturePDF, setFixturePDF] = useState(null);
 
-  /* ---------- Data ---------- */
+  /* ---------------- Data ---------------- */
   const [tournamentList, setTournamentList] = useState([]);
   const [selectedTournament, setSelectedTournament] = useState("");
 
@@ -32,17 +26,20 @@ export default function TournamentFixtures() {
   const [loading, setLoading] = useState(false);
   const [collapsedGroups, setCollapsedGroups] = useState({});
 
-  /* ---------- API ---------- */
+  /* ---------------- API ---------------- */
 
   const fetchTournamentList = async () => {
     const res = await fetch(`${API_BASE}/api/tournament/list`);
     setTournamentList(await res.json());
   };
 
-  const fetchPendingMatches = async (id) => {
-    if (!id) return;
+  const fetchPendingMatches = async (tournamentId) => {
+    if (!tournamentId) return;
     setLoading(true);
-    const res = await fetch(`${API_BASE}/api/tournament/pending/${id}`);
+
+    const res = await fetch(
+      `${API_BASE}/api/tournament/pending/${tournamentId}`
+    );
     setPendingMatches(await res.json());
     setCompletedMatches([]);
     setCollapsedGroups({});
@@ -51,9 +48,11 @@ export default function TournamentFixtures() {
 
   const fetchCompletedHistory = async (name, year) => {
     setLoading(true);
+
     const res = await fetch(
       `${API_BASE}/api/tournament/completed?tournament_name=${name}&season_year=${year}`
     );
+
     setCompletedMatches(await res.json());
     setPendingMatches([]);
     setLoading(false);
@@ -63,10 +62,15 @@ export default function TournamentFixtures() {
     await fetch(`${API_BASE}/api/tournament/complete-match`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pending_id: row.pending_id }),
+      body: JSON.stringify({
+        pending_id: row.pending_id,
+        tournament_id: selectedTournament,
+      }),
     });
 
-    setPendingMatches(p => p.filter(x => x.pending_id !== row.pending_id));
+    setPendingMatches(p =>
+      p.filter(x => x.pending_id !== row.pending_id)
+    );
     setCompletedMatches(c => [...c, row]);
   };
 
@@ -74,24 +78,92 @@ export default function TournamentFixtures() {
     fetchTournamentList();
   }, []);
 
-  /* ---------- Search ---------- */
+  /* ---------------- PDF PARSER (AUTO HEADER DETECTION) ---------------- */
+
+  const parseFixturePDF = async (file) => {
+    const pdf = await pdfjsLib.getDocument(URL.createObjectURL(file)).promise;
+    let lines = [];
+
+    for (let p = 1; p <= pdf.numPages; p++) {
+      const page = await pdf.getPage(p);
+      const content = await page.getTextContent();
+      const grouped = {};
+
+      content.items.forEach(it => {
+        const y = Math.round(it.transform[5]);
+        if (!grouped[y]) grouped[y] = [];
+        grouped[y].push(it.str.trim());
+      });
+
+      lines.push(...Object.values(grouped).map(r => r.join("  ").trim()));
+    }
+
+    // Remove empty lines
+    lines = lines.filter(Boolean);
+
+    // First meaningful row = headers
+    const headers = lines[0].split(/\s{2,}/).map(h => h.trim());
+
+    // Remaining rows = data
+    return lines.slice(1).map(row => {
+      const values = row.split(/\s{2,}/);
+      const obj = {};
+      headers.forEach((h, i) => {
+        obj[h] = values[i] || "";
+      });
+      return obj;
+    });
+  };
+
+  const uploadFixture = async () => {
+    if (!tournamentName || !seasonYear || !fixturePDF) {
+      alert("Tournament Name, Season Year and PDF are required");
+      return;
+    }
+
+    setLoading(true);
+    const matches = await parseFixturePDF(fixturePDF);
+
+    await fetch(`${API_BASE}/api/tournament/upload-fixture`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tournament_name: tournamentName,
+        season_year: seasonYear,
+        uploaded_pdf_name: fixturePDF.name,
+        matches,
+      }),
+    });
+
+    setTournamentName("");
+    setSeasonYear("");
+    setFixturePDF(null);
+    fetchTournamentList();
+    setLoading(false);
+  };
+
+  /* ---------------- SEARCH ---------------- */
 
   const applySearch = (data) => {
     if (!search.trim()) return data;
     return data.filter(m =>
-      Object.values(m.match_data).some(v =>
+      Object.values(m.match_data || {}).some(v =>
         String(v).toLowerCase().includes(search.toLowerCase())
       )
     );
   };
 
-  /* ---------- Grouping ---------- */
+  /* ---------------- GROUPING ---------------- */
+
+  const normalizeGroup = (val) => {
+    if (!val) return "Others";
+    return val.toString().replace(/group/i, "").trim().toUpperCase();
+  };
 
   const groupByGroup = (matches) => {
     const groups = {};
     matches.forEach(m => {
-      const raw = m.match_data.Group || "Others";
-      const g = raw.replace(/group/i, "").trim() || "Others";
+      const g = normalizeGroup(m.match_data?.Group);
       if (!groups[g]) groups[g] = [];
       groups[g].push(m);
     });
@@ -108,16 +180,25 @@ export default function TournamentFixtures() {
     [completedMatches, search]
   );
 
+  /* ---------------- DYNAMIC COLUMNS ---------------- */
+
+  const detectedColumns = useMemo(() => {
+    const src = pendingMatches[0] || completedMatches[0];
+    return src ? Object.keys(src.match_data || {}) : [];
+  }, [pendingMatches, completedMatches]);
+
   const toggleGroup = (g) =>
     setCollapsedGroups(p => ({ ...p, [g]: !p[g] }));
 
-  /* ---------- Render ---------- */
+  /* ---------------- RENDER TABLES ---------------- */
 
   const renderTables = (groups, checkbox) =>
     Object.entries(groups).map(([group, rows]) => (
       <div className="fixture-card" key={group}>
         <div className="group-header" onClick={() => toggleGroup(group)}>
-          <span className="group-title">Group {group} ({rows.length})</span>
+          <span className="group-title">
+            Group {group} ({rows.length})
+          </span>
           <span>{collapsedGroups[group] ? "▸" : "▾"}</span>
         </div>
 
@@ -126,17 +207,17 @@ export default function TournamentFixtures() {
             <table className="pro-table">
               <thead>
                 <tr>
-                  {FIXED_COLUMNS.map(c => <th key={c}>{c}</th>)}
+                  {detectedColumns.map(c => <th key={c}>{c}</th>)}
                   {checkbox && <th>Status</th>}
                 </tr>
               </thead>
               <tbody>
                 {rows.map(r => (
                   <tr key={r.pending_id || r.completed_id}>
-                    {FIXED_COLUMNS.map(c => (
-                      <td key={c}>{r.match_data[c] || "-"}</td>
+                    {detectedColumns.map(c => (
+                      <td key={c}>{r.match_data?.[c] ?? ""}</td>
                     ))}
-                    {checkbox && (
+                    {checkbox && r.pending_id && (
                       <td>
                         <label className="status-pill pending">
                           <input
@@ -156,7 +237,7 @@ export default function TournamentFixtures() {
       </div>
     ));
 
-  /* ---------- UI ---------- */
+  /* ---------------- UI ---------------- */
 
   return (
     <div className="tournament-fixtures">
@@ -182,6 +263,9 @@ export default function TournamentFixtures() {
             accept="application/pdf"
             onChange={e => setFixturePDF(e.target.files[0])}
           />
+          <button className="primary-btn" onClick={uploadFixture}>
+            Upload Fixture
+          </button>
         </div>
       </div>
 
@@ -192,7 +276,9 @@ export default function TournamentFixtures() {
             className="tf-select"
             value={selectedTournament}
             onChange={(e) => {
-              const t = tournamentList.find(x => x.tournament_id === e.target.value);
+              const t = tournamentList.find(
+                x => x.tournament_id === e.target.value
+              );
               setSelectedTournament(e.target.value);
               fetchPendingMatches(e.target.value);
               if (t) fetchCompletedHistory(t.tournament_name, t.season_year);
@@ -233,7 +319,7 @@ export default function TournamentFixtures() {
 
       {!loading && pendingMatches.length === 0 && completedMatches.length === 0 && (
         <p className="empty-text">
-          No active fixtures. Use Season & Tournament to view history.
+          No active fixtures. Select a tournament to view history.
         </p>
       )}
     </div>
