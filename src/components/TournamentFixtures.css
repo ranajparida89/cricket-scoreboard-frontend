@@ -1,0 +1,163 @@
+/* =========================================
+   Tournament Fixtures – CrickEdge Pro UI
+   ========================================= */
+
+.tournament-fixtures {
+  padding: 24px;
+  background: linear-gradient(180deg, #0b0f19, #111827);
+  min-height: 100vh;
+  color: #e5e7eb;
+  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont;
+}
+
+/* ---------- Header ---------- */
+.tournament-fixtures h2 {
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 24px;
+  color: #22c55e;
+}
+
+/* ---------- Card Container ---------- */
+.fixture-card {
+  background: #020617;
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ---------- Section Title ---------- */
+.fixture-card h4 {
+  font-size: 1.1rem;
+  margin-bottom: 14px;
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+/* ---------- Dropdowns ---------- */
+.fixture-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.fixture-controls select {
+  background: #020617;
+  border: 1px solid #334155;
+  color: #e5e7eb;
+  padding: 8px 12px;
+  border-radius: 8px;
+  min-width: 180px;
+}
+
+.fixture-controls select:focus {
+  outline: none;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 1px #22c55e;
+}
+
+/* ---------- Table ---------- */
+.fixture-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.fixture-table thead {
+  background: #020617;
+}
+
+.fixture-table th {
+  text-align: left;
+  padding: 12px;
+  color: #93c5fd;
+  border-bottom: 1px solid #1e293b;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.fixture-table td {
+  padding: 12px;
+  border-bottom: 1px solid #1e293b;
+  color: #e5e7eb;
+  vertical-align: middle;
+}
+
+/* ---------- Table Hover ---------- */
+.fixture-table tbody tr:hover {
+  background: rgba(34, 197, 94, 0.06);
+}
+
+/* ---------- Status Badge ---------- */
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.status-pending {
+  background: rgba(251, 191, 36, 0.15);
+  color: #facc15;
+}
+
+.status-completed {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+/* ---------- Action Checkbox ---------- */
+.complete-checkbox {
+  transform: scale(1.2);
+  cursor: pointer;
+}
+
+/* ---------- Buttons ---------- */
+.fixture-btn {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #022c22;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fixture-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(34, 197, 94, 0.35);
+}
+
+.fixture-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ---------- Empty State ---------- */
+.fixture-empty {
+  text-align: center;
+  padding: 32px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  .fixture-table {
+    font-size: 0.85rem;
+  }
+
+  .fixture-controls {
+    flex-direction: column;
+  }
+
+  .fixture-controls select {
+    width: 100%;
+  }
+}
