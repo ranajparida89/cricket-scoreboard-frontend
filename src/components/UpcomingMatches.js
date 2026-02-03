@@ -344,7 +344,8 @@ if (!matches || matches.length === 0) {
 }
 
     // 2️⃣ Upload to backend
- await fetch(`${API_BASE}/api/tournament/upload-fixture`, {
+// 2️⃣ Upload to backend (FINAL FIX)
+const uploadRes = await fetch(`${API_BASE}/api/tournament/upload-fixture`, {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -358,33 +359,28 @@ if (!matches || matches.length === 0) {
   }),
 });
 
-
- alert("Fixture uploaded successfully");
-
-// 1️⃣ Reload tournament list
-const listRes = await fetch(`${API_BASE}/api/tournament/list`, {
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem("admin_jwt")}`,
-  },
-});
-
-if (!listRes.ok) {
-  throw new Error("Failed to load tournament list");
+if (!uploadRes.ok) {
+  throw new Error("Failed to upload fixture");
 }
 
-const list = await listRes.json();
+const uploadResult = await uploadRes.json();
 
-if (!Array.isArray(list) || list.length === 0) {
-  alert("Fixture uploaded, but no tournament found");
+alert("Fixture uploaded successfully");
+
+// ✅ USE tournament_id RETURNED BY BACKEND (NO GUESSING)
+const createdTournamentId = uploadResult.tournament_id;
+
+if (!createdTournamentId) {
+  alert("Upload succeeded but tournament ID not returned");
   return;
 }
 
-setTournamentList(list);
+// 🔄 Refresh dropdown (UI purpose only)
+fetchTournamentList();
 
-const latestTournament = list[0];
-setSelectedTournament(latestTournament.tournament_id);
-fetchPendingMatches(latestTournament.tournament_id);
-
+// 📌 Auto-load pending matches for THIS tournament
+setSelectedTournament(createdTournamentId);
+fetchPendingMatches(createdTournamentId);
 
 // 4️⃣ Reset form
 setTournamentName("");
