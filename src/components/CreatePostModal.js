@@ -1,17 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 
-/**
- * CreatePostModal
- * ----------------
- * FIXES APPLIED:
- * 1. modal-lg → makes modal wide (rectangular)
- * 2. dialogClassName="forum-modal-dialog" → CSS hook (safe, scoped)
- * 3. contentClassName="forum-modal" → dark theme styling
- * 4. textarea rows increased → professional writing experience
- */
+const API = "https://cricket-scoreboard-backend.onrender.com";
 
-const CreatePostModal = ({ show, onClose, onPostCreated }) => {
+const CreatePostModal = ({ show, onClose, onPostCreated, editPost }) => {
   const [postType, setPostType] = useState("STORY");
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
@@ -19,9 +11,27 @@ const CreatePostModal = ({ show, onClose, onPostCreated }) => {
 
   const token = localStorage.getItem("token");
 
+  /* --------------------------------------------------
+     PREFILL DATA WHEN EDITING
+  -------------------------------------------------- */
+  useEffect(() => {
+    if (editPost) {
+      setPostType(editPost.post_type);
+      setSubject(editPost.subject || "");
+      setContent(editPost.content || "");
+    } else {
+      setPostType("STORY");
+      setSubject("");
+      setContent("");
+    }
+  }, [editPost]);
+
+  /* --------------------------------------------------
+     SUBMIT (CREATE or UPDATE)
+  -------------------------------------------------- */
   const handleSubmit = async () => {
     if (!token) {
-      alert("Please login to create a post");
+      alert("Please login to continue");
       return;
     }
 
@@ -38,31 +48,32 @@ const CreatePostModal = ({ show, onClose, onPostCreated }) => {
     try {
       setLoading(true);
 
-      const res = await fetch(
-        "https://cricket-scoreboard-backend.onrender.com/api/forum/post",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            subject,
-            content,
-            postType,
-          }),
-        }
-      );
+      const url = editPost
+        ? `${API}/api/forum/post/${editPost.id}`
+        : `${API}/api/forum/post`;
+
+      const method = editPost ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          subject,
+          content,
+          postType,
+        }),
+      });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      onPostCreated();   // refresh forum posts
-      onClose();         // close modal
-      setSubject("");
-      setContent("");
+      onPostCreated();
+      onClose();
     } catch (err) {
-      alert(err.message || "Failed to create post");
+      alert(err.message || "Action failed");
     } finally {
       setLoading(false);
     }
@@ -73,68 +84,73 @@ const CreatePostModal = ({ show, onClose, onPostCreated }) => {
       show={show}
       onHide={onClose}
       centered
-      size="lg"                              // 🔥 BIG modal
-      dialogClassName="forum-modal-dialog"  // 🔥 width control
-      contentClassName="forum-modal"        // 🔥 dark theme hook
+      size="lg"
+      dialogClassName="forum-modal-dialog"
+      contentClassName="forum-modal"
       backdropClassName="forum-modal-backdrop"
     >
       <Modal.Header closeButton>
-        <Modal.Title>Create CrickEdge Talk</Modal.Title>
+        <Modal.Title>
+          {editPost ? "✏️ Edit CrickEdge Talk" : "✍️ Create CrickEdge Talk"}
+        </Modal.Title>
       </Modal.Header>
 
-<Modal.Body className="forum-modal-body">
-  <Form className="forum-modal-form">
+      <Modal.Body className="forum-modal-body">
+        <Form className="forum-modal-form">
+          {/* POST TYPE */}
+          <Form.Group className="mb-4">
+            <Form.Label>Post Type</Form.Label>
+            <Form.Select
+              value={postType}
+              onChange={(e) => setPostType(e.target.value)}
+              disabled={!!editPost} // 🔒 cannot change type on edit
+            >
+              <option value="STORY">Story</option>
+              <option value="COMMENT">Comment</option>
+            </Form.Select>
+          </Form.Group>
 
-    {/* Post Type */}
-    <Form.Group className="mb-4">
-      <Form.Label>Post Type</Form.Label>
-      <Form.Select
-        value={postType}
-        onChange={(e) => setPostType(e.target.value)}
-      >
-        <option value="STORY">Story</option>
-        <option value="COMMENT">Comment</option>
-      </Form.Select>
-    </Form.Group>
+          {/* SUBJECT */}
+          {postType === "STORY" && (
+            <Form.Group className="mb-4">
+              <Form.Label>Subject</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter a meaningful subject"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+              />
+            </Form.Group>
+          )}
 
-    {/* Subject */}
-    {postType === "STORY" && (
-      <Form.Group className="mb-4">
-        <Form.Label>Subject</Form.Label>
-        <Form.Control
-          type="text"
-          placeholder="Enter a meaningful subject"
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-        />
-      </Form.Group>
-    )}
-
-    {/* Content */}
-    <Form.Group>
-      <Form.Label>Content</Form.Label>
-      <Form.Control
-        as="textarea"
-        placeholder="Share your thoughts with the CrickEdge community…"
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-      />
-    </Form.Group>
-
-  </Form>
-</Modal.Body>
-
+          {/* CONTENT */}
+          <Form.Group>
+            <Form.Label>Content</Form.Label>
+            <Form.Control
+              as="textarea"
+              placeholder="Share your thoughts with the CrickEdge community…"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+            />
+          </Form.Group>
+        </Form>
+      </Modal.Body>
 
       <Modal.Footer>
         <Button variant="secondary" onClick={onClose}>
           Cancel
         </Button>
+
         <Button
           variant="primary"
           onClick={handleSubmit}
           disabled={loading}
         >
-          {loading ? "Posting..." : "Post"}
+          {loading
+            ? "Saving..."
+            : editPost
+            ? "Update Post"
+            : "Post"}
         </Button>
       </Modal.Footer>
     </Modal>

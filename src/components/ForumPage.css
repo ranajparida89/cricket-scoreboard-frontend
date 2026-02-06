@@ -209,3 +209,16 @@
 .forum-modal .modal-footer {
   padding: 16px 36px;
 }
+.forum-owner-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.forum-danger-btn {
+  background: transparent;
+  border: 1px solid #ff5a5a;
+  color: #ff5a5a;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
