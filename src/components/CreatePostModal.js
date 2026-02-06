@@ -82,44 +82,51 @@ const CreatePostModal = ({ show, onClose, onPostCreated }) => {
         <Modal.Title>Create CrickEdge Talk</Modal.Title>
       </Modal.Header>
 
- <Modal.Body>
-  <Form className="forum-modal-form-full">
-    
-    {/* Post Type */}
-    <Form.Group className="mb-4">
-      <Form.Label>Post Type</Form.Label>
-      <Form.Select
-        value={postType}
-        onChange={(e) => setPostType(e.target.value)}
-      >
-        <option value="STORY">Story</option>
-        <option value="COMMENT">Comment</option>
-      </Form.Select>
-    </Form.Group>
+ <Modal.Body className="forum-modal-body">
+  <Form className="forum-modal-form">
 
-    {/* Subject */}
-    {postType === "STORY" && (
-      <Form.Group className="mb-4">
-        <Form.Label>Subject</Form.Label>
-        <Form.Control
-          type="text"
-          placeholder="Enter a meaningful subject"
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-        />
-      </Form.Group>
-    )}
+    <div className="forum-form-grid">
+      {/* LEFT: FORM */}
+      <div className="forum-form-main">
 
-    {/* Content */}
-    <Form.Group className="mb-2">
-      <Form.Label>Content</Form.Label>
-      <Form.Control
-        as="textarea"
-        placeholder="Share your thoughts with the CrickEdge community…"
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-      />
-    </Form.Group>
+        {/* Post Type */}
+        <Form.Group className="mb-4">
+          <Form.Label>Post Type</Form.Label>
+          <Form.Select
+            value={postType}
+            onChange={(e) => setPostType(e.target.value)}
+          >
+            <option value="STORY">Story</option>
+            <option value="COMMENT">Comment</option>
+          </Form.Select>
+        </Form.Group>
+
+        {/* Subject */}
+        {postType === "STORY" && (
+          <Form.Group className="mb-4">
+            <Form.Label>Subject</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter a meaningful subject"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+            />
+          </Form.Group>
+        )}
+
+        {/* Content */}
+        <Form.Group>
+          <Form.Label>Content</Form.Label>
+          <Form.Control
+            as="textarea"
+            placeholder="Share your thoughts with the CrickEdge community…"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+          />
+        </Form.Group>
+
+      </div>
+    </div>
 
   </Form>
 </Modal.Body>

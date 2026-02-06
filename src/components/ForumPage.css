@@ -425,3 +425,47 @@
   font-weight: 600;
   margin-bottom: 6px;
 }
+/* ===== FORCE FORM TO USE FULL MODAL WIDTH ===== */
+
+.forum-modal-body {
+  padding: 24px 32px;
+}
+
+/* Grid wrapper */
+.forum-form-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* full width */
+  width: 100%;
+}
+
+/* Main form area */
+.forum-form-main {
+  width: 100%;
+}
+
+/* Inputs stretch fully */
+.forum-form-main input,
+.forum-form-main select,
+.forum-form-main textarea {
+  width: 100%;
+  background: #0e0e0e;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 15px;
+}
+
+/* BIG editor */
+.forum-form-main textarea {
+  min-height: 360px;   /* 🔥 TV-style editor */
+  resize: vertical;
+  line-height: 1.6;
+}
+
+/* Labels */
+.forum-form-main label {
+  color: #f5c542;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
