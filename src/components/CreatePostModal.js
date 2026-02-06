@@ -128,16 +128,6 @@ const CreatePostModal = ({ show, onClose, onPostCreated }) => {
 
     {/* ================= RIGHT : RULES ================= */}
     <div className="forum-modal-rules">
-      <details open>
-        <summary>📜 Forum Guidelines</summary>
-        <ul>
-          <li>Be respectful to all members</li>
-          <li>No abusive or offensive language</li>
-          <li>No spam or promotions</li>
-          <li>Cricket-related discussions preferred</li>
-          <li>Admin decisions are final</li>
-        </ul>
-      </details>
     </div>
 
   </div>
