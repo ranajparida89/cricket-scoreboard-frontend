@@ -10,87 +10,98 @@ export default function ForumPage() {
   const [expandedPost, setExpandedPost] = useState(null);
   const [replies, setReplies] = useState({});
   const [replyText, setReplyText] = useState("");
-
-  // 🔥 NEW — modal state
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showRules, setShowRules] = useState(false);
 
   const token = localStorage.getItem("token");
 
-  // 🔹 Load posts (reusable)
   const fetchPosts = async () => {
-    try {
-      const res = await axios.get(`${API}/api/forum/posts`);
-      setPosts(res.data);
-    } catch (err) {
-      console.error(err);
-    }
+    const res = await axios.get(`${API}/api/forum/posts`);
+    setPosts(res.data);
   };
 
-  // 🔹 Initial load
   useEffect(() => {
     fetchPosts();
   }, []);
 
-  // 🔹 Load replies
   const loadReplies = async (postId) => {
     const res = await axios.get(`${API}/api/forum/replies/${postId}`);
     setReplies((prev) => ({ ...prev, [postId]: res.data }));
     setExpandedPost(postId);
   };
 
-  // 🔹 Add reply
   const submitReply = async (postId) => {
     if (!replyText.trim()) return;
-
-    try {
-      await axios.post(
-        `${API}/api/forum/reply`,
-        { postId, content: replyText },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setReplyText("");
-      loadReplies(postId);
-    } catch (err) {
-      alert("Failed to add reply");
-    }
+    await axios.post(
+      `${API}/api/forum/reply`,
+      { postId, content: replyText },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    setReplyText("");
+    loadReplies(postId);
   };
 
   return (
-    <div className="forum-container">
-      <h2>🗣️ CrickEdge Talk</h2>
+    <div className="forum-wrapper">
+      <div className="forum-header">
+        <h1>🗣️ CrickEdge Talk</h1>
 
-      {/* 🔥 NEW — Create Post Button */}
-      {token && (
-        <button
-          className="btn btn-warning mb-4"
-          onClick={() => setShowCreateModal(true)}
+        {token && (
+          <button
+            className="forum-primary-btn"
+            onClick={() => setShowCreateModal(true)}
+          >
+            ✍️ Create Post
+          </button>
+        )}
+      </div>
+
+      {/* RULES – COLLAPSIBLE */}
+      <div className="forum-rules">
+        <div
+          className="rules-header"
+          onClick={() => setShowRules(!showRules)}
         >
-          ✍️ Create Post
-        </button>
-      )}
+          📜 Forum Rules
+          <span>{showRules ? "▲" : "▼"}</span>
+        </div>
 
+        {showRules && (
+          <ul className="rules-content">
+            <li>Be respectful to all members</li>
+            <li>No abusive or political content</li>
+            <li>No spam or self-promotion</li>
+            <li>Cricket-related discussions preferred</li>
+            <li>Admin decisions are final</li>
+          </ul>
+        )}
+      </div>
+
+      {/* POSTS */}
       {posts.map((post) => (
-        <div key={post.id} className="forum-post">
+        <div key={post.id} className="forum-card">
           <h3>{post.subject}</h3>
-          <p className="content">{post.content}</p>
+          <p className="forum-text">{post.content}</p>
 
-          <div className="meta">
+          <div className="forum-meta">
             <span>👤 {post.author_name}</span>
             <span>
               📅 {post.post_date} · {post.post_time}
             </span>
           </div>
 
-          <button onClick={() => loadReplies(post.id)}>
+          <button
+            className="forum-secondary-btn"
+            onClick={() => loadReplies(post.id)}
+          >
             View Replies
           </button>
 
           {expandedPost === post.id && (
-            <div className="replies">
+            <div className="forum-replies">
               {(replies[post.id] || []).map((r) => (
-                <div key={r.id} className="reply">
-                  <b>{r.author_name}</b>
+                <div key={r.id} className="forum-reply">
+                  <strong>{r.author_name}</strong>
                   <p>{r.content}</p>
                   <small>
                     {r.reply_date} · {r.reply_time}
@@ -99,13 +110,16 @@ export default function ForumPage() {
               ))}
 
               {token && (
-                <div className="reply-box">
+                <div className="forum-reply-box">
                   <textarea
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
-                    placeholder="Write a reply..."
+                    placeholder="Write a thoughtful reply…"
                   />
-                  <button onClick={() => submitReply(post.id)}>
+                  <button
+                    className="forum-primary-btn"
+                    onClick={() => submitReply(post.id)}
+                  >
                     Reply
                   </button>
                 </div>
@@ -115,7 +129,6 @@ export default function ForumPage() {
         </div>
       ))}
 
-      {/* 🔥 NEW — Create Post Modal */}
       <CreatePostModal
         show={showCreateModal}
         onClose={() => setShowCreateModal(false)}
