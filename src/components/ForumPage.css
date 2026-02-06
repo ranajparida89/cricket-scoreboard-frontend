@@ -46,3 +46,77 @@ button {
   margin-top: 8px;
   cursor: pointer;
 }
+/* ============================= */
+/* 🟡 CrickEdge Forum Modal Fix */
+/* ============================= */
+
+.modal-content {
+  background: linear-gradient(
+    145deg,
+    rgba(10, 10, 10, 0.95),
+    rgba(20, 20, 20, 0.98)
+  );
+  color: #ffffff;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 215, 100, 0.25);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+}
+
+/* Header */
+.modal-header {
+  border-bottom: 1px solid rgba(255, 215, 100, 0.2);
+}
+
+.modal-title {
+  color: #f5c542;
+  font-weight: 700;
+}
+
+/* Labels */
+.modal-body label {
+  color: #f5c542;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* Inputs & textarea */
+.modal-body input,
+.modal-body textarea,
+.modal-body select {
+  background-color: #111;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 6px;
+}
+
+.modal-body input::placeholder,
+.modal-body textarea::placeholder {
+  color: #aaa;
+}
+
+/* Focus state */
+.modal-body input:focus,
+.modal-body textarea:focus,
+.modal-body select:focus {
+  outline: none;
+  border-color: #f5c542;
+  box-shadow: 0 0 6px rgba(245, 197, 66, 0.6);
+}
+
+/* Footer buttons */
+.modal-footer {
+  border-top: 1px solid rgba(255, 215, 100, 0.2);
+}
+
+.modal-footer .btn-primary {
+  background: linear-gradient(135deg, #f5c542, #d4a017);
+  border: none;
+  color: #000;
+  font-weight: 700;
+}
+
+.modal-footer .btn-secondary {
+  background: transparent;
+  border: 1px solid #555;
+  color: #ccc;
+}
