@@ -330,3 +330,66 @@
   height: 48px;
   font-size: 15px;
 }
+/* ===== MODAL INTERNAL LAYOUT ===== */
+
+.forum-modal-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr; /* form wider than rules */
+  gap: 28px;
+  min-height: 420px;
+}
+
+.forum-modal-form {
+  width: 100%;
+}
+
+/* Make inputs fill space */
+.forum-modal-form input,
+.forum-modal-form select,
+.forum-modal-form textarea {
+  width: 100%;
+  background: #0f0f0f;
+  color: #eaeaea;
+  border: 1px solid #2e2e2e;
+  border-radius: 8px;
+}
+
+/* Bigger textarea */
+.forum-modal-form textarea {
+  min-height: 280px;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* RULES PANEL */
+.forum-modal-rules {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 200, 60, 0.15);
+  border-radius: 12px;
+  padding: 16px 18px;
+  color: #d6d6d6;
+  font-size: 14px;
+}
+
+.forum-modal-rules summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #f5c542;
+  margin-bottom: 10px;
+}
+
+.forum-modal-rules ul {
+  padding-left: 18px;
+  margin-top: 10px;
+}
+
+.forum-modal-rules li {
+  margin-bottom: 8px;
+}
+
+/* Responsive: stack on small screens */
+@media (max-width: 900px) {
+  .forum-modal-grid {
+    grid-template-columns: 1fr;
+  }
+}
