@@ -109,26 +109,23 @@
   border-radius: 6px;
   margin-top: 10px;
 }
+
 /* ============================= */
-/* 🟡 CrickEdge – Create Post Modal */
+/* 🟡 Create Post Modal Base */
 /* ============================= */
 
-/* backdrop darker */
 .forum-modal-backdrop {
   background: rgba(0, 0, 0, 0.75);
 }
 
-/* modal container */
 .forum-modal {
   background: linear-gradient(145deg, #0d0d0d, #1a1a1a);
   color: #eaeaea;
   border-radius: 14px;
   border: 1px solid rgba(245, 197, 66, 0.25);
   box-shadow: 0 0 45px rgba(0, 0, 0, 0.9);
-  padding: 10px;
 }
 
-/* header */
 .forum-modal .modal-header {
   border-bottom: 1px solid rgba(245, 197, 66, 0.25);
 }
@@ -139,315 +136,52 @@
   font-size: 20px;
 }
 
-/* labels */
 .forum-modal label {
   color: #f5c542;
   font-weight: 600;
   margin-bottom: 6px;
 }
 
-/* inputs */
-.forum-modal input,
-.forum-modal select {
-  height: 46px;
-  background: #111;
-  color: #fff;
-  border: 1px solid #333;
-  border-radius: 8px;
-}
-
-/* textarea BIG */
-.forum-modal textarea {
-  min-height: 200px;
-  background: #111;
-  color: #fff;
-  border: 1px solid #333;
-  border-radius: 8px;
-  resize: vertical;
-  font-size: 15px;
-}
-
-/* focus glow */
-.forum-modal input:focus,
-.forum-modal textarea:focus,
-.forum-modal select:focus {
-  outline: none;
-  border-color: #f5c542;
-  box-shadow: 0 0 8px rgba(245, 197, 66, 0.5);
-}
-
-/* footer */
 .forum-modal .modal-footer {
   border-top: 1px solid rgba(245, 197, 66, 0.25);
 }
 
-/* buttons */
-.forum-modal .btn-primary {
-  background: linear-gradient(135deg, #f5c542, #d4a017);
-  border: none;
-  color: #000;
-  font-weight: 700;
-  padding: 8px 18px;
-}
+/* ===================================================== */
+/* 🔥 FINAL OVERRIDE — DO NOT TOUCH ABOVE THIS 🔥 */
+/* ===================================================== */
 
-.forum-modal .btn-secondary {
-  background: transparent;
-  border: 1px solid #666;
-  color: #ccc;
-  padding: 8px 18px;
-}
-
-/* modal width */
-.modal-dialog.modal-lg {
-  max-width: 900px;
-}
-/* ========================================= */
-/* 🟨 CrickEdge Forum — TV Style Modal */
-/* ========================================= */
-
-/* Override Bootstrap hard limits */
+/* TV-SHAPE MODAL WIDTH */
 .forum-modal-dialog {
-  max-width: 75vw !important;     /* TV width */
-  width: 75vw !important;
-}
-
-/* Modal container */
-.forum-modal {
-  background: linear-gradient(135deg, #0b0b0b, #141414);
-  border-radius: 16px;
-  border: 1px solid rgba(245, 197, 66, 0.35);
-  box-shadow: 0 0 60px rgba(0, 0, 0, 0.85);
-  padding: 12px;
-}
-
-/* Header */
-.forum-modal .modal-header {
-  border-bottom: 1px solid rgba(245, 197, 66, 0.25);
-}
-
-.forum-modal .modal-title {
-  color: #f5c542;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-}
-
-/* Body → make it wide + short */
-.forum-modal .modal-body {
-  display: grid;
-  grid-template-columns: 1fr 2fr; /* TV split */
-  gap: 24px;
-  padding: 24px;
-}
-
-/* Left side (post type + subject) */
-.forum-modal .modal-body .form-group:first-child,
-.forum-modal .modal-body .form-group:nth-child(2) {
-  grid-column: 1 / 2;
-}
-
-/* Content editor takes full right side */
-.forum-modal textarea {
-  min-height: 260px;              /* WIDE writing area */
-  resize: vertical;
-  font-size: 15px;
-}
-
-/* Inputs */
-.forum-modal input,
-.forum-modal textarea,
-.forum-modal select {
-  background-color: #0f0f0f;
-  color: #fff;
-  border: 1px solid #333;
-  border-radius: 8px;
-}
-
-.forum-modal input::placeholder,
-.forum-modal textarea::placeholder {
-  color: #777;
-}
-
-/* Focus glow */
-.forum-modal input:focus,
-.forum-modal textarea:focus,
-.forum-modal select:focus {
-  outline: none;
-  border-color: #f5c542;
-  box-shadow: 0 0 10px rgba(245, 197, 66, 0.6);
-}
-
-/* Footer */
-.forum-modal .modal-footer {
-  border-top: 1px solid rgba(245, 197, 66, 0.25);
-  padding: 16px 24px;
-}
-
-/* Buttons */
-.forum-modal .btn-primary {
-  background: linear-gradient(135deg, #f5c542, #d4a017);
-  border: none;
-  color: #000;
-  font-weight: 700;
-  padding: 8px 22px;
-}
-
-.forum-modal .btn-secondary {
-  background: transparent;
-  border: 1px solid #555;
-  color: #ccc;
-}
-/* ===== FORCE TV-SHAPE FORUM MODAL ===== */
-
-.forum-modal-dialog {
-  max-width: 1100px !important;   /* TV width */
+  max-width: 1100px !important;
   width: 92vw !important;
 }
 
-@media (max-width: 1200px) {
-  .forum-modal-dialog {
-    max-width: 95vw !important;
-  }
-}
-
-/* Dark modal body */
-.forum-modal {
-  background: linear-gradient(180deg, #0b0b0b, #121212);
-  border-radius: 16px;
-  border: 1px solid rgba(255, 200, 60, 0.25);
-  padding: 20px;
-}
-
-/* Taller editor */
-.forum-modal textarea {
-  min-height: 260px;
-  resize: vertical;
-  font-size: 15px;
-}
-
-/* Bigger inputs */
-.forum-modal input,
-.forum-modal select {
-  height: 48px;
-  font-size: 15px;
-}
-/* ===== MODAL INTERNAL LAYOUT ===== */
-
-.forum-modal-grid {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr; /* form wider than rules */
-  gap: 28px;
-  min-height: 420px;
-}
-
-.forum-modal-form {
-  width: 100%;
-}
-
-/* Make inputs fill space */
-.forum-modal-form input,
-.forum-modal-form select,
-.forum-modal-form textarea {
-  width: 100%;
-  background: #0f0f0f;
-  color: #eaeaea;
-  border: 1px solid #2e2e2e;
-  border-radius: 8px;
-}
-
-/* Bigger textarea */
-.forum-modal-form textarea {
-  min-height: 280px;
-  font-size: 15px;
-  line-height: 1.6;
-}
-
-/* RULES PANEL */
-.forum-modal-rules {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 200, 60, 0.15);
-  border-radius: 12px;
-  padding: 16px 18px;
-  color: #d6d6d6;
-  font-size: 14px;
-}
-
-.forum-modal-rules summary {
-  cursor: pointer;
-  font-weight: 600;
-  color: #f5c542;
-  margin-bottom: 10px;
-}
-
-.forum-modal-rules ul {
-  padding-left: 18px;
-  margin-top: 10px;
-}
-
-.forum-modal-rules li {
-  margin-bottom: 8px;
-}
-
-/* Responsive: stack on small screens */
-@media (max-width: 900px) {
-  .forum-modal-grid {
-    grid-template-columns: 1fr;
-  }
-}
-/* ===== Create Post Modal – Full Width Editor ===== */
-
-.forum-modal-form-full {
-  width: 100%;
-}
-
-/* Inputs take full width */
-.forum-modal-form-full input,
-.forum-modal-form-full select,
-.forum-modal-form-full textarea {
-  width: 100%;
-  background: #0e0e0e;
-  color: #fff;
-  border: 1px solid #333;
-  border-radius: 8px;
-  padding: 12px;
-  font-size: 15px;
-}
-
-/* BIG writing area */
-.forum-modal-form-full textarea {
-  min-height: 300px;   /* 🔥 big editor */
-  resize: vertical;
-  line-height: 1.6;
-}
-
-/* Labels */
-.forum-modal-form-full label {
-  color: #f5c542;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-/* ===== FORCE FORM TO USE FULL MODAL WIDTH ===== */
-
+/* MODAL BODY MUST STRETCH */
 .forum-modal-body {
-  padding: 24px 32px;
+  width: 100% !important;
+  padding: 28px 36px !important;
+  box-sizing: border-box;
 }
 
-/* Grid wrapper */
-.forum-form-grid {
-  display: grid;
-  grid-template-columns: 1fr; /* full width */
-  width: 100%;
+/* FORM MUST FILL MODAL */
+.forum-modal-form {
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
-/* Main form area */
-.forum-form-main {
-  width: 100%;
+/* FORM GROUPS FULL WIDTH */
+.forum-modal-form .form-group,
+.forum-modal-form .mb-3,
+.forum-modal-form .mb-4 {
+  width: 100% !important;
 }
 
-/* Inputs stretch fully */
-.forum-form-main input,
-.forum-form-main select,
-.forum-form-main textarea {
-  width: 100%;
+/* INPUTS FULL WIDTH */
+.forum-modal-form input,
+.forum-modal-form select {
+  width: 100% !important;
+  min-width: 100%;
+  height: 48px;
   background: #0e0e0e;
   color: #fff;
   border: 1px solid #333;
@@ -456,16 +190,22 @@
   font-size: 15px;
 }
 
-/* BIG editor */
-.forum-form-main textarea {
-  min-height: 360px;   /* 🔥 TV-style editor */
+/* BIG EDITOR — THIS FIXES YOUR ISSUE */
+.forum-modal-form textarea {
+  width: 100% !important;
+  min-width: 100%;
+  min-height: 360px; /* 🔥 BIG */
   resize: vertical;
+  background: #0e0e0e;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 16px;
+  font-size: 15px;
   line-height: 1.6;
 }
 
-/* Labels */
-.forum-form-main label {
-  color: #f5c542;
-  font-weight: 600;
-  margin-bottom: 6px;
+/* FOOTER SPACING */
+.forum-modal .modal-footer {
+  padding: 16px 36px;
 }
