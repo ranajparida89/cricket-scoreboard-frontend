@@ -109,3 +109,95 @@
   border-radius: 6px;
   margin-top: 10px;
 }
+/* ============================= */
+/* 🟡 CrickEdge – Create Post Modal */
+/* ============================= */
+
+/* backdrop darker */
+.forum-modal-backdrop {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+/* modal container */
+.forum-modal {
+  background: linear-gradient(145deg, #0d0d0d, #1a1a1a);
+  color: #eaeaea;
+  border-radius: 14px;
+  border: 1px solid rgba(245, 197, 66, 0.25);
+  box-shadow: 0 0 45px rgba(0, 0, 0, 0.9);
+  padding: 10px;
+}
+
+/* header */
+.forum-modal .modal-header {
+  border-bottom: 1px solid rgba(245, 197, 66, 0.25);
+}
+
+.forum-modal .modal-title {
+  color: #f5c542;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+/* labels */
+.forum-modal label {
+  color: #f5c542;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+/* inputs */
+.forum-modal input,
+.forum-modal select {
+  height: 46px;
+  background: #111;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 8px;
+}
+
+/* textarea BIG */
+.forum-modal textarea {
+  min-height: 200px;
+  background: #111;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 8px;
+  resize: vertical;
+  font-size: 15px;
+}
+
+/* focus glow */
+.forum-modal input:focus,
+.forum-modal textarea:focus,
+.forum-modal select:focus {
+  outline: none;
+  border-color: #f5c542;
+  box-shadow: 0 0 8px rgba(245, 197, 66, 0.5);
+}
+
+/* footer */
+.forum-modal .modal-footer {
+  border-top: 1px solid rgba(245, 197, 66, 0.25);
+}
+
+/* buttons */
+.forum-modal .btn-primary {
+  background: linear-gradient(135deg, #f5c542, #d4a017);
+  border: none;
+  color: #000;
+  font-weight: 700;
+  padding: 8px 18px;
+}
+
+.forum-modal .btn-secondary {
+  background: transparent;
+  border: 1px solid #666;
+  color: #ccc;
+  padding: 8px 18px;
+}
+
+/* modal width */
+.modal-dialog.modal-lg {
+  max-width: 900px;
+}

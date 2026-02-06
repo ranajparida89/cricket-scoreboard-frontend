@@ -68,11 +68,11 @@ export default function ForumPage() {
 
         {showRules && (
           <ul className="rules-content">
-            <li>Be respectful to all members</li>
-            <li>No abusive or political content</li>
-            <li>No spam or self-promotion</li>
-            <li>Cricket-related discussions preferred</li>
-            <li>Admin decisions are final</li>
+            <li>Respect all cricketers. Personal attacks, name-calling, or abusive language toward players is strictly prohibited across all sections. Constructive criticism is welcome, but derogatory or offensive remarks will lead to immediate action, including possible bans</li>
+            <li>Avoid making unverified allegations against players, such as match-fixing or misconduct. Any such discussion must be supported by a credible media source. Posts without proper references may be removed to prevent misinformation and legal complications</li>
+            <li>Healthy debates and disagreements are encouraged. However, targeting, insulting, or personally attacking fellow members is not acceptable under any circumstances.</li>
+            <li>Access to CrickEdge Talk is a privilege. The platform reserves the right to temporarily or permanently restrict accounts that violate community guidelines.</li>
+            <li>lease refrain from mock naming or excessive trolling of Indian players in the Cricket Talk section. Light humor is acceptable, but users are expected to apply common sense and maintain respect.</li>
           </ul>
         )}
       </div>
