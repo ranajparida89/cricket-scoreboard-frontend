@@ -14,18 +14,63 @@ export default function ForumPage() {
   const [editPost, setEditPost] = useState(null);
   const [showRules, setShowRules] = useState(false);
 
+  const [likes, setLikes] = useState({});      // 👈 like counts
+  const [likedMap, setLikedMap] = useState({}); // 👈 user liked or not
+
   const token = localStorage.getItem("token");
-  const currentUser = JSON.parse(localStorage.getItem("user")); // 👈 owner check
+  const currentUser = JSON.parse(localStorage.getItem("user"));
 
   /* ---------------- FETCH POSTS ---------------- */
   const fetchPosts = async () => {
     const res = await axios.get(`${API}/api/forum/posts`);
     setPosts(res.data);
+
+    // fetch likes for all posts
+    res.data.forEach((post) => {
+      fetchLikes(post.id);
+    });
   };
 
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  /* ---------------- LIKES ---------------- */
+  const fetchLikes = async (postId) => {
+    try {
+      const res = await axios.get(
+        `${API}/api/forum/post/${postId}/likes`
+      );
+      setLikes((prev) => ({ ...prev, [postId]: res.data.likes }));
+    } catch (err) {
+      console.error("Failed to fetch likes", err);
+    }
+  };
+
+  const toggleLike = async (postId) => {
+    if (!token) {
+      alert("Please login to like posts");
+      return;
+    }
+
+    try {
+      const res = await axios.post(
+        `${API}/api/forum/post/${postId}/like`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setLikedMap((prev) => ({
+        ...prev,
+        [postId]: res.data.liked,
+      }));
+
+      fetchLikes(postId);
+    } catch (err) {
+      console.error("Like failed", err);
+      alert("Failed to like post");
+    }
+  };
 
   /* ---------------- REPLIES ---------------- */
   const loadReplies = async (postId) => {
@@ -113,6 +158,19 @@ export default function ForumPage() {
               </span>
             </div>
 
+            {/* LIKE BUTTON */}
+            <div className="forum-like-row">
+              <button
+                className="forum-like-btn"
+                onClick={() => toggleLike(post.id)}
+              >
+                {likedMap[post.id] ? "❤️" : "🤍"} Like
+              </button>
+              <span className="forum-like-count">
+                {likes[post.id] || 0} likes
+              </span>
+            </div>
+
             {/* OWNER ACTIONS */}
             {isOwner && (
               <div className="forum-owner-actions">
@@ -181,7 +239,7 @@ export default function ForumPage() {
         show={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onPostCreated={fetchPosts}
-        editPost={editPost}   // 👈 NEW
+        editPost={editPost}
       />
     </div>
   );
