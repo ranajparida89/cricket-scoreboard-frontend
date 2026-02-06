@@ -55,7 +55,7 @@ import BoardRegistrationForm from "./components/BoardRegistrationForm";
 import BoardAnalyticsPro from "./components/BoardAnalyticsPro";
 import TournamentPoints from "./components/TournamentPoints";
 import RulesAndRegulations from "./components/RulesAndRegulations";
-import ForumPage from "./components/forum/ForumPage";
+import ForumPage from "./components/ForumPage";
 
 
 // 🔥 NEW
