@@ -165,6 +165,15 @@ const AppNavbar = ({ onAuthClick }) => {
               Ranking
             </Nav.Link>
 
+            <Nav.Link
+                as={Link}
+                to="/forum"
+                className="slumber-link hover-slide-emoji forum-golden-link"
+                onClick={() => playSound("click")}
+                onMouseEnter={() => playSound("hover")}
+              >
+                Forum
+              </Nav.Link>
             {/* ----- More Dropdown (glassy) ----- */}
             <NavDropdown
               title="More"

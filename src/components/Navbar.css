@@ -295,3 +295,13 @@
   color: #ffffff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
+.forum-golden-link {
+  color: #f5c542 !important; /* premium gold */
+  font-weight: 600;
+}
+
+.forum-golden-link:hover {
+  color: #ffd966 !important;
+  text-shadow: 0 0 8px rgba(245, 197, 66, 0.6);
+}
+

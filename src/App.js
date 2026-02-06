@@ -55,7 +55,7 @@ import BoardRegistrationForm from "./components/BoardRegistrationForm";
 import BoardAnalyticsPro from "./components/BoardAnalyticsPro";
 import TournamentPoints from "./components/TournamentPoints";
 import RulesAndRegulations from "./components/RulesAndRegulations";
-
+import ForumPage from "./components/forum/ForumPage";
 
 
 // 🔥 NEW
@@ -561,6 +561,14 @@ function App() {
             element={
               <PageWrapper>
                 <RulesAndRegulations user={{ role: isAdmin ? "admin" : "user" }} />
+              </PageWrapper>
+            }
+          />
+                    <Route
+            path="/forum"
+            element={
+              <PageWrapper>
+                <ForumPage />
               </PageWrapper>
             }
           />
