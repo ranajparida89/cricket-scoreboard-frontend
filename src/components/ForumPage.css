@@ -393,3 +393,35 @@
     grid-template-columns: 1fr;
   }
 }
+/* ===== Create Post Modal – Full Width Editor ===== */
+
+.forum-modal-form-full {
+  width: 100%;
+}
+
+/* Inputs take full width */
+.forum-modal-form-full input,
+.forum-modal-form-full select,
+.forum-modal-form-full textarea {
+  width: 100%;
+  background: #0e0e0e;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 15px;
+}
+
+/* BIG writing area */
+.forum-modal-form-full textarea {
+  min-height: 300px;   /* 🔥 big editor */
+  resize: vertical;
+  line-height: 1.6;
+}
+
+/* Labels */
+.forum-modal-form-full label {
+  color: #f5c542;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
