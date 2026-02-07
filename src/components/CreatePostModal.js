@@ -45,6 +45,12 @@ const CreatePostModal = ({ show, onClose, onPostCreated, editPost }) => {
       return;
     }
 
+    // ✅ FIX: auto-subject for COMMENT
+    const finalSubject =
+      postType === "COMMENT"
+        ? "Comment"
+        : subject.trim();
+
     try {
       setLoading(true);
 
@@ -61,14 +67,14 @@ const CreatePostModal = ({ show, onClose, onPostCreated, editPost }) => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          subject,
-          content,
+          subject: finalSubject,
+          content: content.trim(),
           postType,
         }),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data.error || data.message);
 
       onPostCreated();
       onClose();
@@ -103,14 +109,14 @@ const CreatePostModal = ({ show, onClose, onPostCreated, editPost }) => {
             <Form.Select
               value={postType}
               onChange={(e) => setPostType(e.target.value)}
-              disabled={!!editPost} // 🔒 cannot change type on edit
+              disabled={!!editPost}
             >
               <option value="STORY">Story</option>
               <option value="COMMENT">Comment</option>
             </Form.Select>
           </Form.Group>
 
-          {/* SUBJECT */}
+          {/* SUBJECT (ONLY FOR STORY) */}
           {postType === "STORY" && (
             <Form.Group className="mb-4">
               <Form.Label>Subject</Form.Label>
@@ -146,11 +152,7 @@ const CreatePostModal = ({ show, onClose, onPostCreated, editPost }) => {
           onClick={handleSubmit}
           disabled={loading}
         >
-          {loading
-            ? "Saving..."
-            : editPost
-            ? "Update Post"
-            : "Post"}
+          {loading ? "Saving..." : editPost ? "Update Post" : "Post"}
         </Button>
       </Modal.Footer>
     </Modal>
