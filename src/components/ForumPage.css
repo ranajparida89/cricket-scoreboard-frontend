@@ -59,11 +59,7 @@
 /* 🪪 POST CARD */
 /* ============================= */
 .forum-card {
-  background: radial-gradient(
-    circle at top left,
-    #151515,
-    #0e0e0e 70%
-  );
+  background: radial-gradient(circle at top left, #151515, #0e0e0e 70%);
   border: 1px solid #2a2a2a;
   border-radius: 18px;
   padding: 24px 26px 22px;
@@ -113,10 +109,12 @@
 }
 
 /* ============================= */
-/* 🔘 BUTTON SYSTEM (UNIFIED) */
+/* 🔘 BUTTON SYSTEM – FIXED */
 /* ============================= */
-.forum-btn {
-  height: 36px;
+.forum-primary-btn,
+.forum-secondary-btn,
+.forum-danger-btn {
+  height: 38px;
   padding: 0 18px;
   border-radius: 999px;
   font-size: 13px;
@@ -127,11 +125,11 @@
   justify-content: center;
   gap: 6px;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 /* PRIMARY */
 .forum-primary-btn {
-  composes: forum-btn;
   background: linear-gradient(135deg, #f1d27c, #caa241);
   color: #111;
   border: none;
@@ -139,30 +137,31 @@
 
 .forum-primary-btn:hover {
   filter: brightness(1.05);
+  transform: translateY(-1px);
 }
 
 /* SECONDARY */
 .forum-secondary-btn {
-  composes: forum-btn;
   background: transparent;
   border: 1px solid #f1d27c;
   color: #f1d27c;
 }
 
 .forum-secondary-btn:hover {
-  background: rgba(241, 210, 124, 0.1);
+  background: rgba(241, 210, 124, 0.12);
+  transform: translateY(-1px);
 }
 
 /* DANGER */
 .forum-danger-btn {
-  composes: forum-btn;
   background: transparent;
   border: 1px solid #ff6b6b;
   color: #ff6b6b;
 }
 
 .forum-danger-btn:hover {
-  background: rgba(255, 107, 107, 0.1);
+  background: rgba(255, 107, 107, 0.12);
+  transform: translateY(-1px);
 }
 
 /* ============================= */
