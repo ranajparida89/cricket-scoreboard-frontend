@@ -153,13 +153,7 @@ const SidebarMenu = () => {
             <FaChartLine className="me-2" /> Tournament Points
           </Link>
         </li>
-               
-            <li>
-      <Link to="/rules-and-regulations" onClick={handleClose}>
-        <FaBook className="me-2 text-primary" /> Rules & Regulations
-      </Link>
-    </li>
-
+  
         {/* ✅ NEW MODULE – Man of the Match Insights */}
         <li>
           <Link to="/mom-insights" onClick={handleClose}>

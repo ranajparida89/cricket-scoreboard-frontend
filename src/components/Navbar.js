@@ -174,6 +174,15 @@ const AppNavbar = ({ onAuthClick }) => {
               >
                 Crickedge Adda
               </Nav.Link>
+                <Nav.Link
+                as={Link}
+                to="/rules-and-regulations"
+                className="slumber-link rulebook-pill"
+                onClick={() => playSound("click")}
+                onMouseEnter={() => playSound("hover")}
+              >
+                 Rule Book
+              </Nav.Link>
             {/* ----- More Dropdown (glassy) ----- */}
             <NavDropdown
               title="More"
