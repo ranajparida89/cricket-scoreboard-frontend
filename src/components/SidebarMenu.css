@@ -1,72 +1,144 @@
 /* ✅ src/components/SidebarMenu.css */
 
 .sidebar-menu {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 250px;
-    height: 100%;
-    padding: 20px;
-    z-index: 2000;
-    backdrop-filter: blur(10px); /* ✅ Add translucent background */
-    background-color: rgba(0, 0, 0, 0.3); /* ✅ More transparent (0.3 instead of 0.6) */ /* ✅ Semi-transparent black */
-    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.6); /* ✅ Soft sidebar glow */
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    overflow-y: auto;
-  }
-  
-  .sidebar-menu.open {
-    transform: translateX(0); /* ✅ Slide in */
-  }
-  
-  .sidebar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #444;
-    padding-bottom: 10px;
-  }
-  
-  .sidebar-menu ul {
-    list-style: none;
-    padding-left: 0;
-    margin-top: 20px;
-  }
-  
-  .sidebar-menu li {
-    margin: 20px 0;
-  }
-  
-  .sidebar-menu a {
-    text-decoration: none;
-    color: white;
-    font-size: 16px;
-  }
-  
-  .sidebar-menu a:hover {
-    color: cyan;
-  }
-  
-  .close-btn {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-  }
-  
-  /* ✅ Optional tweak: full-height translucent sidebar on larger screens too */
-  @media (min-width: 768px) {
-    .sidebar-menu {
-        background-color: rgba(0, 0, 0, 0.25); /* ✅ Even lighter on large screens */
-      backdrop-filter: blur(10px);
-    }
-  }
-  .sidebar-menu a svg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 250px;
+  height: 100%;
+  padding: 20px;
+  z-index: 2000;
+  backdrop-filter: blur(10px);
+  background-color: rgba(0, 0, 0, 0.3);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.6);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+}
+
+.sidebar-menu.open {
+  transform: translateX(0);
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #444;
+  padding-bottom: 10px;
+}
+
+.sidebar-menu ul {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 20px;
+}
+
+.sidebar-menu li {
+  margin: 20px 0;
+}
+
+.sidebar-menu a {
+  text-decoration: none;
+  color: white;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.2s ease;
+}
+
+.sidebar-menu a:hover {
+  color: cyan;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* Icons alignment */
+.sidebar-menu a svg {
   vertical-align: middle;
 }
 
+/* Highlight pitch randomizer icon */
 .sidebar-menu a[href="/pitch-randomizer"] svg {
-  color: #00ffaa; /* Neon green highlight */
+  color: #00ffaa;
+}
+
+/* ===================================================== */
+/* 📘 RULES & REGULATIONS — GOLDEN HEARTBEAT HIGHLIGHT */
+/* ===================================================== */
+
+.sidebar-menu a[href="/rules-and-regulations"] {
+  position: relative;
+  padding: 8px 14px;
+  border-radius: 999px;
+
+  color: #f5c542 !important;
+  font-weight: 700;
+
+  border: 1px solid rgba(245, 197, 66, 0.45);
+  background: linear-gradient(
+    180deg,
+    rgba(245, 197, 66, 0.12),
+    rgba(245, 197, 66, 0.03)
+  );
+
+  box-shadow: 0 0 0 rgba(245, 197, 66, 0);
+  animation: ruleSidebarHeartbeat 2.4s ease-in-out infinite;
+}
+
+/* Icon inside Rules */
+.sidebar-menu a[href="/rules-and-regulations"] svg {
+  color: #f5c542;
+}
+
+/* Hover = pause heartbeat + glow */
+.sidebar-menu a[href="/rules-and-regulations"]:hover {
+  animation-play-state: paused;
+  color: #ffe08a !important;
+  border-color: rgba(245, 197, 66, 0.85);
+  box-shadow:
+    0 0 10px rgba(245, 197, 66, 0.45),
+    0 0 22px rgba(245, 197, 66, 0.18);
+}
+
+/* 💓 Heartbeat animation */
+@keyframes ruleSidebarHeartbeat {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(245, 197, 66, 0);
+  }
+  35% {
+    transform: scale(1.03);
+    box-shadow: 0 0 12px rgba(245, 197, 66, 0.28);
+  }
+  55% {
+    transform: scale(0.99);
+    box-shadow: 0 0 6px rgba(245, 197, 66, 0.18);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(245, 197, 66, 0);
+  }
+}
+
+/* Mobile: softer pulse */
+@media (max-width: 768px) {
+  .sidebar-menu a[href="/rules-and-regulations"] {
+    animation-duration: 3.2s;
+  }
+}
+
+/* Optional tweak: lighter sidebar on large screens */
+@media (min-width: 768px) {
+  .sidebar-menu {
+    background-color: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(10px);
+  }
 }
