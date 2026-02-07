@@ -172,7 +172,7 @@ const AppNavbar = ({ onAuthClick }) => {
                 onClick={() => playSound("click")}
                 onMouseEnter={() => playSound("hover")}
               >
-                Forum
+                CrickEdge Adda 🔥
               </Nav.Link>
             {/* ----- More Dropdown (glassy) ----- */}
             <NavDropdown
