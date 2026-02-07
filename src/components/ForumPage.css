@@ -1,224 +1,224 @@
-/* FULL WIDTH */
+/* ============================= */
+/* 🌑 GLOBAL WRAPPER */
+/* ============================= */
 .forum-wrapper {
-  width: 100%;
-  max-width: 1400px;
+  max-width: 1320px;
   margin: auto;
-  padding: 40px 24px;
+  padding: 36px 24px 80px;
 }
 
-/* HEADER */
+/* ============================= */
+/* 🧠 HEADER */
+/* ============================= */
 .forum-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-}
-
-.forum-header h1 {
-  color: #e6c46a;
-  font-weight: 700;
-}
-
-/* RULES */
-.forum-rules {
-  background: #111;
-  border: 1px solid #2a2a2a;
-  border-radius: 10px;
-  margin-bottom: 30px;
-}
-
-.rules-header {
-  padding: 14px 18px;
-  cursor: pointer;
-  font-weight: 600;
-  color: #e6c46a;
-  display: flex;
-  justify-content: space-between;
-}
-
-.rules-content {
-  padding: 16px 30px;
-  color: #ccc;
-}
-
-/* POST CARD */
-.forum-card {
-  background: linear-gradient(145deg, #0f0f0f, #141414);
-  border: 1px solid #2a2a2a;
-  border-radius: 14px;
-  padding: 22px;
   margin-bottom: 28px;
 }
 
+.forum-header h1 {
+  color: #f3d37b;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+/* ============================= */
+/* 📜 GUIDELINES */
+/* ============================= */
+.forum-rules {
+  background: linear-gradient(180deg, #0f0f0f, #131313);
+  border: 1px solid #2b2b2b;
+  border-radius: 14px;
+  margin-bottom: 34px;
+  overflow: hidden;
+}
+
+.rules-header {
+  padding: 16px 22px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #f3d37b;
+  display: flex;
+  justify-content: space-between;
+  background: rgba(255, 215, 100, 0.04);
+}
+
+.rules-content {
+  padding: 22px 30px;
+  color: #d0d0d0;
+  line-height: 1.7;
+}
+
+.rules-content h4 {
+  margin-top: 22px;
+  color: #f5c542;
+}
+
+/* ============================= */
+/* 🪪 POST CARD */
+/* ============================= */
+.forum-card {
+  background: radial-gradient(
+    circle at top left,
+    #151515,
+    #0e0e0e 70%
+  );
+  border: 1px solid #2a2a2a;
+  border-radius: 18px;
+  padding: 24px 26px 22px;
+  margin-bottom: 30px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.forum-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
 .forum-card h3 {
-  color: #f1d27c;
+  color: #f6d98b;
+  margin-bottom: 10px;
 }
 
 .forum-text {
-  color: #ddd;
-  margin: 12px 0 16px;
+  color: #e1e1e1;
+  line-height: 1.65;
+  max-width: 95%;
 }
 
+/* ============================= */
+/* ℹ️ META */
+/* ============================= */
 .forum-meta {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 12px;
-  color: #aaa;
+  color: #9a9a9a;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed #2a2a2a;
 }
 
-/* REPLIES */
+/* ============================= */
+/* 🎯 ACTION BAR */
+/* ============================= */
+.forum-owner-actions,
+.forum-action-bar {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+/* ============================= */
+/* 🔘 BUTTON SYSTEM (UNIFIED) */
+/* ============================= */
+.forum-btn {
+  height: 36px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+/* PRIMARY */
+.forum-primary-btn {
+  composes: forum-btn;
+  background: linear-gradient(135deg, #f1d27c, #caa241);
+  color: #111;
+  border: none;
+}
+
+.forum-primary-btn:hover {
+  filter: brightness(1.05);
+}
+
+/* SECONDARY */
+.forum-secondary-btn {
+  composes: forum-btn;
+  background: transparent;
+  border: 1px solid #f1d27c;
+  color: #f1d27c;
+}
+
+.forum-secondary-btn:hover {
+  background: rgba(241, 210, 124, 0.1);
+}
+
+/* DANGER */
+.forum-danger-btn {
+  composes: forum-btn;
+  background: transparent;
+  border: 1px solid #ff6b6b;
+  color: #ff6b6b;
+}
+
+.forum-danger-btn:hover {
+  background: rgba(255, 107, 107, 0.1);
+}
+
+/* ============================= */
+/* 💬 REPLIES */
+/* ============================= */
 .forum-replies {
-  margin-top: 18px;
+  margin-top: 22px;
+  padding-top: 18px;
   border-top: 1px solid #2a2a2a;
-  padding-top: 16px;
 }
 
 .forum-reply {
-  padding: 10px 0;
+  padding: 12px 0;
   border-bottom: 1px solid #222;
   color: #ddd;
 }
 
-/* INPUT */
+.forum-reply strong {
+  color: #f3d37b;
+}
+
+/* ============================= */
+/* ✍️ REPLY BOX */
+/* ============================= */
 .forum-reply-box textarea {
   width: 100%;
-  min-height: 90px;
-  background: #0d0d0d;
+  min-height: 96px;
+  background: #0c0c0c;
   border: 1px solid #333;
   color: #fff;
-  border-radius: 8px;
-  padding: 10px;
-  margin-top: 12px;
-}
-
-/* BUTTONS */
-.forum-primary-btn {
-  background: linear-gradient(135deg, #e6c46a, #caa241);
-  border: none;
-  color: #000;
-  font-weight: 700;
-  padding: 8px 18px;
-  border-radius: 6px;
-}
-
-.forum-secondary-btn {
-  background: transparent;
-  border: 1px solid #e6c46a;
-  color: #e6c46a;
-  padding: 6px 14px;
-  border-radius: 6px;
-  margin-top: 10px;
-}
-
-/* ============================= */
-/* 🟡 Create Post Modal Base */
-/* ============================= */
-
-.forum-modal-backdrop {
-  background: rgba(0, 0, 0, 0.75);
-}
-
-.forum-modal {
-  background: linear-gradient(145deg, #0d0d0d, #1a1a1a);
-  color: #eaeaea;
   border-radius: 14px;
+  padding: 14px;
+  margin-top: 14px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ============================= */
+/* 🪟 MODAL POLISH */
+/* ============================= */
+.forum-modal {
+  background: linear-gradient(145deg, #0d0d0d, #191919);
+  border-radius: 18px;
   border: 1px solid rgba(245, 197, 66, 0.25);
-  box-shadow: 0 0 45px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.85);
 }
 
-.forum-modal .modal-header {
-  border-bottom: 1px solid rgba(245, 197, 66, 0.25);
-}
-
-.forum-modal .modal-title {
-  color: #f5c542;
-  font-weight: 700;
-  font-size: 20px;
-}
-
-.forum-modal label {
-  color: #f5c542;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-
-.forum-modal .modal-footer {
-  border-top: 1px solid rgba(245, 197, 66, 0.25);
-}
-
-/* ===================================================== */
-/* 🔥 FINAL OVERRIDE — DO NOT TOUCH ABOVE THIS 🔥 */
-/* ===================================================== */
-
-/* TV-SHAPE MODAL WIDTH */
 .forum-modal-dialog {
   max-width: 1100px !important;
   width: 92vw !important;
 }
 
-/* MODAL BODY MUST STRETCH */
 .forum-modal-body {
-  width: 100% !important;
-  padding: 28px 36px !important;
-  box-sizing: border-box;
+  padding: 30px 40px !important;
 }
 
-/* FORM MUST FILL MODAL */
-.forum-modal-form {
-  width: 100% !important;
-  max-width: 100% !important;
-}
-
-/* FORM GROUPS FULL WIDTH */
-.forum-modal-form .form-group,
-.forum-modal-form .mb-3,
-.forum-modal-form .mb-4 {
-  width: 100% !important;
-}
-
-/* INPUTS FULL WIDTH */
-.forum-modal-form input,
-.forum-modal-form select {
-  width: 100% !important;
-  min-width: 100%;
-  height: 48px;
-  background: #0e0e0e;
-  color: #fff;
-  border: 1px solid #333;
-  border-radius: 10px;
-  padding: 14px 16px;
-  font-size: 15px;
-}
-
-/* BIG EDITOR — THIS FIXES YOUR ISSUE */
 .forum-modal-form textarea {
-  width: 100% !important;
-  min-width: 100%;
-  min-height: 360px; /* 🔥 BIG */
-  resize: vertical;
-  background: #0e0e0e;
-  color: #fff;
-  border: 1px solid #333;
-  border-radius: 10px;
-  padding: 16px;
-  font-size: 15px;
-  line-height: 1.6;
-}
-
-/* FOOTER SPACING */
-.forum-modal .modal-footer {
-  padding: 16px 36px;
-}
-.forum-owner-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.forum-danger-btn {
-  background: transparent;
-  border: 1px solid #ff5a5a;
-  color: #ff5a5a;
-  padding: 6px 12px;
-  border-radius: 6px;
+  min-height: 360px;
 }
