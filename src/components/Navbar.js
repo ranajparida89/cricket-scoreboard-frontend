@@ -167,12 +167,12 @@ const AppNavbar = ({ onAuthClick }) => {
 
             <Nav.Link
                 as={Link}
-                to="/CrickEdge Adda 🔥"
+                to="/forum"
                 className="slumber-link hover-slide-emoji forum-golden-link"
                 onClick={() => playSound("click")}
                 onMouseEnter={() => playSound("hover")}
               >
-                CrickEdge Adda 🔥
+                Crickedge Adda
               </Nav.Link>
             {/* ----- More Dropdown (glassy) ----- */}
             <NavDropdown
