@@ -28,6 +28,11 @@ export default function ForumPage() {
   useEffect(() => {
     fetchPosts();
   }, []);
+  /* ---------------- FILTERED POSTS ---------------- */
+const filteredPosts = posts.filter((post) => {
+  if (filterType === "ALL") return true;
+  return post.post_type === filterType;
+});
 
   /* ---------------- REPLIES ---------------- */
   const loadReplies = async (postId) => {
