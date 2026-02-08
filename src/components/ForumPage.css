@@ -230,4 +230,66 @@
   font-size: 13px;
   cursor: pointer;
 }
+/* ============================= */
+/* 📐 FORUM LAYOUT (MAIN + RIGHT) */
+/* ============================= */
+
+.forum-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+}
+
+/* LEFT MAIN CONTENT */
+.forum-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* RIGHT SIDEBAR – RECENT DISCUSSIONS */
+.forum-recent {
+  width: 280px;
+  position: sticky;
+  top: 96px;
+  background: radial-gradient(circle at top, #121212, #0b0b0b);
+  border: 1px solid #2a2a2a;
+  border-radius: 14px;
+  padding: 18px 16px;
+  height: fit-content;
+}
+
+/* HEADER */
+.forum-recent h4 {
+  margin-bottom: 14px;
+  color: #5ddcff;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* LIST */
+.forum-recent ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* CLICKABLE ITEMS */
+.forum-recent li {
+  padding: 8px 6px;
+  font-size: 13px;
+  color: #d8d8d8;
+  border-bottom: 1px dashed #2a2a2a;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* HOVER FEEDBACK */
+.forum-recent li:hover {
+  color: #f3d37b;
+  background: rgba(243, 211, 123, 0.08);
+  padding-left: 10px;
+}
 
