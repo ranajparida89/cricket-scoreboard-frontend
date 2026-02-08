@@ -244,8 +244,10 @@ const scrollToPost = (postId) => {
         return (
           <div key={post.id} id={`post-${post.id}`} className="forum-card">
             <h3>{post.subject}</h3>
-            <p className="forum-text">{post.content}</p>
-
+                        <div
+              className="forum-text"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
             <div className="forum-meta">
               <span>👤 {post.author_name}</span>
               <span>
@@ -286,7 +288,7 @@ const scrollToPost = (postId) => {
                 {(replies[post.id] || []).map((r) => (
                   <div key={r.id} className="forum-reply">
                     <strong>{r.author_name}</strong>
-                    <p>{r.content}</p>
+                   <div dangerouslySetInnerHTML={{ __html: r.content }} />
                     <small>
                       {r.reply_date} · {r.reply_time}
                     </small>
