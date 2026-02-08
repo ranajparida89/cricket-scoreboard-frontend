@@ -61,8 +61,19 @@ export default function ForumPage() {
     }
   };
 
+  /* ---------------- SCROLL TO POST ---------------- */
+const scrollToPost = (postId) => {
+  const el = document.getElementById(`post-${postId}`);
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    el.classList.add("forum-highlight");
+    setTimeout(() => el.classList.remove("forum-highlight"), 1800);
+  }
+};
+
   return (
-    <div className="forum-wrapper">
+    <div className="forum-wrapper forum-layout">
+        <div className="forum-main">
       {/* HEADER */}
       <div className="forum-header">
         <h1>🗣️ CrickEdge Talk</h1>
@@ -213,7 +224,7 @@ export default function ForumPage() {
           currentUser && currentUser.email === post.author_name;
 
         return (
-          <div key={post.id} className="forum-card">
+          <div key={post.id} id={`post-${post.id}`} className="forum-card">
             <h3>{post.subject}</h3>
             <p className="forum-text">{post.content}</p>
 
@@ -284,13 +295,31 @@ export default function ForumPage() {
           </div>
         );
       })}
+      </div> {/* ✅ CLOSE forum-main */}
+     {/* ================= RECENT DISCUSSIONS ================= */}
+    <div className="forum-recent">
+      <h4>🕘 Recent Discussions</h4>
 
-      <CreatePostModal
-        show={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onPostCreated={fetchPosts}
-        editPost={editPost}
-      />
-    </div>
-  );
+     <ul>
+  {[...posts].reverse().map((post) => (
+    <li
+      key={post.id}
+      onClick={() => scrollToPost(post.id)}
+      title={post.subject}
+    >
+      {post.subject}
+    </li>
+  ))}
+</ul>
+</div> {/* ✅ CLOSE forum-recent */}
+
+<CreatePostModal
+  show={showCreateModal}
+  onClose={() => setShowCreateModal(false)}
+  onPostCreated={fetchPosts}
+  editPost={editPost}
+/>
+
+</div> 
+);
 }
