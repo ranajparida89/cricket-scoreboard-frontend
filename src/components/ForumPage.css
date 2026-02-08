@@ -5,7 +5,11 @@
   max-width: 1320px;
   margin: auto;
   padding: 36px 24px 80px;
+
+  /* 🔒 IMPORTANT: prevent sidebar from dropping */
+  display: block;
 }
+
 
 /* ============================= */
 /* 🧠 HEADER */
@@ -238,6 +242,7 @@
   display: flex;
   align-items: flex-start;
   gap: 32px;
+  flex-wrap: nowrap;
 }
 
 /* LEFT MAIN CONTENT */
@@ -282,14 +287,61 @@
   font-size: 13px;
   color: #d8d8d8;
   border-bottom: 1px dashed #2a2a2a;
-  cursor: pointer;
+
+  cursor: pointer;              /* 👆 Hand pointer */
+  user-select: none;            /* no text cursor */
+  pointer-events: auto;
+
   transition: all 0.2s ease;
 }
+.forum-recent li:active {
+  transform: scale(0.97);
+}
+/* ============================= */
+/* 📱 MOBILE & SMALL SCREEN FIX */
+/* ============================= */
+@media (max-width: 768px) {
+  /* Stack layout vertically */
+  .forum-layout {
+    flex-direction: column;
+    gap: 20px;
+  }
 
-/* HOVER FEEDBACK */
-.forum-recent li:hover {
-  color: #f3d37b;
-  background: rgba(243, 211, 123, 0.08);
-  padding-left: 10px;
+  /* Main content full width */
+  .forum-main {
+    width: 100%;
+  }
+
+  /* Sidebar becomes normal block */
+  .forum-recent {
+    width: 100%;
+    position: relative;      /* disable sticky */
+    top: auto;
+    order: 2;                /* show after posts */
+  }
+
+  /* Reduce padding for mobile comfort */
+  .forum-wrapper {
+    padding: 20px 14px 60px;
+  }
+
+  /* Header stacks nicely */
+  .forum-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  /* Buttons wrap instead of overflow */
+  .forum-header > div {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  /* Sidebar list items easier to tap */
+  .forum-recent li {
+    padding: 12px 10px;
+    font-size: 14px;
+  }
 }
 
