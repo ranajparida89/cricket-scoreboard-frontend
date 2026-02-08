@@ -61,21 +61,33 @@ const CreatePostModal = ({ show, onClose, onPostCreated, editPost }) => {
       const method = editPost ? "PUT" : "POST";
 
       const res = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          subject: finalSubject,
-          content: content.trim(),
-          postType,
-        }),
-      });
+  method,
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  },
+  body: JSON.stringify({
+    subject: finalSubject,
+    content: content.trim(),
+    postType,
+  }),
+});
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || data.message);
+/* ✅ HANDLE AUTH ERRORS FIRST */
+if (res.status === 401 || res.status === 403) {
+  localStorage.clear();
+  alert("Session expired. Please logout and login again.");
+  window.location.reload();
+  return;
+}
 
+/* ✅ SAFE JSON PARSE */
+const data = await res.json();
+
+/* ✅ OTHER BACKEND ERRORS */
+if (!res.ok) {
+  throw new Error(data.error || data.message || "Action failed");
+}
       onPostCreated();
       onClose();
     } catch (err) {
