@@ -13,6 +13,8 @@ export default function ForumPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editPost, setEditPost] = useState(null);
   const [showRules, setShowRules] = useState(false);
+  const [filterType, setFilterType] = useState("ALL"); // ALL | STORY | COMMENT
+
 
   const token = localStorage.getItem("token");
   const currentUser = JSON.parse(localStorage.getItem("user"));
@@ -76,21 +78,32 @@ const scrollToPost = (postId) => {
         <div className="forum-main">
       {/* HEADER */}
       <div className="forum-header">
-        <h1>🗣️ CrickEdge Talk</h1>
+  <h1>🗣️ CrickEdge Talk</h1>
 
-        {token && (
-          <button
-            className="forum-primary-btn"
-            onClick={() => {
-              setEditPost(null);
-              setShowCreateModal(true);
-            }}
-          >
-            ✍️ Create Post
-          </button>
-        )}
-      </div>
+  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+    <select
+      className="forum-filter"
+      value={filterType}
+      onChange={(e) => setFilterType(e.target.value)}
+    >
+      <option value="ALL">All</option>
+      <option value="STORY">Posts</option>
+      <option value="COMMENT">Comments</option>
+    </select>
 
+    {token && (
+      <button
+        className="forum-primary-btn"
+        onClick={() => {
+          setEditPost(null);
+          setShowCreateModal(true);
+        }}
+      >
+        ✍️ Create Post
+      </button>
+    )}
+  </div>
+</div>
       {/* CRICKEDGE GUIDELINES */}
       <div className="forum-rules">
         <div className="rules-header" onClick={() => setShowRules(!showRules)}>
@@ -219,7 +232,7 @@ const scrollToPost = (postId) => {
       </div>
 
       {/* POSTS */}
-      {posts.map((post) => {
+          {filteredPosts.map((post) => {
         const isOwner =
           currentUser && currentUser.email === post.author_name;
 

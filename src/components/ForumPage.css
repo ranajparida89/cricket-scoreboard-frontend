@@ -221,5 +221,13 @@
 .forum-modal-form textarea {
   min-height: 360px;
 }
-
+.forum-filter {
+  background: #0e0e0e;
+  border: 1px solid #f1d27c;
+  color: #f1d27c;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
 
