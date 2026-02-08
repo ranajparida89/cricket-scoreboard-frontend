@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 const API = "https://cricket-scoreboard-backend.onrender.com";
 
@@ -11,6 +13,31 @@ const CreatePostModal = ({ show, onClose, onPostCreated, editPost }) => {
 
   const token = localStorage.getItem("token");
 
+  const quillModules = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],
+    ["bold", "italic", "underline", "strike"],
+    [{ color: [] }, { background: [] }],
+    [{ list: "ordered" }, { list: "bullet" }],
+    [{ align: [] }],
+    ["link"],
+    ["clean"],
+  ],
+};
+
+const quillFormats = [
+  "header",
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "color",
+  "background",
+  "list",
+  "bullet",
+  "align",
+  "link",
+];
   /* --------------------------------------------------
      PREFILL DATA WHEN EDITING
   -------------------------------------------------- */
@@ -40,10 +67,10 @@ const CreatePostModal = ({ show, onClose, onPostCreated, editPost }) => {
       return;
     }
 
-    if (!content.trim()) {
-      alert("Content is required");
-      return;
-    }
+ if (!content || content.replace(/<(.|\n)*?>/g, "").trim().length === 0) {
+  alert("Content is required");
+  return;
+}
 
     // ✅ FIX: auto-subject for COMMENT
     const finalSubject =
@@ -144,11 +171,13 @@ if (!res.ok) {
           {/* CONTENT */}
           <Form.Group>
             <Form.Label>Content</Form.Label>
-            <Form.Control
-              as="textarea"
-              placeholder="Share your thoughts with the CrickEdge community…"
+            <ReactQuill
+              theme="snow"
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={setContent}
+              modules={quillModules}
+              formats={quillFormats}
+              placeholder="Share your thoughts with the CrickEdge community…"
             />
           </Form.Group>
         </Form>
