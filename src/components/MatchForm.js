@@ -8,6 +8,38 @@ import useWindowSize from "react-use/lib/useWindowSize";
 import "./MatchForm.css";
 import Select from "react-select";
 
+const darkSelectStyles = {
+  control: (provided) => ({
+    ...provided,
+    backgroundColor: "#0b1a2e",
+    borderColor: "#d4af37",
+    color: "white",
+  }),
+  menu: (provided) => ({
+    ...provided,
+    backgroundColor: "#0b1a2e",
+    color: "white",
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isFocused ? "#1e3a5f" : "#0b1a2e",
+    color: "white",
+    cursor: "pointer",
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: "white",
+  }),
+  input: (provided) => ({
+    ...provided,
+    color: "white",
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    color: "#bbb",
+  }),
+};
+
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
 const API_PLAYERS =
   "https://cricket-scoreboard-backend.onrender.com/api/players";
@@ -755,6 +787,7 @@ useEffect(() => {
           {/* Team 1 */}
           <h5 className="mt-4">Team 1 (Bat First)</h5>
 <Select
+  styles={darkSelectStyles}
   options={teamsList.map((team) => ({
     value: team,
     label: team,
@@ -765,7 +798,6 @@ useEffect(() => {
   isLoading={teamsLoading}
   isSearchable
 />
-
           <div className="row">
             <div className="col">
               <input
@@ -818,6 +850,7 @@ useEffect(() => {
           {/* Team 2 */}
           <h5 className="mt-4">Team 2</h5>
  <Select
+  styles={darkSelectStyles}
   options={teamsList
     .filter((team) => team !== team1)
     .map((team) => ({
@@ -830,6 +863,7 @@ useEffect(() => {
   isLoading={teamsLoading}
   isSearchable
 />
+
           <div className="row">
             <div className="col">
               <input

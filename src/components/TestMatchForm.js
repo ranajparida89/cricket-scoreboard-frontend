@@ -15,6 +15,39 @@ import { useAuth } from "../services/auth";
 import "./TestMatchForm.css";
 import Select from "react-select";
 
+const darkSelectStyles = {
+  control: (provided) => ({
+    ...provided,
+    backgroundColor: "#0b1a2e",
+    borderColor: "#d4af37",
+    color: "white",
+  }),
+  menu: (provided) => ({
+    ...provided,
+    backgroundColor: "#0b1a2e",
+    color: "white",
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isFocused ? "#1e3a5f" : "#0b1a2e",
+    color: "white",
+    cursor: "pointer",
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: "white",
+  }),
+  input: (provided) => ({
+    ...provided,
+    color: "white",
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    color: "#bbb",
+  }),
+};
+
+
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
 const API_PLAYERS =
   "https://cricket-scoreboard-backend.onrender.com/api/players";
@@ -743,7 +776,8 @@ useEffect(() => {
           <div className="row mb-3">
        <div className="col">
   <label>Team 1:</label>
- <Select
+<Select
+  styles={darkSelectStyles}
   options={teamsList.map((team) => ({
     value: team,
     label: team,
@@ -759,6 +793,7 @@ useEffect(() => {
            <div className="col">
   <label>Team 2:</label>
 <Select
+  styles={darkSelectStyles}
   options={teamsList
     .filter((team) => team !== team1)
     .map((team) => ({
