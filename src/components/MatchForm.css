@@ -261,3 +261,34 @@
   cursor:default;
   opacity:.7;
 }
+/* ============================= */
+/* 🆕 ADD TEAM MODAL STYLES */
+/* ============================= */
+
+.addteam-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.addteam-modal {
+  background: #0b1a2e;
+  padding: 25px;
+  border-radius: 12px;
+  width: 350px;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+  color: white;
+}
+
+.addteam-modal h5 {
+  margin-bottom: 15px;
+  color: #d4af37;
+  text-align: center;
+}

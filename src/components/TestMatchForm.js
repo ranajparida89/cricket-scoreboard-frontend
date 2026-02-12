@@ -192,6 +192,20 @@ const [team2, setTeam2] = useState("");
 const [teamsList, setTeamsList] = useState([]);
 const [teamsLoading, setTeamsLoading] = useState(false);
 
+// 🆕 Admin detection for Add Team
+const [isAdmin, setIsAdmin] = useState(false);
+const [showAddTeamModal, setShowAddTeamModal] = useState(false);
+const [newTeamName, setNewTeamName] = useState("");
+const [addingTeam, setAddingTeam] = useState(false);
+
+useEffect(() => {
+  const token = localStorage.getItem("admin_jwt");
+  if (token) {
+    setIsAdmin(true);
+  }
+}, []);
+
+
   const [resultMsg, setResultMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showFireworks, setShowFireworks] = useState(false);
@@ -522,7 +536,48 @@ useEffect(() => {
     setMomPlayerId(p.id);
     setMomOpen(false);
   };
+// 🆕 Add new team (Admin only)
+const handleAddTeam = async () => {
+  if (!newTeamName.trim()) {
+    alert("Team name is required.");
+    return;
+  }
 
+  try {
+    setAddingTeam(true);
+
+    const token = localStorage.getItem("admin_jwt");
+
+    await axios.post(
+      "https://cricket-scoreboard-backend.onrender.com/api/admin/add-team",
+      { team_name: newTeamName.trim() },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const res = await axios.get(
+      "https://cricket-scoreboard-backend.onrender.com/api/teams"
+    );
+
+    const uniqueTeams = Array.from(
+      new Set((res.data || []).map((t) => t.team_name))
+    ).sort();
+
+    setTeamsList(uniqueTeams);
+
+    setTeam1(newTeamName.trim());
+
+    setShowAddTeamModal(false);
+    setNewTeamName("");
+  } catch (err) {
+    alert("Error adding team.");
+  } finally {
+    setAddingTeam(false);
+  }
+};
   const handleSubmit = async (e) => {
     e.preventDefault();
     const t1 = normalizeTeamName(team1);
@@ -774,38 +829,70 @@ useEffect(() => {
           )}
 
           <div className="row mb-3">
-       <div className="col">
+<div className="col">
   <label>Team 1:</label>
-<Select
-  styles={darkSelectStyles}
-  options={teamsList.map((team) => ({
-    value: team,
-    label: team,
-  }))}
-  value={team1 ? { value: team1, label: team1 } : null}
-  onChange={(selected) => setTeam1(selected?.value || "")}
-  placeholder="Search & Select Team 1"
-  isLoading={teamsLoading}
-  isSearchable
-/>
+
+  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+    <div style={{ flex: 1 }}>
+      <Select
+        styles={darkSelectStyles}
+        options={teamsList.map((team) => ({
+          value: team,
+          label: team,
+        }))}
+        value={team1 ? { value: team1, label: team1 } : null}
+        onChange={(selected) => setTeam1(selected?.value || "")}
+        placeholder="Search & Select Team 1"
+        isLoading={teamsLoading}
+        isSearchable
+      />
+    </div>
+
+    {isAdmin && (
+      <button
+        type="button"
+        className="btn btn-warning"
+        onClick={() => setShowAddTeamModal(true)}
+        style={{ height: "38px" }}
+      >
+        +
+      </button>
+    )}
+  </div>
 </div>
 
-           <div className="col">
+  <div className="col">
   <label>Team 2:</label>
-<Select
-  styles={darkSelectStyles}
-  options={teamsList
-    .filter((team) => team !== team1)
-    .map((team) => ({
-      value: team,
-      label: team,
-    }))}
-  value={team2 ? { value: team2, label: team2 } : null}
-  onChange={(selected) => setTeam2(selected?.value || "")}
-  placeholder="Search & Select Team 2"
-  isLoading={teamsLoading}
-  isSearchable
-/>
+
+  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+    <div style={{ flex: 1 }}>
+      <Select
+        styles={darkSelectStyles}
+        options={teamsList
+          .filter((team) => team !== team1)
+          .map((team) => ({
+            value: team,
+            label: team,
+          }))}
+        value={team2 ? { value: team2, label: team2 } : null}
+        onChange={(selected) => setTeam2(selected?.value || "")}
+        placeholder="Search & Select Team 2"
+        isLoading={teamsLoading}
+        isSearchable
+      />
+    </div>
+
+    {isAdmin && (
+      <button
+        type="button"
+        className="btn btn-warning"
+        onClick={() => setShowAddTeamModal(true)}
+        style={{ height: "38px" }}
+      >
+        +
+      </button>
+    )}
+  </div>
 </div>
           </div>
 
@@ -1025,6 +1112,38 @@ useEffect(() => {
             {resultMsg}
           </div>
         )}
+        {showAddTeamModal && (
+  <div className="addteam-backdrop">
+    <div className="addteam-modal">
+      <h5>Add New Team</h5>
+
+      <input
+        type="text"
+        className="form-control"
+        placeholder="Enter Team Name"
+        value={newTeamName}
+        onChange={(e) => setNewTeamName(e.target.value)}
+      />
+
+      <div style={{ marginTop: "12px", display: "flex", gap: "10px" }}>
+        <button
+          className="btn btn-success"
+          onClick={handleAddTeam}
+          disabled={addingTeam}
+        >
+          {addingTeam ? "Adding..." : "Add"}
+        </button>
+
+        <button
+          className="btn btn-secondary"
+          onClick={() => setShowAddTeamModal(false)}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       </div>
     </div>
   );

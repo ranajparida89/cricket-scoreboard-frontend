@@ -231,6 +231,18 @@ export default function MatchForm() {
   const [teamsList, setTeamsList] = useState([]);
   const [teamsLoading, setTeamsLoading] = useState(false);
 
+  // 🆕 Admin detection
+const [isAdmin, setIsAdmin] = useState(false);
+const [showAddTeamModal, setShowAddTeamModal] = useState(false);
+const [newTeamName, setNewTeamName] = useState("");
+const [addingTeam, setAddingTeam] = useState(false);
+
+useEffect(() => {
+  const token = localStorage.getItem("admin_jwt");
+  if (token) {
+    setIsAdmin(true);
+  }
+}, []);
 
   const [runs1, setRuns1] = useState("");
   const [overs1, setOvers1] = useState("");
@@ -529,6 +541,50 @@ useEffect(() => {
       (players || []).find((p) => String(p.id) === String(momPlayerId)) || null,
     [players, momPlayerId]
   );
+  // 🆕 Add new team (Admin only)
+const handleAddTeam = async () => {
+  if (!newTeamName.trim()) {
+    alert("Team name is required.");
+    return;
+  }
+
+  try {
+    setAddingTeam(true);
+
+    const token = localStorage.getItem("admin_jwt");
+
+    await axios.post(
+      "https://cricket-scoreboard-backend.onrender.com/api/admin/add-team",
+      { team_name: newTeamName.trim() },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    // Reload teams list
+    const res = await axios.get(
+      "https://cricket-scoreboard-backend.onrender.com/api/teams"
+    );
+
+    const uniqueTeams = Array.from(
+      new Set((res.data || []).map((t) => t.team_name))
+    ).sort();
+
+    setTeamsList(uniqueTeams);
+
+    // Auto select new team
+    setTeam1(newTeamName.trim());
+
+    setShowAddTeamModal(false);
+    setNewTeamName("");
+  } catch (err) {
+    alert("Error adding team.");
+  } finally {
+    setAddingTeam(false);
+  }
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -786,18 +842,34 @@ useEffect(() => {
 
           {/* Team 1 */}
           <h5 className="mt-4">Team 1 (Bat First)</h5>
-<Select
-  styles={darkSelectStyles}
-  options={teamsList.map((team) => ({
-    value: team,
-    label: team,
-  }))}
-  value={team1 ? { value: team1, label: team1 } : null}
-  onChange={(selected) => setTeam1(selected?.value || "")}
-  placeholder="Search & Select Team 1"
-  isLoading={teamsLoading}
-  isSearchable
-/>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ flex: 1 }}>
+          <Select
+            styles={darkSelectStyles}
+            options={teamsList.map((team) => ({
+              value: team,
+              label: team,
+            }))}
+            value={team1 ? { value: team1, label: team1 } : null}
+            onChange={(selected) => setTeam1(selected?.value || "")}
+            placeholder="Search & Select Team 1"
+            isLoading={teamsLoading}
+            isSearchable
+          />
+        </div>
+
+        {isAdmin && (
+          <button
+            type="button"
+            className="btn btn-warning"
+            onClick={() => setShowAddTeamModal(true)}
+            style={{ height: "38px" }}
+          >
+            +
+          </button>
+        )}
+      </div>
+
           <div className="row">
             <div className="col">
               <input
@@ -1054,6 +1126,38 @@ useEffect(() => {
             {resultMsg}
           </div>
         )}
+        {showAddTeamModal && (
+  <div className="addteam-backdrop">
+    <div className="addteam-modal">
+      <h5>Add New Team</h5>
+
+      <input
+        type="text"
+        className="form-control"
+        placeholder="Enter Team Name"
+        value={newTeamName}
+        onChange={(e) => setNewTeamName(e.target.value)}
+      />
+
+      <div style={{ marginTop: "12px", display: "flex", gap: "10px" }}>
+        <button
+          className="btn btn-success"
+          onClick={handleAddTeam}
+          disabled={addingTeam}
+        >
+          {addingTeam ? "Adding..." : "Add"}
+        </button>
+
+        <button
+          className="btn btn-secondary"
+          onClick={() => setShowAddTeamModal(false)}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       </div>
     </div>
   );
