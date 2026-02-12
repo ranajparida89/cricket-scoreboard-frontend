@@ -842,7 +842,7 @@ const handleAddTeam = async () => {
 
           {/* Team 1 */}
           <h5 className="mt-4">Team 1 (Bat First)</h5>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+           <div className="team-select-wrapper">
         <div style={{ flex: 1 }}>
           <Select
             styles={darkSelectStyles}
@@ -858,16 +858,16 @@ const handleAddTeam = async () => {
           />
         </div>
 
-        {isAdmin && (
-          <button
-            type="button"
-            className="btn btn-warning"
-            onClick={() => setShowAddTeamModal(true)}
-            style={{ height: "38px" }}
-          >
-            +
-          </button>
-        )}
+            {isAdmin && (
+        <button
+          type="button"
+          className="btn btn-outline-warning add-team-btn"
+          onClick={() => setShowAddTeamModal(true)}
+          title="Add New Team"
+        >
+          ➕ Add Team
+        </button>
+      )}
       </div>
 
           <div className="row">

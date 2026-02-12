@@ -292,3 +292,35 @@
   color: #d4af37;
   text-align: center;
 }
+/* ============================= */
+/* 🏏 Team Select + Add Button  */
+/* ============================= */
+
+.team-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;          /* more space */
+  margin-top: 6px;    /* breathing above */
+}
+
+.team-select-wrapper .btn-add-team:hover {
+  transform: translateY(-1px) scale(1.05);
+  background: linear-gradient(180deg, rgba(247,201,72,.3), rgba(247,201,72,.2));
+}
+
+/* ============================= */
+/* 🆕 ADD TEAM BUTTON STYLING   */
+/* ============================= */
+
+.add-team-btn {
+  border-radius: 10px !important;
+  font-weight: 700;
+  padding: 0.45rem 1rem;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.add-team-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -12px rgba(247,201,72,.6);
+}
