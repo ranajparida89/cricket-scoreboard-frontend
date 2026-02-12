@@ -240,7 +240,7 @@
 }
 
 /* Floating panel that appears when open */
-.test-card .test-mom-panel {
+test-card .test-mom-panel {
   position: absolute;
   left: 0;
   right: 0;
@@ -250,7 +250,7 @@
   border: 1px solid rgba(247, 201, 72, 0.35);
   box-shadow: var(--tm-glow);
   padding: 8px 10px 10px;
-  z-index: 50;
+  z-index: 1100;
 }
 
 /* Search bar INSIDE panel */
@@ -313,36 +313,49 @@
   color: var(--tm-muted);
   padding: 6px 4px;
 }
-/* ============================= */
-/* 🏏 Team Select + Add Button  */
-/* ============================= */
+/* =========================================
+   🏏 TEST FORM – TEAM SELECT + ADD BUTTON
+========================================= */
 
-.team-select-wrapper {
+.test-card .team-select-wrapper {
   display: flex;
   align-items: center;
-  gap: 12px;          /* more space */
-  margin-top: 6px;    /* breathing above */
+  gap: 10px;
+  margin-top: 6px;
+  width: 100%;
 }
 
-
-.team-select-wrapper .btn-add-team:hover {
-  transform: translateY(-1px) scale(1.05);
-  background: linear-gradient(180deg, rgba(247,201,72,.3), rgba(247,201,72,.2));
+.test-card .team-select-wrapper > div {
+  flex: 1;
+  min-width: 0;
 }
 
-/* ============================= */
-/* 🆕 ADD TEAM BUTTON STYLING   */
-/* ============================= */
+/* React select full width */
+.test-card .team-react-select {
+  width: 100%;
+}
 
-.add-team-btn {
-  border-radius: 10px !important;
-  font-weight: 700;
-  padding: 0.45rem 1rem;
-  white-space: nowrap;
+/* Royal Gold + button */
+.test-card .btn-add-team {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 800;
+  font-size: 1.2rem;
+
+  background: linear-gradient(135deg, #f7c948, #d4af37);
+  color: #000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.add-team-btn:hover {
+.test-card .btn-add-team:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px -12px rgba(247,201,72,.6);
+  box-shadow: 0 8px 20px -10px rgba(247,201,72,.6);
 }

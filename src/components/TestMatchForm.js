@@ -833,7 +833,7 @@ const handleAddTeam = async () => {
   <label>Team 1:</label>
 
   <div className="team-select-wrapper">
-    <div style={{ flex: 1 }}>
+    <div className="team-select-flex">
       <Select
         styles={darkSelectStyles}
         options={teamsList.map((team) => ({
@@ -848,16 +848,16 @@ const handleAddTeam = async () => {
       />
     </div>
 
-      {isAdmin && (
-        <button
-          type="button"
-          className="btn btn-outline-warning add-team-btn"
-          onClick={() => setShowAddTeamModal(true)}
-          title="Add New Team"
-        >
-          ➕ Add Team
-        </button>
-      )}
+    {isAdmin && (
+  <button
+    type="button"
+    className="btn-add-team"
+    onClick={() => setShowAddTeamModal(true)}
+    title="Add New Team"
+  >
+    +
+  </button>
+)}
 
   </div>
 </div>
@@ -866,7 +866,7 @@ const handleAddTeam = async () => {
   <label>Team 2:</label>
 
   <div className="team-select-wrapper">
-    <div style={{ flex: 1 }}>
+    <div className="team-select-flex">
       <Select
         styles={darkSelectStyles}
         options={teamsList
@@ -882,17 +882,6 @@ const handleAddTeam = async () => {
         isSearchable
       />
     </div>
-
-    {isAdmin && (
-      <button
-        type="button"
-        className="btn btn-warning"
-        onClick={() => setShowAddTeamModal(true)}
-        style={{ height: "38px" }}
-      >
-        +
-      </button>
-    )}
   </div>
 </div>
           </div>

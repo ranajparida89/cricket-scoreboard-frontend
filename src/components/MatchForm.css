@@ -38,7 +38,7 @@
 }
 
 /* Inputs / selects */
-.card:has(h3.text-center.text-primary) .form-control,
+.match-card .form-control,
 .card:has(h3.text-center.text-primary) .form-select{
   background: var(--mf-bg-800) !important;
   color: var(--mf-ink) !important;
@@ -46,10 +46,10 @@
   border-radius:12px !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
 }
-.card:has(h3.text-center.text-primary) .form-control::placeholder{
+.match-card .form-control::placeholder{
   color: var(--mf-muted); opacity:.82;
 }
-.card:has(h3.text-center.text-primary) .form-control:focus,
+.match-card .form-control:focus,
 .card:has(h3.text-center.text-primary) .form-select:focus{
   border-color: var(--mf-accent) !important;
   box-shadow: var(--mf-ring), var(--mf-glow) !important;
@@ -59,14 +59,14 @@
 }
 
 /* Read-only match name */
-.card:has(h3.text-center.text-primary) .form-control[readonly]{
+.match-card .form-control[readonly]{
   background:#0f192a !important;
   border-style:dashed !important;
   border-color:rgba(247,201,72,.35) !important;
   color:#fff4c2 !important;
   font-style:italic;
 }
-.card:has(h3.text-center.text-primary) .form-control[readonly]::placeholder{
+.match-card .form-control[readonly]::placeholder{
   color:#ffe6a6; opacity:.95;
 }
 
@@ -292,35 +292,48 @@
   color: #d4af37;
   text-align: center;
 }
-/* ============================= */
-/* 🏏 Team Select + Add Button  */
-/* ============================= */
+/* =======================================
+   🏏 FINAL TEAM SELECT + ADD BUTTON
+======================================= */
 
 .team-select-wrapper {
   display: flex;
   align-items: center;
-  gap: 12px;          /* more space */
-  margin-top: 6px;    /* breathing above */
+  gap: 10px;
+  margin-top: 6px;
+  width: 100%;
 }
 
-.team-select-wrapper .btn-add-team:hover {
-  transform: translateY(-1px) scale(1.05);
-  background: linear-gradient(180deg, rgba(247,201,72,.3), rgba(247,201,72,.2));
+.team-select-wrapper > div {
+  flex: 1;
+  min-width: 0;
 }
 
-/* ============================= */
-/* 🆕 ADD TEAM BUTTON STYLING   */
-/* ============================= */
+.team-react-select {
+  width: 100%;
+}
 
-.add-team-btn {
-  border-radius: 10px !important;
-  font-weight: 700;
-  padding: 0.45rem 1rem;
-  white-space: nowrap;
+/* Royal Gold Add Button */
+.btn-add-team {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 800;
+  font-size: 1.2rem;
+
+  background: linear-gradient(135deg, #f7c948, #d4af37);
+  color: black;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.add-team-btn:hover {
+.btn-add-team:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px -12px rgba(247,201,72,.6);
+  box-shadow: 0 8px 20px -10px rgba(247,201,72,.6);
 }

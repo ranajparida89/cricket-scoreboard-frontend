@@ -683,7 +683,7 @@ const handleAddTeam = async () => {
         </div>
       )}
 
-      <div className="card shadow p-4">
+      <div className="card shadow p-4 match-card">
         <h3 className="text-center mb-4 text-primary">🏏 Enter Match Details</h3>
 
         <form onSubmit={handleSubmit}>
@@ -842,33 +842,34 @@ const handleAddTeam = async () => {
 
           {/* Team 1 */}
           <h5 className="mt-4">Team 1 (Bat First)</h5>
-           <div className="team-select-wrapper">
-        <div style={{ flex: 1 }}>
-          <Select
-            styles={darkSelectStyles}
-            options={teamsList.map((team) => ({
-              value: team,
-              label: team,
-            }))}
-            value={team1 ? { value: team1, label: team1 } : null}
-            onChange={(selected) => setTeam1(selected?.value || "")}
-            placeholder="Search & Select Team 1"
-            isLoading={teamsLoading}
-            isSearchable
-          />
-        </div>
+<div className="team-select-wrapper">
+  <div className="team-select-flex">
+    <Select
+      styles={darkSelectStyles}
+      className="team-react-select"
+      options={teamsList.map((team) => ({
+        value: team,
+        label: team,
+      }))}
+      value={team1 ? { value: team1, label: team1 } : null}
+      onChange={(selected) => setTeam1(selected?.value || "")}
+      placeholder="Search & Select Team 1"
+      isLoading={teamsLoading}
+      isSearchable
+    />
+  </div>
 
-            {isAdmin && (
-        <button
-          type="button"
-          className="btn btn-outline-warning add-team-btn"
-          onClick={() => setShowAddTeamModal(true)}
-          title="Add New Team"
-        >
-          ➕ Add Team
-        </button>
-      )}
-      </div>
+  {isAdmin && (
+    <button
+      type="button"
+      className="btn-add-team"
+      onClick={() => setShowAddTeamModal(true)}
+      title="Add New Team"
+    >
+      +
+    </button>
+  )}
+</div>
 
           <div className="row">
             <div className="col">
@@ -935,7 +936,6 @@ const handleAddTeam = async () => {
   isLoading={teamsLoading}
   isSearchable
 />
-
           <div className="row">
             <div className="col">
               <input
