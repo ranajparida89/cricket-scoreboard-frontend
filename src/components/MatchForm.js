@@ -6,6 +6,7 @@ import { playSound } from "../utils/playSound";
 import Confetti from "react-confetti";
 import useWindowSize from "react-use/lib/useWindowSize";
 import "./MatchForm.css";
+import Select from "react-select";
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
 const API_PLAYERS =
@@ -753,22 +754,17 @@ useEffect(() => {
 
           {/* Team 1 */}
           <h5 className="mt-4">Team 1 (Bat First)</h5>
-          <select
-  className="form-select mb-2"
-  value={team1}
-  onChange={(e) => setTeam1(e.target.value)}
-  required
->
-  <option value="">
-    {teamsLoading ? "Loading teams..." : "Select Team 1"}
-  </option>
-
-  {teamsList.map((team) => (
-    <option key={team} value={team}>
-      {team}
-    </option>
-  ))}
-</select>
+<Select
+  options={teamsList.map((team) => ({
+    value: team,
+    label: team,
+  }))}
+  value={team1 ? { value: team1, label: team1 } : null}
+  onChange={(selected) => setTeam1(selected?.value || "")}
+  placeholder="Search & Select Team 1"
+  isLoading={teamsLoading}
+  isSearchable
+/>
 
           <div className="row">
             <div className="col">
@@ -821,25 +817,19 @@ useEffect(() => {
 
           {/* Team 2 */}
           <h5 className="mt-4">Team 2</h5>
-       <select
-  className="form-select mb-2"
-  value={team2}
-  onChange={(e) => setTeam2(e.target.value)}
-  required
->
-  <option value="">
-    {teamsLoading ? "Loading teams..." : "Select Team 2"}
-  </option>
-
-  {teamsList
+ <Select
+  options={teamsList
     .filter((team) => team !== team1)
-    .map((team) => (
-      <option key={team} value={team}>
-        {team}
-      </option>
-    ))}
-</select>
-
+    .map((team) => ({
+      value: team,
+      label: team,
+    }))}
+  value={team2 ? { value: team2, label: team2 } : null}
+  onChange={(selected) => setTeam2(selected?.value || "")}
+  placeholder="Search & Select Team 2"
+  isLoading={teamsLoading}
+  isSearchable
+/>
           <div className="row">
             <div className="col">
               <input

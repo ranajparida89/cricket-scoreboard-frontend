@@ -13,6 +13,7 @@ import useWindowSize from "react-use/lib/useWindowSize";
 import "./MatchForm.css";
 import { useAuth } from "../services/auth";
 import "./TestMatchForm.css";
+import Select from "react-select";
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com/api";
 const API_PLAYERS =
@@ -742,44 +743,34 @@ useEffect(() => {
           <div className="row mb-3">
        <div className="col">
   <label>Team 1:</label>
-  <select
-    className="form-select"
-    value={team1}
-    onChange={(e) => setTeam1(e.target.value)}
-    required
-  >
-    <option value="">
-      {teamsLoading ? "Loading teams..." : "Select Team 1"}
-    </option>
-
-    {teamsList.map((team) => (
-      <option key={team} value={team}>
-        {team}
-      </option>
-    ))}
-  </select>
+ <Select
+  options={teamsList.map((team) => ({
+    value: team,
+    label: team,
+  }))}
+  value={team1 ? { value: team1, label: team1 } : null}
+  onChange={(selected) => setTeam1(selected?.value || "")}
+  placeholder="Search & Select Team 1"
+  isLoading={teamsLoading}
+  isSearchable
+/>
 </div>
 
            <div className="col">
   <label>Team 2:</label>
-  <select
-    className="form-select"
-    value={team2}
-    onChange={(e) => setTeam2(e.target.value)}
-    required
-  >
-    <option value="">
-      {teamsLoading ? "Loading teams..." : "Select Team 2"}
-    </option>
-
-    {teamsList
-      .filter((team) => team !== team1)
-      .map((team) => (
-        <option key={team} value={team}>
-          {team}
-        </option>
-      ))}
-  </select>
+<Select
+  options={teamsList
+    .filter((team) => team !== team1)
+    .map((team) => ({
+      value: team,
+      label: team,
+    }))}
+  value={team2 ? { value: team2, label: team2 } : null}
+  onChange={(selected) => setTeam2(selected?.value || "")}
+  placeholder="Search & Select Team 2"
+  isLoading={teamsLoading}
+  isSearchable
+/>
 </div>
           </div>
 
