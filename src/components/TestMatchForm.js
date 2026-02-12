@@ -153,8 +153,10 @@ export default function TestMatchForm() {
   );
   const [seasonYear, setSeasonYear] = useState(seasonDefault);
 
-  const [team1, setTeam1] = useState("");
-  const [team2, setTeam2] = useState("");
+const [team1, setTeam1] = useState("");
+const [team2, setTeam2] = useState("");
+const [teamsList, setTeamsList] = useState([]);
+const [teamsLoading, setTeamsLoading] = useState(false);
 
   const [resultMsg, setResultMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -279,6 +281,40 @@ export default function TestMatchForm() {
       cancelled = true;
     };
   }, []);
+
+  // 🆕 Load Teams for dropdown from existing leaderboard API
+useEffect(() => {
+  let cancelled = false;
+
+  const fetchTeams = async () => {
+    try {
+      setTeamsLoading(true);
+
+      const res = await axios.get(
+        "https://cricket-scoreboard-backend.onrender.com/api/teams"
+      );
+
+      if (cancelled) return;
+
+      const uniqueTeams = Array.from(
+        new Set((res.data || []).map((t) => t.team_name))
+      ).sort();
+
+      setTeamsList(uniqueTeams);
+    } catch (err) {
+      console.error("Failed to load teams:", err);
+      if (!cancelled) setTeamsList([]);
+    } finally {
+      if (!cancelled) setTeamsLoading(false);
+    }
+  };
+
+  fetchTeams();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
 
   const updateInning = (key, field, value) => {
     setInnings((prev) => {
@@ -704,26 +740,47 @@ export default function TestMatchForm() {
           )}
 
           <div className="row mb-3">
-            <div className="col">
-              <label>Team 1:</label>
-              <input
-                type="text"
-                className="form-control"
-                value={team1}
-                onChange={(e) => setTeam1(e.target.value)}
-                required
-              />
-            </div>
-            <div className="col">
-              <label>Team 2:</label>
-              <input
-                type="text"
-                className="form-control"
-                value={team2}
-                onChange={(e) => setTeam2(e.target.value)}
-                required
-              />
-            </div>
+       <div className="col">
+  <label>Team 1:</label>
+  <select
+    className="form-select"
+    value={team1}
+    onChange={(e) => setTeam1(e.target.value)}
+    required
+  >
+    <option value="">
+      {teamsLoading ? "Loading teams..." : "Select Team 1"}
+    </option>
+
+    {teamsList.map((team) => (
+      <option key={team} value={team}>
+        {team}
+      </option>
+    ))}
+  </select>
+</div>
+
+           <div className="col">
+  <label>Team 2:</label>
+  <select
+    className="form-select"
+    value={team2}
+    onChange={(e) => setTeam2(e.target.value)}
+    required
+  >
+    <option value="">
+      {teamsLoading ? "Loading teams..." : "Select Team 2"}
+    </option>
+
+    {teamsList
+      .filter((team) => team !== team1)
+      .map((team) => (
+        <option key={team} value={team}>
+          {team}
+        </option>
+      ))}
+  </select>
+</div>
           </div>
 
           {isDuplicateTeam && (

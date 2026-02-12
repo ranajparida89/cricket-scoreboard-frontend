@@ -195,6 +195,9 @@ export default function MatchForm() {
   const [matchType, setMatchType] = useState("T20");
   const [team1, setTeam1] = useState("");
   const [team2, setTeam2] = useState("");
+  const [teamsList, setTeamsList] = useState([]);
+  const [teamsLoading, setTeamsLoading] = useState(false);
+
 
   const [runs1, setRuns1] = useState("");
   const [overs1, setOvers1] = useState("");
@@ -324,6 +327,41 @@ export default function MatchForm() {
       cancelled = true;
     };
   }, []);
+
+  // 🆕 Load Teams for dropdown from existing leaderboard API
+useEffect(() => {
+  let cancelled = false;
+
+  const fetchTeams = async () => {
+    try {
+      setTeamsLoading(true);
+
+      const res = await axios.get(
+        "https://cricket-scoreboard-backend.onrender.com/api/teams"
+      );
+
+      if (cancelled) return;
+
+      const uniqueTeams = Array.from(
+        new Set((res.data || []).map((t) => t.team_name))
+      ).sort();
+
+      setTeamsList(uniqueTeams);
+    } catch (err) {
+      console.error("Failed to load teams:", err);
+      if (!cancelled) setTeamsList([]);
+    } finally {
+      if (!cancelled) setTeamsLoading(false);
+    }
+  };
+
+  fetchTeams();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
+
 
   // 🔁 Auto compose match name
   useEffect(() => {
@@ -715,14 +753,23 @@ export default function MatchForm() {
 
           {/* Team 1 */}
           <h5 className="mt-4">Team 1 (Bat First)</h5>
-          <input
-            type="text"
-            className="form-control mb-2"
-            placeholder="Team 1 Name"
-            value={team1}
-            onChange={(e) => setTeam1(e.target.value)}
-            required
-          />
+          <select
+  className="form-select mb-2"
+  value={team1}
+  onChange={(e) => setTeam1(e.target.value)}
+  required
+>
+  <option value="">
+    {teamsLoading ? "Loading teams..." : "Select Team 1"}
+  </option>
+
+  {teamsList.map((team) => (
+    <option key={team} value={team}>
+      {team}
+    </option>
+  ))}
+</select>
+
           <div className="row">
             <div className="col">
               <input
@@ -774,14 +821,25 @@ export default function MatchForm() {
 
           {/* Team 2 */}
           <h5 className="mt-4">Team 2</h5>
-          <input
-            type="text"
-            className="form-control mb-2"
-            placeholder="Team 2 Name"
-            value={team2}
-            onChange={(e) => setTeam2(e.target.value)}
-            required
-          />
+       <select
+  className="form-select mb-2"
+  value={team2}
+  onChange={(e) => setTeam2(e.target.value)}
+  required
+>
+  <option value="">
+    {teamsLoading ? "Loading teams..." : "Select Team 2"}
+  </option>
+
+  {teamsList
+    .filter((team) => team !== team1)
+    .map((team) => (
+      <option key={team} value={team}>
+        {team}
+      </option>
+    ))}
+</select>
+
           <div className="row">
             <div className="col">
               <input
