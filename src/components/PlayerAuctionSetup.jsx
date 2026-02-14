@@ -54,24 +54,49 @@ export default function PlayerAuctionSetup() {
         }
     };
 
-    const addBoardsToAuction = async () => {
-        try {
-            await axios.post(
-                `${API}/api/player-auction/add-boards/${auctionId}`,
-                {
-                    boards: selectedBoards
-                }
-            );
+  const addBoardsToAuction = async () => {
 
+    if (!auctionId) {
+        alert("Create auction first");
+        return;
+    }
+
+    if (selectedBoards.length === 0) {
+        alert("Select boards first");
+        return;
+    }
+
+    if (selectedBoards.length !== parseInt(totalBoards)) {
+        alert(`You must select exactly ${totalBoards} boards`);
+        return;
+    }
+
+    try {
+        const res = await axios.post(
+            `${API}/api/player-auction/add-boards/${auctionId}`,
+            { boards: selectedBoards }
+        );
+
+        if (res.data.success) {
             alert("Boards Added Successfully");
-
-        } catch (err) {
-            console.error("Add Boards Error", err);
         }
-    };
+
+    } catch (err) {
+        console.error("Add Boards Error", err.response?.data);
+        alert(err.response?.data?.message || "Error adding boards");
+    }
+};
 
     const uploadPlayers = async () => {
-        if (!file) return;
+        if (!file) {
+            alert("Please select Excel file first");
+            return;
+        }
+
+        if (!auctionId) {
+            alert("Please create auction first");
+            return;
+        }
 
         const formData = new FormData();
         formData.append("file", file);
@@ -142,21 +167,30 @@ export default function PlayerAuctionSetup() {
                 <div className="setup-card">
                     <h3>Add Participating Boards</h3>
 
-                    <select
-                        multiple
-                        onChange={(e) =>
-                            setSelectedBoards(
-                                Array.from(e.target.selectedOptions, option => option.value)
-                            )
-                        }
-                    >
-                        {allBoards.map(board => (
-                            <option key={board.id} value={board.id}>
-                                {board.board_name}
-                            </option>
-                        ))}
-                    </select>
-
+                   <div className="boards-checkbox-container">
+    {allBoards.map(board => (
+        <div key={board.id} className="board-checkbox-item">
+            <input
+                type="checkbox"
+                id={board.id}
+                value={board.id}
+                checked={selectedBoards.includes(board.id)}
+                onChange={(e) => {
+                    if (e.target.checked) {
+                        setSelectedBoards(prev => [...prev, board.id]);
+                    } else {
+                        setSelectedBoards(prev =>
+                            prev.filter(id => id !== board.id)
+                        );
+                    }
+                }}
+            />
+            <label htmlFor={board.id}>
+                {board.board_name}
+            </label>
+        </div>
+    ))}
+</div>
                     <button onClick={addBoardsToAuction}>
                         Add Boards
                     </button>
