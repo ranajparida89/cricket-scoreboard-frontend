@@ -120,6 +120,13 @@ const SidebarMenu = () => {
             Team Distributor
           </Link>
         </li>
+
+                <li>
+            <Link to="/player-auction" onClick={handleClose}>
+              <FaGavel className="me-2 text-warning" /> Player Auction
+            </Link>
+          </li>
+
         {/* 🧮 Upcoming Matches */}
         {isAdmin && (
           <li>
