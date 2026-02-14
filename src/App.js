@@ -58,7 +58,7 @@ import RulesAndRegulations from "./components/RulesAndRegulations";
 import ForumPage from "./components/ForumPage";
 import AuctionRedirect from "./components/AuctionRedirect";
 import AuctionResults from "./components/AuctionResults";
-
+import PlayerAuctionSetup from "./components/PlayerAuctionSetup";
 
 
 // 🔥 NEW
@@ -540,7 +540,7 @@ function App() {
           <Route path="/team-distributor" element={<TeamDistributor />} />
           <Route path="/past-matches" element={<PastMatchesHub />} />
           <Route path="/player-report-card" element={<PlayerReportCard />} />
-          
+
           <Route
             path="/tournament-points"
             element={
@@ -591,6 +591,17 @@ function App() {
                   <ProtectedRoute>
                     <PageWrapper>
                       <AuctionResults />
+                    </PageWrapper>
+                  </ProtectedRoute>
+                }
+              />
+                            
+                            <Route
+                path="/player-auction-setup"
+                element={
+                  <ProtectedRoute>
+                    <PageWrapper>
+                      <PlayerAuctionSetup />
                     </PageWrapper>
                   </ProtectedRoute>
                 }
