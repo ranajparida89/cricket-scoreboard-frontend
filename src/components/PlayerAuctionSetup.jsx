@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./PlayerAuctionSetup.css";
+import { useNavigate } from "react-router-dom";
 
 const API = "https://cricket-scoreboard-backend.onrender.com";
 
 export default function PlayerAuctionSetup() {
+
+    const navigate = useNavigate();
 
     const [auctionName, setAuctionName] = useState("");
     const [totalBoards, setTotalBoards] = useState("");
@@ -90,18 +93,21 @@ export default function PlayerAuctionSetup() {
         }
     };
 
-    const startAuction = async () => {
-        try {
-            await axios.post(
-                `${API}/api/player-auction/start-auction/${auctionId}`
-            );
+  const startAuction = async () => {
+    try {
+        await axios.post(
+            `${API}/api/player-auction/start-auction/${auctionId}`
+        );
 
-            alert("Auction Started Successfully");
+        alert("Auction Started Successfully");
 
-        } catch (err) {
-            console.error("Start Auction Error", err);
-        }
-    };
+        // ✅ Redirect to Reveal Screen
+        navigate(`/player-auction/${auctionId}`);
+
+    } catch (err) {
+        console.error("Start Auction Error", err);
+    }
+};
 
     return (
         <div className="auction-setup-container">

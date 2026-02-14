@@ -575,37 +575,28 @@ function App() {
               </PageWrapper>
             }
           />
-                          <Route
-                  path="/player-auction"
-                  element={
-                    <ProtectedRoute>
-                      <PageWrapper>
-                        <AuctionRedirect />
-                      </PageWrapper>
-                    </ProtectedRoute>
-                  }
-                />
-                            <Route
-                path="/player-auction/:auctionId"
-                element={
-                  <ProtectedRoute>
-                    <PageWrapper>
-                      <AuctionResults />
-                    </PageWrapper>
-                  </ProtectedRoute>
-                }
-              />
-                            
-                            <Route
-                path="/player-auction-setup"
-                element={
-                  <ProtectedRoute>
-                    <PageWrapper>
-                      <PlayerAuctionSetup />
-                    </PageWrapper>
-                  </ProtectedRoute>
-                }
-              />
+                           <Route
+              path="/player-auction"
+              element={
+                <ProtectedRoute>
+                  <PageWrapper>
+                    <PlayerAuctionSetup />
+                  </PageWrapper>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/player-auction/:auctionId"
+              element={
+                <ProtectedRoute>
+                  <PageWrapper>
+                    <AuctionResults />
+                  </PageWrapper>
+                </ProtectedRoute>
+              }
+            />
+
         </Routes>
         <Footer />
       </Router>
