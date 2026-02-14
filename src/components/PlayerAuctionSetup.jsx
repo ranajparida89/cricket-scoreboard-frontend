@@ -24,15 +24,18 @@ export default function PlayerAuctionSetup() {
     }, []);
 
     const fetchBoards = async () => {
-        try {
-            const res = await axios.get(`${API}/api/boards/all-boards`);
-            if (res.data.success) {
-                setAllBoards(res.data.boards);
-            }
-        } catch (err) {
-            console.error("Error fetching boards", err);
+    try {
+        const res = await axios.get(`${API}/api/boards/all-boards`);
+
+        if (res.data.boards) {
+            setAllBoards(res.data.boards);
         }
-    };
+
+    } catch (err) {
+        console.error("Error fetching boards", err);
+    }
+};
+
 
     const createAuction = async () => {
         try {
