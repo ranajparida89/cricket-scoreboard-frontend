@@ -90,3 +90,6 @@
     transform: scale(1.05);
     box-shadow: 0 4px 12px rgba(0, 114, 255, 0.4);
 }
+.unsold-btn {
+    background: linear-gradient(135deg, #ff4d4d, #cc0000);
+}
