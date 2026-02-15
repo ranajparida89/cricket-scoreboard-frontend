@@ -133,18 +133,12 @@ export default function PlayerAuctionSetup() {
 
         if (res.data.success) {
 
-            // 👇 Fetch preview from backend
-            const previewRes = await axios.get(
-                `${API}/api/player-auction/preview/${auctionId}`
-            );
+    setPreviewData(res.data.preview || []);
 
-            if (previewRes.data.success) {
-                setPreviewData(previewRes.data.players);
-            }
+    setPlayersUploaded(true);
+    alert("Players Uploaded Successfully");
+}
 
-            setPlayersUploaded(true);
-            alert("Players Uploaded Successfully");
-        }
 
     } catch (err) {
         console.error("Upload Error", err.response?.data);
