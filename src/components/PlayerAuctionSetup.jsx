@@ -75,7 +75,6 @@ export default function PlayerAuctionSetup() {
 };
 
   const addBoardsToAuction = async () => {
-
     if (!auctionId) {
         alert("Create auction first");
         return;
@@ -171,6 +170,21 @@ const startAuction = async () => {
     }
 };
 
+const handleSelectAll = (e) => {
+
+    if (!totalBoards) {
+        alert("Enter total boards first");
+        return;
+    }
+
+    if (e.target.checked) {
+        const maxBoards = allBoards.slice(0, parseInt(totalBoards));
+        setSelectedBoards(maxBoards.map(b => b.id));
+    } else {
+        setSelectedBoards([]);
+    }
+};
+
     return (
         <div className="auction-setup-container">
 
@@ -216,46 +230,53 @@ const startAuction = async () => {
                 <div className="setup-card">
                     <h3>Add Participating Boards</h3>
 
-                   <div className="boards-checkbox-container">
+ <div className="boards-checkbox-container">
+
+    {/* Select All Option */}
+    <div className="select-all-row">
+        <input
+            type="checkbox"
+            onChange={handleSelectAll}
+            checked={
+                selectedBoards.length > 0 &&
+                selectedBoards.length === parseInt(totalBoards)
+            }
+        />
+        <label>
+            Select All (Max {totalBoards || 0})
+        </label>
+    </div>
+
+    {/* Boards List */}
     {allBoards.map(board => (
         <div key={board.id} className="board-checkbox-item">
             <input
                 type="checkbox"
-                disabled={boardsAdded}
-                id={board.id}
+                id={`board-${board.id}`}
                 value={board.id}
                 checked={selectedBoards.includes(board.id)}
+                disabled={
+                    !selectedBoards.includes(board.id) &&
+                    selectedBoards.length >= parseInt(totalBoards)
+                }
                 onChange={(e) => {
-
-    if (!totalBoards || totalBoards <= 0) {
-        alert("Please enter valid number of boards first");
-        return;
-    }
-
-    const maxBoards = parseInt(totalBoards);
-
-    if (e.target.checked) {
-
-        if (selectedBoards.length >= maxBoards) {
-            alert(`You can only select ${maxBoards} boards`);
-            return;
-        }
-        setSelectedBoards(prev => [...prev, board.id]);
-
-    } else {
-
-        setSelectedBoards(prev =>
-            prev.filter(id => id !== board.id)
-        );
-    }
-}}
+                    if (e.target.checked) {
+                        setSelectedBoards(prev => [...prev, board.id]);
+                    } else {
+                        setSelectedBoards(prev =>
+                            prev.filter(id => id !== board.id)
+                        );
+                    }
+                }}
             />
-            <label htmlFor={board.id}>
+            <label htmlFor={`board-${board.id}`}>
                 {board.board_name}
             </label>
         </div>
     ))}
+
 </div>
+
                    <button
                     onClick={addBoardsToAuction}
                     disabled={boardsAdded}
