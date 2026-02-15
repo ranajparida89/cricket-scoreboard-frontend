@@ -13,6 +13,8 @@ export default function AuctionResults() {
     const [boards, setBoards] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isRevealing, setIsRevealing] = useState(false);
+    const [auctionCompleted, setAuctionCompleted] = useState(false);
+
 
     useEffect(() => {
         fetchResults();
@@ -77,10 +79,11 @@ export default function AuctionResults() {
         const interval = setInterval(() => {
 
             if (index >= queue.length) {
-                clearInterval(interval);
-                setIsRevealing(false);
-                return;
-            }
+            clearInterval(interval);
+            setIsRevealing(false);
+            setAuctionCompleted(true);   // ✅ MARK COMPLETED
+            return;
+        }
 
             const { bIndex, pIndex } = queue[index];
 
@@ -94,6 +97,32 @@ export default function AuctionResults() {
             index++;
 
         }, 3500);
+    };
+
+    // ===============================
+    // 📥 DOWNLOAD BOARD EXCEL
+    // ===============================
+    const downloadBoardExcel = async (boardId, boardName) => {
+
+        try {
+            const response = await axios.get(
+                `${API}/api/player-auction/export-board/${auctionId}/${boardId}`,
+                { responseType: "blob" }
+            );
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement("a");
+
+            link.href = url;
+            link.setAttribute("download", `${boardName}_Squad.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+        } catch (error) {
+            console.error("Download error:", error);
+            alert("Failed to download squad");
+        }
     };
 
     if (loading) return <div className="auction-loading">Loading Auction...</div>;
@@ -136,14 +165,34 @@ export default function AuctionResults() {
 
                                     <div className="player-grade">
                                         {player.player_grade}
-                                    </div>
+                                    </div> 
                                 </div>
-                            ))}
+                            ))} 
                         </div>
                     </div>
-                ))}
-            </div>
+                ))} 
+                       </div>
+
+            {/* ================= DOWNLOAD SECTION ================= */}
+            {auctionCompleted && (
+                <div className="download-section">
+                    <h3>📥 Download Final Board Squads</h3>
+
+                    {boards.map((board, index) => (
+                        <button
+                            key={index}
+                            className="export-btn"
+                            onClick={() =>
+                                downloadBoardExcel(board.board_id, board.board_name)
+                            }
+                        >
+                            Download {board.board_name} Squad
+                        </button>
+                    ))}
+                </div>
+            )}
 
         </div>
     );
 }
+

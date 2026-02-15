@@ -23,6 +23,8 @@ export default function PlayerAuctionSetup() {
     const [auctionCreated, setAuctionCreated] = useState(false);
     const [boardsAdded, setBoardsAdded] = useState(false);
     const [playersUploaded, setPlayersUploaded] = useState(false);
+    
+
 
     useEffect(() => {
         fetchBoards();
@@ -393,29 +395,6 @@ const downloadBoardExcel = async (boardId, boardName) => {
                     </button>
                 </div>
             )}
-
-            {/* DOWNLOAD BOARD SQUADS */}
-{auctionId && boardsAdded && playersUploaded && (
-    <div className="setup-card">
-        <h3>📥 Download Board Squads</h3>
-
-        {allBoards
-            .filter(board => selectedBoards.includes(board.id))
-            .map(board => (
-                <button
-                    key={board.id}
-                    className="export-btn"
-                    onClick={() =>
-                        downloadBoardExcel(board.id, board.board_name)
-                    }
-                >
-                    Download {board.board_name} Squad
-                </button>
-            ))
-        }
-    </div>
-)}
-
 
         </div>
     );
