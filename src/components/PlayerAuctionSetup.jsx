@@ -195,6 +195,38 @@ const handleSelectAll = (e) => {
     }
 };
 
+// ===============================
+// 📥 DOWNLOAD BOARD EXCEL
+// ===============================
+const downloadBoardExcel = async (boardId, boardName) => {
+
+    if (!auctionId) {
+        alert("Auction not created");
+        return;
+    }
+
+    try {
+        const response = await axios.get(
+            `${API}/api/player-auction/export-board/${auctionId}/${boardId}`,
+            { responseType: "blob" }
+        );
+
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.setAttribute("download", `${boardName}_Squad.xlsx`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+    } catch (error) {
+        console.error("Download error:", error);
+        alert("Failed to download squad");
+    }
+};
+
+
     return (
         <div className="auction-setup-container">
 
@@ -361,6 +393,29 @@ const handleSelectAll = (e) => {
                     </button>
                 </div>
             )}
+
+            {/* DOWNLOAD BOARD SQUADS */}
+{auctionId && boardsAdded && playersUploaded && (
+    <div className="setup-card">
+        <h3>📥 Download Board Squads</h3>
+
+        {allBoards
+            .filter(board => selectedBoards.includes(board.id))
+            .map(board => (
+                <button
+                    key={board.id}
+                    className="export-btn"
+                    onClick={() =>
+                        downloadBoardExcel(board.id, board.board_name)
+                    }
+                >
+                    Download {board.board_name} Squad
+                </button>
+            ))
+        }
+    </div>
+)}
+
 
         </div>
     );
