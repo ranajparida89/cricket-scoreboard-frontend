@@ -18,6 +18,7 @@ export default function PlayerAuctionSetup() {
 
     const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [previewData, setPreviewData] = useState([]);
 
     const [auctionCreated, setAuctionCreated] = useState(false);
     const [boardsAdded, setBoardsAdded] = useState(false);
@@ -108,36 +109,51 @@ export default function PlayerAuctionSetup() {
 };
 
     const uploadPlayers = async () => {
-        if (!file) {
-            alert("Please select Excel file first");
-            return;
-        }
 
-        if (!auctionId) {
-            alert("Please create auction first");
-            return;
-        }
+    if (!file) {
+        alert("Please select Excel file first");
+        return;
+    }
 
-        const formData = new FormData();
-        formData.append("file", file);
+    if (!auctionId) {
+        alert("Please create auction first");
+        return;
+    }
 
-        try {
-            setLoading(true);
+    const formData = new FormData();
+    formData.append("file", file);
 
-            await axios.post(
-                `${API}/api/player-auction/upload-players/${auctionId}`,
-                formData
+    try {
+        setLoading(true);
+
+        const res = await axios.post(
+            `${API}/api/player-auction/upload-players/${auctionId}`,
+            formData
+        );
+
+        if (res.data.success) {
+
+            // 👇 Fetch preview from backend
+            const previewRes = await axios.get(
+                `${API}/api/player-auction/preview/${auctionId}`
             );
+
+            if (previewRes.data.success) {
+                setPreviewData(previewRes.data.players);
+            }
 
             setPlayersUploaded(true);
             alert("Players Uploaded Successfully");
-
-        } catch (err) {
-            console.error("Upload Error", err);
-        } finally {
-            setLoading(false);
         }
-    };
+
+    } catch (err) {
+        console.error("Upload Error", err.response?.data);
+        alert(err.response?.data?.message || "Upload failed");
+    } finally {
+        setLoading(false);
+    }
+};
+
 
 const startAuction = async () => {
 
@@ -286,26 +302,60 @@ const handleSelectAll = (e) => {
                 </div>
             )}
 
-            {/* UPLOAD PLAYERS */}
-            {auctionId && (
-                <div className="setup-card">
-                    <h3>Upload Players Excel</h3>
+        {/* UPLOAD PLAYERS */}
+{auctionId && (
+    <div className="setup-card">
+        <h3>Upload Players Excel</h3>
 
-                    <input
-                        type="file"
-                        accept=".xlsx"
-                        onChange={(e) => setFile(e.target.files[0])}
-                    />
+        <input
+            type="file"
+            accept=".xlsx"
+            disabled={playersUploaded}
+            onChange={(e) => setFile(e.target.files[0])}
+        />
 
-                    <button
-                    onClick={uploadPlayers}
-                    disabled={loading || playersUploaded}
-                >
-                    {playersUploaded ? "Players Uploaded" : (loading ? "Uploading..." : "Upload Players")}
-                </button>
-                </div>
-            )}
+        <button
+            onClick={uploadPlayers}
+            disabled={loading || playersUploaded}
+        >
+            {playersUploaded
+                ? "Players Uploaded"
+                : (loading ? "Uploading..." : "Upload Players")}
+        </button>
 
+        {/* ===== PREVIEW TABLE START ===== */}
+        {previewData.length > 0 && (
+            <div className="preview-table-container">
+                <h4 style={{ marginTop: "20px" }}>
+                    Excel Preview (First 10 Players)
+                </h4>
+
+                <table className="preview-table">
+                    <thead>
+                        <tr>
+                            <th>Player Name</th>
+                            <th>Role</th>
+                            <th>License</th>
+                            <th>Grade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {previewData.slice(0, 10).map((player, index) => (
+                            <tr key={index}>
+                                <td>{player.player_name}</td>
+                                <td>{player.role_type}</td>
+                                <td>{player.license_status}</td>
+                                <td>{player.player_grade}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        )}
+        {/* ===== PREVIEW TABLE END ===== */}
+
+    </div>
+)}
             {/* START AUCTION */}
             {auctionId && (
                 <div className="setup-card">
