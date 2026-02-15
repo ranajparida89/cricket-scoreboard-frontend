@@ -226,14 +226,29 @@ const startAuction = async () => {
                 value={board.id}
                 checked={selectedBoards.includes(board.id)}
                 onChange={(e) => {
-                    if (e.target.checked) {
-                        setSelectedBoards(prev => [...prev, board.id]);
-                    } else {
-                        setSelectedBoards(prev =>
-                            prev.filter(id => id !== board.id)
-                        );
-                    }
-                }}
+
+    if (!totalBoards || totalBoards <= 0) {
+        alert("Please enter valid number of boards first");
+        return;
+    }
+
+    const maxBoards = parseInt(totalBoards);
+
+    if (e.target.checked) {
+
+        if (selectedBoards.length >= maxBoards) {
+            alert(`You can only select ${maxBoards} boards`);
+            return;
+        }
+        setSelectedBoards(prev => [...prev, board.id]);
+
+    } else {
+
+        setSelectedBoards(prev =>
+            prev.filter(id => id !== board.id)
+        );
+    }
+}}
             />
             <label htmlFor={board.id}>
                 {board.board_name}
