@@ -78,12 +78,20 @@ export default function AuctionResults() {
 
         const interval = setInterval(() => {
 
-            if (index >= queue.length) {
+          if (index >= queue.length) {
             clearInterval(interval);
             setIsRevealing(false);
-            setAuctionCompleted(true);   // ✅ MARK COMPLETED
+            setAuctionCompleted(true);
+
+            // 🎉 FINAL GRAND CELEBRATION
+            confetti({
+                particleCount: 500,
+                spread: 180,
+                origin: { y: 0.6 }
+            });
+
             return;
-        }
+}
 
             const { bIndex, pIndex } = queue[index];
 
@@ -135,12 +143,17 @@ export default function AuctionResults() {
                 <button 
                     className="reveal-btn"
                     onClick={startReveal}
-                    disabled={isRevealing}
+                    disabled={isRevealing || auctionCompleted}
                 >
                     {isRevealing ? "Auction In Progress..." : "Reveal Players"}
                 </button>
             </div>
-
+                                {/* 🏆 CRICKEGDE AUCTION COMPLETED BANNER */}
+                {auctionCompleted && (
+                    <div className="auction-complete-banner">
+                        🏆 CRICKEGDE AUCTION COMPLETED SUCCESSFULLY
+                    </div>
+                )}
             <div className="boards-wrapper">
                 {boards.map((board, bIndex) => (
                     <div key={bIndex} className="board-card">
@@ -176,7 +189,7 @@ export default function AuctionResults() {
             {/* ================= DOWNLOAD SECTION ================= */}
            {/* ================= DOWNLOAD SECTION ================= */}
 {auctionCompleted && (
-    <div className="download-section">
+    <div className="download-section fade-in">
         <h3>📥 Download Final Results</h3>
 
         {/* Board Squad Downloads */}

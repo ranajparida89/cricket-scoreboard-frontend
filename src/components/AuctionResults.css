@@ -93,3 +93,50 @@
 .unsold-btn {
     background: linear-gradient(135deg, #ff4d4d, #cc0000);
 }
+/* ================= BROADCAST LEVEL EFFECTS ================= */
+
+.auction-complete-banner {
+    margin: 20px auto;
+    padding: 15px 30px;
+    width: fit-content;
+    font-size: 22px;
+    font-weight: bold;
+    color: #fff;
+    background: linear-gradient(135deg, #f6d365, #fda085);
+    border-radius: 10px;
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.8);
+    animation: glowPulse 1.5s infinite alternate;
+}
+
+@keyframes glowPulse {
+    from { box-shadow: 0 0 10px gold; }
+    to { box-shadow: 0 0 30px gold; }
+}
+
+.fade-in {
+    animation: fadeInSmooth 1s ease-in-out;
+}
+
+@keyframes fadeInSmooth {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Board Glow After Completion */
+.board-card {
+    transition: all 0.5s ease;
+}
+
+.board-card:hover {
+    transform: scale(1.02);
+}
+
+.auction-container {
+    background: radial-gradient(circle at top, #0f2027, #203a43, #2c5364);
+}
