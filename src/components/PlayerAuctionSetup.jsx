@@ -41,25 +41,38 @@ export default function PlayerAuctionSetup() {
 };
 
 
-    const createAuction = async () => {
-        try {
-            const res = await axios.post(
-                `${API}/api/player-auction/create-auction`,
-                {
-                    auction_name: auctionName,
-                    total_boards: parseInt(totalBoards)
-                }
-            );
+   const createAuction = async () => {
 
-                    if (res.data.success) {
-                setAuctionId(res.data.data.id);
-                setAuctionCreated(true);
-                alert("Auction Created Successfully");
+    if (!auctionName.trim()) {
+        alert("Auction name is required");
+        return;
+    }
+
+    if (!totalBoards || totalBoards <= 0) {
+        alert("Please enter valid number of boards");
+        return;
+    }
+
+    try {
+        const res = await axios.post(
+            `${API}/api/player-auction/create-auction`,
+            {
+                auction_name: auctionName,
+                total_boards: parseInt(totalBoards)
             }
-        } catch (err) {
-            console.error("Create Auction Error", err);
+        );
+
+        if (res.data.success) {
+            setAuctionId(res.data.data.id);
+            setAuctionCreated(true);
+            alert("Auction Created Successfully");
         }
-    };
+
+    } catch (err) {
+        console.error("Create Auction Error", err.response?.data);
+        alert(err.response?.data?.message || "Error creating auction");
+    }
+};
 
   const addBoardsToAuction = async () => {
 
@@ -127,19 +140,34 @@ export default function PlayerAuctionSetup() {
         }
     };
 
-  const startAuction = async () => {
+const startAuction = async () => {
+
+    if (!auctionCreated) {
+        alert("Please create auction first");
+        return;
+    }
+
+    if (selectedBoards.length !== parseInt(totalBoards)) {
+        alert(`You must select exactly ${totalBoards} boards`);
+        return;
+    }
+
+    if (!file) {
+        alert("Please upload players Excel before starting auction");
+        return;
+    }
+
     try {
         await axios.post(
             `${API}/api/player-auction/start-auction/${auctionId}`
         );
 
         alert("Auction Started Successfully");
-
-        // ✅ Redirect to Reveal Screen
         navigate(`/player-auction/${auctionId}`);
 
     } catch (err) {
-        console.error("Start Auction Error", err);
+        console.error("Start Auction Error", err.response?.data);
+        alert(err.response?.data?.message || "Error starting auction");
     }
 };
 
@@ -165,7 +193,15 @@ export default function PlayerAuctionSetup() {
                 placeholder="Total Boards"
                 value={totalBoards}
                 disabled={auctionCreated}
-                onChange={(e) => setTotalBoards(e.target.value)}
+                onChange={(e) => {
+    const value = parseInt(e.target.value);
+            if (!value || value <= 0) {
+                alert("Total boards must be greater than 0");
+                return;
+            }
+
+            setTotalBoards(value);
+        }}
             />
                <button
                 onClick={createAuction}
