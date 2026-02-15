@@ -19,6 +19,10 @@ export default function PlayerAuctionSetup() {
     const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(false);
 
+    const [auctionCreated, setAuctionCreated] = useState(false);
+    const [boardsAdded, setBoardsAdded] = useState(false);
+    const [playersUploaded, setPlayersUploaded] = useState(false);
+
     useEffect(() => {
         fetchBoards();
     }, []);
@@ -47,11 +51,11 @@ export default function PlayerAuctionSetup() {
                 }
             );
 
-            if (res.data.success) {
+                    if (res.data.success) {
                 setAuctionId(res.data.data.id);
+                setAuctionCreated(true);
                 alert("Auction Created Successfully");
             }
-
         } catch (err) {
             console.error("Create Auction Error", err);
         }
@@ -80,9 +84,10 @@ export default function PlayerAuctionSetup() {
             { boards: selectedBoards }
         );
 
-        if (res.data.success) {
-            alert("Boards Added Successfully");
-        }
+       if (res.data.success) {
+    setBoardsAdded(true);
+    alert("Boards Added Successfully");
+}
 
     } catch (err) {
         console.error("Add Boards Error", err.response?.data);
@@ -112,6 +117,7 @@ export default function PlayerAuctionSetup() {
                 formData
             );
 
+            setPlayersUploaded(true);
             alert("Players Uploaded Successfully");
 
         } catch (err) {
@@ -146,23 +152,27 @@ export default function PlayerAuctionSetup() {
             <div className="setup-card">
                 <h3>Create Auction</h3>
 
-                <input
+              <input
                     type="text"
                     placeholder="Auction Name"
                     value={auctionName}
+                    disabled={auctionCreated}
                     onChange={(e) => setAuctionName(e.target.value)}
                 />
 
-                <input
-                    type="number"
-                    placeholder="Total Boards"
-                    value={totalBoards}
-                    onChange={(e) => setTotalBoards(e.target.value)}
-                />
-
-                <button onClick={createAuction}>
-                    Create Auction
-                </button>
+              <input
+                type="number"
+                placeholder="Total Boards"
+                value={totalBoards}
+                disabled={auctionCreated}
+                onChange={(e) => setTotalBoards(e.target.value)}
+            />
+               <button
+                onClick={createAuction}
+                disabled={auctionCreated}
+            >
+                {auctionCreated ? "Auction Created" : "Create Auction"}
+            </button>
             </div>
 
             {/* ADD BOARDS */}
@@ -175,6 +185,7 @@ export default function PlayerAuctionSetup() {
         <div key={board.id} className="board-checkbox-item">
             <input
                 type="checkbox"
+                disabled={boardsAdded}
                 id={board.id}
                 value={board.id}
                 checked={selectedBoards.includes(board.id)}
@@ -194,9 +205,12 @@ export default function PlayerAuctionSetup() {
         </div>
     ))}
 </div>
-                    <button onClick={addBoardsToAuction}>
-                        Add Boards
-                    </button>
+                   <button
+                    onClick={addBoardsToAuction}
+                    disabled={boardsAdded}
+                >
+                    {boardsAdded ? "Boards Added" : "Add Boards"}
+                </button>
                 </div>
             )}
 
@@ -211,9 +225,12 @@ export default function PlayerAuctionSetup() {
                         onChange={(e) => setFile(e.target.files[0])}
                     />
 
-                    <button onClick={uploadPlayers} disabled={loading}>
-                        {loading ? "Uploading..." : "Upload Players"}
-                    </button>
+                    <button
+                    onClick={uploadPlayers}
+                    disabled={loading || playersUploaded}
+                >
+                    {playersUploaded ? "Players Uploaded" : (loading ? "Uploading..." : "Upload Players")}
+                </button>
                 </div>
             )}
 
