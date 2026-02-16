@@ -500,7 +500,18 @@ const handleExcelUpload = async (e) => {
                     </thead>
                    <tbody>
                   {excelFixtures.map((f, index) => (
-                    <tr key={f.id}>
+                    <tr
+                      key={f.id}
+                      className={
+                        f.status === "COMPLETED"
+                          ? "row-completed"
+                          : f.status === "CANCELLED"
+                          ? "row-cancelled"
+                          : f.status === "WALKOVER"
+                          ? "row-walkover"
+                          : ""
+                      }
+                    >
 
                       {/* Serial Number */}
                       <td>{index + 1}</td>

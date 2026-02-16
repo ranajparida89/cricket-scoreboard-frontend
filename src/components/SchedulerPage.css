@@ -20,3 +20,20 @@ th, td { border: 1px solid #eee; padding: 8px 10px; text-align: left; }
 th { background: #fafafa; }
 .hint { color: #555; margin-top: 8px; }
 .existing { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
+/* ===== Excel Status Colors ===== */
+
+.row-completed {
+  background-color: rgba(0, 200, 0, 0.15) !important;
+  border-left: 4px solid #00ff88;
+}
+
+.row-cancelled {
+  background-color: rgba(255, 0, 0, 0.15) !important;
+  border-left: 4px solid #ff4d4d;
+}
+
+.row-walkover {
+  background-color: rgba(255, 165, 0, 0.18) !important;
+  border-left: 4px solid #ffae00;
+}
+
