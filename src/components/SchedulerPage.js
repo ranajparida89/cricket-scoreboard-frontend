@@ -41,6 +41,8 @@ const [excelLoading, setExcelLoading] = useState(false);
 
 // ✅ Independent Excel Manager
 const [uploading, setUploading] = useState(false);
+const [isTournamentCompleted, setIsTournamentCompleted] = useState(false);
+
 
 // 🔐 Admin JWT Check
 const isAdmin = !!localStorage.getItem("admin_jwt");
@@ -154,6 +156,22 @@ const loadActiveTournament = async () => {
     );
 
     setExcelFixtures(res.data.data || []);
+    const fixtures = res.data.data || [];
+
+      if (fixtures.length > 0) {
+        const allFinished = fixtures.every(
+          f =>
+            f.status === "COMPLETED" ||
+            f.status === "CANCELLED" ||
+            f.status === "WALKOVER"
+        );
+
+        setIsTournamentCompleted(allFinished);
+      } else {
+        setIsTournamentCompleted(false);
+      }
+
+
 
   } catch (err) {
     console.error("Active Tournament Load Error:", err);
@@ -472,27 +490,31 @@ const handleStatusChange = async (fixtureId, newStatus) => {
         <div className="card-body">
 
           <h4 className="text-warning mb-3">
-            📂 Excel Fixture Manager (Independent)
+            📂 Match Fixture Manager
           </h4>
+              {isTournamentCompleted && (
+          <div className="alert alert-success text-center fw-bold">
+            🏆 Tournament Completed
+          </div>
+        )}
 
           {/* Upload Button */}
           <div className="mb-3">
-           {isAdmin && (
-            <input
-              type="file"
-              accept=".xlsx,.xls"
-              onChange={handleExcelUpload}
-              className="form-control"
-            />
-          )}
+        {isAdmin && !isTournamentCompleted && (
+              <input
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleExcelUpload}
+                className="form-control"
+              />
+            )}
           </div>
 
           {uploading && <div className="text-info">Uploading...</div>}
 
-          {excelFixtures.length > 0 && (
-            <>
-              <div className="text-muted mb-2">
-
+          {excelFixtures.length > 0 && !isTournamentCompleted && (
+          <>
+            <div className="text-muted mb-2">
               </div>
 
               {excelLoading ? (
@@ -544,34 +566,34 @@ const handleStatusChange = async (fixtureId, newStatus) => {
                         ))}
 
                        <td>
-                      {isAdmin ? (
-                        <select
-                          className="form-select form-select-sm status-dropdown"
-                          value={f.status}
-                          onChange={(e) =>
-                            handleStatusChange(f.id, e.target.value)
-                          }
-                        >
+                      {isAdmin && !isTournamentCompleted ? (
+                          <select
+                            className="form-select form-select-sm status-dropdown"
+                            value={f.status}
+                            onChange={(e) =>
+                              handleStatusChange(f.id, e.target.value)
+                            }
+                          >
                           <option value="NOT_PLAYED">NOT_PLAYED</option>
                           <option value="COMPLETED">COMPLETED</option>
                           <option value="CANCELLED">CANCELLED</option>
                           <option value="WALKOVER">WALKOVER</option>
                         </select>
-                        ) : (
-                            <span
-                              className={`status-badge ${
-                                f.status === "COMPLETED"
-                                  ? "status-completed"
-                                  : f.status === "CANCELLED"
-                                  ? "status-cancelled"
-                                  : f.status === "WALKOVER"
-                                  ? "status-walkover"
-                                  : "status-notplayed"
-                              }`}
-                            >
-                              {f.status}
-                            </span>
-                          )}
+                       ) : (
+                          <span
+                            className={`status-badge ${
+                              f.status === "COMPLETED"
+                                ? "status-completed"
+                                : f.status === "CANCELLED"
+                                ? "status-cancelled"
+                                : f.status === "WALKOVER"
+                                ? "status-walkover"
+                                : "status-notplayed"
+                            }`}
+                          >
+                            {f.status}
+                          </span>
+                        )}
                     </td>
                     </tr>
                   ))}
