@@ -44,6 +44,10 @@ const [excelPagination, setExcelPagination] = useState({
   limit: 10
 });
 const [excelLoading, setExcelLoading] = useState(false);
+// ✅ Independent Excel Manager
+const [currentFixtureGroup, setCurrentFixtureGroup] = useState(null);
+const [uploading, setUploading] = useState(false);
+
 
 
   // Load existing series list on mount
@@ -160,6 +164,58 @@ const loadExcelFixtures = async (seriesId, page = 1) => {
       setLoading(false);
     }
   };
+
+  // 🔥 Load Excel by Group (Independent)
+const loadExcelByGroup = async (groupId, page = 1) => {
+  if (!groupId) return;
+
+  setExcelLoading(true);
+
+  try {
+    const res = await axios.get(
+      `${API_URL}/scheduler/excel/group/${groupId}?page=${page}&limit=10`
+    );
+
+    setExcelFixtures(res.data.data || []);
+    setExcelPagination(res.data.pagination);
+
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setExcelLoading(false);
+  }
+};
+
+// 🔥 Handle Excel Upload
+const handleExcelUpload = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  setUploading(true);
+
+  try {
+    const res = await axios.post(
+      `${API_URL}/scheduler/excel/upload`,
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+
+    const groupId = res.data.fixture_group_id;
+
+    setCurrentFixtureGroup(groupId);
+    loadExcelByGroup(groupId);
+
+  } catch (err) {
+    console.error(err);
+    alert("Upload failed");
+  } finally {
+    setUploading(false);
+  }
+};
+
 
   const downloadCSV = () => {
     const fixtures = result?.fixtures || [];
@@ -442,7 +498,70 @@ const loadExcelFixtures = async (seriesId, page = 1) => {
 
           </div>
         </div>
-      )}
+            )}
+
+      {/* ======================= */}
+      {/* 🔥 Independent Excel Fixture Manager */}
+      {/* ======================= */}
+      <div className="card bg-dark text-white shadow mt-4">
+        <div className="card-body">
+
+          <h4 className="text-warning mb-3">
+            📂 Excel Fixture Manager (Independent)
+          </h4>
+
+          {/* Upload Button */}
+          <div className="mb-3">
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={handleExcelUpload}
+              className="form-control"
+            />
+          </div>
+
+          {uploading && <div className="text-info">Uploading...</div>}
+
+          {currentFixtureGroup && (
+            <>
+              <div className="text-muted mb-2">
+                Fixture Group ID: {currentFixtureGroup}
+              </div>
+
+              {excelLoading ? (
+                <div className="text-warning">Loading fixtures...</div>
+              ) : (
+                <div className="table-responsive">
+                  <table className="table table-dark table-bordered">
+                    <thead>
+                      <tr>
+                        {excelFixtures[0] &&
+                          Object.keys(excelFixtures[0].row_data).map((key) => (
+                            <th key={key}>{key}</th>
+                          ))}
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {excelFixtures.map((f) => (
+                        <tr key={f.id}>
+                          {Object.values(f.row_data).map((val, idx) => (
+                            <td key={idx}>{val}</td>
+                          ))}
+                          <td>{f.status}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )}
+
+        </div>
+      </div>
+
     </div>
   );
 }
+
