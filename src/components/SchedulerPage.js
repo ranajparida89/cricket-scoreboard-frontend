@@ -35,6 +35,17 @@ export default function SchedulerPage() {
   const [seriesList, setSeriesList] = useState([]);
   const [selectedSeriesId, setSelectedSeriesId] = useState("");
 
+  // ✅ Excel Fixtures State
+const [excelFixtures, setExcelFixtures] = useState([]);
+const [excelPagination, setExcelPagination] = useState({
+  page: 1,
+  totalPages: 1,
+  total: 0,
+  limit: 10
+});
+const [excelLoading, setExcelLoading] = useState(false);
+
+
   // Load existing series list on mount
   useEffect(() => {
     axios
@@ -107,7 +118,29 @@ export default function SchedulerPage() {
     }
   };
 
+  // ✅ Load Excel Fixtures (Paginated)
+const loadExcelFixtures = async (seriesId, page = 1) => {
+  if (!seriesId) return;
+
+  setExcelLoading(true);
+
+  try {
+    const res = await axios.get(
+      `${API_URL}/scheduler/excel/${seriesId}?page=${page}&limit=${excelPagination.limit}`
+    );
+
+    setExcelFixtures(res.data.data || []);
+    setExcelPagination(res.data.pagination);
+
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setExcelLoading(false);
+  }
+};
+
   const loadFixtures = async (seriesId) => {
+
     if (!seriesId) return;
     setSelectedSeriesId(seriesId);
     setError("");
@@ -174,8 +207,12 @@ export default function SchedulerPage() {
             <select
               className="form-select bg-dark text-white"
               value={selectedSeriesId}
-              onChange={(e) => loadFixtures(e.target.value)}
-            >
+              onChange={(e) => {
+                  const id = e.target.value;
+                  loadFixtures(id);         // old scheduler
+                  loadExcelFixtures(id);    // new excel
+                }}
+               >
               <option value="">-- Select a series --</option>
               {asArray(seriesList).map((s) => (
                 <option key={s.id} value={s.id}>
@@ -334,6 +371,75 @@ export default function SchedulerPage() {
                 Export CSV
               </button>
             </div>
+          </div>
+        </div>
+      )}
+            {/* ✅ Excel Fixtures Section */}
+      {selectedSeriesId && (
+        <div className="card bg-dark text-white shadow mt-4">
+          <div className="card-body">
+
+            <h5 className="text-warning mb-3">📄 Uploaded Excel Fixtures</h5>
+
+            {excelLoading ? (
+              <div>Loading Excel fixtures...</div>
+            ) : excelFixtures.length === 0 ? (
+              <div className="text-muted">No Excel fixtures uploaded.</div>
+            ) : (
+              <>
+                <div className="table-responsive">
+                  <table className="table table-dark table-bordered align-middle">
+                    <thead>
+                      <tr>
+                        {Object.keys(excelFixtures[0].row_data).map((key) => (
+                          <th key={key}>{key}</th>
+                        ))}
+                        <th>Status</th>
+                        <th>Winner</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {excelFixtures.map((f) => (
+                        <tr key={f.id}>
+                          {Object.values(f.row_data).map((val, idx) => (
+                            <td key={idx}>{val}</td>
+                          ))}
+                          <td>{f.status}</td>
+                          <td>{f.winner || "-"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="d-flex justify-content-center mt-3 gap-3">
+                  <button
+                    className="btn btn-sm btn-outline-light"
+                    disabled={excelPagination.page === 1}
+                    onClick={() =>
+                      loadExcelFixtures(selectedSeriesId, excelPagination.page - 1)
+                    }
+                  >
+                    Prev
+                  </button>
+
+                  <span>
+                    Page {excelPagination.page} of {excelPagination.totalPages}
+                  </span>
+
+                  <button
+                    className="btn btn-sm btn-outline-light"
+                    disabled={excelPagination.page === excelPagination.totalPages}
+                    onClick={() =>
+                      loadExcelFixtures(selectedSeriesId, excelPagination.page + 1)
+                    }
+                  >
+                    Next
+                  </button>
+                </div>
+              </>
+            )}
+
           </div>
         </div>
       )}
