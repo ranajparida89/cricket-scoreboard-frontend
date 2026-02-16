@@ -543,10 +543,10 @@ const handleStatusChange = async (fixtureId, newStatus) => {
                           <td key={idx}>{f.row_data[key]}</td>
                         ))}
 
-                                          <td>
+                       <td>
                       {isAdmin ? (
                         <select
-                          className="form-select form-select-sm bg-dark text-white"
+                          className="form-select form-select-sm status-dropdown"
                           value={f.status}
                           onChange={(e) =>
                             handleStatusChange(f.id, e.target.value)
@@ -557,9 +557,21 @@ const handleStatusChange = async (fixtureId, newStatus) => {
                           <option value="CANCELLED">CANCELLED</option>
                           <option value="WALKOVER">WALKOVER</option>
                         </select>
-                      ) : (
-                        f.status
-                      )}
+                        ) : (
+                            <span
+                              className={`status-badge ${
+                                f.status === "COMPLETED"
+                                  ? "status-completed"
+                                  : f.status === "CANCELLED"
+                                  ? "status-cancelled"
+                                  : f.status === "WALKOVER"
+                                  ? "status-walkover"
+                                  : "status-notplayed"
+                              }`}
+                            >
+                              {f.status}
+                            </span>
+                          )}
                     </td>
                     </tr>
                   ))}
