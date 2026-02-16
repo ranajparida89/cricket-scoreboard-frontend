@@ -42,10 +42,8 @@ const [excelLoading, setExcelLoading] = useState(false);
 // ✅ Independent Excel Manager
 const [uploading, setUploading] = useState(false);
 
-// 🔐 Admin Role Check
-const user = JSON.parse(localStorage.getItem("user") || "{}");
-const isAdmin = user?.role === "admin";
-
+// 🔐 Admin JWT Check
+const isAdmin = !!localStorage.getItem("admin_jwt");
 
   // Load existing series list on mount
   useEffect(() => {
