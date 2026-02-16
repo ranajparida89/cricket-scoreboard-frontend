@@ -472,7 +472,7 @@ const handleExcelUpload = async (e) => {
           {excelFixtures.length > 0 && (
             <>
               <div className="text-muted mb-2">
-                Fixture Group ID: {currentFixtureGroup}
+
               </div>
 
               {excelLoading ? (
