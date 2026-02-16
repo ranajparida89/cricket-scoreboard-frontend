@@ -37,15 +37,9 @@ export default function SchedulerPage() {
 
   // ✅ Excel Fixtures State
 const [excelFixtures, setExcelFixtures] = useState([]);
-const [excelPagination, setExcelPagination] = useState({
-  page: 1,
-  totalPages: 1,
-  total: 0,
-  limit: 10
-});
 const [excelLoading, setExcelLoading] = useState(false);
+
 // ✅ Independent Excel Manager
-const [currentFixtureGroup, setCurrentFixtureGroup] = useState(null);
 const [uploading, setUploading] = useState(false);
 
 
@@ -58,6 +52,10 @@ const [uploading, setUploading] = useState(false);
       .then((r) => setSeriesList(asArray(r.data)))
       .catch(() => setSeriesList([]));
   }, []);
+// ✅ Auto-load active tournament on page load
+      useEffect(() => {
+        loadActiveTournament();
+      }, []);
 
   const addBoard = () => setBoards((b) => [...b, emptyBoard()]);
   const removeBoard = (idx) =>
@@ -122,26 +120,6 @@ const [uploading, setUploading] = useState(false);
     }
   };
 
-  // ✅ Load Excel Fixtures (Paginated)
-const loadExcelFixtures = async (seriesId, page = 1) => {
-  if (!seriesId) return;
-
-  setExcelLoading(true);
-
-  try {
-    const res = await axios.get(
-      `${API_URL}/scheduler/excel/${seriesId}?page=${page}&limit=${excelPagination.limit}`
-    );
-
-    setExcelFixtures(res.data.data || []);
-    setExcelPagination(res.data.pagination);
-
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setExcelLoading(false);
-  }
-};
 
   const loadFixtures = async (seriesId) => {
 
@@ -165,26 +143,24 @@ const loadExcelFixtures = async (seriesId, page = 1) => {
     }
   };
 
-  // 🔥 Load Excel by Group (Independent)
-const loadExcelByGroup = async (groupId, page = 1) => {
-  if (!groupId) return;
-
+  // ✅ Load Active Running Tournament (Independent Excel Manager)
+const loadActiveTournament = async () => {
   setExcelLoading(true);
 
   try {
     const res = await axios.get(
-      `${API_URL}/scheduler/excel/${groupId}?page=${page}`
+      `${API_URL}/scheduler/excel/active`
     );
 
     setExcelFixtures(res.data.data || []);
-    setExcelPagination(res.data.pagination);
 
   } catch (err) {
-    console.error("Excel Load Error:", err);
+    console.error("Active Tournament Load Error:", err);
   } finally {
     setExcelLoading(false);
   }
 };
+
 
 
 // 🔥 Handle Excel Upload
@@ -204,10 +180,7 @@ const handleExcelUpload = async (e) => {
       { headers: { "Content-Type": "multipart/form-data" } }
     );
 
-    const groupId = res.data.fixture_group_id;
-
-    setCurrentFixtureGroup(groupId);
-    loadExcelByGroup(groupId);
+    loadActiveTournament();
 
   } catch (err) {
     console.error(err);
@@ -267,7 +240,6 @@ const handleExcelUpload = async (e) => {
               onChange={(e) => {
                   const id = e.target.value;
                   loadFixtures(id);         // old scheduler
-                  loadExcelFixtures(id);    // new excel
                 }}
                >
               <option value="">-- Select a series --</option>
@@ -468,32 +440,6 @@ const handleExcelUpload = async (e) => {
                     </tbody>
                   </table>
                 </div>
-
-                <div className="d-flex justify-content-center mt-3 gap-3">
-                  <button
-                    className="btn btn-sm btn-outline-light"
-                    disabled={excelPagination.page === 1}
-                    onClick={() =>
-                      loadExcelFixtures(selectedSeriesId, excelPagination.page - 1)
-                    }
-                  >
-                    Prev
-                  </button>
-
-                  <span>
-                    Page {excelPagination.page} of {excelPagination.totalPages}
-                  </span>
-
-                  <button
-                    className="btn btn-sm btn-outline-light"
-                    disabled={excelPagination.page === excelPagination.totalPages}
-                    onClick={() =>
-                      loadExcelFixtures(selectedSeriesId, excelPagination.page + 1)
-                    }
-                  >
-                    Next
-                  </button>
-                </div>
               </>
             )}
 
@@ -523,7 +469,7 @@ const handleExcelUpload = async (e) => {
 
           {uploading && <div className="text-info">Uploading...</div>}
 
-          {currentFixtureGroup && (
+          {excelFixtures.length > 0 && (
             <>
               <div className="text-muted mb-2">
                 Fixture Group ID: {currentFixtureGroup}
