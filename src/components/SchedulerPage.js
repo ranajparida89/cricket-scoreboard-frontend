@@ -42,6 +42,9 @@ const [excelLoading, setExcelLoading] = useState(false);
 // ✅ Independent Excel Manager
 const [uploading, setUploading] = useState(false);
 
+// 🔐 Admin Role Check
+const user = JSON.parse(localStorage.getItem("user") || "{}");
+const isAdmin = user?.role === "admin";
 
 
   // Load existing series list on mount
@@ -459,12 +462,14 @@ const handleExcelUpload = async (e) => {
 
           {/* Upload Button */}
           <div className="mb-3">
+           {isAdmin && (
             <input
               type="file"
               accept=".xlsx,.xls"
               onChange={handleExcelUpload}
               className="form-control"
             />
+          )}
           </div>
 
           {uploading && <div className="text-info">Uploading...</div>}
