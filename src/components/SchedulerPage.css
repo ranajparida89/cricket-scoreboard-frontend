@@ -20,20 +20,73 @@ th, td { border: 1px solid #eee; padding: 8px 10px; text-align: left; }
 th { background: #fafafa; }
 .hint { color: #555; margin-top: 8px; }
 .existing { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
-/* ===== Excel Status Colors ===== */
+/* ============================= */
+/* 🎯 Excel Status Styling */
+/* ============================= */
 
+/* Completed */
 .row-completed {
-  background-color: rgba(0, 200, 0, 0.15) !important;
-  border-left: 4px solid #00ff88;
+  background: linear-gradient(90deg, rgba(0,255,120,0.12), rgba(0,0,0,0)) !important;
+  border-left: 5px solid #00ff88;
 }
 
+/* Cancelled */
 .row-cancelled {
-  background-color: rgba(255, 0, 0, 0.15) !important;
-  border-left: 4px solid #ff4d4d;
+  background: linear-gradient(90deg, rgba(255,0,0,0.12), rgba(0,0,0,0)) !important;
+  border-left: 5px solid #ff4d4d;
 }
 
+/* Walkover */
 .row-walkover {
-  background-color: rgba(255, 165, 0, 0.18) !important;
-  border-left: 4px solid #ffae00;
+  background: linear-gradient(90deg, rgba(255,165,0,0.15), rgba(0,0,0,0)) !important;
+  border-left: 5px solid #ffae00;
 }
 
+/* Default row hover */
+.table tbody tr:hover {
+  background-color: rgba(255,255,255,0.05);
+  transition: 0.2s ease-in-out;
+}
+
+/* Status Dropdown */
+.status-dropdown {
+  background-color: #1c2b3a !important;
+  color: #ffffff !important;
+  border: 1px solid #2f4f6f !important;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.status-dropdown:focus {
+  border-color: #00d4ff !important;
+  box-shadow: 0 0 5px rgba(0,212,255,0.5);
+}
+
+/* Status Badge (for non-admin view) */
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.status-completed {
+  background: #00ff8840;
+  color: #00ff88;
+}
+
+.status-cancelled {
+  background: #ff4d4d40;
+  color: #ff4d4d;
+}
+
+.status-walkover {
+  background: #ffae0040;
+  color: #ffae00;
+}
+
+.status-notplayed {
+  background: #4da6ff40;
+  color: #4da6ff;
+}
