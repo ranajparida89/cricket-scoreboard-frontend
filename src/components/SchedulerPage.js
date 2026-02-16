@@ -42,6 +42,8 @@ const [excelLoading, setExcelLoading] = useState(false);
 // ✅ Independent Excel Manager
 const [uploading, setUploading] = useState(false);
 const [isTournamentCompleted, setIsTournamentCompleted] = useState(false);
+const [tournamentView, setTournamentView] = useState("RUNNING");
+
 
 
 // 🔐 Admin JWT Check
@@ -56,9 +58,9 @@ const isAdmin = !!localStorage.getItem("admin_jwt");
       .catch(() => setSeriesList([]));
   }, []);
 // ✅ Auto-load active tournament on page load
-      useEffect(() => {
+            useEffect(() => {
         loadActiveTournament();
-      }, []);
+      }, [tournamentView]);
 
   const addBoard = () => setBoards((b) => [...b, emptyBoard()]);
   const removeBoard = (idx) =>
@@ -151,9 +153,13 @@ const loadActiveTournament = async () => {
   setExcelLoading(true);
 
   try {
-    const res = await axios.get(
-      `${API_URL}/scheduler/excel/active`
-    );
+    const endpoint =
+  tournamentView === "RUNNING"
+    ? `${API_URL}/scheduler/excel/active`
+    : `${API_URL}/scheduler/excel/completed`;
+
+const res = await axios.get(endpoint);
+
 
     setExcelFixtures(res.data.data || []);
     const fixtures = res.data.data || [];
@@ -492,15 +498,33 @@ const handleStatusChange = async (fixtureId, newStatus) => {
           <h4 className="text-warning mb-3">
             📂 Match Fixture Manager
           </h4>
-              {isTournamentCompleted && (
-          <div className="alert alert-success text-center fw-bold">
-            🏆 Tournament Completed
-          </div>
-        )}
+                    <div className="mb-3">
+              <select
+                className="form-select w-auto"
+                value={tournamentView}
+                onChange={(e) => setTournamentView(e.target.value)}
+              >
+                <option value="RUNNING">Running Tournament</option>
+                <option value="COMPLETED">Completed Tournament</option>
+              </select>
+            </div>
 
+         {tournamentView === "COMPLETED" && (
+      <div className="alert alert-info text-center fw-bold">
+        📜 Viewing Completed Tournament
+      </div>
+    )}
+
+    {tournamentView === "RUNNING" && isTournamentCompleted && (
+      <div className="alert alert-success text-center fw-bold">
+        🏆 Tournament Completed
+      </div>
+    )}
           {/* Upload Button */}
           <div className="mb-3">
-        {isAdmin && !isTournamentCompleted && (
+        {isAdmin &&
+          tournamentView === "RUNNING" &&
+          !isTournamentCompleted && (
               <input
                 type="file"
                 accept=".xlsx,.xls"
