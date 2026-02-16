@@ -38,6 +38,7 @@ export default function SchedulerPage() {
   // ✅ Excel Fixtures State
 const [excelFixtures, setExcelFixtures] = useState([]);
 const [excelLoading, setExcelLoading] = useState(false);
+const [completedFixtures, setCompletedFixtures] = useState([]);
 
 // ✅ Independent Excel Manager
 const [uploading, setUploading] = useState(false);
@@ -164,18 +165,25 @@ const res = await axios.get(endpoint);
     setExcelFixtures(res.data.data || []);
     const fixtures = res.data.data || [];
 
-      if (fixtures.length > 0) {
-        const allFinished = fixtures.every(
-          f =>
-            f.status === "COMPLETED" ||
-            f.status === "CANCELLED" ||
-            f.status === "WALKOVER"
-        );
+    if (fixtures.length > 0) {
+  const allFinished = fixtures.every(
+    f =>
+      f.status === "COMPLETED" ||
+      f.status === "CANCELLED" ||
+      f.status === "WALKOVER"
+  );
 
-        setIsTournamentCompleted(allFinished);
-      } else {
-        setIsTournamentCompleted(false);
-      }
+  setIsTournamentCompleted(allFinished);
+
+  // 🔥 AUTO LOAD COMPLETED DATA
+  if (allFinished) {
+    loadCompletedTournament();
+  }
+
+} else {
+  setIsTournamentCompleted(false);
+}
+
 
 
 
@@ -186,6 +194,18 @@ const res = await axios.get(endpoint);
   }
 };
 
+const loadCompletedTournament = async () => {
+  try {
+    const res = await axios.get(
+      `${API_URL}/scheduler/excel/completed`
+    );
+
+    setCompletedFixtures(res.data.data || []);
+
+  } catch (err) {
+    console.error("Completed Tournament Load Error:", err);
+  }
+};
 
 
 // 🔥 Handle Excel Upload
@@ -520,6 +540,44 @@ const handleStatusChange = async (fixtureId, newStatus) => {
         🏆 Tournament Completed
       </div>
     )}
+
+    {isTournamentCompleted && completedFixtures.length > 0 && (
+  <div className="table-responsive mt-3">
+    <table className="table table-dark table-bordered align-middle">
+      <thead>
+        <tr>
+          <th>SL No</th>
+          <th>Match ID</th>
+          {Object.keys(completedFixtures[0].row_data)
+            .filter(key => key !== "Match ID")
+            .map(key => (
+              <th key={key}>{key}</th>
+            ))}
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {completedFixtures.map((f, index) => (
+          <tr key={f.id}>
+            <td>{index + 1}</td>
+            <td>{f.row_data["Match ID"] || "-"}</td>
+            {Object.keys(f.row_data)
+              .filter(key => key !== "Match ID")
+              .map((key, idx) => (
+                <td key={idx}>{f.row_data[key]}</td>
+              ))}
+            <td>
+              <span className="status-badge status-completed">
+                {f.status}
+              </span>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
+
           {/* Upload Button */}
           <div className="mb-3">
         {isAdmin &&
