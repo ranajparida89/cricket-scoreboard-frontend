@@ -480,25 +480,43 @@ const handleExcelUpload = async (e) => {
               ) : (
                 <div className="table-responsive">
                   <table className="table table-dark table-bordered">
-                    <thead>
+                     <thead>
                       <tr>
+                        <th>SL No</th>
+                        <th>Match ID</th>
+
                         {excelFixtures[0] &&
-                          Object.keys(excelFixtures[0].row_data).map((key) => (
-                            <th key={key}>{key}</th>
-                          ))}
+                          Object.keys(excelFixtures[0].row_data)
+                            .filter((key) => key !== "Match ID")
+                            .map((key) => (
+                              <th key={key}>{key}</th>
+                            ))}
+
                         <th>Status</th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {excelFixtures.map((f) => (
-                        <tr key={f.id}>
-                          {Object.values(f.row_data).map((val, idx) => (
-                            <td key={idx}>{val}</td>
-                          ))}
-                          <td>{f.status}</td>
-                        </tr>
-                      ))}
-                    </tbody>
+                   <tbody>
+                  {excelFixtures.map((f, index) => (
+                    <tr key={f.id}>
+
+                      {/* Serial Number */}
+                      <td>{index + 1}</td>
+
+                      {/* Match ID always second */}
+                      <td>{f.row_data["Match ID"] || "-"}</td>
+
+                      {/* Remaining Columns */}
+                      {Object.keys(f.row_data)
+                        .filter((key) => key !== "Match ID")
+                        .map((key, idx) => (
+                          <td key={idx}>{f.row_data[key]}</td>
+                        ))}
+
+                      <td>{f.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+
                   </table>
                 </div>
               )}
