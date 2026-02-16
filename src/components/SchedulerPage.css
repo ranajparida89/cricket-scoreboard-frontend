@@ -24,24 +24,26 @@ th { background: #fafafa; }
 /* 🎯 Excel Status Styling */
 /* ============================= */
 
-/* Completed */
-.row-completed {
-  background: linear-gradient(90deg, rgba(0,255,120,0.12), rgba(0,0,0,0)) !important;
-  border-left: 5px solid #00ff88;
+/* ===== Excel Status Row Colors (Bootstrap Override Fix) ===== */
+
+.table-dark tbody tr.row-completed td {
+  background-color: rgba(0, 200, 0, 0.18) !important;
 }
 
-/* Cancelled */
-.row-cancelled {
-  background: linear-gradient(90deg, rgba(255,0,0,0.12), rgba(0,0,0,0)) !important;
-  border-left: 5px solid #ff4d4d;
+.table-dark tbody tr.row-cancelled td {
+  background-color: rgba(255, 0, 0, 0.18) !important;
 }
 
-/* Walkover */
-.row-walkover {
-  background: linear-gradient(90deg, rgba(255,165,0,0.15), rgba(0,0,0,0)) !important;
-  border-left: 5px solid #ffae00;
+.table-dark tbody tr.row-walkover td {
+  background-color: rgba(255, 165, 0, 0.22) !important;
 }
 
+/* 🔥 ADD THIS EXACTLY HERE */
+.table-dark tbody tr.row-completed:hover td,
+.table-dark tbody tr.row-cancelled:hover td,
+.table-dark tbody tr.row-walkover:hover td {
+  filter: brightness(1.1);
+}
 /* Default row hover */
 .table tbody tr:hover {
   background-color: rgba(255,255,255,0.05);
