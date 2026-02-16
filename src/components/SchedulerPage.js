@@ -173,18 +173,19 @@ const loadExcelByGroup = async (groupId, page = 1) => {
 
   try {
     const res = await axios.get(
-      `${API_URL}/scheduler/excel/group/${groupId}?page=${page}&limit=10`
+      `${API_URL}/scheduler/excel/${groupId}?page=${page}&limit=10`
     );
 
     setExcelFixtures(res.data.data || []);
     setExcelPagination(res.data.pagination);
 
   } catch (err) {
-    console.error(err);
+    console.error("Excel Load Error:", err);
   } finally {
     setExcelLoading(false);
   }
 };
+
 
 // 🔥 Handle Excel Upload
 const handleExcelUpload = async (e) => {
