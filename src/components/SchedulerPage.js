@@ -173,7 +173,7 @@ const loadExcelByGroup = async (groupId, page = 1) => {
 
   try {
     const res = await axios.get(
-      `${API_URL}/scheduler/excel/${groupId}?page=${page}&limit=10`
+      `${API_URL}/scheduler/excel/${groupId}?page=${page}`
     );
 
     setExcelFixtures(res.data.data || []);
