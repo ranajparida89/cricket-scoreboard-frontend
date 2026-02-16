@@ -26,16 +26,16 @@ th { background: #fafafa; }
 
 /* ===== Excel Status Row Colors (Bootstrap Override Fix) ===== */
 
-.table-dark tbody tr.row-completed td {
-  background-color: rgba(0, 200, 0, 0.18) !important;
+.table-dark.table-bordered tbody tr.row-completed td {
+  background-color: rgba(116, 244, 116, 0.2) !important;
 }
 
-.table-dark tbody tr.row-cancelled td {
-  background-color: rgba(255, 0, 0, 0.18) !important;
+.table-dark.table-bordered tbody tr.row-cancelled td {
+  background-color: rgba(222, 46, 46, 0.2) !important;
 }
 
-.table-dark tbody tr.row-walkover td {
-  background-color: rgba(255, 165, 0, 0.22) !important;
+.table-dark.table-bordered tbody tr.row-walkover td {
+  background-color: rgba(238, 181, 74, 0.25) !important;
 }
 
 /* 🔥 ADD THIS EXACTLY HERE */

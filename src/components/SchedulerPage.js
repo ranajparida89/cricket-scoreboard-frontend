@@ -499,7 +499,7 @@ const handleStatusChange = async (fixtureId, newStatus) => {
                 <div className="text-warning">Loading fixtures...</div>
               ) : (
                 <div className="table-responsive">
-                  <table className="table table-dark table-bordered">
+                  <table className="table table-dark table-bordered align-middle">
                      <thead>
                       <tr>
                         <th>SL No</th>
