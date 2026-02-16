@@ -191,6 +191,23 @@ const handleExcelUpload = async (e) => {
   }
 };
 
+// 🔥 Admin Status Update
+const handleStatusChange = async (fixtureId, newStatus) => {
+  try {
+    await axios.put(
+      `${API_URL}/scheduler/excel/status/${fixtureId}`,
+      { status: newStatus }
+    );
+
+    // Refresh active tournament
+    loadActiveTournament();
+
+  } catch (err) {
+    console.error("Status update failed", err);
+  }
+};
+
+
 
   const downloadCSV = () => {
     const fixtures = result?.fixtures || [];
@@ -526,7 +543,24 @@ const handleExcelUpload = async (e) => {
                           <td key={idx}>{f.row_data[key]}</td>
                         ))}
 
-                      <td>{f.status}</td>
+                                          <td>
+                      {isAdmin ? (
+                        <select
+                          className="form-select form-select-sm bg-dark text-white"
+                          value={f.status}
+                          onChange={(e) =>
+                            handleStatusChange(f.id, e.target.value)
+                          }
+                        >
+                          <option value="NOT_PLAYED">NOT_PLAYED</option>
+                          <option value="COMPLETED">COMPLETED</option>
+                          <option value="CANCELLED">CANCELLED</option>
+                          <option value="WALKOVER">WALKOVER</option>
+                        </select>
+                      ) : (
+                        f.status
+                      )}
+                    </td>
                     </tr>
                   ))}
                 </tbody>
