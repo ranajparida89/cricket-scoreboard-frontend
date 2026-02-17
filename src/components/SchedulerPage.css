@@ -92,3 +92,19 @@ th { background: #fafafa; }
   background: #4da6ff40;
   color: #4da6ff;
 }
+/* ============================= */
+/* 🔥 Sticky Table Header */
+/* ============================= */
+
+.table-responsive {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: #1f1f1f; /* Dark theme background */
+  z-index: 5;
+  border-bottom: 2px solid #444;
+}
