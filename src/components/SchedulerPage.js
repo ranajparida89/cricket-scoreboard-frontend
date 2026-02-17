@@ -38,6 +38,7 @@ export default function SchedulerPage() {
   // ✅ Excel Fixtures State
 const [excelFixtures, setExcelFixtures] = useState([]);
 const [excelLoading, setExcelLoading] = useState(false);
+const [searchTerm, setSearchTerm] = useState("");
 const [completedFixtures, setCompletedFixtures] = useState([]);
 
 // ✅ Independent Excel Manager
@@ -271,6 +272,25 @@ const handleStatusChange = async (fixtureId, newStatus) => {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  // 🔎 Case-insensitive search filter
+const filteredFixtures = excelFixtures.filter((f) => {
+  if (!searchTerm.trim()) return true;
+
+  const keyword = searchTerm.toLowerCase();
+
+  const row = f.row_data || {};
+
+  return (
+    (row["Match ID"] || "").toLowerCase().includes(keyword) ||
+    (row["Team 1"] || "").toLowerCase().includes(keyword) ||
+    (row["Team 2"] || "").toLowerCase().includes(keyword) ||
+    (row["Owner 1"] || "").toLowerCase().includes(keyword) ||
+    (row["Owner 2"] || "").toLowerCase().includes(keyword) ||
+    (row["Group Match"] || "").toLowerCase().includes(keyword) ||
+    (f.status || "").toLowerCase().includes(keyword)
+  );
+});
 
   return (
     <div className="container mt-4">
@@ -541,6 +561,19 @@ const handleStatusChange = async (fixtureId, newStatus) => {
       </div>
     )}
 
+    {/* 🔎 Search Bar */}
+    {excelFixtures.length > 0 && (
+      <div className="mb-3">
+        <input
+          type="text"
+          className="form-control"
+          placeholder="Search by Match ID, Team, Owner, Group, Status..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+    )}
+
     {isTournamentCompleted && completedFixtures.length > 0 && (
   <div className="table-responsive mt-3">
     <table className="table table-dark table-bordered align-middle">
@@ -620,7 +653,8 @@ const handleStatusChange = async (fixtureId, newStatus) => {
                       </tr>
                     </thead>
                    <tbody>
-                  {excelFixtures.map((f, index) => (
+                  {filteredFixtures.length > 0 ? (
+                  filteredFixtures.map((f, index) => (
                     <tr
                       key={f.id}
                       className={
@@ -678,7 +712,14 @@ const handleStatusChange = async (fixtureId, newStatus) => {
                         )}
                     </td>
                     </tr>
-                  ))}
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="100%" className="text-center text-warning fw-bold">
+                        No results found for "{searchTerm}"
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
 
                   </table>
