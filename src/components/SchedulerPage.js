@@ -45,6 +45,9 @@ const [completedFixtures, setCompletedFixtures] = useState([]);
 const [uploading, setUploading] = useState(false);
 const [isTournamentCompleted, setIsTournamentCompleted] = useState(false);
 const [tournamentView, setTournamentView] = useState("RUNNING");
+const [tournamentHistory, setTournamentHistory] = useState([]);
+const [selectedHistoryGroup, setSelectedHistoryGroup] = useState(null);
+
 
 
 
@@ -60,10 +63,15 @@ const isAdmin = !!localStorage.getItem("admin_jwt");
       .catch(() => setSeriesList([]));
   }, []);
 // ✅ Auto-load active tournament on page load
-            useEffect(() => {
-        loadActiveTournament();
-      }, [tournamentView]);
+        useEffect(() => {
+          if (tournamentView === "RUNNING" || tournamentView === "COMPLETED") {
+            loadActiveTournament();
+          }
 
+          if (tournamentView === "HISTORY") {
+            loadTournamentHistory();
+          }
+        }, [tournamentView]);
   const addBoard = () => setBoards((b) => [...b, emptyBoard()]);
   const removeBoard = (idx) =>
     setBoards((prev) => (prev.length === 1 ? prev : prev.filter((_, i) => i !== idx)));
@@ -208,6 +216,33 @@ const loadCompletedTournament = async () => {
   }
 };
 
+const loadHistoryFixtures = async (groupId) => {
+  try {
+    const res = await axios.get(
+      `${API_URL}/scheduler/excel/group/${groupId}`
+    );
+
+    setSelectedHistoryGroup({
+      id: groupId,
+      fixtures: res.data.data || []
+    });
+
+  } catch (err) {
+    console.error("History Fixtures Load Error:", err);
+  }
+};
+
+const loadTournamentHistory = async () => {
+  try {
+    const res = await axios.get(
+      `${API_URL}/scheduler/excel/history`
+    );
+
+    setTournamentHistory(res.data.data || []);
+  } catch (err) {
+    console.error("History Load Error:", err);
+  }
+};
 
 // 🔥 Handle Excel Upload
 const handleExcelUpload = async (e) => {
@@ -540,15 +575,98 @@ const filteredFixtures = excelFixtures.filter((f) => {
           </h4>
                     <div className="mb-3">
               <select
-                className="form-select w-auto"
-                value={tournamentView}
-                onChange={(e) => setTournamentView(e.target.value)}
-              >
-                <option value="RUNNING">Running Tournament</option>
-                <option value="COMPLETED">Completed Tournament</option>
-              </select>
+              className="form-select w-auto"
+              value={tournamentView}
+              onChange={(e) => setTournamentView(e.target.value)}
+            >
+              <option value="RUNNING">Running Tournament</option>
+              <option value="COMPLETED">Completed Tournament</option>
+              <option value="HISTORY">Tournament History</option>
+            </select>
             </div>
 
+            {tournamentView === "HISTORY" && (
+  <>
+    <div className="alert alert-info text-center fw-bold">
+      📜 Tournament History Archive
+    </div>
+
+    {tournamentHistory.length === 0 ? (
+      <div className="text-muted">No past tournaments found.</div>
+    ) : (
+      <div className="table-responsive mb-4">
+        <table className="table table-dark table-bordered align-middle">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Status</th>
+              <th>Created At</th>
+              <th>Total Matches</th>
+              <th>Played</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tournamentHistory.map((t) => (
+              <tr key={t.id}>
+                <td>{t.id}</td>
+                <td>{t.tournament_status}</td>
+                <td>{new Date(t.created_at).toLocaleString()}</td>
+                <td>{t.total_matches}</td>
+                <td>{t.played_matches}</td>
+                <td>
+                  <button
+                    className="btn btn-sm btn-outline-info"
+                    onClick={() => loadHistoryFixtures(t.id)}
+                  >
+                    View
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+
+    {selectedHistoryGroup && (
+      <div className="table-responsive">
+        <h6 className="text-warning">
+          Viewing Tournament ID: {selectedHistoryGroup.id}
+        </h6>
+        <table className="table table-dark table-bordered align-middle">
+          <thead>
+            <tr>
+              <th>SL No</th>
+              <th>Match ID</th>
+              {selectedHistoryGroup.fixtures[0] &&
+                Object.keys(selectedHistoryGroup.fixtures[0].row_data)
+                  .filter((key) => key !== "Match ID")
+                  .map((key) => (
+                    <th key={key}>{key}</th>
+                  ))}
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {selectedHistoryGroup.fixtures.map((f, index) => (
+              <tr key={f.id}>
+                <td>{index + 1}</td>
+                <td>{f.row_data["Match ID"] || "-"}</td>
+                {Object.keys(f.row_data)
+                  .filter((key) => key !== "Match ID")
+                  .map((key, idx) => (
+                    <td key={idx}>{f.row_data[key]}</td>
+                  ))}
+                <td>{f.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </>
+)}
          {tournamentView === "COMPLETED" && (
       <div className="alert alert-info text-center fw-bold">
         📜 Viewing Completed Tournament

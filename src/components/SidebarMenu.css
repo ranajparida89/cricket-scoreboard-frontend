@@ -153,3 +153,56 @@
     backdrop-filter: blur(10px);
   }
 }
+/* ===================================================== */
+/* 🧊 PROFESSIONAL ACTIVE FEATURE STYLE — SCHEDULER */
+/* ===================================================== */
+
+.glow-text {
+  position: relative;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 0.3px;
+  transition: all 0.3s ease;
+}
+
+/* Subtle professional glow breathing */
+.glow-text {
+  animation: schedulerSoftGlow 3.5s ease-in-out infinite;
+}
+
+/* Elegant animated underline sweep */
+.glow-text::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 0%;
+  height: 2px;
+  background: linear-gradient(90deg, #00eaff, #5af6ff);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* Hover effect */
+.sidebar-menu a:hover .glow-text {
+  color: #00f0ff;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.7);
+}
+
+.sidebar-menu a:hover .glow-text::after {
+  width: 100%;
+}
+
+/* Smooth breathing animation */
+@keyframes schedulerSoftGlow {
+  0% {
+    text-shadow: 0 0 3px rgba(0, 234, 255, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 9px rgba(0, 234, 255, 0.6);
+  }
+  100% {
+    text-shadow: 0 0 3px rgba(0, 234, 255, 0.3);
+  }
+}
+

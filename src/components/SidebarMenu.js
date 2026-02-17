@@ -104,14 +104,16 @@ const SidebarMenu = () => {
             <FaDiceD20 className="me-2 text-success" /> Pitch Randomizer
           </Link>
         </li>
-        <li>
-          <Link to="/scheduler" onClick={handleClose}>
-            <span role="img" aria-label="scheduler" style={{ marginRight: 6 }}>
-              🗓️
-            </span>
-            Scheduler
-          </Link>
-        </li>
+       <li>
+            <Link to="/scheduler" onClick={handleClose}>
+              <span role="img" aria-label="scheduler" style={{ marginRight: 6 }}>
+                🗓️
+              </span>
+              <span className="glow-text">
+                Match Fixture & Scheduler
+              </span>
+            </Link>
+          </li>
         <li>
           <Link to="/team-distributor" onClick={handleClose}>
             <span role="img" aria-label="wheel" style={{ marginRight: 6 }}>
