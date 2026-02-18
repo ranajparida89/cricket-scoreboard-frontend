@@ -496,34 +496,37 @@ const filteredFixtures = excelFixtures.filter((f) => {
                     <th>Match Between</th>
                   </tr>
                 </thead>
-                <tbody>
-                {Object.entries(
-                  (result?.fixtures || []).reduce((acc, fixture) => {
-                    const group = fixture.group_name || "Ungrouped";
-                    if (!acc[group]) acc[group] = [];
-                    acc[group].push(fixture);
-                    return acc;
-                  }, {})
-                ).map(([groupName, groupFixtures]) => (
-                  <React.Fragment key={groupName}>
-                    
-                    {/* 🔹 GROUP HEADER ROW */}
-                    <tr className="table-info text-dark fw-bold">
-                      <td colSpan="4">🏆 {groupName}</td>
-                    </tr>
-                    {/* 🔹 GROUP MATCHES */}
-                    {groupFixtures.map((f) => (
-                      <tr key={f.match_id ?? f.id}>
-                        <td>{f.match_id}</td>
-                        <td>{f.team1} ({f.team1_board})</td>
-                        <td>{f.team2} ({f.team2_board})</td>
-                        <td>{f.match_label}</td>
-                      </tr>
-                    ))}
+               <tbody>
+  {Object.entries(
+    (result?.fixtures || []).reduce((acc, fixture) => {
+      const group = fixture.group_name || "Ungrouped";
+      if (!acc[group]) acc[group] = [];
+      acc[group].push(fixture);
+      return acc;
+    }, {})
+  ).map(([groupName, groupFixtures]) => (
+    <React.Fragment key={groupName}>
 
-                  </React.Fragment>
-                ))}
-              </tbody>
+      {/* GROUP HEADER */}
+      <tr className="table-info text-dark fw-bold">
+        <td colSpan="5">🏆 {groupName}</td>
+      </tr>
+
+      {/* GROUP MATCHES */}
+      {groupFixtures.map((f) => (
+        <tr key={f.match_id ?? f.id}>
+          <td>{groupName}</td>
+          <td>{f.match_id}</td>
+          <td>{f.team1} ({f.team1_board})</td>
+          <td>{f.team2} ({f.team2_board})</td>
+          <td>{f.match_label}</td>
+        </tr>
+      ))}
+
+    </React.Fragment>
+  ))}
+</tbody>
+
 
               </table>
             </div>
