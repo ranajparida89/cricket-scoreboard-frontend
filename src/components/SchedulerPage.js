@@ -489,6 +489,7 @@ const filteredFixtures = excelFixtures.filter((f) => {
               <table className="table table-dark table-striped table-hover align-middle">
                 <thead>
                   <tr>
+                    <th>Group</th>
                     <th>Match ID</th>
                     <th>Team 1</th>
                     <th>Team 2</th>
@@ -498,6 +499,7 @@ const filteredFixtures = excelFixtures.filter((f) => {
                 <tbody>
                   {(result?.fixtures || []).map((f) => (
                     <tr key={f.match_id ?? f.id}>
+                      <td>{f.match_group || "-"}</td>
                       <td>{f.match_id}</td>
                       <td>
                         {f.team1} ({f.team1_board})
