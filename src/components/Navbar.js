@@ -75,11 +75,13 @@ const AppNavbar = ({ onAuthClick }) => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+
+
   // 👆 auto hide guide hand after 8 seconds
 useEffect(() => {
   const timer = setTimeout(() => {
     setShowGuideHand(false);
-  }, 8000);
+  }, 10000);
 
   return () => clearTimeout(timer);
 }, []);
@@ -328,11 +330,10 @@ useEffect(() => {
               📥 Get App
             </Button>
 
-            {/* ✅ Single "Add Match Details" button */}
-          {/* ✅ Single "Add Match Details" button with guide hand */}
-<div style={{ position: "relative" }}>
+        {/* ✅ Add Match Button with Floating Guide */}
+<div style={{ position: "relative", display: "inline-block" }}>
   {showGuideHand && (
-    <div className="ce-guide-hand">
+    <div className="ce-floating-guide">
       👆
     </div>
   )}
@@ -354,7 +355,6 @@ useEffect(() => {
     <span className="ms-1 ce-add-caret">▼</span>
   </Button>
 </div>
-
 
             {showAddMenu && (
               <div ref={addMenuRef} className="ce-add-match-menu">
