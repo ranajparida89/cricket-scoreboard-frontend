@@ -154,55 +154,73 @@
   }
 }
 /* ===================================================== */
-/* 🧊 PROFESSIONAL ACTIVE FEATURE STYLE — SCHEDULER */
+/* 🏆 MATCH FIXTURE & SCHEDULER — GOLD BREATH EFFECT */
 /* ===================================================== */
 
-.glow-text {
+.sidebar-menu a[href="/scheduler"] {
   position: relative;
-  font-weight: 600;
-  color: #ffffff;
-  letter-spacing: 0.3px;
-  transition: all 0.3s ease;
+  font-weight: 700;
+
+  /* Gold gradient */
+  background: linear-gradient(
+    90deg,
+    #d4af37,
+    #ffd700,
+    #fff4b0,
+    #ffd700,
+    #d4af37
+  );
+  background-size: 200% auto;
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+
+  animation:
+    schedulerGoldShimmer 4s linear infinite,
+    schedulerGoldBreath 2.8s ease-in-out infinite;
+
+  text-shadow:
+    0 0 8px rgba(255, 215, 0, 0.4),
+    0 0 18px rgba(255, 215, 0, 0.2);
 }
 
-/* Subtle professional glow breathing */
-.glow-text {
-  animation: schedulerSoftGlow 3.5s ease-in-out infinite;
+/* Icon glow */
+.sidebar-menu a[href="/scheduler"] svg {
+  color: #ffd700;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.6));
 }
 
-/* Elegant animated underline sweep */
-.glow-text::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -4px;
-  width: 0%;
-  height: 2px;
-  background: linear-gradient(90deg, #00eaff, #5af6ff);
-  border-radius: 3px;
-  transition: width 0.4s ease;
+/* Hover brighter */
+.sidebar-menu a[href="/scheduler"]:hover {
+  text-shadow:
+    0 0 12px rgba(255, 215, 0, 0.8),
+    0 0 25px rgba(255, 215, 0, 0.5);
 }
 
-/* Hover effect */
-.sidebar-menu a:hover .glow-text {
-  color: #00f0ff;
-  text-shadow: 0 0 8px rgba(0, 240, 255, 0.7);
+/* Gradient movement */
+@keyframes schedulerGoldShimmer {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
 }
 
-.sidebar-menu a:hover .glow-text::after {
-  width: 100%;
-}
-
-/* Smooth breathing animation */
-@keyframes schedulerSoftGlow {
+/* Breathing glow */
+@keyframes schedulerGoldBreath {
   0% {
-    text-shadow: 0 0 3px rgba(0, 234, 255, 0.3);
+    text-shadow:
+      0 0 6px rgba(255, 215, 0, 0.4),
+      0 0 16px rgba(255, 215, 0, 0.2);
   }
   50% {
-    text-shadow: 0 0 9px rgba(0, 234, 255, 0.6);
+    text-shadow:
+      0 0 14px rgba(255, 215, 0, 0.9),
+      0 0 30px rgba(255, 215, 0, 0.6);
   }
   100% {
-    text-shadow: 0 0 3px rgba(0, 234, 255, 0.3);
+    text-shadow:
+      0 0 6px rgba(255, 215, 0, 0.4),
+      0 0 16px rgba(255, 215, 0, 0.2);
   }
 }
+
 
