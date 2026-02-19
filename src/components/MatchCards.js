@@ -57,7 +57,17 @@ const formatOvers = (decimalOvers = 0) => {
 };
 
 const formatMatchTitle = (raw = "") => {
-  let s = String(raw || "").split(":")[0];
+  let s = String(raw || "");
+
+  s = s
+    .replace(/(?<=[A-Za-z])(?=\d)/g, " ")
+    .replace(/(?<=\d)(?=[A-Za-z])/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  return s.replace(/^(\w)/, (m) => m.toUpperCase());
+};
+
   s = s
     .replace(/(?<=[A-Za-z])(?=\d)/g, " ")
     .replace(/(?<=\d)(?=[A-Za-z])/g, " ")
