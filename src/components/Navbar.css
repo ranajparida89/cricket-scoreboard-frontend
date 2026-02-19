@@ -345,33 +345,33 @@
   }
 }
 /* ========================================= */
-/* 👆 MEDIUM FLOATING GUIDE HAND EFFECT */
+/* 👆 MEDIUM FLOATING GUIDE HAND (FIXED) */
 /* ========================================= */
 
 .ce-floating-guide {
   position: absolute;
+  top: 55px;        /* push BELOW button */
   left: 50%;
   transform: translateX(-50%);
-  bottom: -70px; /* below button */
-  font-size: 44px; /* medium size */
-  z-index: 4000;
+  font-size: 46px;
+  z-index: 5000;
   pointer-events: none;
-  animation: ceFloatUp 2s ease-in-out infinite;
-  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+  animation: ceFloatUp 1.8s ease-in-out infinite;
+  filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.9));
 }
 
-/* Smooth floating motion */
+/* Floating upward motion */
 @keyframes ceFloatUp {
   0% {
-    transform: translateX(-50%) translateY(15px);
-    opacity: 0.7;
+    transform: translateX(-50%) translateY(20px);
+    opacity: 0.6;
   }
   50% {
     transform: translateX(-50%) translateY(-10px);
     opacity: 1;
   }
   100% {
-    transform: translateX(-50%) translateY(15px);
-    opacity: 0.7;
+    transform: translateX(-50%) translateY(20px);
+    opacity: 0.6;
   }
 }
