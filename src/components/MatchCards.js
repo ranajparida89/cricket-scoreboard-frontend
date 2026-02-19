@@ -68,14 +68,6 @@ const formatMatchTitle = (raw = "") => {
   return s.replace(/^(\w)/, (m) => m.toUpperCase());
 };
 
-  s = s
-    .replace(/(?<=[A-Za-z])(?=\d)/g, " ")
-    .replace(/(?<=\d)(?=[A-Za-z])/g, " ")
-    .replace(/(ODI|T20|TEST|Test|Final|Qualifier|Semi|Quarter)/g, " $1 ")
-    .replace(/\s{2,}/g, " ")
-    .trim();
-  return s.replace(/^(\w)/, (m) => m.toUpperCase());
-};
 
 const formatReadableDate = (v) => {
   if (!v) return "Not recorded";
