@@ -304,74 +304,39 @@
   color: #ffd966 !important;
   text-shadow: 0 0 8px rgba(245, 197, 66, 0.6);
 }
-/* =================================== */
-/* 👆 POP-UP HAND FROM BELOW BUTTON */
-/* =================================== */
 
-.ce-guide-hand {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: -80px; /* push well below button */
-  font-size: 60px; /* bigger */
-  z-index: 5000;
-  pointer-events: none;
-  animation: ceHandPopUp 1.6s ease-in-out infinite;
-  filter: drop-shadow(0 0 15px rgba(255, 200, 0, 0.9));
+/* ========================================= */
+/* ✨ ADD MATCH – GLOW + BREATHING EFFECT */
+/* ========================================= */
+
+.ce-add-glow {
+  animation: ceAddBreath 2.5s ease-in-out infinite;
+  border: 1px solid rgba(255, 215, 0, 0.6) !important;
+  box-shadow:
+    0 0 8px rgba(255, 215, 0, 0.4),
+    0 0 18px rgba(255, 200, 0, 0.25);
 }
 
-@keyframes ceHandPopUp {
+/* Breathing pulse */
+@keyframes ceAddBreath {
   0% {
-    transform: translateX(-50%) translateY(30px) scale(0.7);
-    opacity: 0;
-  }
-
-  30% {
-    transform: translateX(-50%) translateY(0px) scale(1.3);
-    opacity: 1;
+    box-shadow:
+      0 0 6px rgba(255, 215, 0, 0.3),
+      0 0 12px rgba(255, 200, 0, 0.15);
+    transform: scale(1);
   }
 
   50% {
-    transform: translateX(-50%) translateY(-15px) scale(1);
-  }
-
-  70% {
-    transform: translateX(-50%) translateY(-5px) scale(1.1);
+    box-shadow:
+      0 0 16px rgba(255, 215, 0, 0.8),
+      0 0 30px rgba(255, 200, 0, 0.5);
+    transform: scale(1.05);
   }
 
   100% {
-    transform: translateX(-50%) translateY(30px) scale(0.7);
-    opacity: 0.9;
-  }
-}
-/* ========================================= */
-/* 👆 MEDIUM FLOATING GUIDE HAND (FIXED) */
-/* ========================================= */
-
-.ce-floating-guide {
-  position: absolute;
-  top: 55px;        /* push BELOW button */
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 46px;
-  z-index: 5000;
-  pointer-events: none;
-  animation: ceFloatUp 1.8s ease-in-out infinite;
-  filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.9));
-}
-
-/* Floating upward motion */
-@keyframes ceFloatUp {
-  0% {
-    transform: translateX(-50%) translateY(20px);
-    opacity: 0.6;
-  }
-  50% {
-    transform: translateX(-50%) translateY(-10px);
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(-50%) translateY(20px);
-    opacity: 0.6;
+    box-shadow:
+      0 0 6px rgba(255, 215, 0, 0.3),
+      0 0 12px rgba(255, 200, 0, 0.15);
+    transform: scale(1);
   }
 }

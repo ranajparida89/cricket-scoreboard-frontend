@@ -53,7 +53,6 @@ const AppNavbar = ({ onAuthClick }) => {
 
   // ----- new: add-match dropdown -----
   const [showAddMenu, setShowAddMenu] = useState(false);
-  const [showGuideHand, setShowGuideHand] = useState(true);
   const addBtnRef = useRef(null);
   const addMenuRef = useRef(null);
   const navigate = useNavigate();
@@ -75,16 +74,6 @@ const AppNavbar = ({ onAuthClick }) => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-
-
-  // 👆 auto hide guide hand after 8 seconds
-useEffect(() => {
-  const timer = setTimeout(() => {
-    setShowGuideHand(false);
-  }, 10000);
-
-  return () => clearTimeout(timer);
-}, []);
 
   const handleAddOdiT20 = () => {
     playSound("click");
@@ -330,31 +319,21 @@ useEffect(() => {
               📥 Get App
             </Button>
 
-        {/* ✅ Add Match Button with Floating Guide */}
-<div style={{ position: "relative", display: "inline-block" }}>
-  {showGuideHand && (
-    <div className="ce-floating-guide">
-      👆
-    </div>
-  )}
-
-  <Button
-    ref={addBtnRef}
-    className={
-      "navbar-action-btn hover-slide-emoji slumber-ghost-btn ce-add-match-trigger" +
-      (showAddMenu ? " is-open" : "")
-    }
-    onClick={() => {
-      playSound("click");
-      setShowAddMenu((v) => !v);
-      setShowGuideHand(false);
-    }}
-    onMouseEnter={() => playSound("hover")}
-  >
-    + Add Match Details
-    <span className="ms-1 ce-add-caret">▼</span>
-  </Button>
-</div>
+<Button
+  ref={addBtnRef}
+  className={
+    "navbar-action-btn hover-slide-emoji slumber-ghost-btn ce-add-match-trigger ce-add-glow" +
+    (showAddMenu ? " is-open" : "")
+  }
+  onClick={() => {
+    playSound("click");
+    setShowAddMenu((v) => !v);
+  }}
+  onMouseEnter={() => playSound("hover")}
+>
+  + Add Match Details
+  <span className="ms-1 ce-add-caret">▼</span>
+</Button>
 
             {showAddMenu && (
               <div ref={addMenuRef} className="ce-add-match-menu">
