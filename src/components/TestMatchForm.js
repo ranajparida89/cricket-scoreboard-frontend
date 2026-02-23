@@ -186,6 +186,9 @@ export default function TestMatchForm() {
     [matchDate]
   );
   const [seasonYear, setSeasonYear] = useState(seasonDefault);
+  // ✅ CrickEdge Season
+const [seasonId, setSeasonId] = useState(null);
+const [seasonType, setSeasonType] = useState("NORMAL");
 
 const [team1, setTeam1] = useState("");
 const [team2, setTeam2] = useState("");
@@ -246,6 +249,28 @@ useEffect(() => {
   const maxOvers = 450;
 
   const formattedPreview = formatTournamentName(newTourName);
+  // ✅ Load Active CrickEdge Season
+useEffect(() => {
+
+axios.get("https://cricket-scoreboard-backend.onrender.com/api/crickedge-season/active")
+.then(res=>{
+
+if(res.data){
+
+setSeasonId(res.data.id)
+setSeasonType(res.data.match_type || "NORMAL")
+
+}
+
+})
+.catch(()=>{
+
+setSeasonId(null)
+setSeasonType("NORMAL")
+
+})
+
+},[])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -644,6 +669,9 @@ const handleAddTeam = async () => {
         mom_player_id: selectedMom.id,
         mom_player: selectedMom.player_name,
         mom_reason: momReason.trim(),
+        // ✅ CrickEdge Season
+      crickedge_season_id: seasonId,
+      season_type: seasonType,
       };
 
       const result = await submitTestMatchResult(payload);
