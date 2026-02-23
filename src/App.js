@@ -59,7 +59,7 @@ import ForumPage from "./components/ForumPage";
 import AuctionRedirect from "./components/AuctionRedirect";
 import AuctionResults from "./components/AuctionResults";
 import PlayerAuctionSetup from "./components/PlayerAuctionSetup";
-
+import SeasonLeaderboard from "./components/SeasonLeaderboard";
 
 // 🔥 NEW
 import PitchRandomizer from "./components/PitchRandomizer";
@@ -540,7 +540,7 @@ function App() {
           <Route path="/team-distributor" element={<TeamDistributor />} />
           <Route path="/past-matches" element={<PastMatchesHub />} />
           <Route path="/player-report-card" element={<PlayerReportCard />} />
-
+          <Route path="/season-leaderboard" element={<SeasonLeaderboard />} />
           <Route
             path="/tournament-points"
             element={

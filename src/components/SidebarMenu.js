@@ -164,6 +164,12 @@ const SidebarMenu = () => {
             <FaChartLine className="me-2" /> Tournament Points
           </Link>
         </li>
+
+                <li>
+          <Link to="/season-leaderboard" onClick={handleClose}>
+            <FaChartLine className="me-2 text-success" /> Season Leaderboard
+          </Link>
+        </li>
                
             <li>
       <Link to="/rules-and-regulations" onClick={handleClose}>
