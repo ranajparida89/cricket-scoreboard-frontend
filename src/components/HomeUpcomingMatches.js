@@ -57,34 +57,28 @@ export default function HomeUpcomingMatches() {
             <h2 className="upcomingSeasonTitle">
                 {title}
             </h2>
-            <div
-                className="upcomingScroll"
-                ref={sliderRef}
-            >
-                {matches.map((m, i) => {
+                            <div
+                    className="upcomingScroll"
+                    ref={sliderRef}
+                    >
+                     {matches.map((m, i) => {
                     const row = m.row_data;
                     return (
-                        <div
-                            className="upcomingCard"
-                            key={i}
+                       <div
+                        className="upcomingCard"
+                        key={i}
                         >
                             <div className="upcomingBadge">
                                 UPCOMING
-                            </div>
+                                </div>
                             <div className="teamA">
                                 {row["Team 1"]}
-                                <div className="boardName">
-                                    ({row["Board 1"]})
-                                </div>
                             </div>
                             <div className="vsText">
-                                VS
-                            </div>
+                                    VS
+                                    </div>
                             <div className="teamB">
                                 {row["Team 2"]}
-                                <div className="boardName">
-                                    ({row["Board 2"]})
-                                </div>
                             </div>
                         </div>
                     );
