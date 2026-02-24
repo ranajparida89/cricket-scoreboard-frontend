@@ -225,7 +225,7 @@ export default function MatchForm() {
   );
   const [seasonYear, setSeasonYear] = useState(seasonDefault);
   // ✅ Season Selector
-  const [seasonType, setSeasonType] = useState("INTERNATIONAL");
+  const [seasonType, setSeasonType] = useState("CRICKEDGE");
   const [seasonId, setSeasonId] = useState(null);
   const [seasonsList, setSeasonsList] = useState([]);
 
