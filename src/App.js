@@ -9,6 +9,7 @@ import TestLeaderboard from "./components/TestLeaderboard";
 import MatchHistory from "./components/MatchHistory";
 import TeamChart from "./components/TeamCharts";
 import MatchCards from "./components/MatchCards";
+import HomeUpcomingMatches from "./components/HomeUpcomingMatches";
 // ❌ old landing component no longer used
 // import TeamsPage from "./components/TeamsPage";
 import TeamDetails from "./components/TeamDetails";
@@ -87,7 +88,7 @@ function HomePage() {
   return (
     <div className="container mt-4">
       <HomeHighlights />
-
+      <HomeUpcomingMatches /> 
       <div className="mb-5">
         <MatchCards />
       </div>

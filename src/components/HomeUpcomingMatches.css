@@ -1,0 +1,91 @@
+/* =============================
+UPCOMING MATCHES SECTION
+============================= */
+.homeUpcomingBox {
+    margin: 25px auto;
+    max-width: 1300px;
+    padding: 22px;
+    border-radius: 14px;
+    background:
+        linear-gradient(180deg,
+            rgba(10, 20, 35, 0.95),
+            rgba(5, 10, 20, 0.95));
+    border: 1px solid rgba(0, 224, 255, 0.25);
+    box-shadow:
+        0 0 25px rgba(0, 0, 0, 0.6);
+}
+
+/* HEADER */
+.homeUpcomingBox h2 {
+    text-align: center;
+    color: #00e0ff;
+    margin-bottom: 20px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+/* SLIDER */
+.upcomingSlider {
+    display: flex;
+    gap: 18px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding-bottom: 10px;
+}
+
+/* CARD */
+.upcomingCard {
+    min-width: 230px;
+    padding: 20px;
+    border-radius: 12px;
+    background:
+        linear-gradient(180deg,
+            #12233d,
+            #081520);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    text-align: center;
+    transition: .3s;
+    box-shadow:
+        0 0 12px rgba(0, 0, 0, 0.6);
+}
+
+.upcomingCard:hover {
+    transform: translateY(-5px);
+    box-shadow:
+        0 0 20px rgba(0, 224, 255, 0.4);
+}
+
+/* UPCOMING BADGE */
+.upcomingBadge {
+    color: #4da6ff;
+    font-size: 12px;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+/* TEAMS */
+.teamA {
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+}
+
+.teamB {
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+}
+
+.vsText {
+    margin: 6px 0;
+    color: #999;
+}
+
+/* NO MATCHES */
+.noMatches {
+    text-align: center;
+    padding: 20px;
+    font-size: 18px;
+    color: #9fdcff;
+    opacity: 0.9;
+}
