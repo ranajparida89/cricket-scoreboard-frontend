@@ -619,6 +619,11 @@ export default function TestMatchForm() {
       return alert("❌ Reason for MoM is required.");
     }
 
+    // ✅ Season validation
+    if (seasonType === "CRICKEDGE" && !seasonId) {
+      return alert("❌ Please select CrickEdge Season.");
+    }
+
     try {
       setIsSubmitting(true);
       const match = await createMatch({
