@@ -187,8 +187,10 @@ export default function TestMatchForm() {
   );
   const [seasonYear, setSeasonYear] = useState(seasonDefault);
   // ✅ CrickEdge Season
+const [seasonType, setSeasonType] = useState("INTERNATIONAL");
 const [seasonId, setSeasonId] = useState(null);
-const [seasonType, setSeasonType] = useState("NORMAL");
+const [seasonsList, setSeasonsList] = useState([]);
+
 
 const [team1, setTeam1] = useState("");
 const [team2, setTeam2] = useState("");
@@ -251,25 +253,13 @@ useEffect(() => {
   const formattedPreview = formatTournamentName(newTourName);
   // ✅ Load Active CrickEdge Season
 useEffect(() => {
-
-axios.get("https://cricket-scoreboard-backend.onrender.com/api/crickedge-season/active")
+axios.get("https://cricket-scoreboard-backend.onrender.com/api/crickedge-season/all")
 .then(res=>{
-
-if(res.data){
-
-setSeasonId(res.data.id)
-setSeasonType(res.data.match_type || "NORMAL")
-
-}
-
+setSeasonsList(res.data || [])
 })
 .catch(()=>{
-
-setSeasonId(null)
-setSeasonType("NORMAL")
-
+setSeasonsList([])
 })
-
 },[])
 
   // Close dropdown when clicking outside
@@ -670,8 +660,15 @@ const handleAddTeam = async () => {
         mom_player: selectedMom.player_name,
         mom_reason: momReason.trim(),
         // ✅ CrickEdge Season
-      crickedge_season_id: seasonId,
-      season_type: seasonType,
+      crickedge_season_id:
+      seasonType==="CRICKEDGE"
+      ? seasonId
+      : null,
+
+      season_type:
+      seasonType==="CRICKEDGE"
+      ? "CRICKEDGE"
+      : "INTERNATIONAL",
       };
 
       const result = await submitTestMatchResult(payload);

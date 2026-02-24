@@ -224,9 +224,11 @@ export default function MatchForm() {
     [matchDate]
   );
   const [seasonYear, setSeasonYear] = useState(seasonDefault);
-  // ✅ CrickEdge Season
+// ✅ Season Selector
+const [seasonType, setSeasonType] = useState("INTERNATIONAL");
 const [seasonId, setSeasonId] = useState(null);
-const [seasonType, setSeasonType] = useState("NORMAL");
+const [seasonsList, setSeasonsList] = useState([]);
+
 
   const [matchType, setMatchType] = useState("T20");
   const [team1, setTeam1] = useState("");
@@ -293,17 +295,14 @@ useEffect(() => {
 
   const formattedPreview = formatTournamentName(newTourName);
   // ✅ Load Active CrickEdge Season
+// ✅ Load All Seasons
 useEffect(() => {
-
-axios.get("https://cricket-scoreboard-backend.onrender.com/api/crickedge-season/active").then(res=>{
-if(res.data){
-setSeasonId(res.data.id)
-setSeasonType(res.data.match_type || "NORMAL")
-}
+axios.get("https://cricket-scoreboard-backend.onrender.com/api/crickedge-season/all")
+.then(res=>{
+setSeasonsList(res.data || [])
 })
 .catch(()=>{
-setSeasonId(null)
-setSeasonType("NORMAL")
+setSeasonsList([])
 })
 },[])
 
@@ -667,8 +666,15 @@ const handleAddTeam = async () => {
         mom_player: selectedMom.player_name,
         mom_reason: momReason.trim(),
         // ✅ CrickEdge Season
-      crickedge_season_id: seasonId,
-        season_type: seasonType,
+      crickedge_season_id:
+        seasonType==="CRICKEDGE"
+        ? seasonId
+        : null,
+
+        season_type:
+        seasonType==="CRICKEDGE"
+        ? "CRICKEDGE"
+        : "INTERNATIONAL",
       };
 
       const result = await submitMatchResult(payload);
@@ -848,6 +854,64 @@ const handleAddTeam = async () => {
           )}
 
           {/* Match Type */}
+          {/* Season Type */}
+          <div className="mb-3">
+
+          <label>Season Type:</label>
+
+          <select
+          className="form-select"
+          value={seasonType}
+          onChange={(e)=>{
+
+          setSeasonType(e.target.value)
+
+          if(e.target.value==="INTERNATIONAL")
+          setSeasonId(null)
+
+          }}
+          >
+
+          <option value="INTERNATIONAL">
+          International Season
+          </option>
+
+          <option value="CRICKEDGE">
+          CrickEdge Season
+          </option>
+
+          </select>
+
+          </div>
+
+
+          {seasonType==="CRICKEDGE" && (
+
+          <div className="mb-3">
+
+          <label>Select CrickEdge Season:</label>
+
+          <select
+          className="form-select"
+          value={seasonId || ""}
+          onChange={(e)=>setSeasonId(e.target.value)}
+          >
+
+          <option value="">
+          Select Season
+          </option>
+
+          {seasonsList.map(s=>(
+          <option key={s.id} value={s.id}>
+          {s.season_name}
+          </option>
+          ))}
+
+          </select>
+
+          </div>
+
+          )}
           <div className="mb-3 mt-3">
             <label>Match Type:</label>
             <select
