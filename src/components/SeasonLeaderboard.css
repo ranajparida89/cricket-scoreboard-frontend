@@ -75,11 +75,13 @@
   border: none;
   color: #d6e6ff;
 }
+
 /* ROUND CORNERS */
 .seasonTable td:first-child {
   border-top-left-radius: 12px;
   border-bottom-left-radius: 12px;
 }
+
 .seasonTable td:last-child {
   border-top-right-radius: 12px;
   border-bottom-right-radius: 12px;
@@ -137,6 +139,7 @@
   font-size: 18px;
   color: white;
 }
+
 .seasonAdminBox {
   margin-top: 20px;
   margin-bottom: 40px;
@@ -152,6 +155,7 @@
   text-align: center;
   margin-bottom: 25px;
 }
+
 .seasonTab {
   padding: 10px 20px;
   margin: 5px;
@@ -162,6 +166,7 @@
   cursor: pointer;
   font-size: 15px;
 }
+
 .seasonTab.active {
   background: gold;
   color: black;
@@ -231,4 +236,85 @@
 .matchDate {
   font-size: 13px;
   color: #aaa;
+}
+
+/* =====================================
+   SEASON SUMMARY DASHBOARD (PREMIUM)
+===================================== */
+.season-summary {
+  margin-bottom: 30px;
+  padding: 25px;
+  border-radius: 14px;
+  /* Soft premium glass */
+  background:
+    linear-gradient(180deg,
+      rgba(15, 30, 50, 0.95),
+      rgba(10, 20, 35, 0.95));
+  border: 1px solid rgba(0, 224, 255, 0.25);
+  box-shadow:
+    0px 0px 25px rgba(0, 0, 0, 0.6);
+}
+
+/* Title */
+.season-summary h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: #9fdcff;
+  letter-spacing: 1px;
+}
+/* GRID */
+.summary-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px;
+}
+/* CARD BASE */
+.summary-card {
+  padding: 18px;
+  border-radius: 12px;
+  text-align: center;
+  /* Professional background */
+  background:
+    linear-gradient(180deg,
+      rgba(20, 35, 55, 0.95),
+      rgba(10, 20, 35, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: 0.25s;
+  box-shadow:
+    0px 0px 12px rgba(0, 0, 0, 0.5);
+}
+/* Hover Premium */
+.summary-card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0px 0px 18px rgba(0, 224, 255, 0.25);
+}
+/* LABEL */
+.summary-card {
+  color: #bcd6ff;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+/* VALUE */
+.summary-card h1 {
+  margin-top: 8px;
+  font-size: 26px;
+  font-weight: 600;
+  color: #00e0ff;
+}
+
+/* Champion Special */
+.summary-card.champion {
+  background:
+    linear-gradient(180deg,
+      rgba(40, 30, 10, 0.95),
+      rgba(25, 20, 5, 0.95));
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  box-shadow:
+    0px 0px 18px rgba(255, 215, 0, 0.25);
+}
+.summary-card.champion h1 {
+  color: gold;
 }
