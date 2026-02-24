@@ -18,7 +18,7 @@ export default function HomeUpcomingMatches() {
     }, []);
     /* AUTO SLIDE */
     useEffect(() => {
-    const slider = sliderRef.current;
+        const slider = sliderRef.current;
         if (!slider) return;
         let interval;
         const startSlide = () => {
@@ -30,7 +30,7 @@ export default function HomeUpcomingMatches() {
                     slider.scrollWidth
                 ) {
 
-                 slider.scrollLeft = 0;
+                    slider.scrollLeft = 0;
                 }
             }, 30);
         };
@@ -44,37 +44,39 @@ export default function HomeUpcomingMatches() {
     }, [matches]);
     if (matches.length === 0) {
         return (
-            <div className="seasonUpcomingBox">
-                <h2>No Matches Pending</h2>
+            <div className="homeUpcomingWrapper">
+                <div className="noMatches">
+                    No Matches Pending
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="seasonUpcomingBox">
-            <h2>
+        <div className="homeUpcomingWrapper">
+            <h2 className="upcomingSeasonTitle">
                 {title}
             </h2>
-            <div
-                className="seasonSlider"
-                ref={sliderRef}
-            >
-                {matches.map((m, i) => {
-                const row = m.row_data;
+                            <div
+                    className="upcomingScroll"
+                    ref={sliderRef}
+                    >
+                     {matches.map((m, i) => {
+                    const row = m.row_data;
                     return (
-                        <div
-                            className="seasonCard"
-                            key={i}
+                       <div
+                        className="upcomingCard"
+                        key={i}
                         >
-                            <div className="badgeUpcoming">
+                            <div className="upcomingBadge">
                                 UPCOMING
-                            </div>
+                                </div>
                             <div className="teamA">
                                 {row["Team 1"]}
                             </div>
-                            <div className="vs">
-                                vs
-                            </div>
+                            <div className="vsText">
+                                    VS
+                                    </div>
                             <div className="teamB">
                                 {row["Team 2"]}
                             </div>
