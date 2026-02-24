@@ -1,51 +1,87 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import "./HomeUpcomingMatches.css";
 export default function HomeUpcomingMatches() {
     const [matches, setMatches] = useState([]);
-    const [pending, setPending] = useState(0);
+    const [title, setTitle] = useState("");
+    const sliderRef = useRef(null);
     useEffect(() => {
         axios.get(
             "https://cricket-scoreboard-backend.onrender.com/api/scheduler/excel/upcoming-home"
         )
             .then(res => {
+
                 setMatches(res.data.matches || []);
-                setPending(res.data.totalPending || 0);
+                setTitle(res.data.seasonTitle || "Upcoming Matches");
+
             });
     }, []);
-    return (
-        <div className="homeUpcomingBox">
-            <h2>
-                Upcoming Matches
-            </h2>
-            {pending === 0 ? (
+    /* AUTO SLIDE */
+    useEffect(() => {
+    const slider = sliderRef.current;
+        if (!slider) return;
+        let interval;
+        const startSlide = () => {
+            interval = setInterval(() => {
+                slider.scrollLeft += 1;
+                if (
+                    slider.scrollLeft +
+                    slider.clientWidth >=
+                    slider.scrollWidth
+                ) {
 
-                <div className="noMatches">
-                    No Matches Pending
-                </div>
-            ) : (
-                <div className="upcomingSlider">
-                    {matches.map((m, i) => {
-                        const row = m.row_data;
-                        return (
-                            <div className="upcomingCard" key={i}>
-                                <div className="upcomingBadge">
-                                    UPCOMING
-                                </div>
-                                <div className="teamA">
-                                    {row["Team 1"]}
-                             </div>
-                                <div className="vsText">
-                                    VS
-                                </div>
-                                <div className="teamB">
-                                    {row["Team 2"]}
-                                </div>
+                 slider.scrollLeft = 0;
+                }
+            }, 30);
+        };
+        const stopSlide = () => clearInterval(interval);
+        startSlide();
+        slider.addEventListener("mouseenter", stopSlide);
+        slider.addEventListener("mouseleave", startSlide);
+        slider.addEventListener("touchstart", stopSlide);
+        slider.addEventListener("touchend", startSlide);
+        return () => stopSlide();
+    }, [matches]);
+    if (matches.length === 0) {
+        return (
+            <div className="seasonUpcomingBox">
+                <h2>No Matches Pending</h2>
+            </div>
+        );
+    }
+
+    return (
+        <div className="seasonUpcomingBox">
+            <h2>
+                {title}
+            </h2>
+            <div
+                className="seasonSlider"
+                ref={sliderRef}
+            >
+                {matches.map((m, i) => {
+                const row = m.row_data;
+                    return (
+                        <div
+                            className="seasonCard"
+                            key={i}
+                        >
+                            <div className="badgeUpcoming">
+                                UPCOMING
                             </div>
-                        );
-                    })}
-                </div>
-            )}
+                            <div className="teamA">
+                                {row["Team 1"]}
+                            </div>
+                            <div className="vs">
+                                vs
+                            </div>
+                            <div className="teamB">
+                                {row["Team 2"]}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
         </div>
     );
 }

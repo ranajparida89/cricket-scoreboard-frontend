@@ -1,91 +1,80 @@
-/* =============================
-UPCOMING MATCHES SECTION
-============================= */
-.homeUpcomingBox {
-    margin: 25px auto;
-    max-width: 1300px;
-    padding: 22px;
+/* CONTAINER */
+.seasonUpcomingBox {
+    margin: 30px auto;
+    max-width: 1350px;
+    padding: 25px;
     border-radius: 14px;
     background:
         linear-gradient(180deg,
-            rgba(10, 20, 35, 0.95),
-            rgba(5, 10, 20, 0.95));
+            rgba(8, 18, 35, 0.95),
+            rgba(4, 10, 20, 0.95));
     border: 1px solid rgba(0, 224, 255, 0.25);
     box-shadow:
-        0 0 25px rgba(0, 0, 0, 0.6);
+        0 0 30px rgba(0, 0, 0, 0.6);
 }
-
-/* HEADER */
-.homeUpcomingBox h2 {
+/* TITLE */
+.seasonUpcomingBox h2 {
     text-align: center;
-    color: #00e0ff;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     font-weight: 600;
     letter-spacing: 1px;
+    color: #9fdcff;
+    font-size: 26px;
 }
-
 /* SLIDER */
-.upcomingSlider {
+.seasonSlider {
     display: flex;
-    gap: 18px;
+    gap: 25px;
     overflow-x: auto;
     scroll-behavior: smooth;
     padding-bottom: 10px;
 }
-
 /* CARD */
-.upcomingCard {
-    min-width: 230px;
-    padding: 20px;
+.seasonCard {
+    min-width: 240px;
+    padding: 22px;
     border-radius: 12px;
+    /* Premium navy */
     background:
         linear-gradient(180deg,
-            #12233d,
-            #081520);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+            #12243d,
+            #081420);
+    /* Thin Gold Border */
+    border: 1px solid rgba(212, 175, 55, 0.6);
     text-align: center;
     transition: .3s;
     box-shadow:
         0 0 12px rgba(0, 0, 0, 0.6);
 }
-
-.upcomingCard:hover {
-    transform: translateY(-5px);
+/* HOVER */
+.seasonCard:hover {
+    transform: translateY(-6px);
     box-shadow:
-        0 0 20px rgba(0, 224, 255, 0.4);
+        0 0 20px rgba(212, 175, 55, 0.5);
 }
-
-/* UPCOMING BADGE */
-.upcomingBadge {
+/* BADGE */
+.badgeUpcoming {
+    font-size: 11px;
+    letter-spacing: 2px;
     color: #4da6ff;
-    font-size: 12px;
-    letter-spacing: 1px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
-
 /* TEAMS */
 .teamA {
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 600;
-    color: white;
+  color: white;
 }
 
 .teamB {
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 600;
     color: white;
 }
 
-.vsText {
-    margin: 6px 0;
-    color: #999;
-}
-
-/* NO MATCHES */
-.noMatches {
-    text-align: center;
-    padding: 20px;
-    font-size: 18px;
-    color: #9fdcff;
-    opacity: 0.9;
+/* VS */
+.vs {
+    margin: 8px 0;
+    color: #888;
+    font-size: 14px;
 }
