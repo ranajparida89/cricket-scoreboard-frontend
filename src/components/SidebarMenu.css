@@ -79,12 +79,10 @@
   font-weight: 700;
 
   /* Gold gradient text */
-  background: linear-gradient(
-    90deg,
-    #f5c542,
-    #ffe08a,
-    #f5c542
-  );
+  background: linear-gradient(90deg,
+      #f5c542,
+      #ffe08a,
+      #f5c542);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
@@ -118,6 +116,7 @@
   0% {
     background-position: 0% center;
   }
+
   100% {
     background-position: 200% center;
   }
@@ -128,12 +127,15 @@
   0% {
     opacity: 1;
   }
+
   45% {
     opacity: 0.85;
   }
+
   60% {
     opacity: 1;
   }
+
   100% {
     opacity: 1;
   }
@@ -153,6 +155,7 @@
     backdrop-filter: blur(10px);
   }
 }
+
 /* ===================================================== */
 /* 🏆 MATCH FIXTURE & SCHEDULER — GOLD BREATH EFFECT */
 /* ===================================================== */
@@ -162,14 +165,12 @@
   font-weight: 700;
 
   /* Gold gradient */
-  background: linear-gradient(
-    90deg,
-    #d4af37,
-    #ffd700,
-    #fff4b0,
-    #ffd700,
-    #d4af37
-  );
+  background: linear-gradient(90deg,
+      #d4af37,
+      #ffd700,
+      #fff4b0,
+      #ffd700,
+      #d4af37);
   background-size: 200% auto;
 
   -webkit-background-clip: text;
@@ -200,8 +201,13 @@
 
 /* Gradient movement */
 @keyframes schedulerGoldShimmer {
-  0% { background-position: 0% center; }
-  100% { background-position: 200% center; }
+  0% {
+    background-position: 0% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
 }
 
 /* Breathing glow */
@@ -211,11 +217,13 @@
       0 0 6px rgba(255, 215, 0, 0.4),
       0 0 16px rgba(255, 215, 0, 0.2);
   }
+
   50% {
     text-shadow:
       0 0 14px rgba(255, 215, 0, 0.9),
       0 0 30px rgba(255, 215, 0, 0.6);
   }
+
   100% {
     text-shadow:
       0 0 6px rgba(255, 215, 0, 0.4),
@@ -223,4 +231,86 @@
   }
 }
 
+/* ===================================================== */
+/* 🌈 SEASON LEADERBOARD — ELECTRIC BLUE PREMIUM */
+/* ===================================================== */
 
+.sidebar-menu a[href="/season-leaderboard"] {
+
+  position: relative;
+  font-weight: 700;
+
+  /* Electric gradient */
+
+  background: linear-gradient(90deg,
+      #00eaff,
+      #4da6ff,
+      #9b6dff,
+      #4da6ff,
+      #00eaff);
+
+  background-size: 250% auto;
+
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  color: transparent !important;
+
+  animation:
+    seasonGlowMove 5s linear infinite,
+    seasonGlowPulse 2.5s ease-in-out infinite;
+
+  text-shadow:
+    0 0 8px rgba(0, 234, 255, 0.4),
+    0 0 18px rgba(77, 166, 255, 0.3);
+
+}
+
+
+/* Icon color */
+
+.sidebar-menu a[href="/season-leaderboard"] svg {
+
+  color: #00eaff;
+
+  filter:
+    drop-shadow(0 0 6px rgba(0, 234, 255, 0.8));
+
+}
+
+
+/* Hover Effect */
+
+.sidebar-menu a[href="/season-leaderboard"]:hover {
+  text-shadow:
+    0 0 14px rgba(0, 234, 255, 0.9),
+    0 0 28px rgba(77, 166, 255, 0.7),
+    0 0 40px rgba(155, 109, 255, 0.5);
+}
+/* Gradient Animation */
+@keyframes seasonGlowMove {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 250% center;
+  }
+}
+/* Pulse Animation */
+@keyframes seasonGlowPulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+  100% {
+   opacity: 1;
+  }
+}
+/* Mobile Calm Mode */
+@media (max-width:768px) {
+  .sidebar-menu a[href="/season-leaderboard"] {
+    animation-duration: 7s, 4s;
+  }
+}
