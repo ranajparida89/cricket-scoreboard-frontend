@@ -187,28 +187,28 @@ export default function TestMatchForm() {
   );
   const [seasonYear, setSeasonYear] = useState(seasonDefault);
   // ✅ CrickEdge Season
-const [seasonType, setSeasonType] = useState("INTERNATIONAL");
-const [seasonId, setSeasonId] = useState(null);
-const [seasonsList, setSeasonsList] = useState([]);
+  const [seasonType, setSeasonType] = useState("INTERNATIONAL");
+  const [seasonId, setSeasonId] = useState(null);
+  const [seasonsList, setSeasonsList] = useState([]);
 
 
-const [team1, setTeam1] = useState("");
-const [team2, setTeam2] = useState("");
-const [teamsList, setTeamsList] = useState([]);
-const [teamsLoading, setTeamsLoading] = useState(false);
+  const [team1, setTeam1] = useState("");
+  const [team2, setTeam2] = useState("");
+  const [teamsList, setTeamsList] = useState([]);
+  const [teamsLoading, setTeamsLoading] = useState(false);
 
-// 🆕 Admin detection for Add Team
-const [isAdmin, setIsAdmin] = useState(false);
-const [showAddTeamModal, setShowAddTeamModal] = useState(false);
-const [newTeamName, setNewTeamName] = useState("");
-const [addingTeam, setAddingTeam] = useState(false);
+  // 🆕 Admin detection for Add Team
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAddTeamModal, setShowAddTeamModal] = useState(false);
+  const [newTeamName, setNewTeamName] = useState("");
+  const [addingTeam, setAddingTeam] = useState(false);
 
-useEffect(() => {
-  const token = localStorage.getItem("admin_jwt");
-  if (token) {
-    setIsAdmin(true);
-  }
-}, []);
+  useEffect(() => {
+    const token = localStorage.getItem("admin_jwt");
+    if (token) {
+      setIsAdmin(true);
+    }
+  }, []);
 
 
   const [resultMsg, setResultMsg] = useState("");
@@ -252,15 +252,15 @@ useEffect(() => {
 
   const formattedPreview = formatTournamentName(newTourName);
   // ✅ Load Active CrickEdge Season
-useEffect(() => {
-axios.get("https://cricket-scoreboard-backend.onrender.com/api/crickedge-season/all")
-.then(res=>{
-setSeasonsList(res.data || [])
-})
-.catch(()=>{
-setSeasonsList([])
-})
-},[])
+  useEffect(() => {
+    axios.get("https://cricket-scoreboard-backend.onrender.com/api/crickedge-season/all")
+      .then(res => {
+        setSeasonsList(res.data || [])
+      })
+      .catch(() => {
+        setSeasonsList([])
+      })
+  }, [])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -346,38 +346,38 @@ setSeasonsList([])
   }, []);
 
   // 🆕 Load Teams for dropdown from existing leaderboard API
-useEffect(() => {
-  let cancelled = false;
+  useEffect(() => {
+    let cancelled = false;
 
-  const fetchTeams = async () => {
-    try {
-      setTeamsLoading(true);
+    const fetchTeams = async () => {
+      try {
+        setTeamsLoading(true);
 
-      const res = await axios.get(
-        "https://cricket-scoreboard-backend.onrender.com/api/teams"
-      );
+        const res = await axios.get(
+          "https://cricket-scoreboard-backend.onrender.com/api/teams"
+        );
 
-      if (cancelled) return;
+        if (cancelled) return;
 
-      const uniqueTeams = Array.from(
-        new Set((res.data || []).map((t) => t.team_name))
-      ).sort();
+        const uniqueTeams = Array.from(
+          new Set((res.data || []).map((t) => t.team_name))
+        ).sort();
 
-      setTeamsList(uniqueTeams);
-    } catch (err) {
-      console.error("Failed to load teams:", err);
-      if (!cancelled) setTeamsList([]);
-    } finally {
-      if (!cancelled) setTeamsLoading(false);
-    }
-  };
+        setTeamsList(uniqueTeams);
+      } catch (err) {
+        console.error("Failed to load teams:", err);
+        if (!cancelled) setTeamsList([]);
+      } finally {
+        if (!cancelled) setTeamsLoading(false);
+      }
+    };
 
-  fetchTeams();
+    fetchTeams();
 
-  return () => {
-    cancelled = true;
-  };
-}, []);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const updateInning = (key, field, value) => {
     setInnings((prev) => {
@@ -540,59 +540,58 @@ useEffect(() => {
     : "Select Man of the Match";
 
   const momDisplayLabel = selectedMomForLabel
-    ? `${selectedMomForLabel.player_name}${
-        selectedMomForLabel.team_name
-          ? ` (${selectedMomForLabel.team_name})`
-          : ""
-      }`
+    ? `${selectedMomForLabel.player_name}${selectedMomForLabel.team_name
+      ? ` (${selectedMomForLabel.team_name})`
+      : ""
+    }`
     : momPlaceholder;
 
   const handleMomSelect = (p) => {
     setMomPlayerId(p.id);
     setMomOpen(false);
   };
-// 🆕 Add new team (Admin only)
-const handleAddTeam = async () => {
-  if (!newTeamName.trim()) {
-    alert("Team name is required.");
-    return;
-  }
+  // 🆕 Add new team (Admin only)
+  const handleAddTeam = async () => {
+    if (!newTeamName.trim()) {
+      alert("Team name is required.");
+      return;
+    }
 
-  try {
-    setAddingTeam(true);
+    try {
+      setAddingTeam(true);
 
-    const token = localStorage.getItem("admin_jwt");
+      const token = localStorage.getItem("admin_jwt");
 
-    await axios.post(
-      "https://cricket-scoreboard-backend.onrender.com/api/admin/add-team",
-      { team_name: newTeamName.trim() },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+      await axios.post(
+        "https://cricket-scoreboard-backend.onrender.com/api/admin/add-team",
+        { team_name: newTeamName.trim() },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    const res = await axios.get(
-      "https://cricket-scoreboard-backend.onrender.com/api/teams"
-    );
+      const res = await axios.get(
+        "https://cricket-scoreboard-backend.onrender.com/api/teams"
+      );
 
-    const uniqueTeams = Array.from(
-      new Set((res.data || []).map((t) => t.team_name))
-    ).sort();
+      const uniqueTeams = Array.from(
+        new Set((res.data || []).map((t) => t.team_name))
+      ).sort();
 
-    setTeamsList(uniqueTeams);
+      setTeamsList(uniqueTeams);
 
-    setTeam1(newTeamName.trim());
+      setTeam1(newTeamName.trim());
 
-    setShowAddTeamModal(false);
-    setNewTeamName("");
-  } catch (err) {
-    alert("Error adding team.");
-  } finally {
-    setAddingTeam(false);
-  }
-};
+      setShowAddTeamModal(false);
+      setNewTeamName("");
+    } catch (err) {
+      alert("Error adding team.");
+    } finally {
+      setAddingTeam(false);
+    }
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     const t1 = normalizeTeamName(team1);
@@ -660,15 +659,15 @@ const handleAddTeam = async () => {
         mom_player: selectedMom.player_name,
         mom_reason: momReason.trim(),
         // ✅ CrickEdge Season
-      crickedge_season_id:
-      seasonType==="CRICKEDGE"
-      ? seasonId
-      : null,
+        crickedge_season_id:
+          seasonType === "CRICKEDGE"
+            ? seasonId
+            : null,
 
-      season_type:
-      seasonType==="CRICKEDGE"
-      ? "CRICKEDGE"
-      : "INTERNATIONAL",
+        season_type:
+          seasonType === "CRICKEDGE"
+            ? "CRICKEDGE"
+            : "INTERNATIONAL",
       };
 
       const result = await submitTestMatchResult(payload);
@@ -695,7 +694,7 @@ const handleAddTeam = async () => {
     team1.trim() &&
     team2.trim() &&
     normalizeTeamName(team1).toLowerCase() ===
-      normalizeTeamName(team2).toLowerCase();
+    normalizeTeamName(team2).toLowerCase();
 
   return (
     <div className="container mt-4">
@@ -799,6 +798,69 @@ const handleAddTeam = async () => {
               />
             </div>
           </div>
+          {/* Season Type */}
+
+          <div className="mb-3">
+
+            <label>Season Type:</label>
+
+            <select
+              className="form-select"
+              value={seasonType}
+              onChange={(e) => {
+
+                setSeasonType(e.target.value)
+
+                if (e.target.value === "INTERNATIONAL")
+                  setSeasonId(null)
+
+              }}
+            >
+
+              <option value="INTERNATIONAL">
+
+                International Season
+
+              </option>
+
+              <option value="CRICKEDGE">
+
+                CrickEdge Season
+
+              </option>
+
+            </select>
+
+          </div>
+
+
+          {seasonType === "CRICKEDGE" && (
+
+            <div className="mb-3">
+
+              <label>Select CrickEdge Season:</label>
+
+              <select
+                className="form-select"
+                value={seasonId || ""}
+                onChange={(e) => setSeasonId(e.target.value)}
+              >
+
+                <option value="">
+                  Select Season
+                </option>
+
+                {seasonsList.map(s => (
+                  <option key={s.id} value={s.id}>
+                    {s.season_name}
+                  </option>
+                ))}
+
+              </select>
+
+            </div>
+
+          )}
 
           {addOpen && (
             <div className="addtour-backdrop" onClick={() => setAddOpen(false)}>
@@ -854,61 +916,61 @@ const handleAddTeam = async () => {
           )}
 
           <div className="row mb-3">
-<div className="col">
-  <label>Team 1:</label>
+            <div className="col">
+              <label>Team 1:</label>
 
-  <div className="team-select-wrapper">
-    <div className="team-select-flex">
-      <Select
-        styles={darkSelectStyles}
-        options={teamsList.map((team) => ({
-          value: team,
-          label: team,
-        }))}
-        value={team1 ? { value: team1, label: team1 } : null}
-        onChange={(selected) => setTeam1(selected?.value || "")}
-        placeholder="Search & Select Team 1"
-        isLoading={teamsLoading}
-        isSearchable
-      />
-    </div>
+              <div className="team-select-wrapper">
+                <div className="team-select-flex">
+                  <Select
+                    styles={darkSelectStyles}
+                    options={teamsList.map((team) => ({
+                      value: team,
+                      label: team,
+                    }))}
+                    value={team1 ? { value: team1, label: team1 } : null}
+                    onChange={(selected) => setTeam1(selected?.value || "")}
+                    placeholder="Search & Select Team 1"
+                    isLoading={teamsLoading}
+                    isSearchable
+                  />
+                </div>
 
-    {isAdmin && (
-  <button
-    type="button"
-    className="btn-add-team"
-    onClick={() => setShowAddTeamModal(true)}
-    title="Add New Team"
-  >
-    +
-  </button>
-)}
+                {isAdmin && (
+                  <button
+                    type="button"
+                    className="btn-add-team"
+                    onClick={() => setShowAddTeamModal(true)}
+                    title="Add New Team"
+                  >
+                    +
+                  </button>
+                )}
 
-  </div>
-</div>
+              </div>
+            </div>
 
-  <div className="col">
-  <label>Team 2:</label>
+            <div className="col">
+              <label>Team 2:</label>
 
-  <div className="team-select-wrapper">
-    <div className="team-select-flex">
-      <Select
-        styles={darkSelectStyles}
-        options={teamsList
-          .filter((team) => team !== team1)
-          .map((team) => ({
-            value: team,
-            label: team,
-          }))}
-        value={team2 ? { value: team2, label: team2 } : null}
-        onChange={(selected) => setTeam2(selected?.value || "")}
-        placeholder="Search & Select Team 2"
-        isLoading={teamsLoading}
-        isSearchable
-      />
-    </div>
-  </div>
-</div>
+              <div className="team-select-wrapper">
+                <div className="team-select-flex">
+                  <Select
+                    styles={darkSelectStyles}
+                    options={teamsList
+                      .filter((team) => team !== team1)
+                      .map((team) => ({
+                        value: team,
+                        label: team,
+                      }))}
+                    value={team2 ? { value: team2, label: team2 } : null}
+                    onChange={(selected) => setTeam2(selected?.value || "")}
+                    placeholder="Search & Select Team 2"
+                    isLoading={teamsLoading}
+                    isSearchable
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           {isDuplicateTeam && (
@@ -1128,37 +1190,37 @@ const handleAddTeam = async () => {
           </div>
         )}
         {showAddTeamModal && (
-  <div className="addteam-backdrop">
-    <div className="addteam-modal">
-      <h5>Add New Team</h5>
+          <div className="addteam-backdrop">
+            <div className="addteam-modal">
+              <h5>Add New Team</h5>
 
-      <input
-        type="text"
-        className="form-control"
-        placeholder="Enter Team Name"
-        value={newTeamName}
-        onChange={(e) => setNewTeamName(e.target.value)}
-      />
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Enter Team Name"
+                value={newTeamName}
+                onChange={(e) => setNewTeamName(e.target.value)}
+              />
 
-      <div style={{ marginTop: "12px", display: "flex", gap: "10px" }}>
-        <button
-          className="btn btn-success"
-          onClick={handleAddTeam}
-          disabled={addingTeam}
-        >
-          {addingTeam ? "Adding..." : "Add"}
-        </button>
+              <div style={{ marginTop: "12px", display: "flex", gap: "10px" }}>
+                <button
+                  className="btn btn-success"
+                  onClick={handleAddTeam}
+                  disabled={addingTeam}
+                >
+                  {addingTeam ? "Adding..." : "Add"}
+                </button>
 
-        <button
-          className="btn btn-secondary"
-          onClick={() => setShowAddTeamModal(false)}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowAddTeamModal(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
