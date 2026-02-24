@@ -1,80 +1,95 @@
-/* CONTAINER */
-.seasonUpcomingBox {
-    margin: 30px auto;
-    max-width: 1350px;
-    padding: 25px;
-    border-radius: 14px;
+/* ============================= */
+/* CRICKEDGE PREMIUM UPCOMING UI */
+/* ============================= */
+.homeUpcomingWrapper {
+  margin-top: 40px;
+    margin-bottom: 50px;
+    padding: 30px;
+    border-radius: 18px;
     background:
         linear-gradient(180deg,
             rgba(8, 18, 35, 0.95),
-            rgba(4, 10, 20, 0.95));
-    border: 1px solid rgba(0, 224, 255, 0.25);
+            rgba(4, 10, 22, 0.95));
     box-shadow:
-        0 0 30px rgba(0, 0, 0, 0.6);
+        0px 0px 40px rgba(0, 150, 255, 0.15),
+        inset 0px 0px 40px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(0, 200, 255, 0.25);
+    overflow: hidden;
+    position: relative;
+
 }
-/* TITLE */
-.seasonUpcomingBox h2 {
+/* SEASON TITLE */
+.upcomingSeasonTitle {
     text-align: center;
-    margin-bottom: 25px;
+    font-size: 26px;
     font-weight: 600;
     letter-spacing: 1px;
-    color: #9fdcff;
-    font-size: 26px;
+    margin-bottom: 25px;
+    color: #4fd4ff;
+    text-shadow:
+        0px 0px 12px rgba(0, 200, 255, 0.4);
 }
-/* SLIDER */
-.seasonSlider {
-    display: flex;
-    gap: 25px;
-    overflow-x: auto;
+/* SCROLL AREA */
+.upcomingScroll {
+  display: flex;
+    gap: 24px;
+    overflow: hidden;
     scroll-behavior: smooth;
-    padding-bottom: 10px;
 }
-/* CARD */
-.seasonCard {
-    min-width: 240px;
+/* MATCH CARD */
+.upcomingCard {
+    min-width: 230px;
     padding: 22px;
-    border-radius: 12px;
-    /* Premium navy */
+    border-radius: 14px;
     background:
         linear-gradient(180deg,
-            #12243d,
-            #081420);
-    /* Thin Gold Border */
-    border: 1px solid rgba(212, 175, 55, 0.6);
-    text-align: center;
-    transition: .3s;
+            rgba(10, 25, 45, 0.95),
+            rgba(5, 15, 30, 0.95));
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 215, 0, 0.7);
     box-shadow:
-        0 0 12px rgba(0, 0, 0, 0.6);
+        0px 0px 20px rgba(0, 0, 0, 0.6),
+        0px 0px 12px rgba(255, 215, 0, 0.25);
+    transition: 0.35s ease;
+    text-align: center;
 }
-/* HOVER */
-.seasonCard:hover {
+
+/* HOVER EFFECT */
+.upcomingCard:hover {
     transform: translateY(-6px);
     box-shadow:
-        0 0 20px rgba(212, 175, 55, 0.5);
+        0px 0px 30px rgba(0, 200, 255, 0.4),
+        0px 0px 20px rgba(255, 215, 0, 0.6);
 }
-/* BADGE */
-.badgeUpcoming {
+/* UPCOMING BADGE */
+.upcomingBadge {
     font-size: 11px;
     letter-spacing: 2px;
-    color: #4da6ff;
+    color: #4fd4ff;
     margin-bottom: 12px;
-}
-/* TEAMS */
-.teamA {
-    font-size: 19px;
     font-weight: 600;
-  color: white;
 }
-
-.teamB {
-    font-size: 19px;
+/* TEAM NAMES */
+.teamA {
+    font-size: 18px;
     font-weight: 600;
     color: white;
+    margin-bottom: 6px;
 }
-
-/* VS */
-.vs {
-    margin: 8px 0;
-    color: #888;
-    font-size: 14px;
+.vsText {
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 6px;
+}
+.teamB {
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+}
+/* EMPTY MESSAGE */
+.noMatches {
+    text-align: center;
+    font-size: 18px;
+    color: #aaa;
+    padding: 25px;
 }
