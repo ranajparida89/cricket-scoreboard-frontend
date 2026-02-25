@@ -298,16 +298,25 @@ function LiveAuctionPage() {
                             Admin Auction Setup
                         </h2>
 
-                        {/* ✅ START AUCTION BUTTON */}
+                        {/* ✅ START AUCTION BUTTON (SAFE VERSION) */}
                         <button
                             onClick={async () => {
-                                await axios.post(
-                                    API +
-                                    "/api/live-auction/start/" +
-                                    AUCTION_ID
-                                );
-                                alert("Auction Started");
-                                loadData();
+                                try {
+                                    const res = await axios.post(
+                                        API +
+                                        "/api/live-auction/start/" +
+                                        AUCTION_ID
+                                    );
+                                    alert(res.data.message || "Auction Started");
+                                    loadData();
+                                }
+                                catch (err) {
+                                    alert(
+                                        err.response?.data?.error
+                                        ||
+                                        "Auction already running"
+                                    );
+                                }
                             }}
                             style={{
                                 marginBottom: "10px",
@@ -317,11 +326,13 @@ function LiveAuctionPage() {
                                 border: "none",
                                 borderRadius: "6px",
                                 fontWeight: "bold"
+
                             }}
 
                         >
 
                             Start Auction
+
                         </button>
 
                         {
