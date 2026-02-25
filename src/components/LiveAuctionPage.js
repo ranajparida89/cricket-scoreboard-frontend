@@ -30,6 +30,9 @@ function LiveAuctionPage() {
     const [selectedBoardId, setSelectedBoardId] = useState("");
     const [soldMessage, setSoldMessage] = useState("");
 
+    const [lastPlayer, setLastPlayer] = useState("");
+    const [soldPopup, setSoldPopup] = useState("");
+
     useEffect(() => {
         loadData();
         const interval =
@@ -56,6 +59,29 @@ function LiveAuctionPage() {
                     "/api/live-auction/status/" +
                     AUCTION_ID
                 );
+
+            /*
+            Detect SOLD Player
+            */
+
+            if (lastPlayer && lastPlayer !== s.data.player_name) {
+                if (status.leading_board) {
+                    setSoldPopup(
+                        lastPlayer +
+                        " SOLD to " +
+                        status.leading_board +
+                        " for ₹ " +
+                        status.current_price
+                    );
+
+                    setTimeout(() => {
+                        setSoldPopup("");
+                    }, 5000);
+                }
+            }
+
+            setLastPlayer(s.data.player_name);
+
             setStatus(s.data);
             // ✅ AUTO CLOSE PLAYER WHEN TIMER ENDS
             if (s.data.timer_seconds === 0) {
@@ -278,21 +304,20 @@ function LiveAuctionPage() {
             }
             <h1>🏏 Live Auction</h1>
             {
-                soldMessage &&
+                soldPopup &&
                 <div
                     style={{
-                        background: "#004d40",
-                        padding: "12px",
+                        background: "#b71c1c",
+                        padding: "15px",
                         marginBottom: "15px",
-                        borderRadius: "8px",
+                        borderRadius: "10px",
                         fontWeight: "bold",
                         color: "#fff",
                         textAlign: "center",
-                        fontSize: "18px"
+                        fontSize: "22px"
                     }}
                 >
-                    🏆 {soldMessage}
-
+                    🏆 {soldPopup}
                 </div>
             }
             <div className="auction-grid">
