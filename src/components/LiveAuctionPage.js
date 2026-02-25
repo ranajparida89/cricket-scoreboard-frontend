@@ -64,14 +64,20 @@ function LiveAuctionPage() {
             Detect SOLD Player
             */
 
+            /*
+ Detect SOLD Player
+ */
+
             if (lastPlayer && lastPlayer !== s.data.player_name) {
-                if (status.leading_board) {
+
+                if (s.data.leading_board) {
+
                     setSoldPopup(
                         lastPlayer +
                         " SOLD to " +
-                        status.leading_board +
+                        s.data.leading_board +
                         " for ₹ " +
-                        status.current_price
+                        s.data.current_price
                     );
 
                     setTimeout(() => {
