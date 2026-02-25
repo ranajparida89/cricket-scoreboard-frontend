@@ -60,36 +60,39 @@ function LiveAuctionPage() {
                 {/* PLAYER PANEL */}
                 <div className="player-panel">
                     <h2>
-                        {status.player_name || "Waiting..."}
+                        {status.player_name ?? "Waiting..."}
                     </h2>
                     <p>
                         Category:
-                        {status.category}
+                        {status.category || "-"}
                     </p>
                     <p>
                         Role:
-                        {status.role}
+                        {status.role || "-"}
                     </p>
                     <p>
                         Base Price:
-                        ₹ {status.base_price}
+                        ₹ {status.base_price || "-"}
                     </p>
                 </div>
 
                 {/* BID PANEL */}
                 <div className="bid-panel">
                     <h2>
-                        ₹ {status.current_price}
+                        ₹ {status.current_price ?? "-"}
                     </h2>
                     <h3>
                         Timer:
-                        {status.timer_seconds}
+                        {status.timer_seconds ?? 0}s
                     </h3>
                     <h3>
                         Leader:
                         {status.leading_board || "-"}
                     </h3>
-                    <button className="bid-button">
+                    <button
+                        className="bid-button"
+                        disabled={!status.player_name}
+                    >
                         PLACE BID
                     </button>
                 </div>
