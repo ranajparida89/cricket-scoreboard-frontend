@@ -146,12 +146,13 @@ function LiveAuctionPage() {
                             ||
                             "-"}
                     </h3>
-                    <button
+                  <button
                         className="bid-button"
                         onClick={placeBid}
-                    >
-                        PLACE BID
-                    </button>
+                        disabled={boards.length === 0}
+                        >
+                        {boards.length === 0 ? "Loading Boards..." : "PLACE BID"}
+                        </button>
                 </div>
                 {/* BOARD PANEL */}
                 <div className="board-panel">
