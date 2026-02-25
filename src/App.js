@@ -57,7 +57,6 @@ import BoardAnalyticsPro from "./components/BoardAnalyticsPro";
 import TournamentPoints from "./components/TournamentPoints";
 import RulesAndRegulations from "./components/RulesAndRegulations";
 import ForumPage from "./components/ForumPage";
-import AuctionResults from "./components/AuctionResults";
 import PlayerAuctionSetup from "./components/PlayerAuctionSetup";
 import SeasonLeaderboard from "./components/SeasonLeaderboard";
 import LiveAuctionPage from "./components/LiveAuctionPage";
@@ -585,17 +584,6 @@ function App() {
               <ProtectedRoute>
                 <PageWrapper>
                   <PlayerAuctionSetup />
-                </PageWrapper>
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/player-auction/:auctionId"
-            element={
-              <ProtectedRoute>
-                <PageWrapper>
-                  <AuctionResults />
                 </PageWrapper>
               </ProtectedRoute>
             }
