@@ -298,28 +298,40 @@ function LiveAuctionPage() {
                             Admin Auction Setup
                         </h2>
 
-                        {/* ✅ START AUCTION BUTTON (SAFE VERSION) */}
+                        {/* ✅ START AUCTION BUTTON */}
+
                         <button
                             onClick={async () => {
+
                                 try {
+
                                     const res = await axios.post(
                                         API +
                                         "/api/live-auction/start/" +
                                         AUCTION_ID
                                     );
+
                                     alert(res.data.message || "Auction Started");
+
                                     loadData();
+
                                 }
                                 catch (err) {
+
                                     alert(
                                         err.response?.data?.error
                                         ||
                                         "Auction already running"
                                     );
+
                                 }
+
                             }}
+
                             style={{
+
                                 marginBottom: "10px",
+                                marginRight: "10px",
                                 padding: "10px 20px",
                                 background: "#2e7d32",
                                 color: "white",
@@ -332,6 +344,55 @@ function LiveAuctionPage() {
                         >
 
                             Start Auction
+
+                        </button>
+
+
+                        {/* ✅ PAUSE AUCTION BUTTON */}
+
+                        <button
+                            onClick={async () => {
+
+                                try {
+
+                                    const res = await axios.post(
+                                        API +
+                                        "/api/live-auction/pause-auction/" +
+                                        AUCTION_ID
+                                    );
+
+                                    alert("Auction Paused");
+
+                                    loadData();
+
+                                }
+                                catch (err) {
+
+                                    alert(
+                                        err.response?.data?.error
+                                        ||
+                                        "Pause Failed"
+                                    );
+
+                                }
+
+                            }}
+
+                            style={{
+
+                                marginBottom: "10px",
+                                padding: "10px 20px",
+                                background: "#f57c00",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                fontWeight: "bold"
+
+                            }}
+
+                        >
+
+                            Pause Auction
 
                         </button>
 
