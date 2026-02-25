@@ -32,6 +32,9 @@ function LiveAuctionPage() {
 
     const [lastPlayer, setLastPlayer] = useState("");
     const [soldPopup, setSoldPopup] = useState("");
+    const [soldPlayers, setSoldPlayers] = useState([]);
+    const selectedBoard =
+        boards.find(b => b.board_id === selectedBoardId);
 
     useEffect(() => {
         loadData();
@@ -109,6 +112,15 @@ function LiveAuctionPage() {
                     AUCTION_ID
                 );
             setBids(h.data.bids);
+
+            // ✅ LOAD SOLD PLAYERS
+            const sold =
+                await axios.get(
+                    API +
+                    "/api/live-auction/sold-players/" +
+                    AUCTION_ID
+                );
+            setSoldPlayers(sold.data);
 
             // ✅ Show latest bid info
             if (h.data.bids.length > 0) {
@@ -392,9 +404,21 @@ function LiveAuctionPage() {
                     <button
                         className="bid-button"
                         onClick={placeBid}
-                        disabled={!selectedBoardId}
+                        disabled={
+                            !selectedBoardId ||
+                            selectedBoard?.players_bought >= 13
+                        }
                     >
-                        {boards.length === 0 ? "Loading Boards..." : "PLACE BID"}
+                        {
+                            selectedBoard?.players_bought >= 13
+                                ?
+                                "Squad Full (13/13)"
+                                :
+                                (boards.length === 0
+                                    ? "Loading Boards..."
+                                    : "PLACE BID")
+                        }
+
                     </button>
                 </div>
                 {/* BOARD PANEL */}
@@ -441,6 +465,24 @@ function LiveAuctionPage() {
                     ))
                 }
 
+            </div>
+            {/* SOLD PLAYERS PANEL */}
+
+            <div className="bid-history">
+                <h3>Sold Players</h3>
+                {soldPlayers.map((p, i) => (
+                    <div key={i}>
+                        <b>{p.player_name}</b>
+
+                        —
+
+                        {p.board_name}
+
+                        —
+
+                        ₹ {Number(p.sold_price).toLocaleString()}
+                    </div>
+                ))}
             </div>
         </div>
     );
