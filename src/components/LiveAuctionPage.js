@@ -67,25 +67,28 @@ function LiveAuctionPage() {
             /*
  Detect SOLD Player
  */
+/*
+Detect SOLD Player (Correct Logic)
+*/
 
-            if (lastPlayer && lastPlayer !== s.data.player_name) {
+if (
+    s.data.timer_seconds === 0 &&
+    s.data.leading_board &&
+    !soldPopup
+) {
 
-                if (s.data.leading_board) {
+    setSoldPopup(
+        s.data.player_name +
+        " SOLD to " +
+        s.data.leading_board +
+        " for ₹ " +
+        s.data.current_price
+    );
 
-                    setSoldPopup(
-                        lastPlayer +
-                        " SOLD to " +
-                        s.data.leading_board +
-                        " for ₹ " +
-                        s.data.current_price
-                    );
-
-                    setTimeout(() => {
-                        setSoldPopup("");
-                    }, 5000);
-                }
-            }
-
+    setTimeout(() => {
+        setSoldPopup("");
+    }, 5000);
+}
             setLastPlayer(s.data.player_name);
 
             setStatus(s.data);
