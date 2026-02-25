@@ -27,6 +27,8 @@ function LiveAuctionPage() {
     const [selectedBoards, setSelectedBoards] = useState([]);
     const [isAdmin, setIsAdmin] = useState(false);
     const [setupMessage, setSetupMessage] = useState("");
+    const [selectedBoardId, setSelectedBoardId] = useState("");
+    const [soldMessage, setSoldMessage] = useState("");
 
     useEffect(() => {
         loadData();
@@ -55,6 +57,20 @@ function LiveAuctionPage() {
                     AUCTION_ID
                 );
             setStatus(s.data);
+            // ✅ AUTO CLOSE PLAYER WHEN TIMER ENDS
+            if (s.data.timer_seconds === 0) {
+                try {
+                    await axios.post(
+                        API +
+                        "/api/live-auction/close-player/" +
+                        AUCTION_ID
+                    );
+                    console.log("Player Closed");
+                }
+                catch (err) {
+                    console.log("Close Player Error", err);
+                }
+            }
             const b =
                 await axios.get(
                     API +
@@ -69,6 +85,16 @@ function LiveAuctionPage() {
                     AUCTION_ID
                 );
             setBids(h.data.bids);
+
+            // ✅ Show latest bid info
+            if (h.data.bids.length > 0) {
+                const latestBid = h.data.bids[0];
+                setSoldMessage(
+                    latestBid.board_name +
+                    " leading ₹ " +
+                    latestBid.bid_amount
+                );
+            }
         }
         catch (err) {
             console.log(
@@ -97,7 +123,7 @@ function LiveAuctionPage() {
                         auction_id:
                             AUCTION_ID,
                         board_id:
-                            boards[0].board_id
+                            selectedBoardId
                     }
 
                 );
@@ -168,7 +194,7 @@ function LiveAuctionPage() {
                 ...selectedBoards,
                 {
                     board_id: board.board_id,
-                    purse: 100000000
+                    purse: 1200000000
                 }
             ]);
         }
@@ -251,6 +277,24 @@ function LiveAuctionPage() {
                 )
             }
             <h1>🏏 Live Auction</h1>
+            {
+                soldMessage &&
+                <div
+                    style={{
+                        background: "#004d40",
+                        padding: "12px",
+                        marginBottom: "15px",
+                        borderRadius: "8px",
+                        fontWeight: "bold",
+                        color: "#fff",
+                        textAlign: "center",
+                        fontSize: "18px"
+                    }}
+                >
+                    🏆 {soldMessage}
+
+                </div>
+            }
             <div className="auction-grid">
                 {/* PLAYER PANEL */}
                 <div className="player-panel">
@@ -299,10 +343,33 @@ function LiveAuctionPage() {
                             ||
                             "-"}
                     </h3>
+                    <select
+                        value={selectedBoardId}
+                        onChange={(e) => setSelectedBoardId(e.target.value)}
+                        style={{
+                            marginBottom: "10px",
+                            padding: "6px"
+                        }}
+                    >
+                        <option value="">
+                            Select Board
+                        </option>
+
+                        {
+                            boards.map(b => (
+                                <option
+                                    key={b.board_id}
+                                    value={b.board_id}
+                                >
+                                    {b.board_name}
+                                </option>
+                            ))
+                        }
+                    </select>
                     <button
                         className="bid-button"
                         onClick={placeBid}
-                        disabled={boards.length === 0}
+                        disabled={!selectedBoardId}
                     >
                         {boards.length === 0 ? "Loading Boards..." : "PLACE BID"}
                     </button>
