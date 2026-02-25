@@ -344,56 +344,49 @@ function LiveAuctionPage() {
                         >
 
                             Start Auction
-
                         </button>
 
-
                         {/* ✅ PAUSE AUCTION BUTTON */}
-
                         <button
                             onClick={async () => {
-
                                 try {
 
-                                    const res = await axios.post(
-                                        API +
-                                        "/api/live-auction/pause-auction/" +
-                                        AUCTION_ID
-                                    );
-
-                                    alert("Auction Paused");
-
+                                    if (status.is_paused) {
+                                        await axios.post(
+                                            API +
+                                            "/api/live-auction/resume-auction/" +
+                                            AUCTION_ID
+                                        );
+                                        alert("Auction Resumed");
+                                    }
+                                    else {
+                                        await axios.post(
+                                            API +
+                                            "/api/live-auction/pause-auction/" +
+                                            AUCTION_ID
+                                        );
+                                        alert("Auction Paused");
+                                    }
                                     loadData();
-
                                 }
                                 catch (err) {
-
                                     alert(
                                         err.response?.data?.error
-                                        ||
-                                        "Pause Failed"
+                                        || "Pause/Resume Failed"
                                     );
-
                                 }
-
                             }}
-
                             style={{
-
-                                marginBottom: "10px",
+                                marginLeft: "10px",
                                 padding: "10px 20px",
-                                background: "#f57c00",
+                                background: status.is_paused ? "#1976d2" : "#ef6c00",
                                 color: "white",
                                 border: "none",
                                 borderRadius: "6px",
                                 fontWeight: "bold"
-
                             }}
-
                         >
-
-                            Pause Auction
-
+                            {status.is_paused ? "Resume Auction" : "Pause Auction"}
                         </button>
 
                         {/* ✅ RESET AUCTION BUTTON */}
