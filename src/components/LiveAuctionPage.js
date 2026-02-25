@@ -33,6 +33,7 @@ function LiveAuctionPage() {
     const [lastPlayer, setLastPlayer] = useState("");
     const [soldPopup, setSoldPopup] = useState("");
     const [soldPlayers, setSoldPlayers] = useState([]);
+    const [squadData, setSquadData] = useState(null);
     const selectedBoard =
         boards.find(b => b.board_id === selectedBoardId);
 
@@ -121,7 +122,22 @@ function LiveAuctionPage() {
                     AUCTION_ID
                 );
             setSoldPlayers(sold.data);
+            // ✅ LOAD BOARD SQUAD
 
+            if (selectedBoardId) {
+                const squad =
+                    await axios.get(
+                        API +
+                        "/api/live-auction/board-squad/" +
+                        AUCTION_ID +
+                        "/" +
+                        selectedBoardId
+                    );
+                setSquadData(squad.data);
+            }
+            else {
+                setSquadData(null);
+            }
             // ✅ Show latest bid info
             if (h.data.bids.length > 0) {
                 const latestBid = h.data.bids[0];
@@ -314,6 +330,29 @@ function LiveAuctionPage() {
             }
             <h1>🏏 Live Auction</h1>
             {
+                isAdmin &&
+                <button
+                    onClick={() => {
+                        window.open(
+                            API +
+                            "/api/live-auction/export-squads/" +
+                            AUCTION_ID
+                        );
+                    }}
+                    style={{
+                        marginBottom: "15px",
+                        padding: "10px 20px",
+                        background: "#1976d2",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "6px",
+                        cursor: "pointer"
+                    }}
+                >
+                    Export Squad Excel
+                </button>
+            }
+            {
                 soldPopup &&
                 <div
                     style={{
@@ -483,6 +522,51 @@ function LiveAuctionPage() {
                         ₹ {Number(p.sold_price).toLocaleString()}
                     </div>
                 ))}
+            </div>
+            {/* BOARD SQUAD PANEL */}
+
+            <div className="bid-history">
+                <h3>Board Squad</h3>
+                {
+                    !selectedBoardId &&
+                    <div>Select Board to View Squad</div>
+                }
+                {
+                    squadData && (
+                        <>
+                            <div style={{ marginBottom: "10px" }}>
+                                <b>
+                                    {squadData.board.board_name}
+                                </b>
+                                <br />
+                                Purse Remaining:
+                                ₹ {Number(squadData.board.purse_remaining).toLocaleString()}
+                                <br />
+                                Players:
+                                {squadData.board.players_bought}/13
+                            </div>
+                            {
+                                squadData.players.map((p, i) => (
+                                    <div key={i}>
+                                        {p.player_name}
+
+                                        —
+
+                                        {p.category}
+
+                                        —
+
+                                        {p.role}
+
+                                        —
+
+                                        ₹ {Number(p.sold_price).toLocaleString()}
+                                    </div>
+                                ))
+                            }
+                        </>
+                    )
+                }
             </div>
         </div>
     );
