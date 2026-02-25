@@ -61,6 +61,7 @@ import AuctionRedirect from "./components/AuctionRedirect";
 import AuctionResults from "./components/AuctionResults";
 import PlayerAuctionSetup from "./components/PlayerAuctionSetup";
 import SeasonLeaderboard from "./components/SeasonLeaderboard";
+import LiveAuctionPage from "./components/LiveAuctionPage";
 
 // 🔥 NEW
 import PitchRandomizer from "./components/PitchRandomizer";
@@ -88,8 +89,8 @@ function HomePage() {
   return (
     <div className="container mt-4">
       <HomeHighlights />
-       {/* NEW Upcoming Matches Section */}
-      <HomeUpcomingMatches /> 
+      {/* NEW Upcoming Matches Section */}
+      <HomeUpcomingMatches />
       <div className="mb-5">
         <MatchCards />
       </div>
@@ -119,11 +120,11 @@ function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [waitingWorker, setWaitingWorker] = useState(null);
-        // 🎆 New Year 2026 overlay state
+  // 🎆 New Year 2026 overlay state
   const [showNewYear2026, setShowNewYear2026] = useState(false);
   const { currentUser } = useAuth();
 
-    // 🎆 Show New Year banner for entire January 2026
+  // 🎆 Show New Year banner for entire January 2026
   useEffect(() => {
     const today = new Date();
     const isJan2026 =
@@ -184,7 +185,7 @@ function App() {
 
   return (
     <div className={theme}>
-          {showNewYear2026 && (
+      {showNewYear2026 && (
         <NewYear2026Overlay
           onFinish={() => setShowNewYear2026(false)}
         />
@@ -543,6 +544,8 @@ function App() {
           <Route path="/past-matches" element={<PastMatchesHub />} />
           <Route path="/player-report-card" element={<PlayerReportCard />} />
           <Route path="/season-leaderboard" element={<SeasonLeaderboard />} />
+          <Route path="/live-auction" element={<LiveAuctionPage />} />
+
           <Route
             path="/tournament-points"
             element={
@@ -569,7 +572,7 @@ function App() {
               </PageWrapper>
             }
           />
-                    <Route
+          <Route
             path="/forum"
             element={
               <PageWrapper>
@@ -577,27 +580,27 @@ function App() {
               </PageWrapper>
             }
           />
-                           <Route
-              path="/player-auction"
-              element={
-                <ProtectedRoute>
-                  <PageWrapper>
-                    <PlayerAuctionSetup />
-                  </PageWrapper>
-                </ProtectedRoute>
-              }
-            />
+          <Route
+            path="/player-auction"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <PlayerAuctionSetup />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
 
-            <Route
-              path="/player-auction/:auctionId"
-              element={
-                <ProtectedRoute>
-                  <PageWrapper>
-                    <AuctionResults />
-                  </PageWrapper>
-                </ProtectedRoute>
-              }
-            />
+          <Route
+            path="/player-auction/:auctionId"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <AuctionResults />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
 
         </Routes>
         <Footer />
