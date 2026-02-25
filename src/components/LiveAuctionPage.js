@@ -396,6 +396,51 @@ function LiveAuctionPage() {
 
                         </button>
 
+                        {/* ✅ RESET AUCTION BUTTON */}
+
+                        <button
+                            onClick={async () => {
+
+                                if (!window.confirm("Reset Auction?"))
+                                    return;
+
+                                try {
+
+                                    const res = await axios.post(
+                                        API +
+                                        "/api/live-auction/reset-auction/" +
+                                        AUCTION_ID
+                                    );
+
+                                    alert(res.data.message);
+
+                                    loadData();
+
+                                } catch (err) {
+
+                                    alert(
+                                        err.response?.data?.error ||
+                                        "Reset Failed"
+                                    );
+
+                                }
+
+                            }}
+                            style={{
+                                marginLeft: "10px",
+                                marginBottom: "10px",
+                                padding: "10px 20px",
+                                background: "#b71c1c",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                fontWeight: "bold"
+                            }}
+                        >
+                            Reset Auction
+                        </button>
+
+
                         {
                             registeredBoards.map(b => (
                                 <div key={b.board_id}>
