@@ -24,6 +24,28 @@ function LiveAuctionPage() {
     }, []);
 
     const loadData = async () => {
+        const placeBid = async () => {
+            try {
+                const response = await axios.post(
+                    API + "/api/live-auction/place-bid",
+                    {
+                        auction_id: AUCTION_ID,
+                        board_id:
+                            boards.length > 0
+                                ? boards[0].board_id
+                                : null
+                    }
+                );
+                console.log(response.data);
+                loadData();
+            } catch (err) {
+                console.log("Bid Error", err);
+                alert(
+                    err.response?.data?.error ||
+                    "Bid failed"
+                );
+            }
+        };
         try {
             const s =
                 await axios.get(
@@ -91,7 +113,7 @@ function LiveAuctionPage() {
                     </h3>
                     <button
                         className="bid-button"
-                        disabled={!status.player_name}
+                        onClick={placeBid}
                     >
                         PLACE BID
                     </button>
