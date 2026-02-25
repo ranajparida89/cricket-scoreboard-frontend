@@ -59,36 +59,25 @@ function LiveAuctionPage() {
                     "/api/live-auction/status/" +
                     AUCTION_ID
                 );
-
             /*
-            Detect SOLD Player
+            MULTI-DEVICE SOLD DETECTION (FINAL)
             */
-
-            /*
- Detect SOLD Player
- */
-/*
-Detect SOLD Player (Correct Logic)
-*/
-
-if (
-    s.data.timer_seconds === 0 &&
-    s.data.leading_board &&
-    !soldPopup
-) {
-
-    setSoldPopup(
-        s.data.player_name +
-        " SOLD to " +
-        s.data.leading_board +
-        " for ₹ " +
-        s.data.current_price
-    );
-
-    setTimeout(() => {
-        setSoldPopup("");
-    }, 5000);
-}
+            if (
+                lastPlayer &&
+                lastPlayer !== s.data.player_name &&
+                status.leading_board
+            ) {
+                setSoldPopup(
+                    lastPlayer +
+                    " SOLD to " +
+                    status.leading_board +
+                    " for ₹ " +
+                    status.current_price
+                );
+                setTimeout(() => {
+                    setSoldPopup("");
+                }, 6000);
+            }
             setLastPlayer(s.data.player_name);
 
             setStatus(s.data);
