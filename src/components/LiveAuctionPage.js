@@ -297,6 +297,33 @@ function LiveAuctionPage() {
                         <h2>
                             Admin Auction Setup
                         </h2>
+
+                        {/* ✅ START AUCTION BUTTON */}
+                        <button
+                            onClick={async () => {
+                                await axios.post(
+                                    API +
+                                    "/api/live-auction/start/" +
+                                    AUCTION_ID
+                                );
+                                alert("Auction Started");
+                                loadData();
+                            }}
+                            style={{
+                                marginBottom: "10px",
+                                padding: "10px 20px",
+                                background: "#2e7d32",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                fontWeight: "bold"
+                            }}
+
+                        >
+
+                            Start Auction
+                        </button>
+
                         {
                             registeredBoards.map(b => (
                                 <div key={b.board_id}>
