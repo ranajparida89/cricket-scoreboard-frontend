@@ -57,7 +57,6 @@ import BoardAnalyticsPro from "./components/BoardAnalyticsPro";
 import TournamentPoints from "./components/TournamentPoints";
 import RulesAndRegulations from "./components/RulesAndRegulations";
 import ForumPage from "./components/ForumPage";
-import AuctionRedirect from "./components/AuctionRedirect";
 import AuctionResults from "./components/AuctionResults";
 import PlayerAuctionSetup from "./components/PlayerAuctionSetup";
 import SeasonLeaderboard from "./components/SeasonLeaderboard";
