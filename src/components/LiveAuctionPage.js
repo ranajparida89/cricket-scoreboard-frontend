@@ -137,14 +137,6 @@ function LiveAuctionPage() {
                         Number(latestSold.sold_price).toLocaleString()
                     );
 
-                    triggerConfetti();
-
-                    setTimeout(() => {
-
-                        setSoldPopup("");
-
-                    }, 6000);
-
                 }
 
             }
