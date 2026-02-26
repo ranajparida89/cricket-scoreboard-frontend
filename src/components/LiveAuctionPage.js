@@ -77,28 +77,7 @@ function LiveAuctionPage() {
             /*
             MULTI-DEVICE SOLD DETECTION (FINAL)
             */
-            // ✅ MULTI DEVICE SOLD DETECTION + CONFETTI
-
-            if (
-                lastPlayer &&
-                lastPlayer !== s.data.player_name &&
-                s.data.leading_board
-            ) {
-                setSoldPopup(
-                    "🏆 " +
-                    lastPlayer +
-                    " SOLD to " +
-                    s.data.leading_board +
-                    " for ₹ " +
-                    Number(s.data.current_price).toLocaleString()
-                );
-                triggerConfetti();
-                setTimeout(() => {
-                    setSoldPopup("");
-                }, 6000);
-            }
-            setLastPlayer(s.data.player_name);
-
+    
             setStatus(s.data);
             // ✅ AUTO CLOSE PLAYER WHEN TIMER ENDS
             if (s.data.timer_seconds === 0) {
