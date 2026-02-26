@@ -116,19 +116,18 @@ function LiveAuctionPage() {
             setSoldPlayers(sold.data);
             if (sold.data.length > 0) {
 
-    const latestSold = sold.data[0];
+                const latestSold = sold.data[0];
 
-    setSoldPopup(
-        "🏆 " +
-        latestSold.player_name +
-        " SOLD to " +
-        latestSold.board_name +
-        " for ₹ " +
-        Number(latestSold.sold_price).toLocaleString()
-    );
+                setSoldPopup(
+                    "🏆 " +
+                    latestSold.player_name +
+                    " SOLD to " +
+                    latestSold.board_name +
+                    " for ₹ " +
+                    Number(latestSold.sold_price).toLocaleString()
+                );
 
-}
-
+            }
             // ✅ LOAD BOARD SQUAD
 
             // ✅ LOAD BOARD SQUAD (STABLE - NO BLINKING)
@@ -440,7 +439,54 @@ function LiveAuctionPage() {
                         >
                             Reset Auction
                         </button>
+                        {/* ✅ END AUCTION BUTTON */}
 
+                        <button
+                            onClick={async () => {
+
+                                if (!window.confirm("End Auction Permanently?"))
+                                    return;
+
+                                try {
+
+                                    const res = await axios.post(
+                                        API +
+                                        "/api/live-auction/end-auction/" +
+                                        AUCTION_ID
+                                    );
+
+                                    alert(res.data.message);
+
+                                    loadData();
+
+                                }
+                                catch (err) {
+
+                                    alert(
+                                        err.response?.data?.error ||
+                                        "End Auction Failed"
+                                    );
+
+                                }
+
+                            }}
+                            style={{
+
+                                marginLeft: "10px",
+                                marginBottom: "10px",
+                                padding: "10px 20px",
+                                background: "#8b0000",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                fontWeight: "bold"
+
+                            }}
+                        >
+
+                            End Auction
+
+                        </button>
 
                         {
                             registeredBoards.map(b => (
@@ -474,6 +520,29 @@ function LiveAuctionPage() {
                 )
             }
             <h1>🏏 Live Auction</h1>
+
+            {
+                status.is_paused &&
+                <div
+                    style={{
+
+                        background: "#ff9800",
+                        padding: "18px",
+                        marginBottom: "20px",
+                        borderRadius: "10px",
+                        fontSize: "26px",
+                        fontWeight: "bold",
+                        textAlign: "center",
+                        color: "#000"
+
+                    }}
+                >
+
+                    ⏸ AUCTION PAUSED
+
+                </div>
+            }
+
             {
                 isAdmin &&
                 <button
@@ -558,9 +627,13 @@ function LiveAuctionPage() {
                     </h3>
                     <h3>
                         Leader:
-                        {status.leading_board
+                        {
+                            boards.find(b => b.board_name === status.leading_board)?.display_name
                             ||
-                            "-"}
+                            status.leading_board
+                            ||
+                            "-"
+                        }
                     </h3>
                     <select
                         value={selectedBoardId}
@@ -580,7 +653,7 @@ function LiveAuctionPage() {
                                     key={b.board_id}
                                     value={b.board_id}
                                 >
-                                    {b.board_name}
+                                    {b.display_name || b.board_name}
                                 </option>
                             ))
                         }
@@ -589,6 +662,7 @@ function LiveAuctionPage() {
                         className="bid-button"
                         onClick={placeBid}
                         disabled={
+                            status.is_paused ||
                             !selectedBoardId ||
                             selectedBoard?.players_bought >= 13
                         }
@@ -618,7 +692,7 @@ function LiveAuctionPage() {
                                 className="board-row"
                             >
                                 <b>
-                                    {b.board_name}
+                                    {b.display_name || b.board_name}
 
                                 </b>
                                 <br />
