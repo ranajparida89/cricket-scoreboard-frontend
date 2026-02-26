@@ -130,20 +130,27 @@ function LiveAuctionPage() {
             }
             // ✅ LOAD BOARD SQUAD
 
-            // ✅ LOAD BOARD SQUAD (STABLE - NO BLINKING)
-
-            if (selectedBoardId) {
-                const squad =
-                    await axios.get(
-                        API +
-                        "/api/live-auction/board-squad/" +
-                        AUCTION_ID +
-                        "/" +
-                        selectedBoardId
-                    );
-                if (squad.data && squad.data.players) {
-                    setSquadData(squad.data);
+            // ✅ LOAD BOARD SQUAD (REALTIME FIX)
+            try {
+                if (selectedBoardId) {
+                    const squad =
+                        await axios.get(
+                            API +
+                            "/api/live-auction/board-squad/" +
+                            AUCTION_ID +
+                            "/" +
+                            selectedBoardId
+                        );
+                    // Force refresh every 2 sec
+                    setSquadData({
+                        board: { ...squad.data.board },
+                        players: [...squad.data.players]
+                    });
+                } else {
+                    setSquadData(null);
                 }
+            } catch (err) {
+                console.log("Squad Load Error", err);
             }
             // ✅ Show latest bid info
             if (h.data.bids.length > 0) {
