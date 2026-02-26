@@ -34,6 +34,7 @@ function LiveAuctionPage() {
     const [lastPlayer, setLastPlayer] = useState("");
     const [soldPopup, setSoldPopup] = useState("");
     const [soldPlayers, setSoldPlayers] = useState([]);
+    const [lastSoldId, setLastSoldId] = useState(null);
     const [previousSoldCount, setPreviousSoldCount] = useState(0);
     const [squadData, setSquadData] = useState(null);
     const selectedBoard =
@@ -77,7 +78,7 @@ function LiveAuctionPage() {
             /*
             MULTI-DEVICE SOLD DETECTION (FINAL)
             */
-    
+
             setStatus(s.data);
             // ✅ AUTO CLOSE PLAYER WHEN TIMER ENDS
             if (s.data.timer_seconds === 0) {
@@ -117,30 +118,36 @@ function LiveAuctionPage() {
                 );
             setSoldPlayers(sold.data);
 
-            // ✅ RELIABLE SOLD DETECTION
-            if (sold.data.length > previousSoldCount) {
+            // ✅ STABLE SOLD DETECTION (FINAL FIX)
+
+            if (sold.data.length > 0) {
+
                 const latestSold = sold.data[0];
-                setSoldPopup(
 
-                    "🏆 " +
+                if (latestSold.player_id !== lastSoldId) {
 
-                    latestSold.player_name +
+                    setLastSoldId(latestSold.player_id);
 
-                    " SOLD to " +
+                    setSoldPopup(
+                        "🏆 " +
+                        latestSold.player_name +
+                        " SOLD to " +
+                        latestSold.board_name +
+                        " for ₹ " +
+                        Number(latestSold.sold_price).toLocaleString()
+                    );
 
-                    latestSold.board_name +
+                    triggerConfetti();
 
-                    " for ₹ " +
+                    setTimeout(() => {
 
-                    Number(latestSold.sold_price).toLocaleString()
-                );
-                triggerConfetti();
-                setTimeout(() => {
-                    setSoldPopup("");
-                }, 6000);
+                        setSoldPopup("");
+
+                    }, 6000);
+
+                }
+
             }
-            setPreviousSoldCount(sold.data.length);
-
 
             // ✅ LOAD BOARD SQUAD
 
