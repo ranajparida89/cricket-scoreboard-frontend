@@ -19,6 +19,22 @@ Later Admin will select auction
 */
 const AUCTION_ID =
     "450460e4-12cf-497a-97f2-7f14a34fa771";
+// ✅ Price Formatter (Crores)
+
+const formatPrice = (amount) => {
+    const cr = amount / 10000000;
+    let crText = "";
+    if (cr >= 1) {
+        crText =
+            "(" +
+            parseFloat(cr.toFixed(2))
+            + " cr)";
+    }
+    return "₹ "
+        + Number(amount).toLocaleString()
+        + " "
+        + crText;
+};
 function LiveAuctionPage() {
     const [status, setStatus] = useState({});
     const [boards, setBoards] = useState([]);
@@ -129,7 +145,7 @@ function LiveAuctionPage() {
                     "/api/live-auction/sold-players/" +
                     AUCTION_ID
                 );
-           setSoldPlayers([...sold.data].reverse());
+            setSoldPlayers([...sold.data].reverse());
             if (sold.data.length > 0) {
                 const latestSold = sold.data[0];
                 if (latestSold.player_name !== lastSoldPlayer) {
@@ -138,8 +154,8 @@ function LiveAuctionPage() {
                         latestSold.player_name +
                         " SOLD to " +
                         latestSold.board_name +
-                        " for ₹ " +
-                        Number(latestSold.sold_price).toLocaleString()
+                        " for " +
+                        formatPrice(latestSold.sold_price)
                     );
                     setLastSoldPlayer(latestSold.player_name);
 
@@ -730,9 +746,9 @@ function LiveAuctionPage() {
                     </p>
                     <p>
                         Base Price:
-                        ₹ {status.base_price
-                            ||
-                            "-"}
+                        {status.base_price
+                            ? formatPrice(status.base_price)
+                            : "-"}
                     </p>
                 </div>
 
@@ -740,9 +756,9 @@ function LiveAuctionPage() {
 
                 <div className="bid-panel">
                     <h2>
-                        ₹ {status.current_price
-                            ??
-                            "-"}
+                        {status.current_price
+                            ? formatPrice(status.current_price)
+                            : "-"}
                     </h2>
                     <h3>
                         Timer:
@@ -843,7 +859,7 @@ function LiveAuctionPage() {
 
                             —
 
-                            ₹ {b.bid_amount}
+                            {formatPrice(b.bid_amount)}
                         </div>
                     ))
                 }
@@ -863,7 +879,7 @@ function LiveAuctionPage() {
 
                         —
 
-                        ₹ {Number(p.sold_price).toLocaleString()}
+                        {formatPrice(p.sold_price)}
                     </div>
                 ))}
             </div>
