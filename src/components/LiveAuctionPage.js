@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./LiveAuctionPage.css";
+import confetti from "canvas-confetti";
 // Admin JWT Header (same as ManageAdmins)
 
 function authHeader() {
@@ -36,6 +37,15 @@ function LiveAuctionPage() {
     const [squadData, setSquadData] = useState(null);
     const selectedBoard =
         boards.find(b => b.board_id === selectedBoardId);
+    // ✅ CONFETTI CELEBRATION
+
+    const triggerConfetti = () => {
+        confetti({
+            particleCount: 200,
+            spread: 120,
+            origin: { y: 0.6 }
+        });
+    };
 
     useEffect(() => {
         loadData();
@@ -66,18 +76,22 @@ function LiveAuctionPage() {
             /*
             MULTI-DEVICE SOLD DETECTION (FINAL)
             */
+            // ✅ MULTI DEVICE SOLD DETECTION + CONFETTI
+
             if (
                 lastPlayer &&
                 lastPlayer !== s.data.player_name &&
-                status.leading_board
+                s.data.leading_board
             ) {
                 setSoldPopup(
+                    "🏆 " +
                     lastPlayer +
                     " SOLD to " +
-                    status.leading_board +
+                    s.data.leading_board +
                     " for ₹ " +
-                    status.current_price
+                    Number(s.data.current_price).toLocaleString()
                 );
+                triggerConfetti();
                 setTimeout(() => {
                     setSoldPopup("");
                 }, 6000);
@@ -124,6 +138,8 @@ function LiveAuctionPage() {
             setSoldPlayers(sold.data);
             // ✅ LOAD BOARD SQUAD
 
+            // ✅ LOAD BOARD SQUAD (STABLE - NO BLINKING)
+
             if (selectedBoardId) {
                 const squad =
                     await axios.get(
@@ -133,10 +149,9 @@ function LiveAuctionPage() {
                         "/" +
                         selectedBoardId
                     );
-                setSquadData(squad.data);
-            }
-            else {
-                setSquadData(null);
+                if (squad.data && squad.data.players) {
+                    setSquadData(squad.data);
+                }
             }
             // ✅ Show latest bid info
             if (h.data.bids.length > 0) {
