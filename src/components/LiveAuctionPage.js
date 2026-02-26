@@ -76,20 +76,35 @@ function LiveAuctionPage() {
             MULTI-DEVICE SOLD DETECTION (FINAL)
             */
 
-            setStatus(s.data);
+            setStatus(prev => ({
+                ...s.data,
+                playerClosed: false
+            }));
             // ✅ AUTO CLOSE PLAYER WHEN TIMER ENDS
-            if (s.data.timer_seconds === 0) {
+            if (s.data.timer_seconds === 0 && !status.playerClosed) {
+
                 try {
+
                     await axios.post(
                         API +
                         "/api/live-auction/close-player/" +
                         AUCTION_ID
                     );
+
                     console.log("Player Closed");
+
+                    setStatus(prev => ({
+                        ...prev,
+                        playerClosed: true
+                    }));
+
                 }
                 catch (err) {
+
                     console.log("Close Player Error", err);
+
                 }
+
             }
             const b =
                 await axios.get(
