@@ -129,26 +129,7 @@ function LiveAuctionPage() {
                     "/api/live-auction/sold-players/" +
                     AUCTION_ID
                 );
-            setSoldPlayers(prev => {
-                // First time load
-                if (!prev || prev.length === 0) {
-                    return sold.data;
-                }
-                const latestPlayer = sold.data[0];
-                const alreadyExists =
-                    prev.find(
-                        p => p.player_name === latestPlayer.player_name
-                    );
-                // If new SOLD player → move to top
-                if (!alreadyExists) {
-                    return [
-                        latestPlayer,
-                        ...prev
-                    ];
-                }
-                // Otherwise keep current order
-                return prev;
-            });
+           setSoldPlayers([...sold.data].reverse());
             if (sold.data.length > 0) {
                 const latestSold = sold.data[0];
                 if (latestSold.player_name !== lastSoldPlayer) {
