@@ -320,6 +320,114 @@ function LiveAuctionPage() {
                             Admin Auction Setup
                         </h2>
 
+                        {/* ADMIN AUCTION CONTROL */}
+
+                        <div
+                            style={{
+                                marginTop: "15px",
+                                padding: "10px",
+                                background: "#222",
+                                borderRadius: "8px"
+                            }}
+                        >
+
+                            <h3>Auction Control</h3>
+
+                            <select
+                                id="categoryFilter"
+                                style={{
+                                    marginRight: "10px",
+                                    padding: "5px"
+                                }}
+                            >
+
+                                <option value="ALL">All Categories</option>
+
+                                <option value="LEGEND">Legend</option>
+
+                                <option value="DIAMOND">Diamond</option>
+
+                                <option value="PLATINUM">Platinum</option>
+
+                                <option value="GOLD">Gold</option>
+
+                                <option value="SILVER">Silver</option>
+
+                            </select>
+
+                            <select
+                                id="roleFilter"
+                                style={{
+                                    marginRight: "10px",
+                                    padding: "5px"
+                                }}
+                            >
+
+                                <option value="ALL">All Roles</option>
+
+                                <option value="BATSMAN">Batsman</option>
+
+                                <option value="BOWLER">Bowler</option>
+
+                                <option value="ALLROUNDER">Allrounder</option>
+
+                            </select>
+
+                            <button
+
+                                onClick={async () => {
+
+                                    try {
+
+                                        const category =
+                                            document.getElementById("categoryFilter").value;
+
+                                        const role =
+                                            document.getElementById("roleFilter").value;
+
+                                        await axios.post(
+
+                                            API +
+                                            "/api/live-auction/admin-control/"
+                                            + AUCTION_ID,
+
+                                            {
+                                                category,
+                                                role
+                                            }
+
+                                        );
+
+                                        alert("Auction Control Updated");
+
+                                    }
+                                    catch (err) {
+
+                                        alert("Control Update Failed");
+
+                                    }
+
+                                }}
+
+                                style={{
+
+                                    padding: "8px 20px",
+                                    background: "#673ab7",
+                                    color: "white",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    fontWeight: "bold"
+
+                                }}
+
+                            >
+
+                                Apply Control
+
+                            </button>
+
+                        </div>
+
                         {/* ✅ START AUCTION BUTTON */}
 
                         <button
