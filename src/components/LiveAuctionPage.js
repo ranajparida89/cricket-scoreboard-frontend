@@ -34,6 +34,7 @@ function LiveAuctionPage() {
     const [lastPlayer, setLastPlayer] = useState("");
     const [soldPopup, setSoldPopup] = useState("");
     const [soldPlayers, setSoldPlayers] = useState([]);
+    const [previousSoldCount, setPreviousSoldCount] = useState(0);
     const [squadData, setSquadData] = useState(null);
     const selectedBoard =
         boards.find(b => b.board_id === selectedBoardId);
@@ -136,6 +137,32 @@ function LiveAuctionPage() {
                     AUCTION_ID
                 );
             setSoldPlayers(sold.data);
+
+            // ✅ RELIABLE SOLD DETECTION
+            if (sold.data.length > previousSoldCount) {
+                const latestSold = sold.data[0];
+                setSoldPopup(
+
+                    "🏆 " +
+
+                    latestSold.player_name +
+
+                    " SOLD to " +
+
+                    latestSold.board_name +
+
+                    " for ₹ " +
+
+                    Number(latestSold.sold_price).toLocaleString()
+                );
+                triggerConfetti();
+                setTimeout(() => {
+                    setSoldPopup("");
+                }, 6000);
+            }
+            setPreviousSoldCount(sold.data.length);
+
+
             // ✅ LOAD BOARD SQUAD
 
             // ✅ LOAD BOARD SQUAD (STABLE - NO BLINKING)
