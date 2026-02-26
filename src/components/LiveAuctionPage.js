@@ -32,6 +32,7 @@ function LiveAuctionPage() {
     const [soldMessage, setSoldMessage] = useState("");
 
     const [soldPlayers, setSoldPlayers] = useState([]);
+    const [soldPopup, setSoldPopup] = useState("");
     const [squadData, setSquadData] = useState(null);
     const selectedBoard =
         boards.find(b => b.board_id === selectedBoardId);
@@ -113,6 +114,20 @@ function LiveAuctionPage() {
                     AUCTION_ID
                 );
             setSoldPlayers(sold.data);
+            if (sold.data.length > 0) {
+
+    const latestSold = sold.data[0];
+
+    setSoldPopup(
+        "🏆 " +
+        latestSold.player_name +
+        " SOLD to " +
+        latestSold.board_name +
+        " for ₹ " +
+        Number(latestSold.sold_price).toLocaleString()
+    );
+
+}
 
             // ✅ LOAD BOARD SQUAD
 
