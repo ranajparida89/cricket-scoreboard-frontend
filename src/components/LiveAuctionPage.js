@@ -130,9 +130,12 @@ function LiveAuctionPage() {
             }
             // ✅ LOAD BOARD SQUAD
 
-            // ✅ LOAD BOARD SQUAD (REALTIME FIX)
+            // ✅ LOAD BOARD SQUAD (NO BLINK STABLE)
+
             try {
+
                 if (selectedBoardId) {
+
                     const squad =
                         await axios.get(
                             API +
@@ -141,16 +144,21 @@ function LiveAuctionPage() {
                             "/" +
                             selectedBoardId
                         );
-                    // Force refresh every 2 sec
-                    setSquadData({
-                        board: { ...squad.data.board },
-                        players: [...squad.data.players]
-                    });
-                } else {
-                    setSquadData(null);
+
+                    // Update only if changed
+                    if (
+                        !squadData ||
+                        JSON.stringify(squadData.players) !== JSON.stringify(squad.data.players)
+                    ) {
+                        setSquadData(squad.data);
+                    }
+
                 }
+
             } catch (err) {
+
                 console.log("Squad Load Error", err);
+
             }
             // ✅ Show latest bid info
             if (h.data.bids.length > 0) {
