@@ -132,13 +132,12 @@ const SidebarMenu = () => {
           )}
 
           {/* 🔴 Live Auction (Admin Only) */}
-          {isAdmin && (
+      
             <li>
               <Link to="/live-auction" onClick={handleClose}>
                 <FaGavel className="me-2 text-danger" /> Live Auction
               </Link>
             </li>
-          )}
 
         {/* 🧮 Upcoming Matches */}
         {isAdmin && (
