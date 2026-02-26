@@ -33,6 +33,7 @@ function LiveAuctionPage() {
 
     const [soldPlayers, setSoldPlayers] = useState([]);
     const [soldPopup, setSoldPopup] = useState("");
+    const [lastSoldPlayer, setLastSoldPlayer] = useState("");
     const [squadData, setSquadData] = useState(null);
     const selectedBoard =
         boards.find(b => b.board_id === selectedBoardId);
@@ -130,18 +131,19 @@ function LiveAuctionPage() {
                 );
             setSoldPlayers(sold.data);
             if (sold.data.length > 0) {
-
                 const latestSold = sold.data[0];
-
-                setSoldPopup(
-                    "🏆 " +
-                    latestSold.player_name +
-                    " SOLD to " +
-                    latestSold.board_name +
-                    " for ₹ " +
-                    Number(latestSold.sold_price).toLocaleString()
-                );
-
+                if (latestSold.player_name !== lastSoldPlayer) {
+                    setSoldPopup(
+                        "🏆 " +
+                        latestSold.player_name +
+                        " SOLD to " +
+                        latestSold.board_name +
+                        " for ₹ " +
+                        Number(latestSold.sold_price).toLocaleString()
+                    );
+                    setLastSoldPlayer(latestSold.player_name);
+                    triggerConfetti(); // optional celebration
+                }
             }
             // ✅ LOAD BOARD SQUAD
 
@@ -438,28 +440,20 @@ function LiveAuctionPage() {
                             >
 
                                 Apply Control
-
                             </button>
-
                         </div>
 
                         {/* ✅ START AUCTION BUTTON */}
-
                         <button
                             onClick={async () => {
-
                                 try {
-
                                     const res = await axios.post(
                                         API +
                                         "/api/live-auction/start/" +
                                         AUCTION_ID
                                     );
-
                                     alert(res.data.message || "Auction Started");
-
                                     loadData();
-
                                 }
                                 catch (err) {
 
@@ -468,13 +462,9 @@ function LiveAuctionPage() {
                                         ||
                                         "Auction already running"
                                     );
-
                                 }
-
                             }}
-
                             style={{
-
                                 marginBottom: "10px",
                                 marginRight: "10px",
                                 padding: "10px 20px",
@@ -483,11 +473,8 @@ function LiveAuctionPage() {
                                 border: "none",
                                 borderRadius: "6px",
                                 fontWeight: "bold"
-
                             }}
-
                         >
-
                             Start Auction
                         </button>
 
