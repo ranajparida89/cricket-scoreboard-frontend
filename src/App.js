@@ -588,18 +588,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-          <Route
-            path="/player-auction/:auctionId"
-            element={
-              <ProtectedRoute>
-                <PageWrapper>
-                  <LiveAuctionPage />
-                </PageWrapper>
-              </ProtectedRoute>
-            }
-          />
-
+          
         </Routes>
         <Footer />
       </Router>
