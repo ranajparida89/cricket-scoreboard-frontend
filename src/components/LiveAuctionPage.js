@@ -753,6 +753,8 @@ function LiveAuctionPage() {
 
                             <th>Player</th>
 
+                            <th>Role</th>
+
                             <th>Category</th>
 
                             <th>Price</th>
@@ -793,6 +795,10 @@ function LiveAuctionPage() {
 
                                             <td>
                                                 {p.player_name}
+                                            </td>
+
+                                            <td>
+                                                {p.role || "-"}
                                             </td>
 
                                             <td>
