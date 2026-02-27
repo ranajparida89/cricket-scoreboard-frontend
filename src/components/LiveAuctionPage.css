@@ -8,6 +8,8 @@ MAIN CONTAINER
     margin: auto;
     color: white;
     font-family: 'Segoe UI', Arial, sans-serif;
+
+    overflow-x:hidden;
 }
 
 
@@ -627,13 +629,8 @@ BOARD SQUAD PROFESSIONAL TABLE
 }
 
 .board-squad-table table {
-
 width:100%;
-
 border-collapse:collapse;
-
-table-layout:fixed;
-
 }
 
 .board-squad-table th {
@@ -662,5 +659,21 @@ table-layout:fixed;
     color: #00e676;
 
     font-weight: bold;
+
+}
+html, body {
+
+overflow-x:hidden;
+
+}
+/* GREEN HIGHLIGHT WHEN BOARD COMPLETE */
+
+.complete-board {
+
+background:#0c3b2e;
+
+border-left:6px solid #00ff90;
+
+box-shadow:0px 0px 10px rgba(0,255,150,.4);
 
 }

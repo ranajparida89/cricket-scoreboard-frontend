@@ -53,6 +53,7 @@ function LiveAuctionPage() {
     const [lastSoldPlayer, setLastSoldPlayer] = useState("");
     const [squadData, setSquadData] = useState(null);
     const [allSquads, setAllSquads] = useState([]);
+    const [boardSquadFilter, setBoardSquadFilter] = useState("");
     const selectedBoard =
         boards.find(b => b.board_id === selectedBoardId);
     // ✅ CONFETTI CELEBRATION
@@ -711,10 +712,36 @@ function LiveAuctionPage() {
                 </button>
             }
             {/* PROFESSIONAL BOARD SQUAD TABLE */}
-
             <div className="board-squad-table">
 
                 <h3>Board Squads</h3>
+
+                <select
+                    value={soldFilterBoard}
+                    onChange={(e) => setSoldFilterBoard(e.target.value)}
+                    style={{
+                        marginBottom: "15px",
+                        padding: "6px",
+                        borderRadius: "6px"
+                    }}
+                >
+
+                    <option value="">
+                        All Boards
+                    </option>
+
+                    {
+                        boards.map(b => (
+                            <option
+                                key={b.board_id}
+                                value={b.board_name}
+                            >
+                                {b.board_name}
+                            </option>
+                        ))
+                    }
+
+                </select>
 
                 <table>
 
@@ -739,60 +766,62 @@ function LiveAuctionPage() {
                     <tbody>
 
                         {
-                            allSquads.map((p, i) => {
+                            allSquads
 
-                                const board =
-                                    boards.find(b => b.board_name === p.board_name);
+                                .filter(p =>
 
-                                return (
+                                    soldFilterBoard === ""
 
-                                    <tr key={i}>
+                                    ||
 
-                                        <td>
-
-                                            <b>{p.board_name}</b>
-
-                                        </td>
-
-                                        <td>
-
-                                            {p.player_name}
-
-                                        </td>
-
-                                        <td>
-
-                                            {p.category}
-
-                                        </td>
-
-                                        <td>
-
-                                            {formatPrice(p.sold_price)}
-
-                                        </td>
-
-                                        <td className="purse-highlight">
-
-                                            {
-                                                board
-                                                    ?
-                                                    formatPrice(board.purse_remaining)
-                                                    :
-                                                    "-"
-                                            }
-
-                                        </td>
-
-                                    </tr>
+                                    p.board_name === soldFilterBoard
 
                                 )
 
-                            })
+                                .map((p, i) => {
+
+                                    const board =
+                                        boards.find(b => b.board_name === p.board_name);
+
+                                    return (
+
+                                        <tr key={i}>
+
+                                            <td>
+                                                <b>{p.board_name}</b>
+                                            </td>
+
+                                            <td>
+                                                {p.player_name}
+                                            </td>
+
+                                            <td>
+                                                {p.category}
+                                            </td>
+
+                                            <td>
+                                                {formatPrice(p.sold_price)}
+                                            </td>
+
+                                            <td className="purse-highlight">
+                                                {
+                                                    board
+                                                        ?
+                                                        formatPrice(board.purse_remaining)
+                                                        :
+                                                        "-"
+                                                }
+                                            </td>
+
+                                        </tr>
+
+                                    )
+
+                                })
+
                         }
 
                     </tbody>
-
                 </table>
 
             </div>
@@ -917,21 +946,36 @@ function LiveAuctionPage() {
 
                     {
                         boards.map(b => (
+
                             <div
                                 key={b.board_name}
-                                className="board-row"
+
+                                className={
+                                    b.players_bought >= 13
+                                        ?
+                                        "board-row complete-board"
+                                        :
+                                        "board-row"
+                                }
                             >
+
                                 <b>
                                     {b.display_name || b.board_name}
-
                                 </b>
+
                                 <br />
+
                                 Purse:
-                                ₹ {b.purse_remaining}
+                                {formatPrice(b.purse_remaining)}
+
                                 <br />
+
                                 Players:
-                                {b.players_bought}
+
+                                {b.players_bought}/13
+
                             </div>
+
                         ))
                     }
                 </div>
