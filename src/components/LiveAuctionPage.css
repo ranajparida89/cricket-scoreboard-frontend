@@ -3,13 +3,27 @@ MAIN CONTAINER
 ================================ */
 
 .auction-container {
+
     padding: 20px 30px;
+
     max-width: 1500px;
+
     margin: auto;
+
     color: white;
+
     font-family: 'Segoe UI', Arial, sans-serif;
 
-    overflow-x:hidden;
+    overflow-x: hidden;
+
+    overflow-y: visible;
+
+    position: relative;
+
+    z-index: 2;
+
+    background: transparent;
+
 }
 
 
@@ -673,6 +687,14 @@ html, body {
 
 overflow-x:hidden;
 
+overflow-y:auto;
+
+margin:0;
+
+padding:0;
+
+background:#0b0b0b;
+
 }
 /* GREEN HIGHLIGHT WHEN BOARD COMPLETE */
 
@@ -688,4 +710,20 @@ box-shadow:0px 0px 10px rgba(0,255,150,.4);
 body::before,
 body::after {
     display:none !important;
+}
+/* REMOVE MYSTERY HORIZONTAL LINE */
+
+body {
+
+background:#0b0b0b;
+
+}
+
+.auction-container::before,
+.auction-container::after {
+
+display:none !important;
+
+content:none !important;
+
 }
