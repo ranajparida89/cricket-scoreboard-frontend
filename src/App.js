@@ -58,6 +58,7 @@ import TournamentPoints from "./components/TournamentPoints";
 import RulesAndRegulations from "./components/RulesAndRegulations";
 import ForumPage from "./components/ForumPage";
 import PlayerAuctionSetup from "./components/PlayerAuctionSetup";
+import AuctionResults from "./components/AuctionResults"; // for player auction not Live Auction
 import SeasonLeaderboard from "./components/SeasonLeaderboard";
 import LiveAuctionPage from "./components/LiveAuctionPage";
 
@@ -588,7 +589,18 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
+                
+          <Route
+            path="/player-auction/:auctionId"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <AuctionResults />
+                </PageWrapper>
+              </ProtectedRoute>
+            } // For Player Auction added
+          />
+
         </Routes>
         <Footer />
       </Router>
