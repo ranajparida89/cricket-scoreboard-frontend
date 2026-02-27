@@ -17,10 +17,10 @@ GRID LAYOUT
 
 .auction-grid {
     display: grid;
-    grid-template-columns: 1.5fr 1fr 1.3fr;
+    grid-template-columns: 1.3fr 1fr 1.3fr;
     gap: 25px;
     margin-top: 10px;
-    align-items: stretch;
+    align-items: start;
 }
 
 
@@ -615,53 +615,46 @@ BOARD SQUAD PROFESSIONAL TABLE
 
     margin-top: 20px;
 
-    background: #111;
-
+    background:
+        linear-gradient(180deg, #111, #0b0b0b);
     padding: 20px;
-
     border-radius: 18px;
-
+    border: 1px solid rgba(255, 215, 0, .25);
     box-shadow:
-        0px 0px 20px rgba(0, 255, 255, .08);
-
+        0px 0px 40px rgba(255, 215, 0, .15),
+        inset 0px 0px 25px rgba(255, 215, 0, .05);
+    overflow: hidden;
 }
 
 .board-squad-table table {
 
-    width: 100%;
+width:100%;
 
-    border-collapse: collapse;
+border-collapse:collapse;
+
+table-layout:fixed;
 
 }
 
 .board-squad-table th {
-
-    text-align: left;
-
+    background:
+        linear-gradient(90deg, #ffd700, #ffb300);
+    color: black;
     padding: 12px;
-
-    color: #00e5ff;
-
-    border-bottom: 1px solid #333;
-
-    font-size: 16px;
-
+    text-align: left;
+    font-size: 15px;
+    letter-spacing: .5px;
 }
 
 .board-squad-table td {
-
-    padding: 10px;
-
+    padding: 12px;
     border-bottom: 1px solid #222;
-
-    font-size: 15px;
-
+    font-size: 14px;
 }
 
 .board-squad-table tr:hover {
-
-    background: #1c1c1c;
-
+    background:
+        linear-gradient(90deg, #1c1c1c, #222);
 }
 
 .purse-highlight {

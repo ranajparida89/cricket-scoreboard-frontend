@@ -48,6 +48,7 @@ function LiveAuctionPage() {
     const [soldMessage, setSoldMessage] = useState("");
 
     const [soldPlayers, setSoldPlayers] = useState([]);
+    const [soldFilterBoard, setSoldFilterBoard] = useState("");
     const [soldPopup, setSoldPopup] = useState("");
     const [lastSoldPlayer, setLastSoldPlayer] = useState("");
     const [squadData, setSquadData] = useState(null);
@@ -953,23 +954,62 @@ function LiveAuctionPage() {
                 }
 
             </div>
-            {/* SOLD PLAYERS PANEL */}
-
             <div className="bid-history sold-scroll">
+
                 <h3>Sold Players</h3>
-                {soldPlayers.map((p, i) => (
-                    <div key={i}>
-                        <b>{p.player_name}</b>
 
-                        —
+                <select
+                    value={soldFilterBoard}
+                    onChange={(e) => setSoldFilterBoard(e.target.value)}
+                    style={{
+                        marginBottom: "10px",
+                        padding: "6px"
+                    }}
+                >
 
-                        {p.board_name}
+                    <option value="">
+                        All Boards
+                    </option>
 
-                        —
+                    {
+                        boards.map(b => (
+                            <option
+                                key={b.board_id}
+                                value={b.board_name}
+                            >
+                                {b.display_name}
+                            </option>
+                        ))
+                    }
 
-                        {formatPrice(p.sold_price)}
-                    </div>
-                ))}
+                </select>
+
+                {
+                    soldPlayers
+                        .filter(p =>
+
+                            !soldFilterBoard ||
+
+                            p.board_name === soldFilterBoard
+
+                        )
+                        .map((p, i) => (
+                            <div key={i}>
+
+                                <b>{p.player_name}</b>
+
+                                —
+
+                                {p.board_name}
+
+                                —
+
+                                {formatPrice(p.sold_price)}
+
+                            </div>
+                        ))
+                }
+
             </div>
         </div>
     );
