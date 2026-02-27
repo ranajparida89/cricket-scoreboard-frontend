@@ -162,9 +162,7 @@ function LiveAuctionPage() {
                 }
             }
             // ✅ LOAD BOARD SQUAD
-
             // ✅ LOAD BOARD SQUAD (NO BLINK STABLE)
-
             try {
 
                 if (selectedBoardId) {
@@ -707,6 +705,42 @@ function LiveAuctionPage() {
                     Export Squad Excel
                 </button>
             }
+            {/* BOARD SQUAD PANEL (TOP POSITION) */}
+
+            <div className="bid-history">
+                <h3>Board Squad</h3>
+                {
+                    !selectedBoardId &&
+                    <div>Select Board to View Squad</div>
+                }
+                {
+                    squadData && (
+                        <>
+                            <div style={{ marginBottom: "15px" }}>
+                                <b>{squadData.board.board_name}</b>
+                                <br />
+                                Purse Remaining:
+                                {formatPrice(squadData.board.purse_remaining)}
+                                <br />
+                                Players:
+                                {squadData.board.players_bought}/13
+                            </div>
+                            {
+                                squadData.players.map((p, i) => (
+                                    <div key={i} style={{ marginBottom: "6px" }}>
+                                        <b>{i + 1}.</b> {p.player_name}
+                                        from <b>{p.category}</b> category
+                                        as <b>{p.role}</b>
+                                        purchased for
+                                        <b> {formatPrice(p.sold_price)} </b>
+                                        by <b>{squadData.board.board_name}</b>
+                                    </div>
+                                ))
+                            }
+                        </>
+                    )
+                }
+            </div>
             {
                 soldPopup &&
                 <div
@@ -867,7 +901,7 @@ function LiveAuctionPage() {
             </div>
             {/* SOLD PLAYERS PANEL */}
 
-            <div className="bid-history">
+            <div className="bid-history sold-scroll">
                 <h3>Sold Players</h3>
                 {soldPlayers.map((p, i) => (
                     <div key={i}>
@@ -882,51 +916,6 @@ function LiveAuctionPage() {
                         {formatPrice(p.sold_price)}
                     </div>
                 ))}
-            </div>
-            {/* BOARD SQUAD PANEL */}
-
-            <div className="bid-history">
-                <h3>Board Squad</h3>
-                {
-                    !selectedBoardId &&
-                    <div>Select Board to View Squad</div>
-                }
-                {
-                    squadData && (
-                        <>
-                            <div style={{ marginBottom: "10px" }}>
-                                <b>
-                                    {squadData.board.board_name}
-                                </b>
-                                <br />
-                                Purse Remaining:
-                                ₹ {Number(squadData.board.purse_remaining).toLocaleString()}
-                                <br />
-                                Players:
-                                {squadData.board.players_bought}/13
-                            </div>
-                            {
-                                squadData.players.map((p, i) => (
-                                    <div key={i}>
-                                        {p.player_name}
-
-                                        —
-
-                                        {p.category}
-
-                                        —
-
-                                        {p.role}
-
-                                        —
-
-                                        ₹ {Number(p.sold_price).toLocaleString()}
-                                    </div>
-                                ))
-                            }
-                        </>
-                    )
-                }
             </div>
         </div>
     );

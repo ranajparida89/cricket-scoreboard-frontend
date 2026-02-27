@@ -394,6 +394,7 @@ BID HISTORY
     font-size: 22px;
 
 }
+
 /* ================================
 SOLD PLAYERS
 ================================ */
@@ -414,6 +415,7 @@ SOLD PLAYERS
     font-size: 22px;
 
 }
+
 /* ================================
 BOARD SQUAD
 ================================ */
@@ -433,6 +435,7 @@ BOARD SQUAD
     font-size: 22px;
 
 }
+
 /* ================================
 ADMIN PANEL
 ================================ */
@@ -454,6 +457,7 @@ ADMIN PANEL
     font-weight: bold;
 
 }
+
 .start-btn {
     background: #00c853;
     color: white;
@@ -484,16 +488,17 @@ SOLD POPUP BAR
     letter-spacing: 1px;
     font-size: 20px;
     box-shadow:
-       0px 0px 20px rgba(255, 0, 0, 0.3);
+        0px 0px 20px rgba(255, 0, 0, 0.3);
 
 }
+
 /* ================================
 RESPONSIVE
 ================================ */
 
 @media(max-width:1200px) {
     .auction-grid {
-       grid-template-columns: 1fr;
+        grid-template-columns: 1fr;
 
     }
 
@@ -510,6 +515,7 @@ RESPONSIVE
     }
 
 }
+
 /* ================================
 SCROLLBAR
 ================================ */
@@ -526,6 +532,7 @@ SCROLLBAR
     background: #444;
     border-radius: 10px;
 }
+
 /* ================================
 TEXT IMPROVEMENTS
 ================================ */
@@ -579,4 +586,15 @@ CATEGORY COLORS
 .silver {
     color: #ccc;
     font-weight: bold;
+}
+
+/* ================================
+SOLD PLAYERS SCROLL FIX
+================================ */
+
+.sold-scroll {
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 6px;
 }
