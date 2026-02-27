@@ -51,6 +51,7 @@ function LiveAuctionPage() {
     const [soldPopup, setSoldPopup] = useState("");
     const [lastSoldPlayer, setLastSoldPlayer] = useState("");
     const [squadData, setSquadData] = useState(null);
+    const [allSquads, setAllSquads] = useState([]);
     const selectedBoard =
         boards.find(b => b.board_id === selectedBoardId);
     // ✅ CONFETTI CELEBRATION
@@ -146,6 +147,9 @@ function LiveAuctionPage() {
                     AUCTION_ID
                 );
             setSoldPlayers([...sold.data].reverse());
+            setAllSquads(sold.data);
+
+
             if (sold.data.length > 0) {
                 const latestSold = sold.data[0];
                 if (latestSold.player_name !== lastSoldPlayer) {
@@ -705,41 +709,91 @@ function LiveAuctionPage() {
                     Export Squad Excel
                 </button>
             }
-            {/* BOARD SQUAD PANEL (TOP POSITION) */}
+            {/* PROFESSIONAL BOARD SQUAD TABLE */}
 
-            <div className="bid-history">
-                <h3>Board Squad</h3>
-                {
-                    !selectedBoardId &&
-                    <div>Select Board to View Squad</div>
-                }
-                {
-                    squadData && (
-                        <>
-                            <div style={{ marginBottom: "15px" }}>
-                                <b>{squadData.board.board_name}</b>
-                                <br />
-                                Purse Remaining:
-                                {formatPrice(squadData.board.purse_remaining)}
-                                <br />
-                                Players:
-                                {squadData.board.players_bought}/13
-                            </div>
-                            {
-                                squadData.players.map((p, i) => (
-                                    <div key={i} style={{ marginBottom: "6px" }}>
-                                        <b>{i + 1}.</b> {p.player_name}
-                                        from <b>{p.category}</b> category
-                                        as <b>{p.role}</b>
-                                        purchased for
-                                        <b> {formatPrice(p.sold_price)} </b>
-                                        by <b>{squadData.board.board_name}</b>
-                                    </div>
-                                ))
-                            }
-                        </>
-                    )
-                }
+            <div className="board-squad-table">
+
+                <h3>Board Squads</h3>
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Board</th>
+
+                            <th>Player</th>
+
+                            <th>Category</th>
+
+                            <th>Price</th>
+
+                            <th>Remaining Purse</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {
+                            allSquads.map((p, i) => {
+
+                                const board =
+                                    boards.find(b => b.board_name === p.board_name);
+
+                                return (
+
+                                    <tr key={i}>
+
+                                        <td>
+
+                                            <b>{p.board_name}</b>
+
+                                        </td>
+
+                                        <td>
+
+                                            {p.player_name}
+
+                                        </td>
+
+                                        <td>
+
+                                            {p.category}
+
+                                        </td>
+
+                                        <td>
+
+                                            {formatPrice(p.sold_price)}
+
+                                        </td>
+
+                                        <td className="purse-highlight">
+
+                                            {
+                                                board
+                                                    ?
+                                                    formatPrice(board.purse_remaining)
+                                                    :
+                                                    "-"
+                                            }
+
+                                        </td>
+
+                                    </tr>
+
+                                )
+
+                            })
+                        }
+
+                    </tbody>
+
+                </table>
+
             </div>
             {
                 soldPopup &&

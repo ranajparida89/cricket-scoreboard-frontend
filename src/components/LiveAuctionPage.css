@@ -30,28 +30,15 @@ PLAYER PANEL (PREMIUM CARD)
 ================================ */
 
 .player-panel {
-
     background:
         linear-gradient(160deg, #111, #1b1b1b);
-
-    padding: 35px;
-
-    border-radius: 20px;
-
-    min-height: 300px;
-
-    position: relative;
-
-    border: 1px solid rgba(0, 255, 255, 0.15);
-
+    padding: 22px;
+    border-radius: 18px;
+    min-height: 180px;
+    border: 1px solid rgba(0, 255, 255, .15);
     box-shadow:
-
-        0px 0px 40px rgba(0, 255, 255, 0.05),
-
-        inset 0px 0px 25px rgba(0, 255, 255, 0.03);
-
-    transition: 0.3s;
-
+        0px 0px 25px rgba(0, 255, 255, .05);
+    transition: .3s;
 }
 
 
@@ -107,17 +94,9 @@ PLAYER PANEL (PREMIUM CARD)
 /* Player Name */
 
 .player-panel h2 {
-
-    font-size: 34px;
-
+    font-size: 26px;
+    margin-bottom: 15px;
     color: #00e5ff;
-
-    margin-bottom: 25px;
-
-    letter-spacing: 1px;
-
-    font-weight: 600;
-
 }
 
 
@@ -125,20 +104,11 @@ PLAYER PANEL (PREMIUM CARD)
 /* Player Info */
 
 .player-panel p {
-
-    font-size: 18px;
-
-    margin: 14px 0;
-
+    font-size: 16px;
+    margin: 6px 0;
     color: #ddd;
-
-    letter-spacing: .5px;
-
-    line-height: 1.7;
-
+    line-height: 1.4;
 }
-
-
 
 /* Category Role Highlight */
 
@@ -157,23 +127,14 @@ BID PANEL
 ================================ */
 
 .bid-panel {
-
     background:
-
         linear-gradient(160deg, #151515, #222);
-
-    padding: 30px;
-
-    text-align: center;
-
-    border-radius: 20px;
-
-    border: 1px solid rgba(0, 255, 200, 0.2);
-
+    padding: 22px;
+    border-radius: 18px;
+    border: 1px solid rgba(0, 255, 200, .2);
     box-shadow:
-
-        0px 0px 35px rgba(0, 255, 200, 0.08);
-
+        0px 0px 25px rgba(0, 255, 200, .08);
+    min-height: 180px;
 }
 
 
@@ -420,19 +381,66 @@ SOLD PLAYERS
 BOARD SQUAD
 ================================ */
 .board-squad {
+
     margin-top: 25px;
+
     background:
         linear-gradient(160deg, #111, #181818);
+
     padding: 22px;
+
     border-radius: 18px;
+
     box-shadow:
         0px 0px 18px rgba(0, 255, 200, 0.08);
+
+    height: 380px;
+
+    overflow-y: auto;
 
 }
 
 .board-squad h3 {
     color: #00e676;
     font-size: 22px;
+
+}
+
+.board-squad table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+    font-size: 14px;
+
+}
+
+.board-squad th {
+
+    background: #00e5ff;
+
+    color: black;
+
+    padding: 8px;
+
+    text-align: left;
+
+}
+
+.board-squad td {
+
+    padding: 8px;
+
+    border-bottom: 1px solid #333;
+
+}
+
+.purse-highlight {
+
+    color: #00e676;
+
+    font-weight: bold;
 
 }
 
@@ -597,4 +605,69 @@ SOLD PLAYERS SCROLL FIX
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: 6px;
+}
+
+/* ================================
+BOARD SQUAD PROFESSIONAL TABLE
+================================ */
+
+.board-squad-table {
+
+    margin-top: 20px;
+
+    background: #111;
+
+    padding: 20px;
+
+    border-radius: 18px;
+
+    box-shadow:
+        0px 0px 20px rgba(0, 255, 255, .08);
+
+}
+
+.board-squad-table table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+}
+
+.board-squad-table th {
+
+    text-align: left;
+
+    padding: 12px;
+
+    color: #00e5ff;
+
+    border-bottom: 1px solid #333;
+
+    font-size: 16px;
+
+}
+
+.board-squad-table td {
+
+    padding: 10px;
+
+    border-bottom: 1px solid #222;
+
+    font-size: 15px;
+
+}
+
+.board-squad-table tr:hover {
+
+    background: #1c1c1c;
+
+}
+
+.purse-highlight {
+
+    color: #00e676;
+
+    font-weight: bold;
+
 }
