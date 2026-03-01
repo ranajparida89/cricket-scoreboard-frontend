@@ -55,6 +55,7 @@ function LiveAuctionPage() {
     // ✅ AUTO RECOVERY MESSAGE STATE
     const [recoveryPopup, setRecoveryPopup] = useState("");
     const [lastRecoveryPlayer, setLastRecoveryPlayer] = useState("");
+    const [lastRecoveryBoard, setLastRecoveryBoard] = useState("");
     const [squadData, setSquadData] = useState(null);
     const [allSquads, setAllSquads] = useState([]);
     const [boardSquadFilter, setBoardSquadFilter] = useState("");
@@ -143,21 +144,30 @@ function LiveAuctionPage() {
                 if (!oldBoard) return;
 
                 /*
-                Recovery detected
+                Recovery detected ONLY ONCE
                 */
 
                 if (
+
                     board.purse_remaining > oldBoard.purse_remaining
+
                     &&
+
                     board.players_bought < oldBoard.players_bought
+
+                    &&
+
+                    lastRecoveryBoard !== board.board_id
+
                 ) {
 
                     const credited =
+
                         board.purse_remaining - oldBoard.purse_remaining;
 
                     const msg =
 
-                        "⚠️ AUTO RECOVERY EXECUTED\n\n"
+                        "⚠ AUTO RECOVERY EXECUTED\n\n"
 
                         + board.board_name
                         + " had insufficient purse.\n\n"
@@ -165,11 +175,14 @@ function LiveAuctionPage() {
                         + formatPrice(credited)
                         + " credited back.\n\n"
 
-                        + "Players returned to auction.";
+                        + "Highest player removed.";
 
                     setRecoveryPopup(msg);
 
-                    // Auto hide after 5 sec
+                    setLastRecoveryBoard(board.board_id);
+
+                    /* Auto hide */
+
                     setTimeout(() => {
 
                         setRecoveryPopup("");
