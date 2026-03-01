@@ -42,6 +42,7 @@ function LiveAuctionPage() {
     const [registeredBoards, setRegisteredBoards] = useState([]);
 
     const [selectedBoards, setSelectedBoards] = useState([]);
+    const [selectAllBoards, setSelectAllBoards] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const [setupMessage, setSetupMessage] = useState("");
     const [selectedBoardId, setSelectedBoardId] = useState("");
@@ -289,28 +290,75 @@ function LiveAuctionPage() {
     TOGGLE BOARD SELECTION
     */
     const toggleBoard = (board) => {
+
         const exists =
             selectedBoards.find(
                 b => b.board_id === board.board_id
             );
+
         if (exists) {
-            setSelectedBoards(
+
+            const updated =
                 selectedBoards.filter(
                     b => b.board_id !== board.board_id
-                )
-            );
+                );
+
+            setSelectedBoards(updated);
+
+            if (updated.length !== registeredBoards.length) {
+                setSelectAllBoards(false);
+            }
+
         }
         else {
-            setSelectedBoards([
+
+            const updated = [
+
                 ...selectedBoards,
+
                 {
                     board_id: board.board_id,
                     purse: 1200000000
                 }
-            ]);
+
+            ];
+
+            setSelectedBoards(updated);
+
+            if (updated.length === registeredBoards.length) {
+                setSelectAllBoards(true);
+            }
+
         }
+
     };
 
+    const toggleSelectAllBoards = () => {
+
+        if (selectAllBoards) {
+
+            setSelectedBoards([]);
+            setSelectAllBoards(false);
+
+        }
+        else {
+
+            const allBoards =
+                registeredBoards.map(b => ({
+
+                    board_id: b.board_id,
+
+                    purse: 1200000000
+
+                }));
+
+            setSelectedBoards(allBoards);
+
+            setSelectAllBoards(true);
+
+        }
+
+    };
 
     /*
     SAVE PARTICIPANTS
@@ -633,7 +681,49 @@ function LiveAuctionPage() {
 
                         </button>
 
+                        <div style={{ marginBottom: "10px" }}>
+
+                            <input
+                                type="checkbox"
+                                checked={selectAllBoards}
+                                onChange={toggleSelectAllBoards}
+                            />
+
+                            <b style={{ marginLeft: "8px" }}>
+                                Select All Boards
+                            </b>
+
+                        </div>
+
+
                         {
+                            registeredBoards.map(b => {
+
+                                const checked =
+                                    selectedBoards.find(
+                                        x => x.board_id === b.board_id
+                                    );
+
+                                return (
+
+                                    <div key={b.board_id}>
+
+                                        <input
+                                            type="checkbox"
+
+                                            checked={checked ? true : false}
+
+                                            onChange={() => toggleBoard(b)}
+                                        />
+
+                                        {b.board_name}
+
+                                    </div>
+
+                                )
+
+                            })
+                        }    {
                             registeredBoards.map(b => (
                                 <div key={b.board_id}>
                                     <input
@@ -743,92 +833,81 @@ function LiveAuctionPage() {
 
                 </select>
 
-                <table>
 
-                    <thead>
+                <div className="table-scroll-wrapper">
 
-                        <tr>
+                    <table>
 
-                            <th>Board</th>
+                        <thead>
 
-                            <th>Player</th>
+                            <tr>
 
-                            <th>Role</th>
+                                <th>Board</th>
+                                <th>Player</th>
+                                <th>Role</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Remaining Purse</th>
 
-                            <th>Category</th>
+                            </tr>
 
-                            <th>Price</th>
+                        </thead>
 
-                            <th>Remaining Purse</th>
+                        <tbody>
 
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        {
-                            allSquads
-
-                                .filter(p =>
-
-                                    soldFilterBoard === ""
-
-                                    ||
-
-                                    p.board_name === soldFilterBoard
-
-                                )
-
-                                .map((p, i) => {
-
-                                    const board =
-                                        boards.find(b => b.board_name === p.board_name);
-
-                                    return (
-
-                                        <tr key={i}>
-
-                                            <td>
-                                                <b>{p.board_name}</b>
-                                            </td>
-
-                                            <td>
-                                                {p.player_name}
-                                            </td>
-
-                                            <td>
-                                                {p.role || "-"}
-                                            </td>
-
-                                            <td>
-                                                {p.category}
-                                            </td>
-
-                                            <td>
-                                                {formatPrice(p.sold_price)}
-                                            </td>
-
-                                            <td className="purse-highlight">
-                                                {
-                                                    board
-                                                        ?
-                                                        formatPrice(board.purse_remaining)
-                                                        :
-                                                        "-"
-                                                }
-                                            </td>
-
-                                        </tr>
-
+                            {
+                                allSquads
+                                    .filter(p =>
+                                        soldFilterBoard === ""
+                                        ||
+                                        p.board_name === soldFilterBoard
                                     )
+                                    .map((p, i) => {
 
-                                })
+                                        const board =
+                                            boards.find(
+                                                b => b.board_name === p.board_name
+                                            );
 
-                        }
+                                        return (
 
-                    </tbody>
-                </table>
+                                            <tr key={i}>
+
+                                                <td><b>{p.board_name}</b></td>
+
+                                                <td>{p.player_name}</td>
+
+                                                <td>{p.role || "-"}</td>
+
+                                                <td>{p.category}</td>
+
+                                                <td>{formatPrice(p.sold_price)}</td>
+
+                                                <td className="purse-highlight">
+
+                                                    {
+                                                        board
+                                                            ?
+                                                            formatPrice(board.purse_remaining)
+                                                            :
+                                                            "-"
+                                                    }
+
+                                                </td>
+
+                                            </tr>
+
+                                        )
+
+                                    })
+
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
 
             </div>
             {
