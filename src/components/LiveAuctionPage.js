@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./LiveAuctionPage.css";
-import confetti from "canvas-confetti";
+// import confetti from "canvas-confetti";
 // Admin JWT Header (same as ManageAdmins)
 
 function authHeader() {
@@ -136,7 +136,54 @@ function LiveAuctionPage() {
                     "/api/live-auction/boards/" +
                     AUCTION_ID
                 );
-            setBoards(b.data.boards);
+
+            const boardsAfter = b.data.boards;
+
+            /*
+            AUTO RECOVERY DETECTION
+            */
+
+            boardsAfter.forEach(board => {
+
+                const oldBoard =
+                    boards.find(x => x.board_id === board.board_id);
+
+                if (!oldBoard) return;
+
+                /*
+                Recovery detected
+                */
+
+                if (
+                    board.purse_remaining > oldBoard.purse_remaining
+                    &&
+                    board.players_bought < oldBoard.players_bought
+                ) {
+
+                    const credited =
+                        board.purse_remaining - oldBoard.purse_remaining;
+
+                    setRecoveryPopup(
+
+                        "⚠️ AUTO RECOVERY EXECUTED\n\n"
+
+                        + board.board_name
+                        + " had insufficient purse.\n\n"
+
+                        + "High value players removed.\n\n"
+
+                        + formatPrice(credited)
+                        + " credited back to purse.\n\n"
+
+                        + "Bid wisely next time."
+
+                    );
+
+                }
+
+            });
+
+            setBoards(boardsAfter);
             const h =
                 await axios.get(
                     API +
@@ -178,48 +225,6 @@ function LiveAuctionPage() {
 
             }
 
-            // AUTO RECOVERY DETECTION
-
-            const boardsAfter = b.data.boards;
-
-            boardsAfter.forEach(board => {
-
-                const oldBoard =
-                    boards.find(x => x.board_id === board.board_id);
-
-                if (!oldBoard) return;
-
-                // Recovery detected = purse increased AND players reduced
-
-                if (
-                    board.purse_remaining > oldBoard.purse_remaining
-                    &&
-                    board.players_bought < oldBoard.players_bought
-                ) {
-
-                    if (board.board_name !== lastRecoveryPlayer) {
-
-                        const purseGain =
-                            board.purse_remaining - oldBoard.purse_remaining;
-
-                        setRecoveryPopup(
-
-                            "⚠️ AUTO RECOVERY\n\n"
-                            + board.board_name
-                            + " had insufficient purse.\n\n"
-                            + formatPrice(purseGain)
-                            + " credited back.\n\n"
-                            + "Highest bid player returned to auction."
-
-                        );
-
-                        setLastRecoveryPlayer(board.board_name);
-
-                    }
-
-                }
-
-            });
             // ✅ LOAD BOARD SQUAD
             // ✅ LOAD BOARD SQUAD (NO BLINK STABLE)
             try {
@@ -295,14 +300,31 @@ function LiveAuctionPage() {
             loadData();
         }
         catch (err) {
-            console.log(
-                "Bid Error",
-                err
-            );
-            setRecoveryPopup(
-                "⚠️ " +
-                (err.response?.data?.error || "Bid failed")
-            );
+
+            console.log("Bid Error", err);
+
+            if (err.response?.data?.error === "Insufficient purse") {
+
+                setRecoveryPopup(
+
+                    "⚠️ INSUFFICIENT PURSE\n\n"
+
+                    + "This board cannot continue auction.\n\n"
+
+                    + "Highest value players will be removed\n"
+                    + "after player closes."
+
+                );
+
+            }
+            else {
+
+                setRecoveryPopup(
+                    err.response?.data?.error || "Bid failed"
+                );
+
+            }
+
         }
     };
 
@@ -800,6 +822,26 @@ function LiveAuctionPage() {
                     </div>
                 )
             }
+
+            {
+                recoveryPopup &&
+                <div
+                    style={{
+                        background: "#ff9800",
+                        padding: "18px",
+                        marginBottom: "15px",
+                        borderRadius: "10px",
+                        fontWeight: "bold",
+                        color: "#000",
+                        textAlign: "center",
+                        fontSize: "22px",
+                        whiteSpace: "pre-line"
+                    }}
+                >
+                    {recoveryPopup}
+                </div>
+            }
+
             <h1>🏏 Live Auction</h1>
 
             {
@@ -956,25 +998,7 @@ function LiveAuctionPage() {
                 </div>
 
             </div>
-            {
-                recoveryPopup &&
-                <div
-                    style={{
-                        background: "#ff9800",
-                        padding: "18px",
-                        marginBottom: "15px",
-                        borderRadius: "10px",
-                        fontWeight: "bold",
-                        color: "#000",
-                        textAlign: "center",
-                        fontSize: "22px",
-                        whiteSpace: "pre-line"
-                    }}
-                >
-                    {recoveryPopup}
-                </div>
-            }
-
+            
             {
                 soldPopup &&
                 <div
