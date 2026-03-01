@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./LiveAuctionPage.css";
+
 // Admin JWT Header (same as ManageAdmins)
 
 function authHeader() {
@@ -268,27 +269,44 @@ function LiveAuctionPage() {
     PLACE BID
     */
     const placeBid = async () => {
-        try {
-            if (boards.length === 0) {
-                alert(
-                    "No boards available"
-                );
-                return;
-            }
-            const response =
-                await axios.post(
-                    API +
-                    "/api/live-auction/place-bid",
-                    {
-                        auction_id:
-                            AUCTION_ID,
-                        board_id:
-                            selectedBoardId
-                    }
 
-                );
-            console.log(response.data);
-            loadData();
+    try {
+
+        if (boards.length === 0) {
+            alert("No boards available");
+            return;
+        }
+
+        const response =
+            await axios.post(
+                API +
+                "/api/live-auction/place-bid",
+                {
+                    auction_id: AUCTION_ID,
+                    board_id: selectedBoardId
+                }
+            );
+
+        console.log(response.data);
+
+        /*
+        ✅ SHOW AUTO RECOVERY MESSAGE
+        */
+
+        if(response.data.recoveryMessage){
+
+            setRecoveryPopup(
+                response.data.recoveryMessage
+            );
+
+        }
+
+        /*
+        Reload data
+        */
+
+        loadData();
+
         }
         catch (err) {
 
