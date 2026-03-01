@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./LiveAuctionPage.css";
-// import confetti from "canvas-confetti";
 // Admin JWT Header (same as ManageAdmins)
 
 function authHeader() {
@@ -60,15 +59,7 @@ function LiveAuctionPage() {
     const [boardSquadFilter, setBoardSquadFilter] = useState("");
     const selectedBoard =
         boards.find(b => b.board_id === selectedBoardId);
-    // ✅ CONFETTI CELEBRATION
-
-    const triggerConfetti = () => {
-        confetti({
-            particleCount: 200,
-            spread: 120,
-            origin: { y: 0.6 }
-        });
-    };
+    
 
     useEffect(() => {
         loadData();
@@ -998,7 +989,7 @@ function LiveAuctionPage() {
                 </div>
 
             </div>
-            
+
             {
                 soldPopup &&
                 <div
