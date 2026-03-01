@@ -681,49 +681,7 @@ function LiveAuctionPage() {
 
                         </button>
 
-                        <div style={{ marginBottom: "10px" }}>
-
-                            <input
-                                type="checkbox"
-                                checked={selectAllBoards}
-                                onChange={toggleSelectAllBoards}
-                            />
-
-                            <b style={{ marginLeft: "8px" }}>
-                                Select All Boards
-                            </b>
-
-                        </div>
-
-
-                        {
-                            registeredBoards.map(b => {
-
-                                const checked =
-                                    selectedBoards.find(
-                                        x => x.board_id === b.board_id
-                                    );
-
-                                return (
-
-                                    <div key={b.board_id}>
-
-                                        <input
-                                            type="checkbox"
-
-                                            checked={checked ? true : false}
-
-                                            onChange={() => toggleBoard(b)}
-                                        />
-
-                                        {b.board_name}
-
-                                    </div>
-
-                                )
-
-                            })
-                        }   {/* SELECT ALL BOARDS */}
+                        {/* SELECT ALL BOARDS */}
 
                         <div style={{ marginTop: "10px" }}>
 
