@@ -173,9 +173,7 @@ function LiveAuctionPage() {
                     );
 
                     setLastSoldPlayer(latestSold.player_name);
-
-                    triggerConfetti();
-
+                    
                 }
 
             }
