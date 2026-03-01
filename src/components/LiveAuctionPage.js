@@ -173,7 +173,7 @@ function LiveAuctionPage() {
                     );
 
                     setLastSoldPlayer(latestSold.player_name);
-                    
+
                 }
 
             }
@@ -299,10 +299,9 @@ function LiveAuctionPage() {
                 "Bid Error",
                 err
             );
-            alert(
-                err.response?.data?.error
-                ||
-                "Bid failed"
+            setRecoveryPopup(
+                "⚠️ " +
+                (err.response?.data?.error || "Bid failed")
             );
         }
     };
