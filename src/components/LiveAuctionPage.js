@@ -723,16 +723,53 @@ function LiveAuctionPage() {
                                 )
 
                             })
-                        }    {
-                            registeredBoards.map(b => (
-                                <div key={b.board_id}>
-                                    <input
-                                        type="checkbox"
-                                        onChange={() => toggleBoard(b)}
-                                    />
-                                    {b.board_name}
-                                </div>
-                            ))
+                        }   {/* SELECT ALL BOARDS */}
+
+                        <div style={{ marginTop: "10px" }}>
+
+                            <input
+                                type="checkbox"
+                                className="selectAllCheckbox"
+                                checked={selectAllBoards}
+                                onChange={toggleSelectAllBoards}
+                            />
+
+                            <b style={{ marginLeft: "10px" }}>
+                                Select All Boards
+                            </b>
+
+                        </div>
+
+
+                        {/* BOARD LIST */}
+
+                        {
+                            registeredBoards.map(b => {
+
+                                const checked =
+                                    selectedBoards.find(
+                                        x => x.board_id === b.board_id
+                                    );
+
+                                return (
+
+                                    <div key={b.board_id}>
+
+                                        <input
+                                            type="checkbox"
+
+                                            checked={checked ? true : false}
+
+                                            onChange={() => toggleBoard(b)}
+                                        />
+
+                                        {b.board_name}
+
+                                    </div>
+
+                                )
+
+                            })
                         }
                         <button
                             onClick={saveParticipants}
