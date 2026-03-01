@@ -60,7 +60,7 @@ function LiveAuctionPage() {
     const [boardSquadFilter, setBoardSquadFilter] = useState("");
     const selectedBoard =
         boards.find(b => b.board_id === selectedBoardId);
-    
+
 
     useEffect(() => {
         loadData();
@@ -155,21 +155,26 @@ function LiveAuctionPage() {
                     const credited =
                         board.purse_remaining - oldBoard.purse_remaining;
 
-                    setRecoveryPopup(
+                    const msg =
 
                         "⚠️ AUTO RECOVERY EXECUTED\n\n"
 
                         + board.board_name
                         + " had insufficient purse.\n\n"
 
-                        + "High value players removed.\n\n"
-
                         + formatPrice(credited)
-                        + " credited back to purse.\n\n"
+                        + " credited back.\n\n"
 
-                        + "Bid wisely next time."
+                        + "Players returned to auction.";
 
-                    );
+                    setRecoveryPopup(msg);
+
+                    // Auto hide after 5 sec
+                    setTimeout(() => {
+
+                        setRecoveryPopup("");
+
+                    }, 5000);
 
                 }
 
@@ -270,42 +275,47 @@ function LiveAuctionPage() {
     */
     const placeBid = async () => {
 
-    try {
+        try {
 
-        if (boards.length === 0) {
-            alert("No boards available");
-            return;
-        }
+            if (boards.length === 0) {
+                alert("No boards available");
+                return;
+            }
 
-        const response =
-            await axios.post(
-                API +
-                "/api/live-auction/place-bid",
-                {
-                    auction_id: AUCTION_ID,
-                    board_id: selectedBoardId
-                }
-            );
+            const response =
+                await axios.post(
+                    API +
+                    "/api/live-auction/place-bid",
+                    {
+                        auction_id: AUCTION_ID,
+                        board_id: selectedBoardId
+                    }
+                );
 
-        console.log(response.data);
+            console.log(response.data);
 
-        /*
-        ✅ SHOW AUTO RECOVERY MESSAGE
-        */
+            /*
+            ✅ SHOW AUTO RECOVERY MESSAGE
+            */
 
-        if(response.data.recoveryMessage){
+            if (response.data.recoveryMessage) {
 
-            setRecoveryPopup(
-                response.data.recoveryMessage
-            );
+                setRecoveryPopup(response.data.recoveryMessage);
 
-        }
+                // Auto hide after 5 seconds
+                setTimeout(() => {
 
-        /*
-        Reload data
-        */
+                    setRecoveryPopup("");
 
-        loadData();
+                }, 5000);
+
+            }
+
+            /*
+            Reload data
+            */
+
+            loadData();
 
         }
         catch (err) {
@@ -834,20 +844,10 @@ function LiveAuctionPage() {
 
             {
                 recoveryPopup &&
-                <div
-                    style={{
-                        background: "#ff9800",
-                        padding: "18px",
-                        marginBottom: "15px",
-                        borderRadius: "10px",
-                        fontWeight: "bold",
-                        color: "#000",
-                        textAlign: "center",
-                        fontSize: "22px",
-                        whiteSpace: "pre-line"
-                    }}
-                >
+                <div className="recoveryAlert">
+
                     {recoveryPopup}
+
                 </div>
             }
 
