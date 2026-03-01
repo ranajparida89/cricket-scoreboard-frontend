@@ -52,6 +52,9 @@ function LiveAuctionPage() {
     const [soldFilterBoard, setSoldFilterBoard] = useState("");
     const [soldPopup, setSoldPopup] = useState("");
     const [lastSoldPlayer, setLastSoldPlayer] = useState("");
+    // ✅ AUTO RECOVERY MESSAGE STATE
+    const [recoveryPopup, setRecoveryPopup] = useState("");
+    const [lastRecoveryPlayer, setLastRecoveryPlayer] = useState("");
     const [squadData, setSquadData] = useState(null);
     const [allSquads, setAllSquads] = useState([]);
     const [boardSquadFilter, setBoardSquadFilter] = useState("");
@@ -154,8 +157,12 @@ function LiveAuctionPage() {
 
 
             if (sold.data.length > 0) {
+
                 const latestSold = sold.data[0];
+
+                // NORMAL SOLD MESSAGE
                 if (latestSold.player_name !== lastSoldPlayer) {
+
                     setSoldPopup(
                         "🏆 " +
                         latestSold.player_name +
@@ -164,10 +171,57 @@ function LiveAuctionPage() {
                         " for " +
                         formatPrice(latestSold.sold_price)
                     );
+
                     setLastSoldPlayer(latestSold.player_name);
 
+                    triggerConfetti();
+
                 }
+
             }
+
+            // AUTO RECOVERY DETECTION
+
+            const boardsAfter = b.data.boards;
+
+            boardsAfter.forEach(board => {
+
+                const oldBoard =
+                    boards.find(x => x.board_id === board.board_id);
+
+                if (!oldBoard) return;
+
+                // Recovery detected = purse increased AND players reduced
+
+                if (
+                    board.purse_remaining > oldBoard.purse_remaining
+                    &&
+                    board.players_bought < oldBoard.players_bought
+                ) {
+
+                    if (board.board_name !== lastRecoveryPlayer) {
+
+                        const purseGain =
+                            board.purse_remaining - oldBoard.purse_remaining;
+
+                        setRecoveryPopup(
+
+                            "⚠️ AUTO RECOVERY\n\n"
+                            + board.board_name
+                            + " had insufficient purse.\n\n"
+                            + formatPrice(purseGain)
+                            + " credited back.\n\n"
+                            + "Highest bid player returned to auction."
+
+                        );
+
+                        setLastRecoveryPlayer(board.board_name);
+
+                    }
+
+                }
+
+            });
             // ✅ LOAD BOARD SQUAD
             // ✅ LOAD BOARD SQUAD (NO BLINK STABLE)
             try {
@@ -905,6 +959,25 @@ function LiveAuctionPage() {
                 </div>
 
             </div>
+            {
+                recoveryPopup &&
+                <div
+                    style={{
+                        background: "#ff9800",
+                        padding: "18px",
+                        marginBottom: "15px",
+                        borderRadius: "10px",
+                        fontWeight: "bold",
+                        color: "#000",
+                        textAlign: "center",
+                        fontSize: "22px",
+                        whiteSpace: "pre-line"
+                    }}
+                >
+                    {recoveryPopup}
+                </div>
+            }
+
             {
                 soldPopup &&
                 <div
