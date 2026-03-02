@@ -132,68 +132,39 @@ function LiveAuctionPage() {
 
             const boardsAfter = b.data.boards;
 
+            setBoards(boardsAfter);
             /*
-            AUTO RECOVERY DETECTION
-            */
+GLOBAL AUTO RECOVERY MESSAGE (100% RELIABLE)
+*/
 
-            boardsAfter.forEach(board => {
+            try {
 
-                const oldBoard =
-                    boards.find(x => x.board_id === board.board_id);
+                const msg =
+                    await axios.get(
+                        API +
+                        "/api/live-auction/global-message/" +
+                        AUCTION_ID
+                    );
 
-                if (!oldBoard) return;
+                if (msg.data.message) {
 
-                /*
-                Recovery detected ONLY ONCE
-                */
-
-                if (
-
-                    board.purse_remaining > oldBoard.purse_remaining
-
-                    &&
-
-                    board.players_bought < oldBoard.players_bought
-
-                    &&
-
-                    lastRecoveryBoard !== board.board_id
-
-                ) {
-
-                    const credited =
-
-                        board.purse_remaining - oldBoard.purse_remaining;
-
-                    const msg =
-
-                        "⚠ AUTO RECOVERY EXECUTED\n\n"
-
-                        + board.board_name
-                        + " had insufficient purse.\n\n"
-
-                        + formatPrice(credited)
-                        + " credited back.\n\n"
-
-                        + "Highest player removed.";
-
-                    setRecoveryPopup(msg);
-
-                    setLastRecoveryBoard(board.board_id);
-
-                    /* Auto hide */
+                    setRecoveryPopup(msg.data.message);
 
                     setTimeout(() => {
 
                         setRecoveryPopup("");
 
-                    }, 5000);
+                    }, 6000);
 
                 }
 
-            });
+            }
+            catch (err) {
 
-            setBoards(boardsAfter);
+                console.log("Global message error", err);
+
+            }
+
             const h =
                 await axios.get(
                     API +
