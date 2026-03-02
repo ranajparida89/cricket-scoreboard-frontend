@@ -52,9 +52,6 @@ function LiveAuctionPage() {
     const [soldFilterBoard, setSoldFilterBoard] = useState("");
     const [soldPopup, setSoldPopup] = useState("");
     const [lastSoldPlayer, setLastSoldPlayer] = useState("");
-    // ✅ GLOBAL RECOVERY POPUP
-    const [recoveryPopup, setRecoveryPopup] = useState("");
-    const [lastRecoveryMessage, setLastRecoveryMessage] = useState("");
     const [squadData, setSquadData] = useState(null);
     const [allSquads, setAllSquads] = useState([]);
     const [boardSquadFilter, setBoardSquadFilter] = useState("");
@@ -96,52 +93,6 @@ function LiveAuctionPage() {
                     "/api/live-auction/status/" +
                     AUCTION_ID
                 );
-
-            /*
-            =====================================
-            GLOBAL RECOVERY MESSAGE CHECK
-            =====================================
-            */
-            /*
-            =====================================
-            GLOBAL RECOVERY MESSAGE CHECK (FINAL)
-            =====================================
-            */
-
-            try {
-
-                const msg =
-                    await axios.get(
-                        API +
-                        "/api/live-auction/global-message/"
-                        +
-                        AUCTION_ID
-                    );
-
-                if (
-                    msg.data.message &&
-                    msg.data.message !== lastRecoveryMessage
-                ) {
-
-                    setLastRecoveryMessage(msg.data.message);
-
-                    setRecoveryPopup(msg.data.message);
-
-                    setTimeout(() => {
-
-                        setRecoveryPopup("");
-
-                    }, 6000);
-
-                }
-
-            } catch (err) {
-
-                console.log("Global Message Error", err);
-
-            }
-
-
             /*
             MULTI-DEVICE SOLD DETECTION (FINAL)
             */
@@ -292,27 +243,15 @@ function LiveAuctionPage() {
             loadData();
         }
         catch (err) {
-
-            console.log("Bid Error", err);
-
-            /*
-            Ignore Insufficient Purse Alert
-            Recovery popup will show automatically
-            */
-
-            if (
+            console.log(
+                "Bid Error",
+                err
+            );
+            alert(
                 err.response?.data?.error
-                !== "Insufficient purse"
-            ) {
-
-                alert(
-                    err.response?.data?.error
-                    ||
-                    "Bid failed"
-                );
-
-            }
-
+                ||
+                "Bid failed"
+            );
         }
     };
 
@@ -981,15 +920,6 @@ function LiveAuctionPage() {
                     }}
                 >
                     🏆 {soldPopup}
-                </div>
-            }
-
-            {
-                recoveryPopup &&
-                <div className="recoveryAlert">
-
-                    {recoveryPopup}
-
                 </div>
             }
             <div className="auction-grid">
