@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./LiveAuctionPage.css";
-
+import confetti from "canvas-confetti";
 // Admin JWT Header (same as ManageAdmins)
 
 function authHeader() {
@@ -52,16 +52,20 @@ function LiveAuctionPage() {
     const [soldFilterBoard, setSoldFilterBoard] = useState("");
     const [soldPopup, setSoldPopup] = useState("");
     const [lastSoldPlayer, setLastSoldPlayer] = useState("");
-    // ✅ AUTO RECOVERY MESSAGE STATE
-    const [recoveryPopup, setRecoveryPopup] = useState("");
-    const [lastRecoveryPlayer, setLastRecoveryPlayer] = useState("");
-    const [lastRecoveryBoard, setLastRecoveryBoard] = useState("");
     const [squadData, setSquadData] = useState(null);
     const [allSquads, setAllSquads] = useState([]);
     const [boardSquadFilter, setBoardSquadFilter] = useState("");
     const selectedBoard =
         boards.find(b => b.board_id === selectedBoardId);
+    // ✅ CONFETTI CELEBRATION
 
+    const triggerConfetti = () => {
+        confetti({
+            particleCount: 200,
+            spread: 120,
+            origin: { y: 0.6 }
+        });
+    };
 
     useEffect(() => {
         loadData();
@@ -129,42 +133,7 @@ function LiveAuctionPage() {
                     "/api/live-auction/boards/" +
                     AUCTION_ID
                 );
-
-            const boardsAfter = b.data.boards;
-
-            setBoards(boardsAfter);
-            /*
-GLOBAL AUTO RECOVERY MESSAGE (100% RELIABLE)
-*/
-
-            try {
-
-                const msg =
-                    await axios.get(
-                        API +
-                        "/api/live-auction/global-message/" +
-                        AUCTION_ID
-                    );
-
-                if (msg.data.message) {
-
-                    setRecoveryPopup(msg.data.message);
-
-                    setTimeout(() => {
-
-                        setRecoveryPopup("");
-
-                    }, 6000);
-
-                }
-
-            }
-            catch (err) {
-
-                console.log("Global message error", err);
-
-            }
-
+            setBoards(b.data.boards);
             const h =
                 await axios.get(
                     API +
@@ -185,12 +154,8 @@ GLOBAL AUTO RECOVERY MESSAGE (100% RELIABLE)
 
 
             if (sold.data.length > 0) {
-
                 const latestSold = sold.data[0];
-
-                // NORMAL SOLD MESSAGE
                 if (latestSold.player_name !== lastSoldPlayer) {
-
                     setSoldPopup(
                         "🏆 " +
                         latestSold.player_name +
@@ -199,13 +164,10 @@ GLOBAL AUTO RECOVERY MESSAGE (100% RELIABLE)
                         " for " +
                         formatPrice(latestSold.sold_price)
                     );
-
                     setLastSoldPlayer(latestSold.player_name);
 
                 }
-
             }
-
             // ✅ LOAD BOARD SQUAD
             // ✅ LOAD BOARD SQUAD (NO BLINK STABLE)
             try {
@@ -258,76 +220,38 @@ GLOBAL AUTO RECOVERY MESSAGE (100% RELIABLE)
     PLACE BID
     */
     const placeBid = async () => {
-
         try {
-
             if (boards.length === 0) {
-                alert("No boards available");
+                alert(
+                    "No boards available"
+                );
                 return;
             }
-
             const response =
                 await axios.post(
                     API +
                     "/api/live-auction/place-bid",
                     {
-                        auction_id: AUCTION_ID,
-                        board_id: selectedBoardId
+                        auction_id:
+                            AUCTION_ID,
+                        board_id:
+                            selectedBoardId
                     }
+
                 );
-
             console.log(response.data);
-
-            /*
-            ✅ SHOW AUTO RECOVERY MESSAGE
-            */
-
-            if (response.data.recoveryMessage) {
-
-                setRecoveryPopup(response.data.recoveryMessage);
-
-                // Auto hide after 5 seconds
-                setTimeout(() => {
-
-                    setRecoveryPopup("");
-
-                }, 5000);
-
-            }
-
-            /*
-            Reload data
-            */
-
             loadData();
-
         }
         catch (err) {
-
-            console.log("Bid Error", err);
-
-            if (err.response?.data?.error === "Insufficient purse") {
-
-                setRecoveryPopup(
-
-                    "⚠️ INSUFFICIENT PURSE\n\n"
-
-                    + "This board cannot continue auction.\n\n"
-
-                    + "Highest value players will be removed\n"
-                    + "after player closes."
-
-                );
-
-            }
-            else {
-
-                setRecoveryPopup(
-                    err.response?.data?.error || "Bid failed"
-                );
-
-            }
-
+            console.log(
+                "Bid Error",
+                err
+            );
+            alert(
+                err.response?.data?.error
+                ||
+                "Bid failed"
+            );
         }
     };
 
@@ -825,16 +749,6 @@ GLOBAL AUTO RECOVERY MESSAGE (100% RELIABLE)
                     </div>
                 )
             }
-
-            {
-                recoveryPopup &&
-                <div className="recoveryAlert">
-
-                    {recoveryPopup}
-
-                </div>
-            }
-
             <h1>🏏 Live Auction</h1>
 
             {
@@ -991,7 +905,6 @@ GLOBAL AUTO RECOVERY MESSAGE (100% RELIABLE)
                 </div>
 
             </div>
-
             {
                 soldPopup &&
                 <div
