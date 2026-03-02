@@ -292,15 +292,27 @@ function LiveAuctionPage() {
             loadData();
         }
         catch (err) {
-            console.log(
-                "Bid Error",
-                err
-            );
-            alert(
+
+            console.log("Bid Error", err);
+
+            /*
+            Ignore Insufficient Purse Alert
+            Recovery popup will show automatically
+            */
+
+            if (
                 err.response?.data?.error
-                ||
-                "Bid failed"
-            );
+                !== "Insufficient purse"
+            ) {
+
+                alert(
+                    err.response?.data?.error
+                    ||
+                    "Bid failed"
+                );
+
+            }
+
         }
     };
 
