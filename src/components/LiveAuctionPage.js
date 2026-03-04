@@ -53,6 +53,8 @@ function LiveAuctionPage() {
     const [soldPopup, setSoldPopup] = useState("");
     const [lastSoldPlayer, setLastSoldPlayer] = useState("");
     const [squadData, setSquadData] = useState(null);
+    // AUCTION RULES POPUP
+    const [showRules, setShowRules] = useState(false);
     const [allSquads, setAllSquads] = useState([]);
     const [boardSquadFilter, setBoardSquadFilter] = useState("");
     const selectedBoard =
@@ -749,7 +751,18 @@ function LiveAuctionPage() {
                     </div>
                 )
             }
-            <h1>🏏 Live Auction</h1>
+            <div className="auction-title-row">
+
+                <h1>🏏 Live Auction</h1>
+
+                <button
+                    className="rules-btn"
+                    onClick={() => setShowRules(true)}
+                >
+                    Auction Rules
+                </button>
+
+            </div>
 
             {
                 status.is_paused &&
@@ -1135,6 +1148,81 @@ function LiveAuctionPage() {
                 }
 
             </div>
+            {
+                showRules && (
+
+                    <div className="rules-overlay">
+
+                        <div className="rules-popup">
+
+                            <h2>CrickEdge Live Auction – Rules & Guide</h2>
+
+                            <div className="rules-content">
+
+                                <h3>Objective</h3>
+                                <p>
+                                    Build the strongest squad by bidding strategically within your auction purse.
+                                </p>
+
+                                <h3>Squad Rules</h3>
+                                <ul>
+                                    <li>Maximum squad size: 13 players</li>
+                                    <li>Boards cannot bid once squad is full</li>
+                                </ul>
+
+                                <h3>Auction Purse</h3>
+                                <ul>
+                                    <li>Each board receives an auction purse</li>
+                                    <li>Player price is deducted after purchase</li>
+                                    <li>Boards cannot bid beyond available purse</li>
+                                </ul>
+
+                                <h3>Player Categories</h3>
+                                <ul>
+                                    <li>Legend</li>
+                                    <li>Diamond</li>
+                                    <li>Platinum</li>
+                                    <li>Gold</li>
+                                    <li>Silver</li>
+                                </ul>
+
+                                <h3>Auction Flow</h3>
+                                <ul>
+                                    <li>Player becomes LIVE</li>
+                                    <li>Boards place bids</li>
+                                    <li>Highest bid leads</li>
+                                    <li>Timer ends → player SOLD</li>
+                                </ul>
+
+                                <h3>Auction Timer</h3>
+                                <p>
+                                    Each bid may extend the timer to allow fair competition between boards.
+                                </p>
+
+                                <h3>Admin Controls</h3>
+                                <ul>
+                                    <li>Start Auction</li>
+                                    <li>Pause Auction</li>
+                                    <li>Resume Auction</li>
+                                    <li>Reset Auction</li>
+                                    <li>End Auction</li>
+                                </ul>
+
+                            </div>
+
+                            <button
+                                className="close-rules"
+                                onClick={() => setShowRules(false)}
+                            >
+                                Close
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                )
+            }
         </div>
     );
 }

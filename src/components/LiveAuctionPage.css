@@ -861,3 +861,106 @@ body {
     }
 
 }
+/* =========================
+AUCTION RULES BUTTON
+========================= */
+
+.auction-title-row{
+
+display:flex;
+align-items:center;
+gap:20px;
+margin-bottom:10px;
+
+}
+
+.rules-btn{
+
+background:linear-gradient(45deg,#2196f3,#00e5ff);
+border:none;
+color:white;
+padding:8px 18px;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+transition:.2s;
+
+}
+
+.rules-btn:hover{
+
+transform:scale(1.05);
+
+}
+
+
+/* =========================
+RULES POPUP
+========================= */
+
+.rules-overlay{
+
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.7);
+display:flex;
+justify-content:center;
+align-items:center;
+z-index:9999;
+
+}
+
+.rules-popup{
+
+background:#111;
+color:white;
+width:650px;
+max-height:80vh;
+overflow-y:auto;
+padding:30px;
+border-radius:12px;
+box-shadow:0 10px 40px rgba(0,0,0,0.8);
+
+}
+
+.rules-popup h2{
+
+color:#00e5ff;
+margin-bottom:15px;
+
+}
+
+.rules-content h3{
+
+margin-top:15px;
+color:#ffc107;
+
+}
+
+.rules-content ul{
+
+padding-left:20px;
+
+}
+
+.rules-content li{
+
+margin-bottom:5px;
+
+}
+
+.close-rules{
+
+margin-top:20px;
+background:#f44336;
+border:none;
+color:white;
+padding:10px 20px;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+
+}
