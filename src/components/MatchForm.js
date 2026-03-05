@@ -683,13 +683,21 @@ export default function MatchForm() {
 
       const result = await submitMatchResult(payload);
       const msg = result.message || "Match submitted.";
+
       setResultMsg(msg);
+
       const winner = extractWinnerName(msg, t1, t2);
       setWinnerTeam(winner);
 
-      playSound("celebration");
-      setShowPopup(true);
-      setTimeout(() => setShowPopup(false), 4000);
+      // allow UI to update first
+      setTimeout(() => {
+
+        playSound("celebration");
+        setShowPopup(true);
+
+        setTimeout(() => setShowPopup(false), 4000);
+
+      }, 300);
     } catch (err) {
       alert("❌ Error: " + (err?.response?.data?.error || err.message));
     } finally {
@@ -1140,8 +1148,8 @@ export default function MatchForm() {
                           <div
                             key={p.id}
                             className={`mom-option ${String(p.id) === String(momPlayerId)
-                                ? "selected"
-                                : ""
+                              ? "selected"
+                              : ""
                               }`}
                             onClick={() => {
                               setMomPlayerId(p.id);
@@ -1164,8 +1172,8 @@ export default function MatchForm() {
                           <div
                             key={p.id}
                             className={`mom-option ${String(p.id) === String(momPlayerId)
-                                ? "selected"
-                                : ""
+                              ? "selected"
+                              : ""
                               }`}
                             onClick={() => {
                               setMomPlayerId(p.id);
