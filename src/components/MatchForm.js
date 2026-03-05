@@ -604,6 +604,10 @@ export default function MatchForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (isSubmitting) return;   // prevents double click
+    setIsSubmitting(true);      // lock the button
+
     const t1 = normalizeTeamName(team1);
     const t2 = normalizeTeamName(team2);
 
@@ -641,7 +645,6 @@ export default function MatchForm() {
     }
 
     try {
-      setIsSubmitting(true);
       const storedUser = JSON.parse(localStorage.getItem("user"));
       const userId = storedUser?.id;
 

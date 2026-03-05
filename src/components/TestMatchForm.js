@@ -594,6 +594,10 @@ export default function TestMatchForm() {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     const t1 = normalizeTeamName(team1);
     const t2 = normalizeTeamName(team2);
 
@@ -625,7 +629,6 @@ export default function TestMatchForm() {
     }
 
     try {
-      setIsSubmitting(true);
       const match = await createMatch({
         match_name: matchName,
         match_type: "Test",
