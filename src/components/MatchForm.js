@@ -681,7 +681,11 @@ export default function MatchForm() {
             : "INTERNATIONAL",
       };
 
+      console.log("STEP 1: Sending match result to backend...");
+
       const result = await submitMatchResult(payload);
+
+      console.log("STEP 2: Backend responded with:", result);
       const msg = result.message || "Match submitted.";
 
       setResultMsg(msg);
