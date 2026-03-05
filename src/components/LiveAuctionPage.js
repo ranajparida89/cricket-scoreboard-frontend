@@ -56,6 +56,7 @@ function LiveAuctionPage() {
     // AUCTION RULES POPUP
     const [showRules, setShowRules] = useState(false);
     const [showAddPlayer, setShowAddPlayer] = useState(false);
+    const [playerSuggestions, setPlayerSuggestions] = useState([]);
     const [allSquads, setAllSquads] = useState([]);
     const [boardSquadFilter, setBoardSquadFilter] = useState("");
     const selectedBoard =
@@ -256,6 +257,42 @@ function LiveAuctionPage() {
                 "Bid failed"
             );
         }
+    };
+
+    /*
+=====================================
+PLAYER SEARCH (AUTO SUGGESTION)
+=====================================
+*/
+
+    const searchPlayer = async (value) => {
+
+        try {
+
+            if (value.length < 2) {
+
+                setPlayerSuggestions([]);
+                return;
+
+            }
+
+            const res = await axios.get(
+                API +
+                "/api/live-auction/player-search/" +
+                AUCTION_ID +
+                "?name=" +
+                value
+            );
+
+            setPlayerSuggestions(res.data);
+
+        }
+        catch (err) {
+
+            console.log("Player search error", err);
+
+        }
+
     };
 
     // Admin feature Ranaj Parida 25-02-2026
@@ -1245,17 +1282,55 @@ function LiveAuctionPage() {
                         <div className="rules-content">
 
                             <label>Player Name</label>
-
                             <input
                                 type="text"
                                 id="playerName"
                                 placeholder="Enter player name"
+                                onChange={(e) => searchPlayer(e.target.value)}
                                 style={{
                                     width: "100%",
                                     padding: "8px",
-                                    marginBottom: "12px"
+                                    marginBottom: "5px"
                                 }}
                             />
+
+                            {playerSuggestions.length > 0 && (
+
+                                <div
+                                    style={{
+                                        background: "#222",
+                                        border: "1px solid #444",
+                                        borderRadius: "6px",
+                                        maxHeight: "150px",
+                                        overflowY: "auto",
+                                        marginBottom: "10px"
+                                    }}
+                                >
+
+                                    {playerSuggestions.map((p, i) => (
+                                        <div
+                                            key={i}
+                                            style={{
+                                                padding: "8px",
+                                                cursor: "pointer"
+                                            }}
+                                            onClick={() => {
+
+                                                document.getElementById("playerName").value = p.player_name;
+
+                                                setPlayerSuggestions([]);
+
+                                            }}
+                                        >
+
+                                            {p.player_name}
+
+                                        </div>
+                                    ))}
+
+                                </div>
+
+                            )}
 
                             <label>Category</label>
 
@@ -1354,7 +1429,7 @@ function LiveAuctionPage() {
                                             }
                                         );
 
-                                       alert("Player added to auction successfully");
+                                        alert("Player added to auction successfully");
 
                                         setShowAddPlayer(false);
 
