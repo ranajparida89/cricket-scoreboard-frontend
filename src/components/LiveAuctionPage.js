@@ -55,6 +55,7 @@ function LiveAuctionPage() {
     const [squadData, setSquadData] = useState(null);
     // AUCTION RULES POPUP
     const [showRules, setShowRules] = useState(false);
+    const [showAddPlayer, setShowAddPlayer] = useState(false);
     const [allSquads, setAllSquads] = useState([]);
     const [boardSquadFilter, setBoardSquadFilter] = useState("");
     const selectedBoard =
@@ -406,6 +407,13 @@ function LiveAuctionPage() {
                         <h2>
                             Admin Auction Setup
                         </h2>
+
+                        <button
+                            className="add-player-btn"
+                            onClick={() => setShowAddPlayer(true)}
+                        >
+                            Add Player
+                        </button>
 
                         {/* ADMIN AUCTION CONTROL */}
 
@@ -1223,6 +1231,170 @@ function LiveAuctionPage() {
 
                 )
             }
+
+            {/* ADD PLAYER POPUP */}
+
+            {showAddPlayer && (
+
+                <div className="rules-overlay">
+
+                    <div className="rules-popup">
+
+                        <h2>Add Player To Auction</h2>
+
+                        <div className="rules-content">
+
+                            <label>Player Name</label>
+
+                            <input
+                                type="text"
+                                id="playerName"
+                                placeholder="Enter player name"
+                                style={{
+                                    width: "100%",
+                                    padding: "8px",
+                                    marginBottom: "12px"
+                                }}
+                            />
+
+                            <label>Category</label>
+
+                            <select
+                                id="playerCategory"
+                                style={{
+                                    width: "100%",
+                                    padding: "8px",
+                                    marginBottom: "12px"
+                                }}
+                            >
+
+                                <option value="LEGEND">Legend</option>
+                                <option value="DIAMOND">Diamond</option>
+                                <option value="PLATINUM">Platinum</option>
+                                <option value="GOLD">Gold</option>
+                                <option value="SILVER">Silver</option>
+
+                            </select>
+
+                            <label>Role</label>
+
+                            <select
+                                id="playerRole"
+                                style={{
+                                    width: "100%",
+                                    padding: "8px",
+                                    marginBottom: "12px"
+                                }}
+                            >
+
+                                <option value="BATSMAN">Batsman</option>
+                                <option value="BOWLER">Bowler</option>
+                                <option value="ALLROUNDER">Allrounder</option>
+
+                            </select>
+
+                            <label style={{ display: "block", marginTop: "10px" }}>
+
+                                <input
+                                    type="checkbox"
+                                    id="playerKeeper"
+                                />
+
+                                Wicket Keeper
+
+                            </label>
+
+                        </div>
+
+                        <div style={{ marginTop: "20px" }}>
+
+                            <button
+                                style={{
+                                    background: "#2e7d32",
+                                    color: "white",
+                                    padding: "10px 20px",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    marginRight: "10px",
+                                    cursor: "pointer"
+                                }}
+
+                                onClick={async () => {
+
+                                    try {
+
+                                        const name =
+                                            document.getElementById("playerName").value;
+
+                                        const category =
+                                            document.getElementById("playerCategory").value;
+
+                                        const role =
+                                            document.getElementById("playerRole").value;
+
+                                        const keeper =
+                                            document.getElementById("playerKeeper").checked;
+
+                                        if (!name) {
+
+                                            alert("Player name required");
+                                            return;
+
+                                        }
+
+                                        await axios.post(
+                                            API +
+                                            "/api/live-auction/add-player/" +
+                                            AUCTION_ID,
+                                            {
+                                                player_name: name,
+                                                category: category,
+                                                role: role,
+                                                is_wicketkeeper: keeper
+                                            }
+                                        );
+
+                                       alert("Player added to auction successfully");
+
+                                        setShowAddPlayer(false);
+
+                                        loadData();
+
+                                    }
+                                    catch (err) {
+
+                                        alert(
+                                            err.response?.data?.error ||
+                                            "Failed to add player"
+                                        );
+
+                                    }
+
+                                }}
+
+                            >
+
+                                Add Player
+
+                            </button>
+
+                            <button
+                                className="close-rules"
+                                onClick={() => setShowAddPlayer(false)}
+                            >
+
+                                Cancel
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            )}
+
         </div>
     );
 }

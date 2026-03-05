@@ -964,3 +964,21 @@ cursor:pointer;
 font-weight:bold;
 
 }
+.add-player-btn{
+
+margin-left:20px;
+padding:10px 18px;
+background:#00bcd4;
+color:white;
+border:none;
+border-radius:6px;
+font-weight:bold;
+cursor:pointer;
+
+}
+
+.add-player-btn:hover{
+
+background:#0097a7;
+
+}
