@@ -61,6 +61,7 @@ import PlayerAuctionSetup from "./components/PlayerAuctionSetup";
 import AuctionResults from "./components/AuctionResults"; // for player auction not Live Auction
 import SeasonLeaderboard from "./components/SeasonLeaderboard";
 import LiveAuctionPage from "./components/LiveAuctionPage";
+import LiveMatchPage from "./components/LiveMatchPage";
 
 // 🔥 NEW
 import PitchRandomizer from "./components/PitchRandomizer";
@@ -544,6 +545,7 @@ function App() {
           <Route path="/player-report-card" element={<PlayerReportCard />} />
           <Route path="/season-leaderboard" element={<SeasonLeaderboard />} />
           <Route path="/live-auction" element={<LiveAuctionPage />} />
+          <Route path="/live-match" element={<LiveMatchPage />} />
 
           <Route
             path="/tournament-points"

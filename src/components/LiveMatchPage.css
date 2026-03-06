@@ -1,0 +1,66 @@
+.live-match-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.live-header {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.live-badge {
+    background: red;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.viewer-count {
+    font-size: 18px;
+}
+
+.live-stream iframe {
+    width: 900px;
+    height: 500px;
+    border: none;
+}
+
+.chat-section {
+    width: 900px;
+    margin-top: 20px;
+}
+
+.chat-box {
+    height: 250px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    background: #111;
+    color: white;
+}
+
+.chat-message {
+    margin-bottom: 5px;
+}
+
+.chat-input {
+    display: flex;
+    margin-top: 10px;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 8px;
+}
+
+.chat-input button {
+    padding: 8px 15px;
+    background: #00bcd4;
+    border: none;
+    color: white;
+}

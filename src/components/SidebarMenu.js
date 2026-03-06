@@ -104,16 +104,16 @@ const SidebarMenu = () => {
             <FaDiceD20 className="me-2 text-success" /> Pitch Randomizer
           </Link>
         </li>
-       <li>
-            <Link to="/scheduler" onClick={handleClose}>
-              <span role="img" aria-label="scheduler" style={{ marginRight: 6 }}>
-                🗓️
-              </span>
-              <span className="glow-text">
-                Match Fixture & Scheduler
-              </span>
-            </Link>
-          </li>
+        <li>
+          <Link to="/scheduler" onClick={handleClose}>
+            <span role="img" aria-label="scheduler" style={{ marginRight: 6 }}>
+              🗓️
+            </span>
+            <span className="glow-text">
+              Match Fixture & Scheduler
+            </span>
+          </Link>
+        </li>
         <li>
           <Link to="/team-distributor" onClick={handleClose}>
             <span role="img" aria-label="wheel" style={{ marginRight: 6 }}>
@@ -121,23 +121,33 @@ const SidebarMenu = () => {
             </span>
             Team Distributor
           </Link>
-                  </li>
-          {/* 💰 Player Auction (Admin Only) */}
-          {isAdmin && (
-            <li>
-              <Link to="/player-auction" onClick={handleClose}>
-                <FaGavel className="me-2 text-warning" /> Player Auction
-              </Link>
-            </li>
-          )}
+        </li>
+        {/* 💰 Player Auction (Admin Only) */}
+        {isAdmin && (
+          <li>
+            <Link to="/player-auction" onClick={handleClose}>
+              <FaGavel className="me-2 text-warning" /> Player Auction
+            </Link>
+          </li>
+        )}
 
-          {/* 🔴 Live Auction (Admin Only) */}
-      
-            <li>
-              <Link to="/live-auction" onClick={handleClose}>
-                <FaGavel className="me-2 text-danger" /> Live Auction
-              </Link>
-            </li>
+        {/* 🔴 Live Auction (Admin Only) */}
+
+        <li>
+          <Link to="/live-auction" onClick={handleClose}>
+            <FaGavel className="me-2 text-danger" /> Live Auction
+          </Link>
+        </li>
+
+        {/* 📺 Live Match Streaming */}
+        <li>
+          <Link to="/live-match" onClick={handleClose}>
+            <span role="img" aria-label="live" style={{ marginRight: 6 }}>
+              📺
+            </span>
+            Live Match
+          </Link>
+        </li>
 
         {/* 🧮 Upcoming Matches */}
         {isAdmin && (
@@ -173,17 +183,17 @@ const SidebarMenu = () => {
           </Link>
         </li>
 
-                <li>
+        <li>
           <Link to="/season-leaderboard" onClick={handleClose}>
             <FaChartLine className="me-2 text-success" /> Season Leaderboard
           </Link>
         </li>
-               
-            <li>
-      <Link to="/rules-and-regulations" onClick={handleClose}>
-        <FaBook className="me-2 text-primary" /> Rules & Regulations
-      </Link>
-    </li>
+
+        <li>
+          <Link to="/rules-and-regulations" onClick={handleClose}>
+            <FaBook className="me-2 text-primary" /> Rules & Regulations
+          </Link>
+        </li>
 
         {/* ✅ NEW MODULE – Man of the Match Insights */}
         <li>
