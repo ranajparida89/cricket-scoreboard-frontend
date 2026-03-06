@@ -24,10 +24,13 @@
     font-size: 18px;
 }
 
-.live-stream iframe {
-    width: 900px;
-    height: 500px;
-    border: none;
+.live-stream iframe{
+width:100%;
+max-width:1000px;
+height:550px;
+border-radius:10px;
+border:none;
+box-shadow:0 0 10px rgba(0,0,0,0.6);
 }
 
 .chat-section {
@@ -35,13 +38,14 @@
     margin-top: 20px;
 }
 
-.chat-box {
-    height: 250px;
-    overflow-y: auto;
-    border: 1px solid #ccc;
-    padding: 10px;
-    background: #111;
-    color: white;
+.chat-box{
+height:300px;
+overflow-y:auto;
+border:1px solid #444;
+background:#0f0f0f;
+color:white;
+padding:10px;
+border-radius:5px;
 }
 
 .chat-message {

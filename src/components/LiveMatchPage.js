@@ -24,6 +24,19 @@ function LiveMatchPage() {
 
     }, []);
 
+    useEffect(() => {
+
+        if (match) {
+
+            axios.post(`${API}/live-match/viewer-join`, {
+                match_id: match.id,
+                viewer_id: Date.now().toString()
+            });
+
+        }
+
+    }, [match]);
+
     async function fetchLiveMatch() {
 
         try {
@@ -104,7 +117,17 @@ function LiveMatchPage() {
 
             <div className="live-header">
                 <span className="live-badge">LIVE</span>
-                <h2>{match.match_name}</h2>
+                <div className="match-header">
+
+                    <span className="live-badge">LIVE</span>
+
+                    <h2>{match.team1} vs {match.team2}</h2>
+
+                    <span className="viewer-count">
+                        👁 {viewers}
+                    </span>
+
+                </div>
                 <span className="viewer-count">👁 {viewers}</span>
             </div>
 
@@ -115,7 +138,69 @@ function LiveMatchPage() {
                     src={match.embed_url}
                     allow="autoplay"
                     allowFullScreen
+                    style={{
+                        width: "100%",
+                        maxWidth: "1000px",
+                        height: "550px",
+                        border: "none",
+                        borderRadius: "10px"
+                    }}
                 />
+
+                <div style={{
+                    marginTop: "10px",
+                    display: "flex",
+                    gap: "10px"
+                }}>
+
+                    <button
+                        onClick={() => {
+                            const iframe = document.querySelector(".live-stream iframe");
+                            if (iframe) {
+                                iframe.requestFullscreen();
+                            }
+                        }}
+                        style={{
+                            padding: "8px 15px",
+                            background: "#00bcd4",
+                            border: "none",
+                            color: "white",
+                            borderRadius: "5px",
+                            cursor: "pointer"
+                        }}
+                    >
+                        Fullscreen
+                    </button>
+
+                    <button
+                        onClick={async () => {
+
+                            try {
+
+                                await axios.post(`${API}/live-match/end/${match.id}`);
+
+                                alert("Match Ended Successfully");
+
+                                window.location.reload();
+
+                            } catch (err) {
+                                console.error(err);
+                            }
+
+                        }}
+                        style={{
+                            padding: "8px 15px",
+                            background: "red",
+                            border: "none",
+                            color: "white",
+                            borderRadius: "5px",
+                            cursor: "pointer"
+                        }}
+                    >
+                        End Match
+                    </button>
+
+                </div>
 
             </div>
 
