@@ -176,10 +176,10 @@ function LiveMatchPage() {
         }
 
         /* Convert Twitch URL */
-
         if (streamURL.includes("twitch.tv")) {
 
-            const channel = streamURL.split("twitch.tv/")[1];
+            const channel = streamURL.split("twitch.tv/")[1].split("?")[0];
+
             embedURL = `https://player.twitch.tv/?channel=${channel}&parent=crickedge.in`;
 
         }
