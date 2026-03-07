@@ -160,9 +160,27 @@ function LiveMatchPage() {
     async function startLiveMatch() {
 
         if (!team1 || !team2 || !streamURL) {
-
             alert("Please fill all fields");
             return;
+        }
+
+        let embedURL = streamURL;
+
+        /* Convert YouTube URL */
+
+        if (streamURL.includes("youtube.com/watch")) {
+
+            const videoId = streamURL.split("v=")[1];
+            embedURL = `https://www.youtube.com/embed/${videoId}`;
+
+        }
+
+        /* Convert Twitch URL */
+
+        if (streamURL.includes("twitch.tv")) {
+
+            const channel = streamURL.split("twitch.tv/")[1];
+            embedURL = `https://player.twitch.tv/?channel=${channel}&parent=crickedge.in`;
 
         }
 
@@ -172,29 +190,17 @@ function LiveMatchPage() {
                 team1,
                 team2,
                 match_type: matchType,
-                embed_url: streamURL
+                embed_url: embedURL
             });
 
             alert("Live Match Started");
 
-            fetchLiveMatch();
+            window.location.reload();
 
         } catch (err) {
             console.error(err);
         }
-
     }
-
-
-
-    function goFullscreen() {
-
-        if (playerRef.current) {
-            playerRef.current.requestFullscreen();
-        }
-
-    }
-
 
 
     return (
