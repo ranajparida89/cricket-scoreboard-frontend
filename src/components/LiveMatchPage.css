@@ -186,3 +186,29 @@ height:250px;
 }
 
 }
+.start-live-container{
+max-width:500px;
+margin:auto;
+display:flex;
+flex-direction:column;
+gap:10px;
+padding:40px;
+background:#1a1a1a;
+border-radius:10px;
+}
+
+.start-live-container input,
+.start-live-container select{
+padding:10px;
+border:none;
+border-radius:5px;
+}
+
+.start-btn{
+padding:10px;
+background:#00bcd4;
+border:none;
+color:white;
+border-radius:5px;
+cursor:pointer;
+}

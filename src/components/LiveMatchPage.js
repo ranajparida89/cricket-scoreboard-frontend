@@ -11,6 +11,11 @@ function LiveMatchPage() {
     const [chat, setChat] = useState([]);
     const [message, setMessage] = useState("");
 
+    const [team1, setTeam1] = useState("");
+    const [team2, setTeam2] = useState("");
+    const [matchType, setMatchType] = useState("T20");
+    const [streamURL, setStreamURL] = useState("");
+
     const playerRef = useRef(null);
     const chatEndRef = useRef(null);
 
@@ -19,13 +24,15 @@ function LiveMatchPage() {
         fetchLiveMatch();
 
         const interval = setInterval(() => {
-            fetchViewers();
-            fetchChat();
+            if(match){
+                fetchViewers();
+                fetchChat();
+            }
         }, 2000);
 
         return () => clearInterval(interval);
 
-    }, []);
+    }, [match]);
 
     useEffect(() => {
 
@@ -41,9 +48,7 @@ function LiveMatchPage() {
     }, [match]);
 
     useEffect(() => {
-
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-
     }, [chat]);
 
     async function fetchLiveMatch() {
@@ -55,7 +60,6 @@ function LiveMatchPage() {
             if (res.data.length > 0) {
 
                 setMatch(res.data[0]);
-
                 fetchViewers(res.data[0].id);
                 fetchChat(res.data[0].id);
 
@@ -69,9 +73,8 @@ function LiveMatchPage() {
 
     async function fetchViewers(matchId) {
 
-        if (!matchId && !match) return;
-
-        const id = matchId || match.id;
+        const id = matchId || match?.id;
+        if (!id) return;
 
         try {
 
@@ -86,9 +89,8 @@ function LiveMatchPage() {
 
     async function fetchChat(matchId) {
 
-        if (!matchId && !match) return;
-
-        const id = matchId || match.id;
+        const id = matchId || match?.id;
+        if (!id) return;
 
         try {
 
@@ -121,25 +123,91 @@ function LiveMatchPage() {
 
     }
 
-    function goFullscreen() {
+    async function startLiveMatch(){
 
-        if (playerRef.current) {
+        if(!team1 || !team2 || !streamURL){
+            alert("Please fill all fields");
+            return;
+        }
 
-            if (playerRef.current.requestFullscreen) {
-                playerRef.current.requestFullscreen();
-            }
+        try{
 
+            const res = await axios.post(`${API}/live-match/start`,{
+                team1,
+                team2,
+                match_type:matchType,
+                embed_url:streamURL
+            });
+
+            alert("Live Match Started");
+
+            fetchLiveMatch();
+
+        }catch(err){
+            console.error(err);
         }
 
     }
 
-    if (!match) return <div className="no-match">No Live Match Currently Running</div>;
+    function goFullscreen(){
+
+        if(playerRef.current){
+            playerRef.current.requestFullscreen();
+        }
+
+    }
+
+    if(!match){
+
+        return(
+
+            <div className="start-live-container">
+
+                <h2>Start Live Match</h2>
+
+                <input
+                    placeholder="Team 1"
+                    value={team1}
+                    onChange={(e)=>setTeam1(e.target.value)}
+                />
+
+                <input
+                    placeholder="Team 2"
+                    value={team2}
+                    onChange={(e)=>setTeam2(e.target.value)}
+                />
+
+                <select
+                    value={matchType}
+                    onChange={(e)=>setMatchType(e.target.value)}
+                >
+                    <option>T20</option>
+                    <option>ODI</option>
+                    <option>TEST</option>
+                </select>
+
+                <input
+                    placeholder="YouTube / Twitch Embed URL"
+                    value={streamURL}
+                    onChange={(e)=>setStreamURL(e.target.value)}
+                />
+
+                <button
+                    className="start-btn"
+                    onClick={startLiveMatch}
+                >
+                    Start Live Match
+                </button>
+
+            </div>
+
+        );
+
+    }
 
     return (
 
         <div className="live-page">
-
-            {/* HEADER */}
 
             <div className="live-header">
 
@@ -147,39 +215,25 @@ function LiveMatchPage() {
 
                     <span className="live-badge">LIVE</span>
 
-                    <h2>
-                        {match.team1} vs {match.team2}
-                    </h2>
+                    <h2>{match.team1} vs {match.team2}</h2>
 
                 </div>
 
                 <div className="match-meta">
 
-                    <span className="match-type">
-                        {match.match_type || "T20"} Match
-                    </span>
+                    <span className="match-type">{match.match_type}</span>
 
-                    <span className="viewer-count">
-                        👁 {viewers} watching
-                    </span>
+                    <span className="viewer-count">👁 {viewers} watching</span>
 
                 </div>
 
             </div>
 
-
-            {/* DELAY NOTICE */}
-
             <div className="delay-notice">
                 ⚠ Live stream may have a delay of 30-40 seconds compared to the actual match.
             </div>
 
-
-            {/* MAIN CONTENT */}
-
             <div className="live-main">
-
-                {/* STREAM */}
 
                 <div className="player-section">
 
@@ -205,19 +259,10 @@ function LiveMatchPage() {
 
                         <button
                             className="btn end-match"
-                            onClick={async () => {
+                            onClick={async ()=>{
 
-                                try {
-
-                                    await axios.post(`${API}/live-match/end/${match.id}`);
-
-                                    alert("Match Ended Successfully");
-
-                                    window.location.reload();
-
-                                } catch (err) {
-                                    console.error(err);
-                                }
+                                await axios.post(`${API}/live-match/end/${match.id}`);
+                                window.location.reload();
 
                             }}
                         >
@@ -226,34 +271,7 @@ function LiveMatchPage() {
 
                     </div>
 
-
-                    {/* MATCH INFO */}
-
-                    <div className="match-info">
-
-                        <h3>Match Information</h3>
-
-                        <div className="info-row">
-                            <span>Teams</span>
-                            <span>{match.team1} vs {match.team2}</span>
-                        </div>
-
-                        <div className="info-row">
-                            <span>Match Type</span>
-                            <span>{match.match_type || "T20"}</span>
-                        </div>
-
-                        <div className="info-row">
-                            <span>Status</span>
-                            <span className="live-status">Live</span>
-                        </div>
-
-                    </div>
-
                 </div>
-
-
-                {/* CHAT */}
 
                 <div className="chat-section">
 
@@ -261,12 +279,10 @@ function LiveMatchPage() {
 
                     <div className="chat-box">
 
-                        {chat.map((c, i) => (
-
+                        {chat.map((c,i)=>(
                             <div key={i} className="chat-message">
                                 <strong>{c.username}</strong>: {c.message}
                             </div>
-
                         ))}
 
                         <div ref={chatEndRef}></div>
@@ -277,13 +293,11 @@ function LiveMatchPage() {
 
                         <input
                             value={message}
-                            onChange={(e) => setMessage(e.target.value)}
+                            onChange={(e)=>setMessage(e.target.value)}
                             placeholder="Type message..."
                         />
 
-                        <button onClick={sendMessage}>
-                            Send
-                        </button>
+                        <button onClick={sendMessage}>Send</button>
 
                     </div>
 
