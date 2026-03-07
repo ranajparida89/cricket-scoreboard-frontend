@@ -29,7 +29,7 @@ function LiveMatchPage() {
                 fetchChat();
             }
 
-        }, 5000); // reduced server load
+        }, 5000);
 
         return () => clearInterval(interval);
 
@@ -62,7 +62,7 @@ function LiveMatchPage() {
 
 
 
-    /* AUTO SCROLL CHAT BOX ONLY */
+    /* AUTO SCROLL CHAT BOX */
 
     useEffect(() => {
 
@@ -166,6 +166,8 @@ function LiveMatchPage() {
 
         let embedURL = streamURL;
 
+
+
         /* Convert YouTube URL */
 
         if (streamURL.includes("youtube.com/watch")) {
@@ -175,6 +177,8 @@ function LiveMatchPage() {
 
         }
 
+
+
         /* Convert Twitch URL */
 
         if (streamURL.includes("twitch.tv")) {
@@ -183,6 +187,8 @@ function LiveMatchPage() {
             embedURL = `https://player.twitch.tv/?channel=${channel}&parent=crickedge.in`;
 
         }
+
+
 
         try {
 
@@ -200,7 +206,29 @@ function LiveMatchPage() {
         } catch (err) {
             console.error(err);
         }
+
     }
+
+
+
+    /* FULLSCREEN PLAYER */
+
+    function goFullscreen() {
+
+        if (!playerRef.current) return;
+
+        if (playerRef.current.requestFullscreen) {
+            playerRef.current.requestFullscreen();
+        } 
+        else if (playerRef.current.webkitRequestFullscreen) {
+            playerRef.current.webkitRequestFullscreen();
+        } 
+        else if (playerRef.current.msRequestFullscreen) {
+            playerRef.current.msRequestFullscreen();
+        }
+
+    }
+
 
 
     return (
@@ -235,7 +263,7 @@ function LiveMatchPage() {
                 </select>
 
                 <input
-                    placeholder="YouTube / Twitch Embed URL"
+                    placeholder="YouTube / Twitch URL"
                     value={streamURL}
                     onChange={(e) => setStreamURL(e.target.value)}
                 />
