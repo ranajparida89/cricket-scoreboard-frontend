@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import "./LiveMatchPage.css";
 
@@ -10,6 +10,9 @@ function LiveMatchPage() {
     const [viewers, setViewers] = useState(0);
     const [chat, setChat] = useState([]);
     const [message, setMessage] = useState("");
+
+    const playerRef = useRef(null);
+    const chatEndRef = useRef(null);
 
     useEffect(() => {
 
@@ -37,6 +40,12 @@ function LiveMatchPage() {
 
     }, [match]);
 
+    useEffect(() => {
+
+        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+
+    }, [chat]);
+
     async function fetchLiveMatch() {
 
         try {
@@ -44,9 +53,12 @@ function LiveMatchPage() {
             const res = await axios.get(`${API}/live-match/live`);
 
             if (res.data.length > 0) {
+
                 setMatch(res.data[0]);
+
                 fetchViewers(res.data[0].id);
                 fetchChat(res.data[0].id);
+
             }
 
         } catch (err) {
@@ -109,126 +121,171 @@ function LiveMatchPage() {
 
     }
 
-    if (!match) return <div className="no-match">No Live Match</div>;
+    function goFullscreen() {
+
+        if (playerRef.current) {
+
+            if (playerRef.current.requestFullscreen) {
+                playerRef.current.requestFullscreen();
+            }
+
+        }
+
+    }
+
+    if (!match) return <div className="no-match">No Live Match Currently Running</div>;
 
     return (
 
-        <div className="live-match-container">
+        <div className="live-page">
+
+            {/* HEADER */}
 
             <div className="live-header">
-                <span className="live-badge">LIVE</span>
-                <div className="match-header">
+
+                <div className="live-title">
 
                     <span className="live-badge">LIVE</span>
 
-                    <h2>{match.team1} vs {match.team2}</h2>
+                    <h2>
+                        {match.team1} vs {match.team2}
+                    </h2>
+
+                </div>
+
+                <div className="match-meta">
+
+                    <span className="match-type">
+                        {match.match_type || "T20"} Match
+                    </span>
 
                     <span className="viewer-count">
-                        👁 {viewers}
+                        👁 {viewers} watching
                     </span>
 
                 </div>
-                <span className="viewer-count">👁 {viewers}</span>
-            </div>
-
-            <div className="live-stream">
-
-                <iframe
-                    title="Live Stream"
-                    src={match.embed_url}
-                    allow="autoplay"
-                    allowFullScreen
-                    style={{
-                        width: "100%",
-                        maxWidth: "1000px",
-                        height: "550px",
-                        border: "none",
-                        borderRadius: "10px"
-                    }}
-                />
-
-                <div style={{
-                    marginTop: "10px",
-                    display: "flex",
-                    gap: "10px"
-                }}>
-
-                    <button
-                        onClick={() => {
-                            const iframe = document.querySelector(".live-stream iframe");
-                            if (iframe) {
-                                iframe.requestFullscreen();
-                            }
-                        }}
-                        style={{
-                            padding: "8px 15px",
-                            background: "#00bcd4",
-                            border: "none",
-                            color: "white",
-                            borderRadius: "5px",
-                            cursor: "pointer"
-                        }}
-                    >
-                        Fullscreen
-                    </button>
-
-                    <button
-                        onClick={async () => {
-
-                            try {
-
-                                await axios.post(`${API}/live-match/end/${match.id}`);
-
-                                alert("Match Ended Successfully");
-
-                                window.location.reload();
-
-                            } catch (err) {
-                                console.error(err);
-                            }
-
-                        }}
-                        style={{
-                            padding: "8px 15px",
-                            background: "red",
-                            border: "none",
-                            color: "white",
-                            borderRadius: "5px",
-                            cursor: "pointer"
-                        }}
-                    >
-                        End Match
-                    </button>
-
-                </div>
 
             </div>
 
-            <div className="chat-section">
 
-                <h3>Live Chat</h3>
+            {/* DELAY NOTICE */}
 
-                <div className="chat-box">
+            <div className="delay-notice">
+                ⚠ Live stream may have a delay of 30-40 seconds compared to the actual match.
+            </div>
 
-                    {chat.map((c, i) => (
-                        <div key={i} className="chat-message">
-                            <strong>{c.username}:</strong> {c.message}
+
+            {/* MAIN CONTENT */}
+
+            <div className="live-main">
+
+                {/* STREAM */}
+
+                <div className="player-section">
+
+                    <div className="video-container" ref={playerRef}>
+
+                        <iframe
+                            title="Live Stream"
+                            src={match.embed_url}
+                            allow="autoplay"
+                            allowFullScreen
+                        />
+
+                    </div>
+
+                    <div className="player-controls">
+
+                        <button
+                            className="btn fullscreen"
+                            onClick={goFullscreen}
+                        >
+                            Fullscreen
+                        </button>
+
+                        <button
+                            className="btn end-match"
+                            onClick={async () => {
+
+                                try {
+
+                                    await axios.post(`${API}/live-match/end/${match.id}`);
+
+                                    alert("Match Ended Successfully");
+
+                                    window.location.reload();
+
+                                } catch (err) {
+                                    console.error(err);
+                                }
+
+                            }}
+                        >
+                            End Match
+                        </button>
+
+                    </div>
+
+
+                    {/* MATCH INFO */}
+
+                    <div className="match-info">
+
+                        <h3>Match Information</h3>
+
+                        <div className="info-row">
+                            <span>Teams</span>
+                            <span>{match.team1} vs {match.team2}</span>
                         </div>
-                    ))}
+
+                        <div className="info-row">
+                            <span>Match Type</span>
+                            <span>{match.match_type || "T20"}</span>
+                        </div>
+
+                        <div className="info-row">
+                            <span>Status</span>
+                            <span className="live-status">Live</span>
+                        </div>
+
+                    </div>
 
                 </div>
 
-                <div className="chat-input">
 
-                    <input
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        placeholder="Type message"
-                    />
+                {/* CHAT */}
 
-                    <button onClick={sendMessage}>
-                        Send
-                    </button>
+                <div className="chat-section">
+
+                    <h3>Live Chat</h3>
+
+                    <div className="chat-box">
+
+                        {chat.map((c, i) => (
+
+                            <div key={i} className="chat-message">
+                                <strong>{c.username}</strong>: {c.message}
+                            </div>
+
+                        ))}
+
+                        <div ref={chatEndRef}></div>
+
+                    </div>
+
+                    <div className="chat-input">
+
+                        <input
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            placeholder="Type message..."
+                        />
+
+                        <button onClick={sendMessage}>
+                            Send
+                        </button>
+
+                    </div>
 
                 </div>
 
