@@ -335,10 +335,12 @@ function LiveMatchPage() {
                                 <iframe
                                     title="Live Stream"
                                     src={match.embed_url}
-                                    allow="autoplay; fullscreen; picture-in-picture"
+                                    height="100%"
+                                    width="100%"
                                     allowFullScreen
                                     frameBorder="0"
                                     scrolling="no"
+                                    allow="autoplay; fullscreen; picture-in-picture"
                                 />
 
                             </div>
