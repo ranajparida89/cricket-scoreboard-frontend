@@ -17,39 +17,64 @@ function LiveMatchPage() {
     const [streamURL, setStreamURL] = useState("");
 
     const playerRef = useRef(null);
-    const chatEndRef = useRef(null);
 
     useEffect(() => {
 
         fetchLiveMatch();
 
         const interval = setInterval(() => {
+
             if (match) {
                 fetchViewers();
                 fetchChat();
             }
-        }, 2000);
+
+        }, 5000); // reduced server load
 
         return () => clearInterval(interval);
 
     }, [match]);
 
+
+
+    /* JOIN VIEWER ONLY ONCE PER BROWSER */
+
     useEffect(() => {
 
-        if (match) {
+        if (!match) return;
+
+        const existingViewer = sessionStorage.getItem("viewer_id");
+
+        if (!existingViewer) {
+
+            const viewerId = Date.now().toString();
+
+            sessionStorage.setItem("viewer_id", viewerId);
 
             axios.post(`${API}/live-match/viewer-join`, {
                 match_id: match.id,
-                viewer_id: Date.now().toString()
+                viewer_id: viewerId
             });
 
         }
 
     }, [match]);
 
+
+
+    /* AUTO SCROLL CHAT BOX ONLY */
+
     useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+
+        const chatBox = document.querySelector(".chat-box");
+
+        if (chatBox) {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
     }, [chat]);
+
+
 
     async function fetchLiveMatch() {
 
@@ -60,6 +85,7 @@ function LiveMatchPage() {
             if (res.data.length > 0) {
 
                 setMatch(res.data[0]);
+
                 fetchViewers(res.data[0].id);
                 fetchChat(res.data[0].id);
 
@@ -70,6 +96,8 @@ function LiveMatchPage() {
         }
 
     }
+
+
 
     async function fetchViewers(matchId) {
 
@@ -87,6 +115,8 @@ function LiveMatchPage() {
 
     }
 
+
+
     async function fetchChat(matchId) {
 
         const id = matchId || match?.id;
@@ -102,6 +132,8 @@ function LiveMatchPage() {
         }
 
     }
+
+
 
     async function sendMessage() {
 
@@ -123,11 +155,15 @@ function LiveMatchPage() {
 
     }
 
+
+
     async function startLiveMatch() {
 
         if (!team1 || !team2 || !streamURL) {
+
             alert("Please fill all fields");
             return;
+
         }
 
         try {
@@ -149,6 +185,8 @@ function LiveMatchPage() {
 
     }
 
+
+
     function goFullscreen() {
 
         if (playerRef.current) {
@@ -156,6 +194,8 @@ function LiveMatchPage() {
         }
 
     }
+
+
 
     return (
 
@@ -203,6 +243,8 @@ function LiveMatchPage() {
 
             </div>
 
+
+
             {/* LIVE PLAYER */}
 
             {match && (
@@ -223,15 +265,21 @@ function LiveMatchPage() {
 
                             <span className="match-type">{match.match_type}</span>
 
-                            <span className="viewer-count">👁 {viewers} watching</span>
+                            <span className="viewer-count">
+                                👁 {viewers} watching
+                            </span>
 
                         </div>
 
                     </div>
 
+
+
                     <div className="delay-notice">
                         ⚠ Live stream may have a delay of 30-40 seconds compared to the actual match.
                     </div>
+
+
 
                     <div className="live-main">
 
@@ -248,6 +296,8 @@ function LiveMatchPage() {
 
                             </div>
 
+
+
                             <div className="player-controls">
 
                                 <button
@@ -257,11 +307,16 @@ function LiveMatchPage() {
                                     Fullscreen
                                 </button>
 
+
+
                                 <button
                                     className="btn end-match"
                                     onClick={async () => {
+
                                         await axios.post(`${API}/live-match/end/${match.id}`);
+
                                         window.location.reload();
+
                                     }}
                                 >
                                     End Match
@@ -271,6 +326,8 @@ function LiveMatchPage() {
 
                         </div>
 
+
+
                         <div className="chat-section">
 
                             <h3>Live Chat</h3>
@@ -278,14 +335,16 @@ function LiveMatchPage() {
                             <div className="chat-box">
 
                                 {chat.map((c, i) => (
+
                                     <div key={i} className="chat-message">
                                         <strong>{c.username}</strong>: {c.message}
                                     </div>
+
                                 ))}
 
-                                <div ref={chatEndRef}></div>
-
                             </div>
+
+
 
                             <div className="chat-input">
 
