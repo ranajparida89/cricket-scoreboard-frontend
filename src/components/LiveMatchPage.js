@@ -166,8 +166,6 @@ function LiveMatchPage() {
 
         let embedURL = streamURL;
 
-
-
         /* Convert YouTube URL */
 
         if (streamURL.includes("youtube.com/watch")) {
@@ -176,8 +174,6 @@ function LiveMatchPage() {
             embedURL = `https://www.youtube.com/embed/${videoId}`;
 
         }
-
-
 
         /* Convert Twitch URL */
 
@@ -188,25 +184,29 @@ function LiveMatchPage() {
 
         }
 
-
-
         try {
 
-            await axios.post(`${API}/live-match/start`, {
-                team1,
-                team2,
+            const payload = {
+                team1: team1,
+                team2: team2,
                 match_type: matchType,
-                embed_url: embedURL
-            });
+                stream_url: embedURL   // ✅ changed here
+            };
+
+            console.log("Sending payload:", payload);
+
+            await axios.post(`${API}/live-match/start`, payload);
 
             alert("Live Match Started");
 
             window.location.reload();
 
         } catch (err) {
-            console.error(err);
-        }
 
+            console.error("Start match error:", err.response?.data || err);
+            alert("Failed to start live match. Check console.");
+
+        }
     }
 
 
@@ -219,10 +219,10 @@ function LiveMatchPage() {
 
         if (playerRef.current.requestFullscreen) {
             playerRef.current.requestFullscreen();
-        } 
+        }
         else if (playerRef.current.webkitRequestFullscreen) {
             playerRef.current.webkitRequestFullscreen();
-        } 
+        }
         else if (playerRef.current.msRequestFullscreen) {
             playerRef.current.msRequestFullscreen();
         }
