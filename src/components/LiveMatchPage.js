@@ -178,7 +178,19 @@ function LiveMatchPage() {
         /* Convert Twitch URL */
         if (streamURL.includes("twitch.tv")) {
 
-            const channel = streamURL.split("twitch.tv/")[1].split("?")[0];
+            let channel = streamURL;
+
+            if (streamURL.includes("twitch.tv/")) {
+                channel = streamURL.split("twitch.tv/")[1];
+            }
+
+            if (channel.includes("?")) {
+                channel = channel.split("?")[0];
+            }
+
+            if (channel.includes("/")) {
+                channel = channel.split("/")[0];
+            }
 
             embedURL = `https://player.twitch.tv/?channel=${channel}&parent=crickedge.in`;
 
@@ -190,9 +202,8 @@ function LiveMatchPage() {
                 team1: team1,
                 team2: team2,
                 match_type: matchType,
-                stream_url: embedURL   // ✅ changed here
+                stream_url: streamURL   // send original URL
             };
-
             console.log("Sending payload:", payload);
 
             await axios.post(`${API}/live-match/start`, payload);
@@ -324,8 +335,10 @@ function LiveMatchPage() {
                                 <iframe
                                     title="Live Stream"
                                     src={match.embed_url}
-                                    allow="autoplay"
+                                    allow="autoplay; fullscreen; picture-in-picture"
                                     allowFullScreen
+                                    frameBorder="0"
+                                    scrolling="no"
                                 />
 
                             </div>
