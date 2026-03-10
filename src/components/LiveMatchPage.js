@@ -344,11 +344,6 @@ function LiveMatchPage() {
                                     onContextMenu={(e) => e.preventDefault()}
                                 />
 
-                                {/* BLUR STRATEGY AREAS */}
-                                <div className="blur-fielding"></div>
-                                <div className="blur-bowling"></div>
-                                <div className="blur-twitch"></div>
-
                             </div>
                             <div className="player-controls">
 
