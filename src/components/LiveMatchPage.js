@@ -341,21 +341,18 @@ function LiveMatchPage() {
                                     frameBorder="0"
                                     scrolling="no"
                                     allow="autoplay; fullscreen; picture-in-picture"
+                                    onContextMenu={(e) => e.preventDefault()}
                                 />
 
-                                {/* FIELDING RADAR (top right) */}
+                                {/* BLOCK TWITCH CLICK */}
+                                <div className="player-click-block"></div>
+
+                                {/* BLUR STRATEGY AREAS */}
                                 <div className="blur-fielding"></div>
-
-                                {/* BOWLING RADAR + TIMING METER (bottom left) */}
                                 <div className="blur-bowling"></div>
-
-                                {/* TWITCH LOGO (bottom right) */}
                                 <div className="blur-twitch"></div>
 
                             </div>
-
-
-
                             <div className="player-controls">
 
                                 <button
