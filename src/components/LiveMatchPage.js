@@ -343,6 +343,15 @@ function LiveMatchPage() {
                                     allow="autoplay; fullscreen; picture-in-picture"
                                 />
 
+                                {/* FIELDING RADAR (top right) */}
+                                <div className="blur-fielding"></div>
+
+                                {/* BOWLING RADAR + TIMING METER (bottom left) */}
+                                <div className="blur-bowling"></div>
+
+                                {/* TWITCH LOGO (bottom right) */}
+                                <div className="blur-twitch"></div>
+
                             </div>
 
 
