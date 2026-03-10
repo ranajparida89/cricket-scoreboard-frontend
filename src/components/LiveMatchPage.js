@@ -344,9 +344,6 @@ function LiveMatchPage() {
                                     onContextMenu={(e) => e.preventDefault()}
                                 />
 
-                                {/* BLOCK TWITCH CLICK */}
-                                <div className="player-click-block"></div>
-
                                 {/* BLUR STRATEGY AREAS */}
                                 <div className="blur-fielding"></div>
                                 <div className="blur-bowling"></div>
