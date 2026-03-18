@@ -2,21 +2,10 @@ import React,
 { useEffect, useState }
     from "react";
 
-import {
-
-    getBoardFunds,
-    getFundsLedger
-
-}
-    from "../common/FundsAPI";
-
-import BoardFundsBar
-    from "../components/BoardFundsBar";
-
-import FundsCard
-    from "../components/FundsCard";
-
-import "../common/Funds.css";
+import BoardFundsBar from "./BoardFundsBar";
+import FundsCard from "./FundsCard";
+import "./Funds.css";
+import {getBoardFunds,getFundsLedger} from "./FundsAPI";
 
 export default function BoardFundsWallet() {
 

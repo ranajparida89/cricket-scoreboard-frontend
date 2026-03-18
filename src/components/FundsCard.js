@@ -1,4 +1,4 @@
-import "../common/Funds.css";
+import "./Funds.css";
 
 export default function FundsCard({
 

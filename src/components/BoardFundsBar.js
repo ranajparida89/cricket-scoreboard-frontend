@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 
-import { getBoardFunds }
-    from "../common/FundsAPI";
-
-import "../common/Funds.css";
+import "./Funds.css";
+import {getBoardFunds} from "./FundsAPI";
 
 export default function BoardFundsBar() {
 

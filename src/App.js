@@ -62,7 +62,7 @@ import AuctionResults from "./components/AuctionResults"; // for player auction 
 import SeasonLeaderboard from "./components/SeasonLeaderboard";
 import LiveAuctionPage from "./components/LiveAuctionPage";
 import LiveMatchPage from "./components/LiveMatchPage";
-import BoardFundsWallet from "./modules/funds/board/BoardFundsWallet";
+import BoardFundsWallet from "./components/funds/BoardFundsWallet";
 
 // 🔥 NEW
 import PitchRandomizer from "./components/PitchRandomizer";
