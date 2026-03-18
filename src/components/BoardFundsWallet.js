@@ -5,15 +5,13 @@ import React,
 import BoardFundsBar from "./BoardFundsBar";
 import FundsCard from "./FundsCard";
 import "./Funds.css";
-import {getBoardFunds,getFundsLedger} from "./FundsAPI";
+import { getBoardFunds, getFundsLedger } from "./FundsAPI";
 
 export default function BoardFundsWallet() {
 
-    const [wallet, setWallet] =
-        useState(null);
+    const [wallet, setWallet] = useState(null);
 
-    const [tx, setTx] =
-        useState([]);
+    const [tx, setTx] = useState([]);
 
     useEffect(() => {
 
@@ -26,6 +24,8 @@ export default function BoardFundsWallet() {
         const boardId =
             localStorage.getItem("board_id");
 
+        if (!boardId) return;
+
         const w =
             await getBoardFunds(boardId);
 
@@ -34,7 +34,9 @@ export default function BoardFundsWallet() {
         const t =
             await getFundsLedger(boardId);
 
-        setTx(t.data.slice(0, 5));
+        setTx(
+            t?.data ? t.data.slice(0, 5) : []
+        );
 
     };
 
@@ -117,11 +119,8 @@ export default function BoardFundsWallet() {
                     <tr>
 
                         <th>Date</th>
-
                         <th>Type</th>
-
                         <th>Amount</th>
-
                         <th>Direction</th>
 
                     </tr>
@@ -148,7 +147,7 @@ export default function BoardFundsWallet() {
 
                             <td>
 
-                                CE$ {x.amount.toLocaleString()}
+                                CE$ {x.amount?.toLocaleString()}
 
                             </td>
 
