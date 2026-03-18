@@ -1,0 +1,100 @@
+.fundsPage {
+    padding: 20px;
+    background: #0b0f1a;
+    min-height: 100vh;
+    color: white;
+}
+
+.fundsHeader {
+    background: linear-gradient(90deg, #111827, #0b1220);
+    padding: 18px;
+    border-radius: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, .06);
+    margin-bottom: 20px;
+}
+
+.boardName {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.fundsAmount {
+    font-size: 26px;
+    font-weight: 700;
+    color: #35d07f;
+}
+
+.rankBadge {
+    background: #1a2338;
+    padding: 6px 12px;
+    border-radius: 8px;
+    margin-left: 10px;
+    font-size: 13px;
+}
+
+.fundsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.fundsCard {
+    background: linear-gradient(145deg, #121a2b, #0e1422);
+    padding: 20px;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .4);
+    border: 1px solid rgba(255, 255, 255, .05);
+}
+
+.cardTitle {
+    color: #9fb3ff;
+    font-size: 14px;
+}
+
+.cardValue {
+    font-size: 28px;
+    font-weight: 700;
+    margin-top: 8px;
+}
+
+.sectionTitle {
+    font-size: 20px;
+    margin-top: 25px;
+    font-weight: 600;
+}
+
+.txTable {
+    width: 100%;
+    margin-top: 15px;
+    border-collapse: collapse;
+}
+
+.txTable th {
+    text-align: left;
+    padding: 12px;
+    background: #111827;
+}
+
+.txTable td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, .05);
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.credit {
+    background: #123a2a;
+    color: #35d07f;
+}
+
+.debit {
+    background: #3a1a1a;
+    color: #ff6b6b;
+}

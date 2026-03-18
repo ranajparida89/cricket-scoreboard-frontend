@@ -23,6 +23,7 @@ import { FaHandshake } from "react-icons/fa";
 import { FaBrain } from "react-icons/fa";
 import { FaBook } from "react-icons/fa"; // 📘 Rules & Regulations
 import "./SidebarMenu.css";
+import { FaWallet } from "react-icons/fa";
 
 const SidebarMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -175,6 +176,11 @@ const SidebarMenu = () => {
         <li>
           <Link to="/boards/analytics" onClick={handleClose}>
             <FaChartLine className="me-2" /> Board Analytics (Pro)
+          </Link>
+        </li>
+        <li>
+          <Link to="/funds-wallet" onClick={handleClose}>
+            <FaWallet className="me-2 text-success" /> CrickEdge Funds
           </Link>
         </li>
         <li>
