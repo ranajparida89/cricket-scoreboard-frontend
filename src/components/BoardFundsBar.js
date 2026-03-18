@@ -1,22 +1,31 @@
 import React, { useEffect, useState } from "react";
 
 import "./Funds.css";
-import {getBoardFunds} from "./FundsAPI";
+import { getBoardFunds } from "./FundsAPI";
+import { useAuth } from "../services/auth";
 
 export default function BoardFundsBar() {
+
+    const { currentUser } = useAuth();
 
     const [wallet, setWallet] = useState(null);
 
     useEffect(() => {
 
-        load();
+        if (currentUser?.board_id) {
 
-    }, []);
+            load();
+
+        }
+
+    }, [currentUser]);
 
     const load = async () => {
 
         const boardId =
-            localStorage.getItem("board_id");
+            currentUser?.board_id;
+
+        if (!boardId) return;
 
         const res =
             await getBoardFunds(boardId);
