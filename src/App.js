@@ -63,6 +63,7 @@ import SeasonLeaderboard from "./components/SeasonLeaderboard";
 import LiveAuctionPage from "./components/LiveAuctionPage";
 import LiveMatchPage from "./components/LiveMatchPage";
 import BoardFundsWallet from "./components/BoardFundsWallet";
+import FundsLeaderboard from "./components/FundsLeaderboard";
 
 // 🔥 NEW
 import PitchRandomizer from "./components/PitchRandomizer";
@@ -317,6 +318,16 @@ function App() {
               <ProtectedRoute>
                 <PageWrapper>
                   <BoardFundsWallet />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/funds-leaderboard"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <FundsLeaderboard />
                 </PageWrapper>
               </ProtectedRoute>
             }

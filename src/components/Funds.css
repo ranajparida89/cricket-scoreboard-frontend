@@ -98,3 +98,59 @@
     background: #3a1a1a;
     color: #ff6b6b;
 }
+
+.rank1 {
+
+    background: #3b2f00;
+
+}
+
+.rank2 {
+
+    background: #2a2a2a;
+
+}
+
+.rank3 {
+
+    background: #2f1f1f;
+
+}
+
+
+.status {
+
+    padding: 4px 10px;
+
+    border-radius: 6px;
+
+    font-size: 12px;
+
+}
+
+
+.status.Strong {
+
+    background: #064e3b;
+
+    color: #34d399;
+
+}
+
+
+.status.Stable {
+
+    background: #1e3a8a;
+
+    color: #93c5fd;
+
+}
+
+
+.status.Weak {
+
+    background: #7f1d1d;
+
+    color: #fca5a5;
+
+}

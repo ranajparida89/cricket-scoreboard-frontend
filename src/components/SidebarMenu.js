@@ -183,6 +183,12 @@ const SidebarMenu = () => {
             <FaWallet className="me-2 text-success" /> CrickEdge Funds
           </Link>
         </li>
+
+        <li>
+          <Link to="/funds-leaderboard" onClick={handleClose}>
+            <FaChartLine className="me-2 text-warning" /> Funds Leaderboard
+          </Link>
+        </li>
         <li>
           <Link to="/tournament-points" onClick={handleClose}>
             <FaChartLine className="me-2" /> Tournament Points
