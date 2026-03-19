@@ -183,6 +183,11 @@ const SidebarMenu = () => {
             <FaWallet className="me-2 text-success" /> CrickEdge Funds
           </Link>
         </li>
+        <li>
+          <Link to="/funds-analytics" onClick={handleClose}>
+            📊 Funds Analytics
+          </Link>
+        </li>
 
         <li>
           <Link to="/reward-banks" onClick={handleClose}>

@@ -154,3 +154,19 @@
     color: #fca5a5;
 
 }
+
+.analyticsCard {
+
+    background: #020617;
+
+    padding: 20px;
+
+    border-radius: 10px;
+
+    text-align: center;
+
+    font-size: 18px;
+
+    border: 1px solid #1e293b;
+
+}
