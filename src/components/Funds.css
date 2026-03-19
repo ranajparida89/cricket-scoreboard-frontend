@@ -16,9 +16,88 @@
     margin-bottom: 20px;
 }
 
-.boardName {
-    font-size: 20px;
+.boardNameCell {
+
     font-weight: 600;
+
+}
+
+.crownIcon {
+
+    margin-right: 6px;
+
+    font-size: 16px;
+
+}
+
+.balanceCell {
+
+    font-weight: bold;
+
+    color: #22c55e;
+
+}
+
+
+/* TOP RANK COLORS */
+
+.rank1 {
+
+    background: linear-gradient(90deg,
+            #3b2f00,
+            #0f172a);
+
+}
+
+.rank2 {
+
+    background: #1f2937;
+
+}
+
+.rank3 {
+
+    background: #2b1d1d;
+
+}
+
+
+/* FINANCIAL STATUS */
+
+.status {
+
+    padding: 5px 12px;
+
+    border-radius: 8px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+}
+
+.status.strong {
+
+    background: #064e3b;
+
+    color: #34d399;
+
+}
+
+.status.stable {
+
+    background: #1e3a8a;
+
+    color: #93c5fd;
+
+}
+
+.status.weak {
+
+    background: #7f1d1d;
+
+    color: #fca5a5;
+
 }
 
 .fundsAmount {

@@ -6,14 +6,12 @@ import axios from "axios";
 
 import "./Funds.css";
 
-
 export default function FundsLeaderboard() {
 
     const [boards, setBoards] = useState([]);
 
     const BACKEND_URL =
         "https://cricket-scoreboard-backend.onrender.com";
-
 
     useEffect(() => {
 
@@ -48,6 +46,8 @@ export default function FundsLeaderboard() {
     };
 
 
+    /* RANK STYLE */
+
     const getRankClass = (index) => {
 
         if (index === 0) return "rank1";
@@ -61,6 +61,8 @@ export default function FundsLeaderboard() {
     };
 
 
+    /* FINANCIAL STRENGTH */
+
     const getStrength = (balance) => {
 
         if (balance > 300000)
@@ -70,6 +72,36 @@ export default function FundsLeaderboard() {
             return "Stable";
 
         return "Weak";
+
+    };
+
+
+    /* CSS STATUS */
+
+    const getStrengthClass = (balance) => {
+
+        if (balance > 300000)
+            return "strong";
+
+        if (balance >= 150000)
+            return "stable";
+
+        return "weak";
+
+    };
+
+
+    /* RANK DISPLAY */
+
+    const getRankDisplay = (index) => {
+
+        if (index === 0) return "👑 1";
+
+        if (index === 1) return "🥈 2";
+
+        if (index === 2) return "🥉 3";
+
+        return index + 1;
 
     };
 
@@ -101,7 +133,7 @@ export default function FundsLeaderboard() {
 
                         <th>Total Spent</th>
 
-                        <th>Status</th>
+                        <th>Financial Strength</th>
 
                     </tr>
 
@@ -114,42 +146,56 @@ export default function FundsLeaderboard() {
 
                         <tr
                             key={index}
-                            className={
-                                getRankClass(index)
-                            }
+                            className={getRankClass(index)}
                         >
 
                             <td>
 
-                                {index + 1}
+                                {getRankDisplay(index)}
 
                             </td>
 
 
-                            <td>
+                            <td className="boardNameCell">
+
+                                {index === 0 && (
+
+                                    <span className="crownIcon">
+
+                                        🏆
+
+                                    </span>
+
+                                )}
 
                                 {b.board_name}
 
                             </td>
 
 
-                            <td>
+                            <td className="balanceCell">
 
-                                CE$ {b.balance?.toLocaleString()}
-
-                            </td>
-
-
-                            <td>
-
-                                CE$ {b.total_earned?.toLocaleString()}
+                                CE$ {Number(
+                                    b.balance
+                                ).toLocaleString()}
 
                             </td>
 
 
                             <td>
 
-                                CE$ {b.total_spent?.toLocaleString()}
+                                CE$ {Number(
+                                    b.total_earned
+                                ).toLocaleString()}
+
+                            </td>
+
+
+                            <td>
+
+                                CE$ {Number(
+                                    b.total_spent
+                                ).toLocaleString()}
 
                             </td>
 
@@ -158,7 +204,7 @@ export default function FundsLeaderboard() {
 
                                 <span className={
                                     "status " +
-                                    getStrength(b.balance)
+                                    getStrengthClass(b.balance)
                                 }>
 
                                     {getStrength(b.balance)}
