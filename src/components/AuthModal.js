@@ -106,6 +106,7 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
   
       localStorage.setItem("token", res.data.token);
      localStorage.setItem("user", JSON.stringify(res.data.user)); 
+     localStorage.setItem("board_id", res.data.board_id);
 
   
       if (form.remember) {
