@@ -7,43 +7,98 @@ import FundsCard from "./FundsCard";
 import "./Funds.css";
 import { getBoardFunds, getFundsLedger } from "./FundsAPI";
 import { useAuth } from "../services/auth";
+import axios from "axios";
 
 export default function BoardFundsWallet() {
+
+    /*
+    ✅ WHY THIS CHANGE
+    
+    Your auth system does NOT store board_id.
+    But it DOES store user email.
+    
+    Board is linked using:
+    board_registration.owner_email
+    
+    So we dynamically fetch board using email.
+    This avoids changing login system.
+    */
 
     const { currentUser } = useAuth();
 
     const [wallet, setWallet] = useState(null);
-
     const [tx, setTx] = useState([]);
 
     useEffect(() => {
 
-        if (currentUser?.board_id) {
+        if (currentUser?.email) {
 
-            load();
+            loadFunds();
 
         }
 
     }, [currentUser]);
 
-    const load = async () => {
 
-        const boardId =
-            currentUser?.board_id;
+    /*
+    ✅ STEP 1
+    Find board using logged user email
+    */
+    const loadFunds = async () => {
 
-        if (!boardId) return;
+        try {
 
-        const w =
-            await getBoardFunds(boardId);
+            const email =
+                currentUser?.email;
 
-        setWallet(w.data);
+            if (!email) return;
 
-        const t =
-            await getFundsLedger(boardId);
 
-        setTx(
-            t?.data ? t.data.slice(0, 5) : []
-        );
+            /*
+            ✅ GET BOARD FROM EXISTING BOARD MODULE
+            (uses your deployed backend)
+            */
+
+            const boardRes =
+                await axios.get(
+                    `https://cricket-scoreboard-backend.onrender.com/api/boards/by-owner/${email}`
+                );
+
+            const boardId =
+                boardRes?.data?.id;
+
+            if (!boardId) return;
+
+
+            /*
+            ✅ STEP 2
+            Load wallet using boardId
+            */
+
+            const w =
+                await getBoardFunds(boardId);
+
+            setWallet(w.data);
+
+
+            /*
+            ✅ STEP 3
+            Load ledger transactions
+            */
+
+            const t =
+                await getFundsLedger(boardId);
+
+            setTx(
+                t?.data ? t.data.slice(0, 5) : []
+            );
+
+        }
+        catch (err) {
+
+            console.log("Funds load error", err);
+
+        }
 
     };
 
@@ -98,9 +153,7 @@ export default function BoardFundsWallet() {
             </div>
 
             <div className="sectionTitle">
-
                 Recent Funds Ledger
-
             </div>
 
             <table className="txTable">
@@ -108,10 +161,12 @@ export default function BoardFundsWallet() {
                 <thead>
 
                     <tr>
+
                         <th>Date</th>
                         <th>Type</th>
                         <th>Amount</th>
                         <th>Direction</th>
+
                     </tr>
 
                 </thead>
