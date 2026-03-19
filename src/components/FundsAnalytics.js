@@ -10,8 +10,11 @@ export default function FundsAnalytics() {
 
     const [data, setData] = useState(null);
 
+    const [showInfo, setShowInfo] = useState(false);
+
     const BACKEND_URL =
         "https://cricket-scoreboard-backend.onrender.com";
+
 
     useEffect(() => {
 
@@ -62,49 +65,114 @@ export default function FundsAnalytics() {
 
         <div className="fundsPage">
 
-            <div className="sectionTitle">
+            {/* HEADER */}
 
-                Funds Analytics
+            <div className="analyticsHeader">
+
+                <div className="sectionTitle">
+
+                    Funds Analytics Dashboard
+
+                </div>
+
+                <button
+
+                    className="infoBtn"
+
+                    onClick={() => setShowInfo(true)}
+
+                >
+
+                    i
+
+                </button>
 
             </div>
 
+
+            {/* SUMMARY CARDS */}
 
             <div className="fundsGrid">
 
                 <div className="analyticsCard">
 
-                    <h4>Total Economy</h4>
+                    <div className="analyticsTitle">
 
-                    CE$ {Number(
-                        data.summary.total_balance
-                    ).toLocaleString()}
+                        Current Total Funds
 
-                </div>
+                    </div>
 
+                    <div className="analyticsValue">
 
-                <div className="analyticsCard">
+                        CE$ {Number(
+                            data.summary.current_total_funds
+                        ).toLocaleString()}
 
-                    <h4>Total Rewards Distributed</h4>
-
-                    CE$ {Number(
-                        data.summary.total_earned
-                    ).toLocaleString()}
+                    </div>
 
                 </div>
 
 
                 <div className="analyticsCard">
 
-                    <h4>Total Tournament Spending</h4>
+                    <div className="analyticsTitle">
 
-                    CE$ {Number(
-                        data.summary.total_spent
-                    ).toLocaleString()}
+                        Total Funds Added (Lifetime)
+
+                    </div>
+
+                    <div className="analyticsValue">
+
+                        CE$ {Number(
+                            data.summary.lifetime_funds_added
+                        ).toLocaleString()}
+
+                    </div>
+
+                </div>
+
+
+                <div className="analyticsCard">
+
+                    <div className="analyticsTitle">
+
+                        Total Rewards Distributed
+
+                    </div>
+
+                    <div className="analyticsValue rewardColor">
+
+                        CE$ {Number(
+                            data.summary.total_rewards_distributed
+                        ).toLocaleString()}
+
+                    </div>
+
+                </div>
+
+
+                <div className="analyticsCard">
+
+                    <div className="analyticsTitle">
+
+                        Total Tournament Entry Fees
+
+                    </div>
+
+                    <div className="analyticsValue spentColor">
+
+                        CE$ {Number(
+                            data.summary.total_entry_fees
+                        ).toLocaleString()}
+
+                    </div>
 
                 </div>
 
             </div>
 
+
+            {/* TOP BOARDS */}
 
             <div className="sectionTitle">
 
@@ -118,9 +186,11 @@ export default function FundsAnalytics() {
 
                     <tr>
 
+                        <th>Rank</th>
+
                         <th>Board</th>
 
-                        <th>Total Earned</th>
+                        <th>Total Funds Added</th>
 
                     </tr>
 
@@ -132,11 +202,9 @@ export default function FundsAnalytics() {
 
                         <tr key={i}>
 
-                            <td>
+                            <td>{i + 1}</td>
 
-                                {b.board_name}
-
-                            </td>
+                            <td>{b.board_name}</td>
 
                             <td>
 
@@ -155,6 +223,8 @@ export default function FundsAnalytics() {
             </table>
 
 
+            {/* TOURNAMENT REVENUE */}
+
             <div className="sectionTitle">
 
                 Top Tournament Revenue
@@ -169,7 +239,7 @@ export default function FundsAnalytics() {
 
                         <th>Tournament</th>
 
-                        <th>Collection</th>
+                        <th>Total Collection</th>
 
                     </tr>
 
@@ -181,11 +251,7 @@ export default function FundsAnalytics() {
 
                         <tr key={i}>
 
-                            <td>
-
-                                {t.tournament_name}
-
-                            </td>
+                            <td>{t.tournament_name}</td>
 
                             <td>
 
@@ -202,6 +268,63 @@ export default function FundsAnalytics() {
                 </tbody>
 
             </table>
+
+
+            {/* INFO POPUP */}
+
+            {showInfo && (
+
+                <div className="infoOverlay">
+
+                    <div className="infoBox">
+
+                        <h3>Funds Analytics Explanation</h3>
+
+                        <p>
+
+                            <b>Current Total Funds:</b>
+                            Total CE$ currently available across all boards.
+
+                        </p>
+
+                        <p>
+
+                            <b>Total Funds Added:</b>
+                            Includes initial board funding + rewards + refunds.
+
+                        </p>
+
+                        <p>
+
+                            <b>Total Rewards Distributed:</b>
+                            Only tournament and match rewards.
+
+                        </p>
+
+                        <p>
+
+                            <b>Total Tournament Entry Fees:</b>
+                            Total CE$ spent by boards to enter tournaments.
+
+                        </p>
+
+                        <button
+
+                            className="closeInfo"
+
+                            onClick={() => setShowInfo(false)}
+
+                        >
+
+                            Close
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            )}
 
         </div>
 

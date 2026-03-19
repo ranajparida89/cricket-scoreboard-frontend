@@ -155,18 +155,130 @@
 
 }
 
-.analyticsCard {
+.analyticsHeader {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 15px;
+
+}
+
+.infoBtn {
+
+    background: #2563eb;
+
+    border: none;
+
+    color: white;
+
+    width: 28px;
+
+    height: 28px;
+
+    border-radius: 50%;
+
+    cursor: pointer;
+
+    font-weight: bold;
+
+}
+
+.infoBtn:hover {
+
+    background: #1d4ed8;
+
+}
+
+.analyticsTitle {
+
+    font-size: 14px;
+
+    color: #94a3b8;
+
+    margin-bottom: 6px;
+
+}
+
+.analyticsValue {
+
+    font-size: 22px;
+
+    font-weight: bold;
+
+    color: #22c55e;
+
+}
+
+.rewardColor {
+
+    color: #38bdf8;
+
+}
+
+.spentColor {
+
+    color: #f87171;
+
+}
+
+.infoOverlay {
+
+    position: fixed;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    background: rgba(0, 0, 0, 0.7);
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    z-index: 999;
+
+}
+
+.infoBox {
 
     background: #020617;
 
-    padding: 20px;
+    padding: 25px;
 
     border-radius: 10px;
 
-    text-align: center;
+    width: 420px;
 
-    font-size: 18px;
+    border: 1px solid #334155;
 
-    border: 1px solid #1e293b;
+    color: white;
+
+}
+
+.closeInfo {
+
+    margin-top: 15px;
+
+    background: #2563eb;
+
+    border: none;
+
+    padding: 8px 16px;
+
+    color: white;
+
+    border-radius: 6px;
+
+    cursor: pointer;
 
 }
