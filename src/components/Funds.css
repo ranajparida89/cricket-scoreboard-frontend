@@ -371,3 +371,302 @@
     margin-top: 4px;
 
 }
+
+/* ===== Create Tournament Form ===== */
+
+.fundsGrid input,
+.fundsGrid select {
+
+    background: #020617;
+
+    border: 1px solid #334155;
+
+    color: white;
+
+    padding: 10px;
+
+    border-radius: 6px;
+
+    outline: none;
+
+}
+
+.fundsGrid input:focus,
+.fundsGrid select:focus {
+
+    border: 1px solid #2563eb;
+
+}
+
+
+.fundsGrid button {
+
+    margin-top: 10px;
+
+}
+
+
+.sectionTitle {
+
+    font-size: 18px;
+
+    font-weight: 600;
+
+    margin: 20px 0 10px 0;
+
+    color: #e2e8f0;
+
+}
+
+
+/* Tournament Status */
+
+.statusOpen {
+
+    color: #22c55e;
+
+    font-weight: 600;
+
+}
+
+.statusClosed {
+
+    color: #ef4444;
+
+    font-weight: 600;
+
+}
+
+/* ===== Tournament Registration ===== */
+
+.registrationActions {
+
+    display: flex;
+
+    gap: 10px;
+
+    justify-content: center;
+
+}
+
+
+/* YES button */
+
+.yesBtn {
+
+    background: #16a34a;
+
+    border: none;
+
+    padding: 8px 14px;
+
+    border-radius: 6px;
+
+    color: white;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+}
+
+.yesBtn:hover {
+
+    background: #15803d;
+
+}
+
+
+/* NO button */
+
+.noBtn {
+
+    background: #dc2626;
+
+    border: none;
+
+    padding: 8px 14px;
+
+    border-radius: 6px;
+
+    color: white;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+}
+
+.noBtn:hover {
+
+    background: #b91c1c;
+
+}
+
+
+/* Popup form spacing */
+
+.infoBox p {
+
+    margin: 6px 0;
+
+    color: #cbd5f1;
+
+}
+
+
+.infoBox label {
+
+    display: block;
+
+    margin-top: 12px;
+
+    font-size: 14px;
+
+}
+
+
+.infoBox button {
+
+    margin-top: 12px;
+
+    margin-right: 8px;
+
+}
+
+
+/* Disabled submit */
+
+.infoBox button:disabled {
+
+    background: #475569;
+
+    cursor: not-allowed;
+
+}
+
+/* Failed registrations */
+
+.failedStatus {
+
+    background: #7f1d1d;
+
+    color: #fecaca;
+
+    padding: 4px 10px;
+
+    border-radius: 6px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+}
+
+/* Interest tracking */
+
+.declined {
+
+    background: #7f1d1d;
+
+    color: #fecaca;
+
+    padding: 4px 10px;
+
+    border-radius: 6px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+}
+
+.accepted {
+
+    background: #064e3b;
+
+    color: #6ee7b7;
+
+    padding: 4px 10px;
+
+    border-radius: 6px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+}
+
+/* Tournament Admin */
+
+.status {
+
+    padding: 4px 10px;
+
+    border-radius: 6px;
+
+    font-weight: 600;
+
+    font-size: 12px;
+
+}
+
+.status.Stable {
+
+    background: #064e3b;
+
+    color: #34d399;
+
+}
+
+.status.Weak {
+
+    background: #450a0a;
+
+    color: #f87171;
+
+}
+
+/* Match reward */
+
+.creditText {
+
+    color: #22c55e;
+
+    font-weight: 600;
+
+}
+
+/* Funds alerts */
+
+.riskRow {
+
+    background: #1a0f0f;
+
+    border-left: 4px solid #ef4444;
+
+}
+
+.dangerText {
+
+    color: #ef4444;
+
+    font-weight: 600;
+
+}
+
+.riskBadge {
+
+    background: #450a0a;
+
+    color: #f87171;
+
+    padding: 4px 10px;
+
+    border-radius: 6px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+}

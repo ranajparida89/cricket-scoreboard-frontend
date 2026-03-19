@@ -164,6 +164,78 @@ const SidebarMenu = () => {
           </Link>
         </li>
 
+        {isAdmin && (
+
+          <li>
+
+            <Link to="/create-tournament"
+              onClick={handleClose}>
+
+              🏆 Create Tournament
+
+            </Link>
+
+          </li>
+
+        )}
+
+        <li>
+
+          <Link
+            to="/failed-registrations"
+            onClick={handleClose}
+          >
+
+            ⚠ Failed Registrations
+
+          </Link>
+
+        </li>
+
+        <li>
+
+          <Link
+            to="/tournament-registration"
+            onClick={handleClose}
+          >
+
+            📋 Tournament Registration
+
+          </Link>
+
+        </li>
+
+        <li>
+
+          <Link
+            to="/tournament-interest"
+            onClick={handleClose}
+          >
+
+            📊 Tournament Interest
+
+          </Link>
+
+        </li>
+
+        <li>
+
+          <Link
+            to="/admin/tournaments"
+            onClick={handleClose}
+          >
+            🏆 Tournament Admin
+          </Link>
+        </li>
+        
+        <li>
+          <Link
+            to="/admin/match-rewards"
+            onClick={handleClose}
+          >
+            💰 Match Reward Audit
+          </Link>
+        </li>
         {/* 🏏 Boards & Analytics */}
         <li>
           <Link to="/all-boards" onClick={handleClose}>

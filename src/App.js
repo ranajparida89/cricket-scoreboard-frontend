@@ -66,6 +66,13 @@ import BoardFundsWallet from "./components/BoardFundsWallet";
 import FundsLeaderboard from "./components/FundsLeaderboard";
 import RewardBankView from "./components/RewardBankView";
 import FundsAnalytics from "./components/FundsAnalytics";
+import CreateNewTournament from "./components/CreateNewTournament";
+import TournamentRegistration from "./components/TournamentRegistration";
+import FailedRegistrations from "./components/FailedRegistrations";
+import TournamentInterestLog from "./components/TournamentInterestLog";
+import TournamentAdminDashboard from "./components/TournamentAdminDashboard";
+import MatchRewardsAudit from "./components/MatchRewardsAudit";
+import FundsAlerts from "./components/FundsAlerts";
 
 // 🔥 NEW
 import PitchRandomizer from "./components/PitchRandomizer";
@@ -324,6 +331,71 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/create-tournament"
+            element={
+              <ProtectedRoute>
+                <CreateNewTournament />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/tournament-registration"
+            element={
+              <ProtectedRoute>
+                <TournamentRegistration />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/failed-registrations"
+            element={
+              <ProtectedRoute>
+                <FailedRegistrations />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tournament-interest"
+            element={
+              <ProtectedRoute>
+                <TournamentInterestLog />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/tournaments"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <TournamentAdminDashboard />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/match-rewards"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <MatchRewardsAudit />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
+
+          <li>
+
+            <Link
+              to="/admin/funds-alerts"
+              onClick={handleClose}
+            >
+              ⚠️ Funds Alerts
+            </Link>
+          </li>
           <Route
             path="/reward-banks"
             element={
