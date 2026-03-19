@@ -182,19 +182,6 @@ const SidebarMenu = () => {
         <li>
 
           <Link
-            to="/failed-registrations"
-            onClick={handleClose}
-          >
-
-            ⚠ Failed Registrations
-
-          </Link>
-
-        </li>
-
-        <li>
-
-          <Link
             to="/tournament-registration"
             onClick={handleClose}
           >
@@ -218,24 +205,6 @@ const SidebarMenu = () => {
 
         </li>
 
-        <li>
-
-          <Link
-            to="/admin/tournaments"
-            onClick={handleClose}
-          >
-            🏆 Tournament Admin
-          </Link>
-        </li>
-        
-        <li>
-          <Link
-            to="/admin/match-rewards"
-            onClick={handleClose}
-          >
-            💰 Match Reward Audit
-          </Link>
-        </li>
         {/* 🏏 Boards & Analytics */}
         <li>
           <Link to="/all-boards" onClick={handleClose}>
@@ -300,6 +269,57 @@ const SidebarMenu = () => {
         {/* 🧰 Admin-only Section */}
         {isAdmin && (
           <>
+            <li>
+
+              <Link
+                to="/failed-registrations"
+                onClick={handleClose}
+              >
+
+                ⚠ Failed Registrations
+
+              </Link>
+
+            </li>
+
+            <li>
+
+              <Link
+                to="/admin/tournaments"
+                onClick={handleClose}
+              >
+
+                🏆 Tournament Admin
+
+              </Link>
+
+            </li>
+
+            <li>
+
+              <Link
+                to="/admin/funds-alerts"
+                onClick={handleClose}
+              >
+
+                ⚠️ Funds Alerts
+
+              </Link>
+
+            </li>
+
+            <li>
+
+              <Link
+                to="/admin/match-rewards"
+                onClick={handleClose}
+              >
+
+                💰 Match Reward Audit
+
+              </Link>
+
+            </li>
             <li>
               <Link to="/admin/manage" onClick={handleClose}>
                 <FaUsers className="me-2" /> Manage Admins

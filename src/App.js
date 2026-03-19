@@ -386,16 +386,17 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/admin/funds-alerts"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <FundsAlerts />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
 
-          <li>
-
-            <Link
-              to="/admin/funds-alerts"
-              onClick={handleClose}
-            >
-              ⚠️ Funds Alerts
-            </Link>
-          </li>
           <Route
             path="/reward-banks"
             element={
