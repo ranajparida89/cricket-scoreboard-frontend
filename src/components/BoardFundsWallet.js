@@ -7,6 +7,7 @@ import FundsCard from "./FundsCard";
 import "./Funds.css";
 import { getBoardFunds, getFundsLedger } from "./FundsAPI";
 import { useAuth } from "../services/auth";
+import BoardFinancialHistory from "./BoardFinancialHistory";
 import axios from "axios";
 
 export default function BoardFundsWallet() {
@@ -28,6 +29,7 @@ export default function BoardFundsWallet() {
 
     const [wallet, setWallet] = useState(null);
     const [tx, setTx] = useState([]);
+    const [boardId, setBoardId] = useState(null);
 
     useEffect(() => {
 
@@ -66,8 +68,9 @@ export default function BoardFundsWallet() {
 
             const boardId =
                 boardRes?.data?.id;
-
             if (!boardId) return;
+
+            setBoardId(boardId);
 
 
             /*
@@ -210,6 +213,15 @@ export default function BoardFundsWallet() {
                 </tbody>
 
             </table>
+            {/* FULL FINANCIAL HISTORY */}
+
+            {boardId && (
+
+                <BoardFinancialHistory
+                    boardId={boardId}
+                />
+
+            )}
 
         </div>
 

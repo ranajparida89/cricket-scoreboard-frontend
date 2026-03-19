@@ -1,0 +1,143 @@
+.financial-history-container {
+
+    background: #0f172a;
+
+    padding: 20px;
+
+    border-radius: 10px;
+
+    color: white;
+
+    margin-top: 20px;
+
+}
+
+
+.history-header {
+
+    margin-bottom: 15px;
+
+}
+
+
+.history-filters {
+
+    margin-bottom: 15px;
+
+}
+
+
+.history-filters button {
+
+    margin-right: 10px;
+
+    padding: 6px 12px;
+
+    border: none;
+
+    border-radius: 6px;
+
+    background: #1e293b;
+
+    color: white;
+
+    cursor: pointer;
+
+}
+
+
+.history-filters button:hover {
+
+    background: #334155;
+
+}
+
+
+.history-filters .active {
+
+    background: #2563eb;
+
+}
+
+
+.history-table-wrapper {
+
+    overflow-x: auto;
+
+}
+
+
+.history-table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+}
+
+
+.history-table th {
+
+    background: #1e293b;
+
+    padding: 10px;
+
+    text-align: left;
+
+}
+
+
+.history-table td {
+
+    padding: 10px;
+
+    border-bottom: 1px solid #334155;
+
+}
+
+
+.credit {
+
+    color: #22c55e;
+
+    font-weight: bold;
+
+}
+
+
+.debit {
+
+    color: #ef4444;
+
+    font-weight: bold;
+
+}
+
+
+.txn-badge {
+
+    padding: 4px 8px;
+
+    border-radius: 5px;
+
+    font-size: 12px;
+
+}
+
+
+.txn-badge.credit {
+
+    background: #064e3b;
+
+    color: #34d399;
+
+}
+
+
+.txn-badge.debit {
+
+    background: #7f1d1d;
+
+    color: #f87171;
+
+}
