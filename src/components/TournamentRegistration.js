@@ -16,6 +16,7 @@ export default function TournamentRegistration() {
     const [tournaments, setTournaments] = useState([]);
 
     const [board, setBoard] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     const [showPopup, setShowPopup] = useState(false);
 
@@ -33,43 +34,44 @@ export default function TournamentRegistration() {
 
     }, [currentUser]);
 
-
     const loadData = async () => {
 
         try {
 
-            const email = currentUser?.email;
+            /* ALWAYS LOAD TOURNAMENTS FIRST */
 
-            if (!email) return;
-
-
-            /* GET BOARD */
-
-            const boardRes =
-                await axios.get(
-
-                    `${BACKEND_URL}/api/boards/by-owner/${email}`
-
-                );
-
-            setBoard(boardRes.data);
-
-
-            /* GET OPEN TOURNAMENTS */
-
-            const res =
+            const tournamentRes =
                 await axios.get(
 
                     `${BACKEND_URL}/api/funds/open-tournaments`
 
                 );
 
-            setTournaments(res.data);
+            setTournaments(tournamentRes.data);
+            setLoading(false);
+
+
+            /* LOAD BOARD ONLY IF USER EXISTS */
+
+            const email = currentUser?.email;
+
+            if (email) {
+
+                const boardRes =
+                    await axios.get(
+
+                        `${BACKEND_URL}/api/boards/by-owner/${email}`
+
+                    );
+
+                setBoard(boardRes.data);
+
+            }
 
         }
         catch (err) {
 
-            console.log(err);
+            console.log("Tournament load error:", err);
 
         }
 
@@ -165,6 +167,20 @@ export default function TournamentRegistration() {
     };
 
 
+    if (loading) {
+
+        return (
+
+            <div className="fundsPage">
+
+                Loading tournaments...
+
+            </div>
+
+        );
+
+    }
+
     if (tournaments.length === 0) {
 
         return (
@@ -245,7 +261,7 @@ export default function TournamentRegistration() {
                                 </button>
 
                                 <button
-                                    onClick={()=>notInterested(t)}
+                                    onClick={() => notInterested(t)}
                                     className="noBtn"
                                 >
 
