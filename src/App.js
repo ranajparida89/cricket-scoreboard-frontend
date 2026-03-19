@@ -64,6 +64,7 @@ import LiveAuctionPage from "./components/LiveAuctionPage";
 import LiveMatchPage from "./components/LiveMatchPage";
 import BoardFundsWallet from "./components/BoardFundsWallet";
 import FundsLeaderboard from "./components/FundsLeaderboard";
+import RewardBankView from "./components/RewardBankView";
 
 // 🔥 NEW
 import PitchRandomizer from "./components/PitchRandomizer";
@@ -318,6 +319,16 @@ function App() {
               <ProtectedRoute>
                 <PageWrapper>
                   <BoardFundsWallet />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reward-banks"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <RewardBankView />
                 </PageWrapper>
               </ProtectedRoute>
             }

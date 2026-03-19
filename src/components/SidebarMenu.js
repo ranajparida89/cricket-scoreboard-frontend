@@ -185,6 +185,12 @@ const SidebarMenu = () => {
         </li>
 
         <li>
+          <Link to="/reward-banks" onClick={handleClose}>
+            🏆 Tournament Reward Pools
+          </Link>
+        </li>
+
+        <li>
           <Link to="/funds-leaderboard" onClick={handleClose}>
             <FaChartLine className="me-2 text-warning" /> Funds Leaderboard
           </Link>
