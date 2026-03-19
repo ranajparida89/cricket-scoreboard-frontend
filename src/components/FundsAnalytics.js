@@ -69,9 +69,28 @@ export default function FundsAnalytics() {
 
             <div className="analyticsHeader">
 
-                <div className="sectionTitle">
+                <div className="analyticsHeader">
 
-                    Funds Analytics Dashboard
+                    <div>
+
+                        <div className="sectionTitle">
+                            CrickEdge Funds – System Economy
+                        </div>
+
+                        <div className="analyticsSubtitle">
+
+                            System-wide CE$ financial overview across all registered boards.
+
+                        </div>
+
+                    </div>
+
+                    <button
+                        className="infoBtn"
+                        onClick={() => setShowInfo(true)}
+                    >
+                        i
+                    </button>
 
                 </div>
 
@@ -278,33 +297,53 @@ export default function FundsAnalytics() {
 
                     <div className="infoBox">
 
-                        <h3>Funds Analytics Explanation</h3>
+                        <h3>CrickEdge Economy Explanation</h3>
 
                         <p>
 
-                            <b>Current Total Funds:</b>
-                            Total CE$ currently available across all boards.
+                            These values represent the <b>entire CrickEdge financial ecosystem</b>,
+                            not an individual board wallet.
 
                         </p>
 
                         <p>
 
-                            <b>Total Funds Added:</b>
-                            Includes initial board funding + rewards + refunds.
+                            <b>Total Funds Across All Boards:</b><br />
+
+                            Combined CE$ currently held by all registered cricket boards.
 
                         </p>
 
                         <p>
 
-                            <b>Total Rewards Distributed:</b>
-                            Only tournament and match rewards.
+                            <b>Lifetime Funds Added Across Boards:</b><br />
+
+                            Total CE$ ever credited including initial board funding,
+                            tournament rewards, match rewards and refunds.
 
                         </p>
 
                         <p>
 
-                            <b>Total Tournament Entry Fees:</b>
-                            Total CE$ spent by boards to enter tournaments.
+                            <b>Total Rewards Distributed:</b><br />
+
+                            Actual prize money distributed from tournaments
+                            and match victories.
+
+                        </p>
+
+                        <p>
+
+                            <b>Total Tournament Entry Fees:</b><br />
+
+                            Total CE$ spent by boards to participate in tournaments.
+
+                        </p>
+
+                        <p style={{ marginTop: "10px", color: "#94a3b8" }}>
+
+                            💡 For your personal finances please visit:
+                            <b> CrickEdge Funds Wallet</b>
 
                         </p>
 
