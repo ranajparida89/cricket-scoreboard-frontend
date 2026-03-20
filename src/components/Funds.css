@@ -670,3 +670,21 @@
     font-weight: 600;
 
 }
+.warningBox{
+
+background:#2a1b1b;
+border:1px solid red;
+padding:15px;
+margin-bottom:20px;
+border-radius:6px;
+color:#ffb3b3;
+
+}
+
+.popupActions{
+
+display:flex;
+gap:10px;
+margin-top:15px;
+
+}

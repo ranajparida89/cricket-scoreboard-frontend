@@ -1,113 +1,102 @@
-import React,
-{ useEffect, useState }
-    from "react";
-
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-
 import "./Funds.css";
-
 import { useAuth } from "../services/auth";
-
 
 export default function TournamentRegistration() {
 
     const { currentUser } = useAuth();
 
     const [tournaments, setTournaments] = useState([]);
-
     const [board, setBoard] = useState(null);
     const [loading, setLoading] = useState(true);
 
     const [showPopup, setShowPopup] = useState(false);
-
     const [selected, setSelected] = useState(null);
-
     const [consent, setConsent] = useState(false);
 
-    const BACKEND_URL =
-        "https://cricket-scoreboard-backend.onrender.com";
+    const BACKEND_URL = "https://cricket-scoreboard-backend.onrender.com";
 
 
     useEffect(() => {
-
         loadData();
-
     }, [currentUser]);
+
 
     const loadData = async () => {
 
         try {
 
-            /* ALWAYS LOAD TOURNAMENTS FIRST */
-
             const tournamentRes =
                 await axios.get(
-
                     `${BACKEND_URL}/api/funds/open-tournaments`
-
                 );
 
-            setTournaments(tournamentRes.data);
-            setLoading(false);
-
-
-            /* LOAD BOARD ONLY IF USER EXISTS */
+            setTournaments(tournamentRes.data || []);
 
             const email = currentUser?.email;
 
             if (email) {
 
-                const boardRes =
-                    await axios.get(
+                try {
 
-                        `${BACKEND_URL}/api/boards/by-owner/${email}`
+                    const boardRes =
+                        await axios.get(
+                            `${BACKEND_URL}/api/funds/by-owner/${email}`
+                        );
 
-                    );
+                    setBoard(boardRes.data);
 
-                setBoard(boardRes.data);
+                } catch (err) {
+
+                    /* BOARD NOT FOUND IS NORMAL CASE */
+
+                    console.log("Board not found");
+
+                    setBoard(null);
+
+                }
 
             }
 
-        }
-        catch (err) {
+        } catch (err) {
 
-            console.log("Tournament load error:", err);
+            console.log(err);
 
         }
+
+        setLoading(false);
 
     };
 
 
-    /* INTEREST NO */
+
+    /* NOT INTERESTED */
 
     const notInterested = async (t) => {
+
+        if (!board) {
+
+            alert("Please register a Board first");
+
+            return;
+
+        }
 
         try {
 
             await axios.post(
-
                 `${BACKEND_URL}/api/funds/tournament-interest`,
-
                 {
-
-                    board_id:
-                        board.id,
-
-                    tournament_id:
-                        t.tournament_id,
-
+                    board_id: board.board_id,
+                    tournament_id: t.tournament_id,
                     interest_status: "NOT_INTERESTED"
-
                 }
-
             );
 
-            alert(
-                "Thank you for your feedback"
-            );
+            alert("Interest recorded");
 
-        }
-        catch (err) {
+        } catch (err) {
 
             console.log(err);
 
@@ -116,84 +105,81 @@ export default function TournamentRegistration() {
     };
 
 
-    /* INTEREST YES */
+
+    /* INTERESTED */
 
     const interested = (t) => {
 
-        setSelected(t);
+        if (!board) {
 
+            alert("Please register a Board first");
+
+            return;
+
+        }
+
+        setSelected(t);
         setShowPopup(true);
 
     };
+
 
 
     /* REGISTER */
 
     const register = async () => {
 
+        if (!board) {
+
+            alert("Board not found");
+
+            return;
+
+        }
+
         try {
 
             await axios.post(
-
                 `${BACKEND_URL}/api/funds/register-tournament`,
-
                 {
-
-                    tournament_id:
-                        selected.tournament_id,
-
-                    board_id:
-                        board.id,
-
+                    tournament_id: selected.tournament_id,
+                    board_id: board.board_id,
                     consent_given: true
-
                 }
-
             );
 
-            alert("Registered");
+            alert("Tournament Registered");
 
             setShowPopup(false);
 
-        }
-        catch (err) {
+        } catch (err) {
 
-            alert(
-                "Insufficient funds or error"
-            );
+            if (err.response?.data?.message) {
+
+                alert(err.response.data.message);
+
+            } else {
+
+                alert("Registration failed");
+
+            }
 
         }
 
     };
 
 
+
     if (loading) {
 
         return (
-
             <div className="fundsPage">
-
                 Loading tournaments...
-
             </div>
-
         );
 
     }
 
-    if (tournaments.length === 0) {
-
-        return (
-
-            <div className="fundsPage">
-
-                No tournament created by admin.
-
-            </div>
-
-        );
-
-    }
 
 
     return (
@@ -201,10 +187,21 @@ export default function TournamentRegistration() {
         <div className="fundsPage">
 
             <div className="sectionTitle">
-
                 Tournament Registration
-
             </div>
+
+
+            {/* BOARD WARNING */}
+
+            {!board && (
+
+                <div className="warningBox">
+
+                    You must register a Board before joining tournaments.
+
+                </div>
+
+            )}
 
 
             <table className="txTable">
@@ -212,15 +209,10 @@ export default function TournamentRegistration() {
                 <thead>
 
                     <tr>
-
                         <th>Tournament</th>
-
                         <th>Type</th>
-
                         <th>Entry Fee</th>
-
                         <th>Action</th>
-
                     </tr>
 
                 </thead>
@@ -231,29 +223,18 @@ export default function TournamentRegistration() {
 
                         <tr key={t.tournament_id}>
 
-                            <td>
+                            <td>{t.tournament_name}</td>
 
-                                {t.tournament_name}
+                            <td>{t.tournament_type}</td>
 
-                            </td>
-
-                            <td>
-
-                                {t.tournament_type}
-
-                            </td>
-
-                            <td>
-
-                                CE$ {t.entry_fee}
-
-                            </td>
+                            <td>CE$ {t.entry_fee}</td>
 
                             <td className="registrationActions">
 
                                 <button
                                     onClick={() => interested(t)}
                                     className="yesBtn"
+                                    disabled={!board}
                                 >
 
                                     YES
@@ -263,6 +244,7 @@ export default function TournamentRegistration() {
                                 <button
                                     onClick={() => notInterested(t)}
                                     className="noBtn"
+                                    disabled={!board}
                                 >
 
                                     NO
@@ -288,63 +270,39 @@ export default function TournamentRegistration() {
 
                     <div className="infoBox">
 
-                        <h3>
-
-                            Tournament Registration
-
-                        </h3>
-
+                        <h3>Tournament Registration</h3>
 
                         <p>
-
                             Owner:
                             {currentUser?.email}
-
                         </p>
 
-
                         <p>
-
                             Board:
                             {board?.board_name}
-
                         </p>
 
-
                         <p>
-
                             Tournament:
                             {selected?.tournament_name}
-
                         </p>
 
-
                         <p>
-
                             Type:
                             {selected?.tournament_type}
-
                         </p>
 
-
                         <p>
-
                             Entry Fee:
                             CE$ {selected?.entry_fee}
-
                         </p>
 
 
                         <label>
 
                             <input
-
                                 type="checkbox"
-
-                                onChange={(e) =>
-                                    setConsent(e.target.checked)
-                                }
-
+                                onChange={(e) => setConsent(e.target.checked)}
                             />
 
                             I agree entry fee rules
@@ -352,32 +310,29 @@ export default function TournamentRegistration() {
                         </label>
 
 
-                        <button
+                        <div className="popupActions">
 
-                            disabled={!consent}
+                            <button
+                                disabled={!consent}
+                                onClick={register}
+                                className="manage-btn add-btn"
+                            >
 
-                            onClick={register}
+                                Submit
 
-                            className="manage-btn add-btn"
-
-                        >
-
-                            Submit
-
-                        </button>
+                            </button>
 
 
-                        <button
+                            <button
+                                onClick={() => setShowPopup(false)}
+                                className="manage-btn cancel-btn"
+                            >
 
-                            onClick={() => setShowPopup(false)}
+                                Cancel
 
-                            className="manage-btn cancel-btn"
+                            </button>
 
-                        >
-
-                            Cancel
-
-                        </button>
+                        </div>
 
                     </div>
 
