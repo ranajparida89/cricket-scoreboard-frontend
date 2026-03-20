@@ -15,8 +15,10 @@ export default function TournamentRegistration() {
     const [selected, setSelected] = useState(null);
     const [consent, setConsent] = useState(false);
 
-    const BACKEND_URL = "https://cricket-scoreboard-backend.onrender.com";
+    const BACKEND_URL =
+        "https://cricket-scoreboard-backend.onrender.com";
 
+    /* LOAD DATA */
 
     useEffect(() => {
         loadData();
@@ -27,8 +29,6 @@ export default function TournamentRegistration() {
 
         try {
 
-            /* LOAD TOURNAMENTS */
-
             const tournamentRes =
                 await axios.get(
                     `${BACKEND_URL}/api/funds/open-tournaments`
@@ -36,10 +36,8 @@ export default function TournamentRegistration() {
 
             setTournaments(tournamentRes.data || []);
 
-
-            /* LOAD BOARD */
-
-            const email = currentUser?.email;
+            const email =
+                currentUser?.email;
 
             if (email) {
 
@@ -50,13 +48,12 @@ export default function TournamentRegistration() {
                             `${BACKEND_URL}/api/funds/by-owner/${email}`
                         );
 
-                    console.log("Board loaded:", boardRes.data);
+                    console.log("Board:", boardRes.data);
 
                     setBoard(boardRes.data);
 
-                } catch (err) {
-
-                    console.log("Board not found");
+                }
+                catch {
 
                     setBoard(null);
 
@@ -64,32 +61,31 @@ export default function TournamentRegistration() {
 
             }
 
-        } catch (err) {
+        }
+        catch (err) {
 
-            console.log("Load error:", err);
+            console.log(err);
 
         }
-
-        /* IMPORTANT → UI READY ONLY AFTER BOARD LOADS */
 
         setLoading(false);
 
     };
 
 
+    /* SAFE BOARD ID */
+
+    const boardId =
+        board?.board_id;
+
 
     /* NOT INTERESTED */
 
     const notInterested = async (t) => {
-        console.log("BOARD STATE:", board);
-        console.log("TOURNAMENT:", t);
 
-        // SAFETY CHECK
-        if (!board || !board.id) {
+        if (!boardId) {
 
-            alert("Board not loaded yet. Please wait 2 seconds.");
-
-            console.log("Board state:", board);
+            alert("Board not loaded");
 
             return;
 
@@ -97,60 +93,55 @@ export default function TournamentRegistration() {
 
         try {
 
-            console.log("Sending interest:", {
-                board_id: board.id,
-                tournament_id: t.tournament_id,
-            });
-
             await axios.post(
                 `${BACKEND_URL}/api/funds/tournament-interest`,
                 {
-                    board_id: board.id,
+                    board_id: boardId,
                     tournament_id: t.tournament_id,
                     interest_status: "NOT_INTERESTED"
                 }
             );
 
-            alert("Interest recorded");
+            alert("Interest saved");
 
-        } catch (err) {
+        }
+        catch (err) {
 
-            console.log("Interest error:", err.response?.data || err);
+            console.log(err);
 
-            alert("Failed to record interest");
+            alert("Failed");
 
         }
 
     };
 
 
-
-    /* INTERESTED */
+    /* YES CLICK */
 
     const interested = (t) => {
 
-        if (!board || !board.id) {
+        if (!boardId) {
 
-            alert("Please register a Board first");
+            alert("Register board first");
 
             return;
 
         }
 
         setSelected(t);
-        setTimeout(() => setShowPopup(true), 0);
+
+        setShowPopup(true);
 
     };
-
 
 
     /* REGISTER */
 
     const register = async () => {
 
-        if (!board) {
+        if (!boardId) {
 
-            alert("Board not found");
+            alert("Board missing");
 
             return;
 
@@ -162,7 +153,7 @@ export default function TournamentRegistration() {
                 `${BACKEND_URL}/api/funds/register-tournament`,
                 {
                     tournament_id: selected.tournament_id,
-                    board_id: board.id,
+                    board_id: boardId,
                     consent_given: true
                 }
             );
@@ -171,22 +162,19 @@ export default function TournamentRegistration() {
 
             setShowPopup(false);
 
-        } catch (err) {
+            setConsent(false);
 
-            if (err.response?.data?.message) {
+        }
+        catch (err) {
 
-                alert(err.response.data.message);
-
-            } else {
-
-                alert("Registration failed");
-
-            }
+            alert(
+                err.response?.data?.message ||
+                "Registration failed"
+            );
 
         }
 
     };
-
 
 
     if (loading) {
@@ -200,6 +188,7 @@ export default function TournamentRegistration() {
     }
 
 
+    /* UI */
 
     return (
 
@@ -210,13 +199,11 @@ export default function TournamentRegistration() {
             </div>
 
 
-            {/* BOARD WARNING */}
-
-            {!board && (
+            {!boardId && (
 
                 <div className="warningBox">
 
-                    You must register a Board before joining tournaments.
+                    Register a board to join tournaments
 
                 </div>
 
@@ -228,13 +215,19 @@ export default function TournamentRegistration() {
                 <thead>
 
                     <tr>
+
                         <th>Tournament</th>
+
                         <th>Type</th>
+
                         <th>Entry Fee</th>
+
                         <th>Action</th>
+
                     </tr>
 
                 </thead>
+
 
                 <tbody>
 
@@ -250,24 +243,22 @@ export default function TournamentRegistration() {
 
                             <td className="registrationActions">
 
+
                                 <button
                                     onClick={() => interested(t)}
                                     className="yesBtn"
-                                    disabled={!board || !board.id}
+                                    disabled={!boardId}
                                 >
-
                                     YES
-
                                 </button>
+
 
                                 <button
                                     onClick={() => notInterested(t)}
                                     className="noBtn"
-                                    disabled={!board || !board.id}
+                                    disabled={!boardId}
                                 >
-
                                     NO
-
                                 </button>
 
                             </td>
@@ -303,17 +294,17 @@ export default function TournamentRegistration() {
 
                         <p>
                             Tournament:
-                            {selected?.tournament_name}
+                            {selected.tournament_name}
                         </p>
 
                         <p>
                             Type:
-                            {selected?.tournament_type}
+                            {selected.tournament_type}
                         </p>
 
                         <p>
                             Entry Fee:
-                            CE$ {selected?.entry_fee}
+                            CE$ {selected.entry_fee}
                         </p>
 
 
@@ -321,7 +312,10 @@ export default function TournamentRegistration() {
 
                             <input
                                 type="checkbox"
-                                onChange={(e) => setConsent(e.target.checked)}
+                                checked={consent}
+                                onChange={(e) =>
+                                    setConsent(e.target.checked)
+                                }
                             />
 
                             I agree entry fee rules
