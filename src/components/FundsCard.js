@@ -4,26 +4,33 @@ export default function FundsCard({
 
     title,
     value,
+    subtitle,
     color
 
 }) {
 
     return (
 
-        <div className="fundsCard">
+        <div className="analyticsCard">
 
-            <div className="cardTitle">
+            <div className="analyticsTitle">
 
                 {title}
 
             </div>
 
             <div
-                className="cardValue"
-                style={{ color }}
+                className="analyticsValue"
+                style={{ color: color }}
             >
 
                 {value}
+
+            </div>
+
+            <div className="cardSubtitle">
+
+                {subtitle}
 
             </div>
 

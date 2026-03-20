@@ -670,21 +670,100 @@
     font-weight: 600;
 
 }
-.warningBox{
 
-background:#2a1b1b;
-border:1px solid red;
-padding:15px;
-margin-bottom:20px;
-border-radius:6px;
-color:#ffb3b3;
+.warningBox {
+
+    background: #2a1b1b;
+    border: 1px solid red;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    color: #ffb3b3;
 
 }
 
-.popupActions{
+.popupActions {
 
-display:flex;
-gap:10px;
-margin-top:15px;
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+
+}
+
+.walletHeader {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 20px;
+
+}
+
+.walletSubtitle {
+
+    font-size: 13px;
+
+    color: #94a3b8;
+
+    margin-top: 5px;
+
+}
+
+.cardSubtitle {
+
+    font-size: 12px;
+
+    color: #94a3b8;
+
+    margin-top: 6px;
+
+}
+
+.walletSummaryBox {
+
+    display: flex;
+
+    gap: 30px;
+
+    margin-top: 15px;
+
+    margin-bottom: 20px;
+
+    font-size: 13px;
+
+    color: #cbd5f5;
+
+}
+
+.walletExplain {
+
+    font-size: 13px;
+
+    color: #94a3b8;
+
+    margin-bottom: 10px;
+
+}
+
+.infoBtn {
+
+    background: #1e293b;
+
+    border: none;
+
+    width: 28px;
+
+    height: 28px;
+
+    border-radius: 50%;
+
+    color: white;
+
+    cursor: pointer;
+
+    font-weight: bold;
 
 }
