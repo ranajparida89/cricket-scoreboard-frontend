@@ -206,7 +206,7 @@ const SidebarMenu = () => {
 
               <li>
                 <Link to="/tournament-interest" onClick={handleClose}>
-                  Tournament Interest
+                  Tournament Interest Log
                 </Link>
               </li>
 
@@ -274,7 +274,7 @@ const SidebarMenu = () => {
 
               <li>
                 <Link to="/reward-banks" onClick={handleClose}>
-                  Reward Pools
+                  Reward Bank
                 </Link>
               </li>
 
