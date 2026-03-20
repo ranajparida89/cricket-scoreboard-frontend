@@ -34,7 +34,7 @@ export default function TournamentAdminDashboard() {
 
                 );
 
-            setTournaments(res.data);
+            setTournaments(res.data || []);
 
         }
         catch (err) {
@@ -57,7 +57,7 @@ export default function TournamentAdminDashboard() {
 
                 );
 
-            setBoards(res.data);
+            setBoards(res.data || []);
 
             setSelected(id);
 
@@ -110,116 +110,123 @@ export default function TournamentAdminDashboard() {
             </div>
 
 
-            <table className="txTable">
+            {/* ✅ TABLE FIX */}
 
-                <thead>
+            <div className="tableContainer">
 
-                    <tr>
+                <table className="txTable">
 
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Entry Fee</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                    <thead>
 
-                    </tr>
+                        <tr>
 
-                </thead>
-
-                <tbody>
-
-                    {tournaments.map(t => (
-
-                        <tr key={t.tournament_id}>
-
-                            <td>
-
-                                {t.tournament_name}
-
-                            </td>
-
-                            <td>
-
-                                {t.tournament_type}
-
-                            </td>
-
-                            <td>
-
-                                CE$ {Number(
-                                    t.entry_fee
-                                ).toLocaleString()}
-
-                            </td>
-
-                            <td>
-
-                                {t.start_date?.substring(0, 10)}
-
-                            </td>
-
-                            <td>
-
-                                <span className={
-                                    "status " +
-                                    (t.tournament_status === "REGISTRATION_OPEN"
-                                        ? "Stable" : "Weak")
-                                }>
-
-                                    {t.tournament_status}
-
-                                </span>
-
-                            </td>
-
-                            <td>
-
-                                <button
-
-                                    className="manage-btn add-btn"
-
-                                    onClick={() =>
-                                        loadBoards(
-                                            t.tournament_id
-                                        )}
-
-                                >
-
-                                    View Boards
-
-                                </button>
-
-
-                                {t.tournament_status === "REGISTRATION_OPEN"
-                                    && (
-
-                                        <button
-
-                                            className="manage-btn delete-btn"
-
-                                            onClick={() =>
-                                                closeTournament(
-                                                    t.tournament_id
-                                                )}
-
-                                        >
-
-                                            Close
-
-                                        </button>
-
-                                    )}
-
-                            </td>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Entry Fee</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
 
                         </tr>
 
-                    ))}
+                    </thead>
 
-                </tbody>
+                    <tbody>
 
-            </table>
+                        {(tournaments || []).map(t => (
+
+                            <tr key={t.tournament_id}>
+
+                                <td>
+
+                                    {t.tournament_name}
+
+                                </td>
+
+                                <td>
+
+                                    {t.tournament_type}
+
+                                </td>
+
+                                <td>
+
+                                    CE$ {Number(
+                                        t.entry_fee
+                                    ).toLocaleString()}
+
+                                </td>
+
+                                <td>
+
+                                    {t.start_date?.substring(0, 10)}
+
+                                </td>
+
+                                <td>
+
+                                    <span className={
+                                        "status " +
+                                        (t.tournament_status === "REGISTRATION_OPEN"
+                                            ? "Stable"
+                                            : "Weak")
+                                    }>
+
+                                        {t.tournament_status}
+
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <button
+
+                                        className="manage-btn add-btn"
+
+                                        onClick={() =>
+                                            loadBoards(
+                                                t.tournament_id
+                                            )}
+
+                                    >
+
+                                        View Boards
+
+                                    </button>
+
+
+                                    {t.tournament_status === "REGISTRATION_OPEN"
+                                        && (
+
+                                            <button
+
+                                                className="manage-btn delete-btn"
+
+                                                onClick={() =>
+                                                    closeTournament(
+                                                        t.tournament_id
+                                                    )}
+
+                                            >
+
+                                                Close
+
+                                            </button>
+
+                                        )}
+
+                                </td>
+
+                            </tr>
+
+                        ))}
+
+                    </tbody>
+
+                </table>
+
+            </div>
 
 
             {selected && (
@@ -233,54 +240,60 @@ export default function TournamentAdminDashboard() {
                     </div>
 
 
-                    <table className="txTable">
+                    {/* ✅ SECOND TABLE FIX */}
 
-                        <thead>
+                    <div className="tableContainer">
 
-                            <tr>
+                        <table className="txTable">
 
-                                <th>Board</th>
-                                <th>Entry Fee</th>
-                                <th>Registered Date</th>
+                            <thead>
 
-                            </tr>
+                                <tr>
 
-                        </thead>
-
-                        <tbody>
-
-                            {boards.map(b => (
-
-                                <tr key={b.board_id}>
-
-                                    <td>
-
-                                        {b.board_name}
-
-                                    </td>
-
-                                    <td>
-
-                                        CE$ {Number(
-                                            b.entry_fee
-                                        ).toLocaleString()}
-
-                                    </td>
-
-                                    <td>
-
-                                        {b.registered_at
-                                            ?.substring(0, 10)}
-
-                                    </td>
+                                    <th>Board</th>
+                                    <th>Entry Fee</th>
+                                    <th>Registered Date</th>
 
                                 </tr>
 
-                            ))}
+                            </thead>
 
-                        </tbody>
+                            <tbody>
 
-                    </table>
+                                {(boards || []).map(b => (
+
+                                    <tr key={b.board_id}>
+
+                                        <td>
+
+                                            {b.board_name}
+
+                                        </td>
+
+                                        <td>
+
+                                            CE$ {Number(
+                                                b.entry_fee
+                                            ).toLocaleString()}
+
+                                        </td>
+
+                                        <td>
+
+                                            {b.registered_at
+                                                ?.substring(0, 10)}
+
+                                        </td>
+
+                                    </tr>
+
+                                ))}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
 
                 </>
 

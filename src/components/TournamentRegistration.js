@@ -210,66 +210,72 @@ export default function TournamentRegistration() {
             )}
 
 
-            <table className="txTable">
+            {/* ✅ RESPONSIVE TABLE FIX */}
 
-                <thead>
+            <div className="tableContainer">
 
-                    <tr>
+                <table className="txTable">
 
-                        <th>Tournament</th>
+                    <thead>
 
-                        <th>Type</th>
+                        <tr>
 
-                        <th>Entry Fee</th>
+                            <th>Tournament</th>
 
-                        <th>Action</th>
+                            <th>Type</th>
 
-                    </tr>
+                            <th>Entry Fee</th>
 
-                </thead>
-
-
-                <tbody>
-
-                    {tournaments.map(t => (
-
-                        <tr key={t.tournament_id}>
-
-                            <td>{t.tournament_name}</td>
-
-                            <td>{t.tournament_type}</td>
-
-                            <td>CE$ {t.entry_fee}</td>
-
-                            <td className="registrationActions">
-
-
-                                <button
-                                    onClick={() => interested(t)}
-                                    className="yesBtn"
-                                    disabled={!boardId}
-                                >
-                                    YES
-                                </button>
-
-
-                                <button
-                                    onClick={() => notInterested(t)}
-                                    className="noBtn"
-                                    disabled={!boardId}
-                                >
-                                    NO
-                                </button>
-
-                            </td>
+                            <th>Action</th>
 
                         </tr>
 
-                    ))}
+                    </thead>
 
-                </tbody>
 
-            </table>
+                    <tbody>
+
+                        {(tournaments || []).map(t => (
+
+                            <tr key={t.tournament_id}>
+
+                                <td>{t.tournament_name}</td>
+
+                                <td>{t.tournament_type}</td>
+
+                                <td>CE$ {t.entry_fee}</td>
+
+                                <td className="registrationActions">
+
+
+                                    <button
+                                        onClick={() => interested(t)}
+                                        className="yesBtn"
+                                        disabled={!boardId}
+                                    >
+                                        YES
+                                    </button>
+
+
+                                    <button
+                                        onClick={() => notInterested(t)}
+                                        className="noBtn"
+                                        disabled={!boardId}
+                                    >
+                                        NO
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                        ))}
+
+                    </tbody>
+
+                </table>
+
+            </div>
 
 
             {/* POPUP */}

@@ -31,7 +31,7 @@ export default function FundsLeaderboard() {
 
                 );
 
-            setBoards(res.data);
+            setBoards(res.data || []);
 
         }
         catch (err) {
@@ -117,109 +117,115 @@ export default function FundsLeaderboard() {
             </div>
 
 
-            <table className="txTable">
+            {/* ✅ MOBILE FIX */}
 
-                <thead>
+            <div className="tableContainer">
 
-                    <tr>
+                <table className="txTable">
 
-                        <th>Rank</th>
+                    <thead>
 
-                        <th>Board</th>
+                        <tr>
 
-                        <th>Balance</th>
+                            <th>Rank</th>
 
-                        <th>Total Earned</th>
+                            <th>Board</th>
 
-                        <th>Total Spent</th>
+                            <th>Balance</th>
 
-                        <th>Financial Strength</th>
+                            <th>Total Earned</th>
 
-                    </tr>
+                            <th>Total Spent</th>
 
-                </thead>
-
-
-                <tbody>
-
-                    {boards.map((b, index) => (
-
-                        <tr
-                            key={index}
-                            className={getRankClass(index)}
-                        >
-
-                            <td>
-
-                                {getRankDisplay(index)}
-
-                            </td>
-
-
-                            <td className="boardNameCell">
-
-                                {index === 0 && (
-
-                                    <span className="crownIcon">
-
-                                        🏆
-
-                                    </span>
-
-                                )}
-
-                                {b.board_name}
-
-                            </td>
-
-
-                            <td className="balanceCell">
-
-                                CE$ {Number(
-                                    b.balance
-                                ).toLocaleString()}
-
-                            </td>
-
-
-                            <td>
-
-                                CE$ {Number(
-                                    b.total_earned
-                                ).toLocaleString()}
-
-                            </td>
-
-
-                            <td>
-
-                                CE$ {Number(
-                                    b.total_spent
-                                ).toLocaleString()}
-
-                            </td>
-
-
-                            <td>
-
-                                <span className={
-                                    "status " +
-                                    getStrengthClass(b.balance)
-                                }>
-
-                                    {getStrength(b.balance)}
-
-                                </span>
-
-                            </td>
+                            <th>Financial Strength</th>
 
                         </tr>
 
-                    ))}
+                    </thead>
 
-                </tbody>
 
-            </table>
+                    <tbody>
+
+                        {(boards || []).map((b, index) => (
+
+                            <tr
+                                key={index}
+                                className={getRankClass(index)}
+                            >
+
+                                <td>
+
+                                    {getRankDisplay(index)}
+
+                                </td>
+
+
+                                <td className="boardNameCell">
+
+                                    {index === 0 && (
+
+                                        <span className="crownIcon">
+
+                                            🏆
+
+                                        </span>
+
+                                    )}
+
+                                    {b.board_name}
+
+                                </td>
+
+
+                                <td className="balanceCell">
+
+                                    CE$ {Number(
+                                        b.balance
+                                    ).toLocaleString()}
+
+                                </td>
+
+
+                                <td>
+
+                                    CE$ {Number(
+                                        b.total_earned
+                                    ).toLocaleString()}
+
+                                </td>
+
+
+                                <td>
+
+                                    CE$ {Number(
+                                        b.total_spent
+                                    ).toLocaleString()}
+
+                                </td>
+
+
+                                <td>
+
+                                    <span className={
+                                        "status " +
+                                        getStrengthClass(b.balance)
+                                    }>
+
+                                        {getStrength(b.balance)}
+
+                                    </span>
+
+                                </td>
+
+                            </tr>
+
+                        ))}
+
+                    </tbody>
+
+                </table>
+
+            </div>
 
         </div>
 

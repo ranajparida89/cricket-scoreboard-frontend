@@ -25,7 +25,7 @@ export default function RewardBankView() {
                     `${BACKEND_URL}/api/funds/reward-banks`
                 );
 
-            setBanks(res.data);
+            setBanks(res.data || []);
 
         }
         catch (err) {
@@ -217,80 +217,86 @@ export default function RewardBankView() {
 
             </div>
 
-            <table className="txTable">
+            {/* ✅ RESPONSIVE TABLE FIX */}
 
-                <thead>
+            <div className="tableContainer">
 
-                    <tr>
+                <table className="txTable">
 
-                        <th>Pool ID</th>
-                        <th>Tournament</th>
-                        <th>Collected</th>
-                        <th>Distributed</th>
-                        <th>Remaining</th>
-                        <th>Health</th>
+                    <thead>
 
-                    </tr>
+                        <tr>
 
-                </thead>
-
-                <tbody>
-
-                    {banks.map(b => (
-
-                        <tr key={b.reward_bank_id}>
-
-                            <td>
-
-                                RB-{b.reward_bank_id}
-
-                            </td>
-
-                            <td>
-
-                                {b.tournament_name}
-
-                            </td>
-
-                            <td>
-
-                                CE$ {b.total_collected}
-
-                            </td>
-
-                            <td>
-
-                                CE$ {b.total_distributed}
-
-                            </td>
-
-                            <td>
-
-                                CE$ {b.remaining_balance}
-
-                            </td>
-
-                            <td>
-
-                                <span
-                                    style={{
-                                        color: getHealthColor(b.pool_health)
-                                    }}
-                                >
-
-                                    {b.pool_health}
-
-                                </span>
-
-                            </td>
+                            <th>Pool ID</th>
+                            <th>Tournament</th>
+                            <th>Collected</th>
+                            <th>Distributed</th>
+                            <th>Remaining</th>
+                            <th>Health</th>
 
                         </tr>
 
-                    ))}
+                    </thead>
 
-                </tbody>
+                    <tbody>
 
-            </table>
+                        {banks.map(b => (
+
+                            <tr key={b.reward_bank_id}>
+
+                                <td>
+
+                                    RB-{b.reward_bank_id}
+
+                                </td>
+
+                                <td>
+
+                                    {b.tournament_name}
+
+                                </td>
+
+                                <td>
+
+                                    CE$ {b.total_collected}
+
+                                </td>
+
+                                <td>
+
+                                    CE$ {b.total_distributed}
+
+                                </td>
+
+                                <td>
+
+                                    CE$ {b.remaining_balance}
+
+                                </td>
+
+                                <td>
+
+                                    <span
+                                        style={{
+                                            color: getHealthColor(b.pool_health)
+                                        }}
+                                    >
+
+                                        {b.pool_health}
+
+                                    </span>
+
+                                </td>
+
+                            </tr>
+
+                        ))}
+
+                    </tbody>
+
+                </table>
+
+            </div>
 
             {/* INFO POPUP */}
 

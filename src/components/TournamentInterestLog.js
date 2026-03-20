@@ -39,7 +39,7 @@ export default function TournamentInterestLog() {
 
                 );
 
-            setData(res.data);
+            setData(res.data || []);
 
         }
         catch (err) {
@@ -77,70 +77,76 @@ export default function TournamentInterestLog() {
             </div>
 
 
-            <table className="txTable">
+            {/* ✅ RESPONSIVE TABLE FIX */}
 
-                <thead>
+            <div className="tableContainer">
 
-                    <tr>
+                <table className="txTable">
 
-                        <th>Board</th>
+                    <thead>
 
-                        <th>Tournament</th>
+                        <tr>
 
-                        <th>Status</th>
+                            <th>Board</th>
 
-                        <th>Date</th>
+                            <th>Tournament</th>
 
-                    </tr>
+                            <th>Status</th>
 
-                </thead>
-
-
-                <tbody>
-
-                    {data.map(x => (
-
-                        <tr key={x.interest_id}>
-
-                            <td>
-
-                                {x.board_name}
-
-                            </td>
-
-                            <td>
-
-                                {x.tournament_name}
-
-                            </td>
-
-                            <td>
-
-                                <span className={
-                                    x.interest_status === "NOT_INTERESTED"
-                                        ? "declined"
-                                        : "accepted"
-                                }>
-
-                                    {x.interest_status}
-
-                                </span>
-
-                            </td>
-
-                            <td>
-
-                                {x.created_at?.substring(0, 10)}
-
-                            </td>
+                            <th>Date</th>
 
                         </tr>
 
-                    ))}
+                    </thead>
 
-                </tbody>
 
-            </table>
+                    <tbody>
+
+                        {data.map(x => (
+
+                            <tr key={x.interest_id}>
+
+                                <td>
+
+                                    {x.board_name}
+
+                                </td>
+
+                                <td>
+
+                                    {x.tournament_name}
+
+                                </td>
+
+                                <td>
+
+                                    <span className={
+                                        x.interest_status === "NOT_INTERESTED"
+                                            ? "declined"
+                                            : "accepted"
+                                    }>
+
+                                        {x.interest_status}
+
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    {x.created_at?.substring(0, 10)}
+
+                                </td>
+
+                            </tr>
+
+                        ))}
+
+                    </tbody>
+
+                </table>
+
+            </div>
 
         </div>
 

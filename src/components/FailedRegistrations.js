@@ -39,7 +39,7 @@ export default function FailedRegistrations() {
 
                 );
 
-            setData(res.data);
+            setData(res.data || []);
 
         }
         catch (err) {
@@ -77,99 +77,105 @@ export default function FailedRegistrations() {
             </div>
 
 
-            <table className="txTable">
+            {/* ✅ TABLE CONTAINER ADDED */}
 
-                <thead>
+            <div className="tableContainer">
 
-                    <tr>
+                <table className="txTable">
 
-                        <th>Board</th>
-
-                        <th>Tournament</th>
-
-                        <th>Required</th>
-
-                        <th>Available</th>
-
-                        <th>Status</th>
-
-                        <th>Date</th>
-
-                    </tr>
-
-                </thead>
-
-
-                <tbody>
-
-                    {data.map(x => (
-
-                        <tr key={x.failed_id}>
-
-                            <td>
-
-                                {x.board_name}
-
-                            </td>
-
-                            <td>
-
-                                {x.tournament_name}
-
-                            </td>
-
-                            <td>
-
-                                CE$ {x.required_amount}
-
-                            </td>
-
-                            <td>
-
-                                CE$ {x.available_balance}
-
-                            </td>
-
-                            <td>
-
-                                <span className="failedStatus">
-
-                                    INSUFFICIENT FUNDS
-
-                                </span>
-
-                            </td>
-
-                            <td>
-
-                                {x.created_at?.substring(0, 10)}
-
-                            </td>
-
-                        </tr>
-
-                    ))}
-
-
-                    {data.length === 0 && (
+                    <thead>
 
                         <tr>
 
-                            <td colSpan="6"
-                                style={{ textAlign: "center" }}
-                            >
+                            <th>Board</th>
 
-                                No failed registrations
+                            <th>Tournament</th>
 
-                            </td>
+                            <th>Required</th>
+
+                            <th>Available</th>
+
+                            <th>Status</th>
+
+                            <th>Date</th>
 
                         </tr>
 
-                    )}
+                    </thead>
 
-                </tbody>
 
-            </table>
+                    <tbody>
+
+                        {data.map(x => (
+
+                            <tr key={x.failed_id}>
+
+                                <td>
+
+                                    {x.board_name}
+
+                                </td>
+
+                                <td>
+
+                                    {x.tournament_name}
+
+                                </td>
+
+                                <td>
+
+                                    CE$ {x.required_amount}
+
+                                </td>
+
+                                <td>
+
+                                    CE$ {x.available_balance}
+
+                                </td>
+
+                                <td>
+
+                                    <span className="failedStatus">
+
+                                        INSUFFICIENT FUNDS
+
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    {x.created_at?.substring(0, 10)}
+
+                                </td>
+
+                            </tr>
+
+                        ))}
+
+
+                        {data.length === 0 && (
+
+                            <tr>
+
+                                <td colSpan="6"
+                                    style={{ textAlign: "center" }}
+                                >
+
+                                    No failed registrations
+
+                                </td>
+
+                            </tr>
+
+                        )}
+
+                    </tbody>
+
+                </table>
+
+            </div>
 
         </div>
 

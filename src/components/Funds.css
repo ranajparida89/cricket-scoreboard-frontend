@@ -1,6 +1,6 @@
 /* ===============================
 CRICKEDGE FUNDS DESIGN SYSTEM
-Professional Financial UI
+Enterprise Finance UI
 =============================== */
 
 .fundsPage {
@@ -8,22 +8,23 @@ Professional Financial UI
     padding: 24px;
 
     background:
-        radial-gradient(circle at top, #0f172a, #020617);
+        linear-gradient(180deg, #0b1220, #0f172a);
 
     min-height: 100vh;
 
-    color: #e2e8f0;
+    color: #e6edf7;
 
     font-family: Inter, system-ui;
 
 }
 
-/* HEADER */
+
+/* ================= HEADER */
 
 .fundsHeader {
 
     background:
-        linear-gradient(135deg, #0f172a, #020617);
+        linear-gradient(135deg, #111827, #1e293b);
 
     padding: 20px;
 
@@ -35,16 +36,17 @@ Professional Financial UI
 
     align-items: center;
 
-    border: 1px solid rgba(255, 255, 255, .06);
+    border: 1px solid #243041;
 
     box-shadow:
-        0 10px 25px rgba(0, 0, 0, .35);
+        0 10px 30px rgba(0, 0, 0, .4);
 
     margin-bottom: 25px;
 
 }
 
-/* SECTION TITLES */
+
+/* ================= TITLES */
 
 .sectionTitle {
 
@@ -54,15 +56,16 @@ Professional Financial UI
 
     margin-top: 30px;
 
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 
-    color: #f1f5f9;
+    color: #f8fafc;
 
-    letter-spacing: .3px;
+    letter-spacing: .4px;
 
 }
 
-/* GRID */
+
+/* ================= GRID */
 
 .fundsGrid {
 
@@ -75,49 +78,74 @@ Professional Financial UI
 
 }
 
-/* CARDS */
+
+/* ================= CARDS */
 
 .fundsCard,
 .analyticsCard {
 
     background:
-        linear-gradient(145deg, #0f172a, #020617);
+        linear-gradient(145deg, #111827, #0f172a);
 
     padding: 20px;
 
     border-radius: 14px;
 
-    border: 1px solid rgba(255, 255, 255, .05);
+    border: 1px solid #243041;
 
     box-shadow:
 
-        0 5px 20px rgba(0, 0, 0, .45),
-
-        inset 0 1px rgba(255, 255, 255, .03);
+        0 8px 25px rgba(0, 0, 0, .45);
 
     transition: .25s;
 
+    position: relative;
+
+    overflow: hidden;
+
 }
+
+
+.fundsCard:before {
+
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+
+    left: 0;
+
+    height: 3px;
+
+    width: 100%;
+
+    background:
+        linear-gradient(90deg, #38bdf8, #22c55e);
+
+}
+
 
 .fundsCard:hover,
 .analyticsCard:hover {
 
-    transform: translateY(-3px);
+    transform: translateY(-4px);
 
     box-shadow:
 
-        0 12px 30px rgba(0, 0, 0, .6);
+        0 18px 45px rgba(0, 0, 0, .65);
 
 }
 
-/* CARD TEXT */
+
+/* ================= CARD TEXT */
 
 .analyticsTitle,
 .cardTitle {
 
     font-size: 13px;
 
-    color: #94a3b8;
+    color: #9fb2c7;
 
     margin-bottom: 8px;
 
@@ -134,13 +162,15 @@ Professional Financial UI
 
     margin-top: 5px;
 
+    color: #f1f5f9;
+
 }
 
 .cardSubtitle {
 
     font-size: 12px;
 
-    color: #64748b;
+    color: #7c8ea3;
 
     margin-top: 6px;
 
@@ -148,124 +178,113 @@ Professional Financial UI
 
 }
 
-/* WALLET HEADER */
 
-.walletHeader {
+/* ================= TABLE CONTAINER */
 
-    display: flex;
+.tableContainer {
 
-    justify-content: space-between;
+    background: #0f172a;
 
-    align-items: center;
+    border-radius: 14px;
 
-    margin-bottom: 25px;
+    border: 1px solid #243041;
 
-}
+    overflow: hidden;
 
-.walletSubtitle {
+    box-shadow:
 
-    font-size: 13px;
-
-    color: #94a3b8;
-
-    margin-top: 6px;
-
-    max-width: 520px;
+        0 10px 30px rgba(0, 0, 0, .45);
 
 }
 
-/* INFO BUTTON */
 
-.infoBtn {
-
-    background:
-        linear-gradient(135deg, #1e293b, #0f172a);
-
-    border: none;
-
-    width: 32px;
-
-    height: 32px;
-
-    border-radius: 50%;
-
-    color: #e2e8f0;
-
-    cursor: pointer;
-
-    font-weight: 600;
-
-    transition: .2s;
-
-}
-
-.infoBtn:hover {
-
-    background: #2563eb;
-
-}
-
-/* TABLE */
+/* ================= TABLE */
 
 .txTable {
 
     width: 100%;
 
-    margin-top: 15px;
-
     border-collapse: collapse;
-
-    background: #020617;
-
-    border-radius: 12px;
-
-    overflow: hidden;
-
-    border: 1px solid rgba(255, 255, 255, .05);
-
-}
-
-.txTable th {
-
-    text-align: left;
-
-    padding: 14px;
-
-    background: #020617;
-
-    color: #94a3b8;
-
-    font-size: 13px;
-
-    font-weight: 600;
-
-    border-bottom:
-        1px solid rgba(255, 255, 255, .06);
-
-}
-
-.txTable td {
-
-    padding: 14px;
-
-    border-bottom:
-        1px solid rgba(255, 255, 255, .04);
 
     font-size: 14px;
 
 }
 
-.txTable tr:hover {
 
-    background: rgba(255, 255, 255, .03);
+.txTable thead {
+
+    background:
+        linear-gradient(135deg, #111827, #1e293b);
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 5;
 
 }
 
-/* BADGES */
+
+.txTable th {
+
+    text-align: left;
+
+    padding: 15px;
+
+    color: #9fb2c7;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    letter-spacing: .5px;
+
+    border-bottom:
+        1px solid #243041;
+
+    text-transform: uppercase;
+
+}
+
+
+.txTable td {
+
+    padding: 15px;
+
+    border-bottom:
+        1px solid #1f2a3a;
+
+}
+
+
+.txTable tr {
+
+    transition: .15s;
+
+}
+
+
+.txTable tr:hover {
+
+    background: #162133;
+
+}
+
+
+/* ZEBRA */
+
+.txTable tbody tr:nth-child(even) {
+
+    background: #111a28;
+
+}
+
+
+/* ================= STATUS BADGES */
 
 .badge {
 
-    padding: 5px 12px;
+    padding: 6px 14px;
 
     border-radius: 20px;
 
@@ -273,9 +292,10 @@ Professional Financial UI
 
     font-weight: 600;
 
-    letter-spacing: .3px;
+    letter-spacing: .4px;
 
 }
+
 
 .credit {
 
@@ -293,11 +313,12 @@ Professional Financial UI
 
 }
 
-/* STATUS */
+
+/* ================= HEALTH STATUS */
 
 .status {
 
-    padding: 5px 12px;
+    padding: 6px 12px;
 
     border-radius: 8px;
 
@@ -307,9 +328,10 @@ Professional Financial UI
 
 }
 
+
 .status.strong {
 
-    background: #022c22;
+    background: #052e1f;
 
     color: #34d399;
 
@@ -319,7 +341,7 @@ Professional Financial UI
 
     background: #172554;
 
-    color: #93c5fd;
+    color: #60a5fa;
 
 }
 
@@ -331,262 +353,36 @@ Professional Financial UI
 
 }
 
-/* SUMMARY BOX */
 
-.walletSummaryBox {
+/* ================= FINANCIAL STATUS */
 
-    display: flex;
+.failedStatus {
 
-    gap: 30px;
+    background: #3a1212;
 
-    margin-top: 20px;
+    color: #f87171;
 
-    margin-bottom: 25px;
-
-    font-size: 13px;
-
-    color: #cbd5f5;
-
-    flex-wrap: wrap;
-
-}
-
-.walletExplain {
-
-    font-size: 13px;
-
-    color: #94a3b8;
-
-    margin-bottom: 12px;
-
-}
-
-/* REWARD CARDS */
-
-.rewardGrid {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(auto-fit, minmax(340px, 1fr));
-
-    gap: 22px;
-
-    margin-bottom: 35px;
-
-}
-
-.rewardCard {
-
-    background:
-
-        linear-gradient(145deg, #0f172a, #020617);
-
-    border-radius: 14px;
-
-    padding: 20px;
-
-    border: 1px solid rgba(255, 255, 255, .05);
-
-    box-shadow:
-
-        0 10px 30px rgba(0, 0, 0, .5);
-
-    transition: .25s;
-
-}
-
-.rewardCard:hover {
-
-    transform: translateY(-4px);
-
-}
-
-.rewardHeader {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    margin-bottom: 18px;
-
-}
-
-.rewardTitle {
-
-    font-size: 18px;
-
-    font-weight: 600;
-
-}
-
-.rewardId {
-
-    font-size: 12px;
-
-    color: #64748b;
-
-}
-
-.rewardStats {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    margin-bottom: 15px;
-
-}
-
-.rewardValue {
-
-    font-size: 18px;
-
-    font-weight: 700;
-
-    margin-top: 4px;
-
-}
-
-/* PROGRESS */
-
-.progressBar {
-
-    height: 10px;
-
-    background: #020617;
-
-    border-radius: 10px;
-
-    overflow: hidden;
-
-    margin-top: 12px;
-
-}
-
-.progressFill {
-
-    height: 100%;
-
-    background:
-
-        linear-gradient(90deg, #22c55e, #4ade80);
-
-}
-
-.progressText {
-
-    font-size: 12px;
-
-    margin-top: 7px;
-
-    color: #94a3b8;
-
-}
-
-/* FOOTER */
-
-.rewardFooter {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    margin-top: 15px;
-
-    font-size: 13px;
-
-    color: #cbd5f5;
-
-}
-
-.healthBadge {
-
-    padding: 5px 14px;
-
-    border-radius: 20px;
-
-    font-size: 11px;
-
-    font-weight: 600;
-
-}
-
-/* POPUP */
-
-.infoOverlay {
-
-    position: fixed;
-
-    top: 0;
-
-    left: 0;
-
-    width: 100%;
-
-    height: 100%;
-
-    background:
-        rgba(0, 0, 0, .75);
-
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    z-index: 999;
-
-    backdrop-filter: blur(4px);
-
-}
-
-.infoBox {
-
-    background: #020617;
-
-    padding: 26px;
-
-    border-radius: 14px;
-
-    width: 440px;
-
-    border: 1px solid #334155;
-
-    color: white;
-
-    box-shadow:
-        0 15px 40px rgba(0, 0, 0, .6);
-
-}
-
-.closeInfo {
-
-    margin-top: 15px;
-
-    background: #2563eb;
-
-    border: none;
-
-    padding: 9px 18px;
-
-    color: white;
+    padding: 6px 14px;
 
     border-radius: 8px;
 
-    cursor: pointer;
+    font-weight: 600;
+
+    font-size: 12px;
 
 }
 
-/* BUTTONS */
+
+/* ================= BUTTONS */
 
 .yesBtn {
 
-    background: #16a34a;
+    background:
+        linear-gradient(135deg, #22c55e, #16a34a);
 
     border: none;
 
-    padding: 8px 16px;
+    padding: 8px 18px;
 
     border-radius: 8px;
 
@@ -602,17 +398,22 @@ Professional Financial UI
 
 .yesBtn:hover {
 
-    background: #15803d;
+    background:
+        linear-gradient(135deg, #16a34a, #15803d);
+
+    transform: translateY(-1px);
 
 }
 
+
 .noBtn {
 
-    background: #dc2626;
+    background:
+        linear-gradient(135deg, #ef4444, #dc2626);
 
     border: none;
 
-    padding: 8px 16px;
+    padding: 8px 18px;
 
     border-radius: 8px;
 
@@ -624,13 +425,16 @@ Professional Financial UI
 
 }
 
+
 .noBtn:hover {
 
-    background: #b91c1c;
+    background:
+        linear-gradient(135deg, #dc2626, #b91c1c);
 
 }
 
-/* WARNING */
+
+/* ================= WARNING */
 
 .warningBox {
 
@@ -648,7 +452,149 @@ Professional Financial UI
 
 }
 
-/* MOBILE */
+
+/* ================= INFO POPUP */
+
+.infoOverlay {
+
+    position: fixed;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    background: rgba(0, 0, 0, .75);
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    z-index: 999;
+
+    backdrop-filter: blur(4px);
+
+}
+
+
+.infoBox {
+
+    background:
+        linear-gradient(145deg, #111827, #0f172a);
+
+    padding: 26px;
+
+    border-radius: 14px;
+
+    width: 440px;
+
+    border: 1px solid #243041;
+
+    color: white;
+
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, .7);
+
+}
+
+
+/* ================= REWARD CARDS */
+
+.rewardGrid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fit, minmax(320px, 1fr));
+
+    gap: 22px;
+
+    margin-bottom: 35px;
+
+}
+
+
+.rewardCard {
+
+    background:
+        linear-gradient(145deg, #111827, #0f172a);
+
+    border-radius: 14px;
+
+    padding: 20px;
+
+    border: 1px solid #243041;
+
+    box-shadow:
+        0 12px 35px rgba(0, 0, 0, .55);
+
+    transition: .25s;
+
+}
+
+
+.rewardCard:hover {
+
+    transform: translateY(-4px);
+
+}
+
+
+.rewardTitle {
+
+    font-size: 18px;
+
+    font-weight: 600;
+
+}
+
+
+.rewardValue {
+
+    font-size: 20px;
+
+    font-weight: 700;
+
+    margin-top: 4px;
+
+    color: #38bdf8;
+
+}
+
+
+/* ================= PROGRESS */
+
+.progressBar {
+
+    height: 10px;
+
+    background: #0b1220;
+
+    border-radius: 10px;
+
+    overflow: hidden;
+
+    margin-top: 12px;
+
+}
+
+
+.progressFill {
+
+    height: 100%;
+
+    background:
+        linear-gradient(90deg, #38bdf8, #22c55e);
+
+}
+
+
+/* ================= MOBILE TABLE */
 
 @media(max-width:900px) {
 
@@ -673,27 +619,33 @@ Professional Financial UI
     .txTable th,
     .txTable td {
 
-        padding: 10px;
-
-    }
-
-    .walletSummaryBox {
-
-        flex-direction: column;
-
-        gap: 10px;
-
-    }
-
-    .sectionTitle {
-
-        font-size: 18px;
+        padding: 12px;
 
     }
 
 }
 
-/* SMALL MOBILE */
+
+/* ================= MOBILE PROFESSIONAL FIX */
+
+@media(max-width:700px) {
+
+    .tableContainer {
+
+        overflow-x: auto;
+
+    }
+
+    .txTable {
+
+        min-width: 700px;
+
+    }
+
+}
+
+
+/* ================= SMALL MOBILE */
 
 @media(max-width:600px) {
 
@@ -721,14 +673,46 @@ Professional Financial UI
 
     }
 
-    .txTable {
+}
 
-        display: block;
 
-        overflow-x: auto;
+/* ================= OPTIONAL MOBILE CARD MODE */
 
-        white-space: nowrap;
+@media(max-width:520px) {
+
+    .mobileCardTable {
+
+        display: none;
 
     }
+
+}
+
+
+/* ================= AWS STYLE SCROLL */
+
+.tableContainer::-webkit-scrollbar {
+
+    height: 8px;
+
+}
+
+.tableContainer::-webkit-scrollbar-track {
+
+    background: #0b1220;
+
+}
+
+.tableContainer::-webkit-scrollbar-thumb {
+
+    background: #334155;
+
+    border-radius: 10px;
+
+}
+
+.tableContainer::-webkit-scrollbar-thumb:hover {
+
+    background: #475569;
 
 }
