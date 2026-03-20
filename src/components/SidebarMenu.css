@@ -342,3 +342,53 @@
   background: rgba(255, 255, 255, 0.05);
 
 }
+
+.sidebar-parent {
+
+  margin-bottom: 8px;
+
+}
+
+.sidebar-submenu {
+
+  margin-left: 20px;
+
+  padding-left: 14px;
+
+  border-left: 2px solid rgba(255, 255, 255, .08);
+
+  margin-top: 6px;
+
+}
+
+.sidebar-submenu li {
+
+  padding: 6px 0;
+
+  font-size: 14px;
+
+  opacity: .9;
+
+}
+
+.sidebar-submenu li:hover {
+
+  opacity: 1;
+
+  transform: translateX(4px);
+
+  transition: .2s;
+
+}
+
+.sidebar-section {
+
+  font-weight: 600;
+
+  color: #fbbf24;
+
+  cursor: pointer;
+
+  padding: 10px 0;
+
+}

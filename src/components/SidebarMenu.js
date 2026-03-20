@@ -173,57 +173,60 @@ const SidebarMenu = () => {
 
         {/* TOURNAMENT SECTION */}
 
-        <li
-          className="sidebar-section"
-          onClick={() => setTournamentOpen(!tournamentOpen)}
-        >
+        <li className="sidebar-parent">
 
-          🏆 Tournament Management {tournamentOpen ? "▼" : "▶"}
+          <div
+            className="sidebar-section"
+            onClick={() => setTournamentOpen(!tournamentOpen)}
+          >
 
-        </li>
+            🏆 Tournament Management {tournamentOpen ? "▼" : "▶"}
 
-        {tournamentOpen && (
+          </div>
 
-          <>
+          {tournamentOpen && (
 
-            {isAdmin && (
+            <ul className="sidebar-submenu">
+
+              {isAdmin && (
+
+                <li>
+                  <Link to="/create-tournament" onClick={handleClose}>
+                    Create Tournament
+                  </Link>
+                </li>
+
+              )}
 
               <li>
-                <Link to="/create-tournament" onClick={handleClose}>
-                  Create Tournament
+                <Link to="/tournament-registration" onClick={handleClose}>
+                  Tournament Registration
                 </Link>
               </li>
 
-            )}
+              <li>
+                <Link to="/tournament-interest" onClick={handleClose}>
+                  Tournament Interest
+                </Link>
+              </li>
 
-            <li>
-              <Link to="/tournament-registration" onClick={handleClose}>
-                Tournament Registration
-              </Link>
-            </li>
+              <li>
+                <Link to="/admin/tournaments" onClick={handleClose}>
+                  Tournament Admin
+                </Link>
+              </li>
 
-            <li>
-              <Link to="/tournament-interest" onClick={handleClose}>
-                Tournament Interest
-              </Link>
-            </li>
+              <li>
+                <Link to="/tournament-points" onClick={handleClose}>
+                  Tournament Points
+                </Link>
+              </li>
 
-            <li>
-              <Link to="/admin/tournaments" onClick={handleClose}>
-                Tournament Admin
-              </Link>
-            </li>
+            </ul>
 
-            <li>
-              <Link to="/tournament-points" onClick={handleClose}>
-                Tournament Points
-              </Link>
-            </li>
+          )}
 
-          </>
-
-        )}
-
+        </li>
 
         {/* BOARD */}
 
@@ -242,73 +245,76 @@ const SidebarMenu = () => {
 
         {/* FUNDS SECTION */}
 
-        <li
-          className="sidebar-section"
-          onClick={() => setFundsOpen(!fundsOpen)}
-        >
+        <li className="sidebar-parent">
 
-          💰 CrickEdge Funds {fundsOpen ? "▼" : "▶"}
+          <div
+            className="sidebar-section"
+            onClick={() => setFundsOpen(!fundsOpen)}
+          >
+
+            💰 CrickEdge Funds {fundsOpen ? "▼" : "▶"}
+
+          </div>
+
+          {fundsOpen && (
+
+            <ul className="sidebar-submenu">
+
+              <li>
+                <Link to="/funds-wallet" onClick={handleClose}>
+                  Funds Wallet
+                </Link>
+              </li>
+
+              <li>
+                <Link to="/funds-analytics" onClick={handleClose}>
+                  Funds Analytics
+                </Link>
+              </li>
+
+              <li>
+                <Link to="/reward-banks" onClick={handleClose}>
+                  Reward Pools
+                </Link>
+              </li>
+
+              <li>
+                <Link to="/funds-leaderboard" onClick={handleClose}>
+                  Funds Leaderboard
+                </Link>
+              </li>
+
+              {isAdmin && (
+
+                <>
+
+                  <li>
+                    <Link to="/failed-registrations" onClick={handleClose}>
+                      Failed Registrations
+                    </Link>
+                  </li>
+
+                  <li>
+                    <Link to="/admin/funds-alerts" onClick={handleClose}>
+                      Funds Alerts
+                    </Link>
+                  </li>
+
+                  <li>
+                    <Link to="/admin/match-rewards" onClick={handleClose}>
+                      Match Reward Audit
+                    </Link>
+                  </li>
+
+                </>
+
+              )}
+
+            </ul>
+
+          )}
 
         </li>
-
-        {fundsOpen && (
-
-          <>
-
-            <li>
-              <Link to="/funds-wallet" onClick={handleClose}>
-                Funds Wallet
-              </Link>
-            </li>
-
-            <li>
-              <Link to="/funds-analytics" onClick={handleClose}>
-                Funds Analytics
-              </Link>
-            </li>
-
-            <li>
-              <Link to="/reward-banks" onClick={handleClose}>
-                Reward Pools
-              </Link>
-            </li>
-
-            <li>
-              <Link to="/funds-leaderboard" onClick={handleClose}>
-                Funds Leaderboard
-              </Link>
-            </li>
-
-            {isAdmin && (
-
-              <>
-
-                <li>
-                  <Link to="/failed-registrations" onClick={handleClose}>
-                    Failed Registrations
-                  </Link>
-                </li>
-
-                <li>
-                  <Link to="/admin/funds-alerts" onClick={handleClose}>
-                    Funds Alerts
-                  </Link>
-                </li>
-
-                <li>
-                  <Link to="/admin/match-rewards" onClick={handleClose}>
-                    Match Reward Audit
-                  </Link>
-                </li>
-
-              </>
-
-            )}
-
-          </>
-
-        )}
-
 
         {/* OTHER */}
 

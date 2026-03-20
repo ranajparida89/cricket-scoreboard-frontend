@@ -1,68 +1,299 @@
+/* ===============================
+CRICKEDGE FUNDS DESIGN SYSTEM
+Professional Financial UI
+=============================== */
+
 .fundsPage {
-    padding: 20px;
-    background: #0b0f1a;
+
+    padding: 24px;
+
+    background:
+        radial-gradient(circle at top, #0f172a, #020617);
+
     min-height: 100vh;
-    color: white;
+
+    color: #e2e8f0;
+
+    font-family: Inter, system-ui;
+
 }
+
+/* HEADER */
 
 .fundsHeader {
-    background: linear-gradient(90deg, #111827, #0b1220);
-    padding: 18px;
+
+    background:
+        linear-gradient(135deg, #0f172a, #020617);
+
+    padding: 20px;
+
     border-radius: 14px;
+
     display: flex;
+
     justify-content: space-between;
+
     align-items: center;
+
     border: 1px solid rgba(255, 255, 255, .06);
-    margin-bottom: 20px;
+
+    box-shadow:
+        0 10px 25px rgba(0, 0, 0, .35);
+
+    margin-bottom: 25px;
+
 }
 
-.boardNameCell {
+/* SECTION TITLES */
+
+.sectionTitle {
+
+    font-size: 20px;
 
     font-weight: 600;
 
-}
+    margin-top: 30px;
 
-.crownIcon {
+    margin-bottom: 12px;
 
-    margin-right: 6px;
+    color: #f1f5f9;
 
-    font-size: 16px;
-
-}
-
-.balanceCell {
-
-    font-weight: bold;
-
-    color: #22c55e;
+    letter-spacing: .3px;
 
 }
 
+/* GRID */
 
-/* TOP RANK COLORS */
+.fundsGrid {
 
-.rank1 {
+    display: grid;
 
-    background: linear-gradient(90deg,
-            #3b2f00,
-            #0f172a);
+    grid-template-columns:
+        repeat(auto-fit, minmax(260px, 1fr));
 
-}
-
-.rank2 {
-
-    background: #1f2937;
+    gap: 20px;
 
 }
 
-.rank3 {
+/* CARDS */
 
-    background: #2b1d1d;
+.fundsCard,
+.analyticsCard {
+
+    background:
+        linear-gradient(145deg, #0f172a, #020617);
+
+    padding: 20px;
+
+    border-radius: 14px;
+
+    border: 1px solid rgba(255, 255, 255, .05);
+
+    box-shadow:
+
+        0 5px 20px rgba(0, 0, 0, .45),
+
+        inset 0 1px rgba(255, 255, 255, .03);
+
+    transition: .25s;
 
 }
 
+.fundsCard:hover,
+.analyticsCard:hover {
 
-/* FINANCIAL STATUS */
+    transform: translateY(-3px);
+
+    box-shadow:
+
+        0 12px 30px rgba(0, 0, 0, .6);
+
+}
+
+/* CARD TEXT */
+
+.analyticsTitle,
+.cardTitle {
+
+    font-size: 13px;
+
+    color: #94a3b8;
+
+    margin-bottom: 8px;
+
+    letter-spacing: .3px;
+
+}
+
+.analyticsValue,
+.cardValue {
+
+    font-size: 26px;
+
+    font-weight: 700;
+
+    margin-top: 5px;
+
+}
+
+.cardSubtitle {
+
+    font-size: 12px;
+
+    color: #64748b;
+
+    margin-top: 6px;
+
+    line-height: 1.5;
+
+}
+
+/* WALLET HEADER */
+
+.walletHeader {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 25px;
+
+}
+
+.walletSubtitle {
+
+    font-size: 13px;
+
+    color: #94a3b8;
+
+    margin-top: 6px;
+
+    max-width: 520px;
+
+}
+
+/* INFO BUTTON */
+
+.infoBtn {
+
+    background:
+        linear-gradient(135deg, #1e293b, #0f172a);
+
+    border: none;
+
+    width: 32px;
+
+    height: 32px;
+
+    border-radius: 50%;
+
+    color: #e2e8f0;
+
+    cursor: pointer;
+
+    font-weight: 600;
+
+    transition: .2s;
+
+}
+
+.infoBtn:hover {
+
+    background: #2563eb;
+
+}
+
+/* TABLE */
+
+.txTable {
+
+    width: 100%;
+
+    margin-top: 15px;
+
+    border-collapse: collapse;
+
+    background: #020617;
+
+    border-radius: 12px;
+
+    overflow: hidden;
+
+    border: 1px solid rgba(255, 255, 255, .05);
+
+}
+
+.txTable th {
+
+    text-align: left;
+
+    padding: 14px;
+
+    background: #020617;
+
+    color: #94a3b8;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    border-bottom:
+        1px solid rgba(255, 255, 255, .06);
+
+}
+
+.txTable td {
+
+    padding: 14px;
+
+    border-bottom:
+        1px solid rgba(255, 255, 255, .04);
+
+    font-size: 14px;
+
+}
+
+.txTable tr:hover {
+
+    background: rgba(255, 255, 255, .03);
+
+}
+
+/* BADGES */
+
+.badge {
+
+    padding: 5px 12px;
+
+    border-radius: 20px;
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    letter-spacing: .3px;
+
+}
+
+.credit {
+
+    background: #052e1f;
+
+    color: #34d399;
+
+}
+
+.debit {
+
+    background: #3a1212;
+
+    color: #f87171;
+
+}
+
+/* STATUS */
 
 .status {
 
@@ -78,7 +309,7 @@
 
 .status.strong {
 
-    background: #064e3b;
+    background: #022c22;
 
     color: #34d399;
 
@@ -86,7 +317,7 @@
 
 .status.stable {
 
-    background: #1e3a8a;
+    background: #172554;
 
     color: #93c5fd;
 
@@ -94,633 +325,13 @@
 
 .status.weak {
 
-    background: #7f1d1d;
-
-    color: #fca5a5;
-
-}
-
-.fundsAmount {
-    font-size: 26px;
-    font-weight: 700;
-    color: #35d07f;
-}
-
-.rankBadge {
-    background: #1a2338;
-    padding: 6px 12px;
-    border-radius: 8px;
-    margin-left: 10px;
-    font-size: 13px;
-}
-
-.fundsGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 20px;
-}
-
-.fundsCard {
-    background: linear-gradient(145deg, #121a2b, #0e1422);
-    padding: 20px;
-    border-radius: 14px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, .4);
-    border: 1px solid rgba(255, 255, 255, .05);
-}
-
-.cardTitle {
-    color: #9fb3ff;
-    font-size: 14px;
-}
-
-.cardValue {
-    font-size: 28px;
-    font-weight: 700;
-    margin-top: 8px;
-}
-
-.sectionTitle {
-    font-size: 20px;
-    margin-top: 25px;
-    font-weight: 600;
-}
-
-.txTable {
-    width: 100%;
-    margin-top: 15px;
-    border-collapse: collapse;
-}
-
-.txTable th {
-    text-align: left;
-    padding: 12px;
-    background: #111827;
-}
-
-.txTable td {
-    padding: 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, .05);
-}
-
-.badge {
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 12px;
-}
-
-.credit {
-    background: #123a2a;
-    color: #35d07f;
-}
-
-.debit {
-    background: #3a1a1a;
-    color: #ff6b6b;
-}
-
-.rank1 {
-
-    background: #3b2f00;
-
-}
-
-.rank2 {
-
-    background: #2a2a2a;
-
-}
-
-.rank3 {
-
-    background: #2f1f1f;
-
-}
-
-
-.status {
-
-    padding: 4px 10px;
-
-    border-radius: 6px;
-
-    font-size: 12px;
-
-}
-
-
-.status.Strong {
-
-    background: #064e3b;
-
-    color: #34d399;
-
-}
-
-
-.status.Stable {
-
-    background: #1e3a8a;
-
-    color: #93c5fd;
-
-}
-
-
-.status.Weak {
-
-    background: #7f1d1d;
-
-    color: #fca5a5;
-
-}
-
-.analyticsHeader {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: center;
-
-    margin-bottom: 15px;
-
-}
-
-.infoBtn {
-
-    background: #2563eb;
-
-    border: none;
-
-    color: white;
-
-    width: 28px;
-
-    height: 28px;
-
-    border-radius: 50%;
-
-    cursor: pointer;
-
-    font-weight: bold;
-
-}
-
-.infoBtn:hover {
-
-    background: #1d4ed8;
-
-}
-
-.analyticsTitle {
-
-    font-size: 14px;
-
-    color: #94a3b8;
-
-    margin-bottom: 6px;
-
-}
-
-.analyticsValue {
-
-    font-size: 22px;
-
-    font-weight: bold;
-
-    color: #22c55e;
-
-}
-
-.rewardColor {
-
-    color: #38bdf8;
-
-}
-
-.spentColor {
-
-    color: #f87171;
-
-}
-
-.infoOverlay {
-
-    position: fixed;
-
-    top: 0;
-
-    left: 0;
-
-    width: 100%;
-
-    height: 100%;
-
-    background: rgba(0, 0, 0, 0.7);
-
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    z-index: 999;
-
-}
-
-.infoBox {
-
-    background: #020617;
-
-    padding: 25px;
-
-    border-radius: 10px;
-
-    width: 420px;
-
-    border: 1px solid #334155;
-
-    color: white;
-
-}
-
-.closeInfo {
-
-    margin-top: 15px;
-
-    background: #2563eb;
-
-    border: none;
-
-    padding: 8px 16px;
-
-    color: white;
-
-    border-radius: 6px;
-
-    cursor: pointer;
-
-}
-
-.analyticsSubtitle {
-
-    color: #94a3b8;
-
-    font-size: 13px;
-
-    margin-top: 4px;
-
-}
-
-/* ===== Create Tournament Form ===== */
-
-.fundsGrid input,
-.fundsGrid select {
-
-    background: #020617;
-
-    border: 1px solid #334155;
-
-    color: white;
-
-    padding: 10px;
-
-    border-radius: 6px;
-
-    outline: none;
-
-}
-
-.fundsGrid input:focus,
-.fundsGrid select:focus {
-
-    border: 1px solid #2563eb;
-
-}
-
-
-.fundsGrid button {
-
-    margin-top: 10px;
-
-}
-
-
-.sectionTitle {
-
-    font-size: 18px;
-
-    font-weight: 600;
-
-    margin: 20px 0 10px 0;
-
-    color: #e2e8f0;
-
-}
-
-
-/* Tournament Status */
-
-.statusOpen {
-
-    color: #22c55e;
-
-    font-weight: 600;
-
-}
-
-.statusClosed {
-
-    color: #ef4444;
-
-    font-weight: 600;
-
-}
-
-/* ===== Tournament Registration ===== */
-
-.registrationActions {
-
-    display: flex;
-
-    gap: 10px;
-
-    justify-content: center;
-
-}
-
-
-/* YES button */
-
-.yesBtn {
-
-    background: #16a34a;
-
-    border: none;
-
-    padding: 8px 14px;
-
-    border-radius: 6px;
-
-    color: white;
-
-    font-weight: 600;
-
-    cursor: pointer;
-
-}
-
-.yesBtn:hover {
-
-    background: #15803d;
-
-}
-
-
-/* NO button */
-
-.noBtn {
-
-    background: #dc2626;
-
-    border: none;
-
-    padding: 8px 14px;
-
-    border-radius: 6px;
-
-    color: white;
-
-    font-weight: 600;
-
-    cursor: pointer;
-
-}
-
-.noBtn:hover {
-
-    background: #b91c1c;
-
-}
-
-
-/* Popup form spacing */
-
-.infoBox p {
-
-    margin: 6px 0;
-
-    color: #cbd5f1;
-
-}
-
-
-.infoBox label {
-
-    display: block;
-
-    margin-top: 12px;
-
-    font-size: 14px;
-
-}
-
-
-.infoBox button {
-
-    margin-top: 12px;
-
-    margin-right: 8px;
-
-}
-
-
-/* Disabled submit */
-
-.infoBox button:disabled {
-
-    background: #475569;
-
-    cursor: not-allowed;
-
-}
-
-/* Failed registrations */
-
-.failedStatus {
-
-    background: #7f1d1d;
-
-    color: #fecaca;
-
-    padding: 4px 10px;
-
-    border-radius: 6px;
-
-    font-size: 12px;
-
-    font-weight: 600;
-
-}
-
-/* Interest tracking */
-
-.declined {
-
-    background: #7f1d1d;
-
-    color: #fecaca;
-
-    padding: 4px 10px;
-
-    border-radius: 6px;
-
-    font-size: 12px;
-
-    font-weight: 600;
-
-}
-
-.accepted {
-
-    background: #064e3b;
-
-    color: #6ee7b7;
-
-    padding: 4px 10px;
-
-    border-radius: 6px;
-
-    font-size: 12px;
-
-    font-weight: 600;
-
-}
-
-/* Tournament Admin */
-
-.status {
-
-    padding: 4px 10px;
-
-    border-radius: 6px;
-
-    font-weight: 600;
-
-    font-size: 12px;
-
-}
-
-.status.Stable {
-
-    background: #064e3b;
-
-    color: #34d399;
-
-}
-
-.status.Weak {
-
     background: #450a0a;
 
     color: #f87171;
 
 }
 
-/* Match reward */
-
-.creditText {
-
-    color: #22c55e;
-
-    font-weight: 600;
-
-}
-
-/* Funds alerts */
-
-.riskRow {
-
-    background: #1a0f0f;
-
-    border-left: 4px solid #ef4444;
-
-}
-
-.dangerText {
-
-    color: #ef4444;
-
-    font-weight: 600;
-
-}
-
-.riskBadge {
-
-    background: #450a0a;
-
-    color: #f87171;
-
-    padding: 4px 10px;
-
-    border-radius: 6px;
-
-    font-size: 12px;
-
-    font-weight: 600;
-
-}
-
-.warningBox {
-
-    background: #2a1b1b;
-    border: 1px solid red;
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 6px;
-    color: #ffb3b3;
-
-}
-
-.popupActions {
-
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-
-}
-
-.walletHeader {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: center;
-
-    margin-bottom: 20px;
-
-}
-
-.walletSubtitle {
-
-    font-size: 13px;
-
-    color: #94a3b8;
-
-    margin-top: 5px;
-
-}
-
-.cardSubtitle {
-
-    font-size: 12px;
-
-    color: #94a3b8;
-
-    margin-top: 6px;
-
-}
+/* SUMMARY BOX */
 
 .walletSummaryBox {
 
@@ -728,13 +339,15 @@
 
     gap: 30px;
 
-    margin-top: 15px;
+    margin-top: 20px;
 
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 
     font-size: 13px;
 
     color: #cbd5f5;
+
+    flex-wrap: wrap;
 
 }
 
@@ -744,52 +357,48 @@
 
     color: #94a3b8;
 
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 
 }
 
-.infoBtn {
-
-    background: #1e293b;
-
-    border: none;
-
-    width: 28px;
-
-    height: 28px;
-
-    border-radius: 50%;
-
-    color: white;
-
-    cursor: pointer;
-
-    font-weight: bold;
-
-}
+/* REWARD CARDS */
 
 .rewardGrid {
 
     display: grid;
 
     grid-template-columns:
-        repeat(auto-fit, minmax(320px, 1fr));
+        repeat(auto-fit, minmax(340px, 1fr));
 
-    gap: 20px;
+    gap: 22px;
 
-    margin-bottom: 30px;
+    margin-bottom: 35px;
 
 }
 
 .rewardCard {
 
-    background: #0f172a;
+    background:
 
-    border-radius: 12px;
+        linear-gradient(145deg, #0f172a, #020617);
 
-    padding: 18px;
+    border-radius: 14px;
 
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+    padding: 20px;
+
+    border: 1px solid rgba(255, 255, 255, .05);
+
+    box-shadow:
+
+        0 10px 30px rgba(0, 0, 0, .5);
+
+    transition: .25s;
+
+}
+
+.rewardCard:hover {
+
+    transform: translateY(-4px);
 
 }
 
@@ -799,7 +408,7 @@
 
     justify-content: space-between;
 
-    margin-bottom: 15px;
+    margin-bottom: 18px;
 
 }
 
@@ -815,7 +424,7 @@
 
     font-size: 12px;
 
-    color: #94a3b8;
+    color: #64748b;
 
 }
 
@@ -833,23 +442,25 @@
 
     font-size: 18px;
 
-    font-weight: bold;
+    font-weight: 700;
 
     margin-top: 4px;
 
 }
 
+/* PROGRESS */
+
 .progressBar {
 
-    height: 8px;
+    height: 10px;
 
-    background: #1e293b;
+    background: #020617;
 
     border-radius: 10px;
 
     overflow: hidden;
 
-    margin-top: 10px;
+    margin-top: 12px;
 
 }
 
@@ -857,7 +468,9 @@
 
     height: 100%;
 
-    background: #35d07f;
+    background:
+
+        linear-gradient(90deg, #22c55e, #4ade80);
 
 }
 
@@ -865,11 +478,13 @@
 
     font-size: 12px;
 
-    margin-top: 6px;
+    margin-top: 7px;
 
     color: #94a3b8;
 
 }
+
+/* FOOTER */
 
 .rewardFooter {
 
@@ -877,7 +492,7 @@
 
     justify-content: space-between;
 
-    margin-top: 10px;
+    margin-top: 15px;
 
     font-size: 13px;
 
@@ -887,12 +502,233 @@
 
 .healthBadge {
 
-    padding: 4px 10px;
+    padding: 5px 14px;
 
     border-radius: 20px;
 
-    font-size: 12px;
+    font-size: 11px;
+
+    font-weight: 600;
+
+}
+
+/* POPUP */
+
+.infoOverlay {
+
+    position: fixed;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    background:
+        rgba(0, 0, 0, .75);
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    z-index: 999;
+
+    backdrop-filter: blur(4px);
+
+}
+
+.infoBox {
+
+    background: #020617;
+
+    padding: 26px;
+
+    border-radius: 14px;
+
+    width: 440px;
+
+    border: 1px solid #334155;
 
     color: white;
+
+    box-shadow:
+        0 15px 40px rgba(0, 0, 0, .6);
+
+}
+
+.closeInfo {
+
+    margin-top: 15px;
+
+    background: #2563eb;
+
+    border: none;
+
+    padding: 9px 18px;
+
+    color: white;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+}
+
+/* BUTTONS */
+
+.yesBtn {
+
+    background: #16a34a;
+
+    border: none;
+
+    padding: 8px 16px;
+
+    border-radius: 8px;
+
+    color: white;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: .2s;
+
+}
+
+.yesBtn:hover {
+
+    background: #15803d;
+
+}
+
+.noBtn {
+
+    background: #dc2626;
+
+    border: none;
+
+    padding: 8px 16px;
+
+    border-radius: 8px;
+
+    color: white;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+}
+
+.noBtn:hover {
+
+    background: #b91c1c;
+
+}
+
+/* WARNING */
+
+.warningBox {
+
+    background: #2a1b1b;
+
+    border: 1px solid #ef4444;
+
+    padding: 15px;
+
+    margin-bottom: 20px;
+
+    border-radius: 10px;
+
+    color: #fecaca;
+
+}
+
+/* MOBILE */
+
+@media(max-width:900px) {
+
+    .fundsGrid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+    .rewardGrid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+    .txTable {
+
+        font-size: 13px;
+
+    }
+
+    .txTable th,
+    .txTable td {
+
+        padding: 10px;
+
+    }
+
+    .walletSummaryBox {
+
+        flex-direction: column;
+
+        gap: 10px;
+
+    }
+
+    .sectionTitle {
+
+        font-size: 18px;
+
+    }
+
+}
+
+/* SMALL MOBILE */
+
+@media(max-width:600px) {
+
+    .fundsPage {
+
+        padding: 14px;
+
+    }
+
+    .analyticsValue {
+
+        font-size: 20px;
+
+    }
+
+    .rewardTitle {
+
+        font-size: 16px;
+
+    }
+
+    .infoBox {
+
+        width: 92%;
+
+    }
+
+    .txTable {
+
+        display: block;
+
+        overflow-x: auto;
+
+        white-space: nowrap;
+
+    }
 
 }
