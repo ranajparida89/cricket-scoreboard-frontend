@@ -85,7 +85,7 @@ export default function TournamentRegistration() {
         console.log("TOURNAMENT:", t);
 
         // SAFETY CHECK
-        if (!board || !board.board_id) {
+        if (!board || !board.id) {
 
             alert("Board not loaded yet. Please wait 2 seconds.");
 
@@ -98,15 +98,15 @@ export default function TournamentRegistration() {
         try {
 
             console.log("Sending interest:", {
-                board_id: Number(board.board_id),
-                tournament_id: Number(t.tournament_id),
+                board_id: board.id,
+                tournament_id: t.tournament_id,
             });
 
             await axios.post(
                 `${BACKEND_URL}/api/funds/tournament-interest`,
                 {
-                    board_id: Number(board.board_id),   // FORCE INTEGER
-                    tournament_id: Number(t.tournament_id),
+                    board_id: board.id,
+                    tournament_id: t.tournament_id,
                     interest_status: "NOT_INTERESTED"
                 }
             );
@@ -161,8 +161,8 @@ export default function TournamentRegistration() {
             await axios.post(
                 `${BACKEND_URL}/api/funds/register-tournament`,
                 {
-                    tournament_id: Number(selected.tournament_id),
-                    board_id: Number(board.board_id),
+                    tournament_id: selected.tournament_id,
+                    board_id: board.id,
                     consent_given: true
                 }
             );
@@ -253,7 +253,7 @@ export default function TournamentRegistration() {
                                 <button
                                     onClick={() => interested(t)}
                                     className="yesBtn"
-                                    disabled={!board || !board.board_id}
+                                    disabled={!board || !board.id}
                                 >
 
                                     YES
@@ -263,7 +263,7 @@ export default function TournamentRegistration() {
                                 <button
                                     onClick={() => notInterested(t)}
                                     className="noBtn"
-                                    disabled={!board || !board.board_id}
+                                    disabled={!board || !board.id}
                                 >
 
                                     NO
