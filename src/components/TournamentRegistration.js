@@ -27,12 +27,17 @@ export default function TournamentRegistration() {
 
         try {
 
+            /* LOAD TOURNAMENTS */
+
             const tournamentRes =
                 await axios.get(
                     `${BACKEND_URL}/api/funds/open-tournaments`
                 );
 
             setTournaments(tournamentRes.data || []);
+
+
+            /* LOAD BOARD */
 
             const email = currentUser?.email;
 
@@ -45,11 +50,11 @@ export default function TournamentRegistration() {
                             `${BACKEND_URL}/api/funds/by-owner/${email}`
                         );
 
+                    console.log("Board loaded:", boardRes.data);
+
                     setBoard(boardRes.data);
 
                 } catch (err) {
-
-                    /* BOARD NOT FOUND IS NORMAL CASE */
 
                     console.log("Board not found");
 
@@ -61,9 +66,11 @@ export default function TournamentRegistration() {
 
         } catch (err) {
 
-            console.log(err);
+            console.log("Load error:", err);
 
         }
+
+        /* IMPORTANT → UI READY ONLY AFTER BOARD LOADS */
 
         setLoading(false);
 
@@ -75,9 +82,12 @@ export default function TournamentRegistration() {
 
     const notInterested = async (t) => {
 
-        if (!board) {
+        // SAFETY CHECK
+        if (!board || !board.board_id) {
 
-            alert("Please register a Board first");
+            alert("Board not loaded yet. Please wait 2 seconds.");
+
+            console.log("Board state:", board);
 
             return;
 
@@ -85,11 +95,16 @@ export default function TournamentRegistration() {
 
         try {
 
+            console.log("Sending interest:", {
+                board_id: board.board_id,
+                tournament_id: t.tournament_id
+            });
+
             await axios.post(
                 `${BACKEND_URL}/api/funds/tournament-interest`,
                 {
-                    board_id: board.board_id,
-                    tournament_id: t.tournament_id,
+                    board_id: Number(board.board_id),   // FORCE INTEGER
+                    tournament_id: Number(t.tournament_id),
                     interest_status: "NOT_INTERESTED"
                 }
             );
@@ -98,7 +113,9 @@ export default function TournamentRegistration() {
 
         } catch (err) {
 
-            console.log(err);
+            console.log("Interest error:", err.response?.data || err);
+
+            alert("Failed to record interest");
 
         }
 
@@ -234,7 +251,7 @@ export default function TournamentRegistration() {
                                 <button
                                     onClick={() => interested(t)}
                                     className="yesBtn"
-                                    disabled={!board}
+                                    disabled={!board || !board.board_id}
                                 >
 
                                     YES
@@ -244,7 +261,7 @@ export default function TournamentRegistration() {
                                 <button
                                     onClick={() => notInterested(t)}
                                     className="noBtn"
-                                    disabled={!board}
+                                    disabled={!board || !board.board_id}
                                 >
 
                                     NO
