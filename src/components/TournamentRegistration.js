@@ -81,6 +81,8 @@ export default function TournamentRegistration() {
     /* NOT INTERESTED */
 
     const notInterested = async (t) => {
+        console.log("BOARD STATE:", board);
+        console.log("TOURNAMENT:", t);
 
         // SAFETY CHECK
         if (!board || !board.board_id) {
@@ -96,8 +98,8 @@ export default function TournamentRegistration() {
         try {
 
             console.log("Sending interest:", {
-                board_id: board.board_id,
-                tournament_id: t.tournament_id
+                board_id: Number(board.board_id),
+                tournament_id: Number(t.tournament_id),
             });
 
             await axios.post(
@@ -159,8 +161,8 @@ export default function TournamentRegistration() {
             await axios.post(
                 `${BACKEND_URL}/api/funds/register-tournament`,
                 {
-                    tournament_id: selected.tournament_id,
-                    board_id: board.board_id,
+                    tournament_id: Number(selected.tournament_id),
+                    board_id: Number(board.board_id),
                     consent_given: true
                 }
             );
