@@ -1,14 +1,11 @@
-import React,
-{ useEffect, useState }
-    from "react";
-
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-
 import "./Funds.css";
 
 export default function RewardBankView() {
 
     const [banks, setBanks] = useState([]);
+    const [showInfo, setShowInfo] = useState(false);
 
     const BACKEND_URL =
         "https://cricket-scoreboard-backend.onrender.com";
@@ -19,16 +16,13 @@ export default function RewardBankView() {
 
     }, []);
 
-
     const loadBanks = async () => {
 
         try {
 
             const res =
                 await axios.get(
-
                     `${BACKEND_URL}/api/funds/reward-banks`
-
                 );
 
             setBanks(res.data);
@@ -36,37 +30,192 @@ export default function RewardBankView() {
         }
         catch (err) {
 
-            console.log(
-                "Reward bank load error",
-                err
-            );
+            console.log(err);
 
         }
 
     };
 
+    const getHealthColor = (health) => {
 
-    const getPercent = (collected, distributed) => {
+        if (health === "HEALTHY")
+            return "#35d07f";
 
-        if (collected === 0) return 0;
+        if (health === "MODERATE")
+            return "#ffd166";
 
-        return Math.floor(
-            (distributed / collected) * 100
-        );
+        if (health === "LOW")
+            return "#ff8c42";
+
+        return "#ff4d4d";
 
     };
-
 
     return (
 
         <div className="fundsPage">
 
-            <div className="sectionTitle">
+            <div className="walletHeader">
 
-                Tournament Reward Pools
+                <div>
+
+                    <div className="sectionTitle">
+
+                        CrickEdge Reward Pools
+
+                    </div>
+
+                    <div className="walletSubtitle">
+
+                        Financial pools created from tournament entry fees.
+                        Rewards are distributed from these pools.
+
+                    </div>
+
+                </div>
+
+                <button
+                    className="infoBtn"
+                    onClick={() => setShowInfo(true)}
+                >
+                    i
+                </button>
 
             </div>
 
+            {/* POOL CARDS */}
+
+            <div className="rewardGrid">
+
+                {banks.map(b => (
+
+                    <div
+                        className="rewardCard"
+                        key={b.reward_bank_id}
+                    >
+
+                        <div className="rewardHeader">
+
+                            <div>
+
+                                <div className="rewardTitle">
+
+                                    {b.tournament_name}
+
+                                </div>
+
+                                <div className="rewardId">
+
+                                    Pool ID : RB-{b.reward_bank_id}
+
+                                </div>
+
+                            </div>
+
+                            <div
+                                className="healthBadge"
+                                style={{
+                                    background: getHealthColor(b.pool_health)
+                                }}
+                            >
+
+                                {b.pool_health}
+
+                            </div>
+
+                        </div>
+
+                        <div className="rewardStats">
+
+                            <div>
+
+                                Total Pool
+
+                                <div className="rewardValue">
+
+                                    CE$ {b.total_collected.toLocaleString()}
+
+                                </div>
+
+                            </div>
+
+                            <div>
+
+                                Distributed
+
+                                <div className="rewardValue">
+
+                                    CE$ {b.total_distributed.toLocaleString()}
+
+                                </div>
+
+                            </div>
+
+                            <div>
+
+                                Remaining
+
+                                <div className="rewardValue">
+
+                                    CE$ {b.remaining_balance.toLocaleString()}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        {/* PROGRESS */}
+
+                        <div className="progressBar">
+
+                            <div
+                                className="progressFill"
+                                style={{
+                                    width: b.distribution_percent + "%"
+                                }}
+                            >
+
+                            </div>
+
+                        </div>
+
+                        <div className="progressText">
+
+                            Distribution Progress :
+                            {b.distribution_percent}%
+
+                        </div>
+
+                        <div className="rewardFooter">
+
+                            <div>
+
+                                Type : {b.tournament_type}
+
+                            </div>
+
+                            <div>
+
+                                Status : {b.tournament_status}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                ))}
+
+            </div>
+
+            {/* TABLE */}
+
+            <div className="sectionTitle">
+
+                Detailed Pool Breakdown
+
+            </div>
 
             <table className="txTable">
 
@@ -74,30 +223,28 @@ export default function RewardBankView() {
 
                     <tr>
 
+                        <th>Pool ID</th>
                         <th>Tournament</th>
-
-                        <th>Type</th>
-
-                        <th>Entry Fee</th>
-
                         <th>Collected</th>
-
                         <th>Distributed</th>
-
                         <th>Remaining</th>
-
-                        <th>Status</th>
+                        <th>Health</th>
 
                     </tr>
 
                 </thead>
 
-
                 <tbody>
 
-                    {banks.map((b, index) => (
+                    {banks.map(b => (
 
-                        <tr key={index}>
+                        <tr key={b.reward_bank_id}>
+
+                            <td>
+
+                                RB-{b.reward_bank_id}
+
+                            </td>
 
                             <td>
 
@@ -107,37 +254,33 @@ export default function RewardBankView() {
 
                             <td>
 
-                                {b.tournament_type}
+                                CE$ {b.total_collected}
 
                             </td>
 
                             <td>
 
-                                CE$ {b.entry_fee?.toLocaleString()}
+                                CE$ {b.total_distributed}
 
                             </td>
 
                             <td>
 
-                                CE$ {b.total_collected?.toLocaleString()}
+                                CE$ {b.remaining_balance}
 
                             </td>
 
                             <td>
 
-                                CE$ {b.total_distributed?.toLocaleString()}
+                                <span
+                                    style={{
+                                        color: getHealthColor(b.pool_health)
+                                    }}
+                                >
 
-                            </td>
+                                    {b.pool_health}
 
-                            <td>
-
-                                CE$ {b.remaining_balance?.toLocaleString()}
-
-                            </td>
-
-                            <td>
-
-                                {b.tournament_status}
+                                </span>
 
                             </td>
 
@@ -148,6 +291,89 @@ export default function RewardBankView() {
                 </tbody>
 
             </table>
+
+            {/* INFO POPUP */}
+
+            {showInfo && (
+
+                <div className="infoOverlay">
+
+                    <div className="infoBox">
+
+                        <h3>Reward Pool Explained</h3>
+
+                        <p>
+
+                            Each tournament creates a financial reward pool.
+
+                        </p>
+
+                        <p>
+
+                            <b>Total Pool</b><br />
+
+                            Total CE$ collected from entry fees.
+
+                        </p>
+
+                        <p>
+
+                            <b>Distributed</b><br />
+
+                            Prize money already paid.
+
+                        </p>
+
+                        <p>
+
+                            <b>Remaining</b><br />
+
+                            Funds still available.
+
+                        </p>
+
+                        <p>
+
+                            <b>Pool Health</b>
+
+                        </p>
+
+                        <p>
+
+                            Healthy → Plenty funds<br />
+                            Moderate → Medium balance<br />
+                            Low → Nearly distributed<br />
+                            Empty → Fully distributed
+
+                        </p>
+
+                        <p>
+
+                            <b>How money flows:</b>
+
+                        </p>
+
+                        <p>
+
+                            Boards pay entry fee → Pool fills<br />
+                            Winners receive rewards → Pool reduces
+
+                        </p>
+
+                        <button
+                            className="closeInfo"
+                            onClick={() => setShowInfo(false)}
+                        >
+
+                            Close
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            )}
 
         </div>
 
