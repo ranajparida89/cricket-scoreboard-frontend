@@ -29,9 +29,9 @@ const SidebarMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   /* ✅ Sidebar section expand states */
-const [tournamentOpen,setTournamentOpen] = useState(false);
-const [fundsOpen,setFundsOpen] = useState(false);
-const [analyticsOpen,setAnalyticsOpen] = useState(false);
+  const [tournamentOpen, setTournamentOpen] = useState(false);
+  const [fundsOpen, setFundsOpen] = useState(false);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
 
   // ✅ Listen for global sidebar toggle event
   useEffect(() => {
@@ -57,302 +57,308 @@ const [analyticsOpen,setAnalyticsOpen] = useState(false);
       </div>
 
       <ul>
-        {/* 🧩 Player Modules */}
+
+        {/* PLAYER MODULES */}
+
         <li>
           <Link to="/player-performance" onClick={handleClose}>
-            <FaUserCheck className="me-2" /> Add Player Performance
+            <FaUserCheck /> Add Player Performance
           </Link>
         </li>
+
         <li>
           <Link to="/player-stats" onClick={handleClose}>
-            <FaChartLine className="me-2" /> Player Stats
+            <FaChartLine /> Player Stats
           </Link>
         </li>
+
         <li>
           <Link to="/player-rankings" onClick={handleClose}>
-            <FaChartLine className="me-2" /> 🏆 CrickEdge Rankings
+            🏆 CrickEdge Rankings
           </Link>
         </li>
+
         <li>
           <Link to="/player-report-card" onClick={handleClose}>
-            <FaIdCard className="me-2 text-warning" /> Player Report Card
+            Player Report Card
           </Link>
         </li>
 
-        {/* 👥 Squad / Lineup */}
         <li>
           <Link to="/squad-lineup" onClick={handleClose}>
-            <FaPeopleArrows className="me-2 text-info" /> Squad / Lineup
+            Squad / Lineup
           </Link>
         </li>
 
-        {/* 🧠 Analyzer + Head-to-Head */}
+        {/* MATCH TOOLS */}
+
         <li>
           <Link to="/match-story" onClick={handleClose}>
-            <FaRegNewspaper className="me-2" /> Match Story
-          </Link>
-        </li>
-        <li>
-          <Link to="/h2h-records" onClick={handleClose}>
-            <FaHandshake className="me-2" /> H2H Records
-          </Link>
-        </li>
-        <li>
-          <Link to="/smart-analyzer" onClick={handleClose}>
-            <FaBrain className="me-2" /> Smart Analyzer
+            Match Story
           </Link>
         </li>
 
-        {/* 🎯 Pitch + Scheduler Tools */}
+        <li>
+          <Link to="/h2h-records" onClick={handleClose}>
+            H2H Records
+          </Link>
+        </li>
+
+        <li>
+          <Link to="/smart-analyzer" onClick={handleClose}>
+            Smart Analyzer
+          </Link>
+        </li>
+
         <li>
           <Link to="/pitch-randomizer" onClick={handleClose}>
-            <FaDiceD20 className="me-2 text-success" /> Pitch Randomizer
+            Pitch Randomizer
           </Link>
         </li>
+
         <li>
           <Link to="/scheduler" onClick={handleClose}>
-            <span role="img" aria-label="scheduler" style={{ marginRight: 6 }}>
-              🗓️
-            </span>
-            <span className="glow-text">
-              Match Fixture & Scheduler
-            </span>
+            Match Fixture & Scheduler
           </Link>
         </li>
+
         <li>
           <Link to="/team-distributor" onClick={handleClose}>
-            <span role="img" aria-label="wheel" style={{ marginRight: 6 }}>
-              🎡
-            </span>
             Team Distributor
           </Link>
         </li>
-        {/* 💰 Player Auction (Admin Only) */}
+
+        {/* AUCTION */}
+
         {isAdmin && (
+
           <li>
             <Link to="/player-auction" onClick={handleClose}>
-              <FaGavel className="me-2 text-warning" /> Player Auction
+              Player Auction
             </Link>
           </li>
-        )}
 
-        {/* 🔴 Live Auction (Admin Only) */}
+        )}
 
         <li>
           <Link to="/live-auction" onClick={handleClose}>
-            <FaGavel className="me-2 text-danger" /> Live Auction
+            Live Auction
           </Link>
         </li>
 
-        {/* 📺 Live Match Streaming */}
         <li>
           <Link to="/live-match" onClick={handleClose}>
-            <span role="img" aria-label="live" style={{ marginRight: 6 }}>
-              📺
-            </span>
             Live Match
           </Link>
         </li>
 
-        {/* 🧮 Upcoming Matches */}
+        {/* UPCOMING */}
+
         {isAdmin && (
+
           <li>
             <Link to="/add-upcoming-match" onClick={handleClose}>
-              <FaPlus className="me-2" /> Add Upcoming Match
+              Add Upcoming Match
             </Link>
           </li>
+
         )}
+
         <li>
           <Link to="/upcoming-matches" onClick={handleClose}>
-            <FaChartLine className="me-2" /> Upcoming Match Details
+            Upcoming Match Details
           </Link>
         </li>
 
-        {isAdmin && (
 
-          <li>
+        {/* TOURNAMENT SECTION */}
 
-            <Link to="/create-tournament"
-              onClick={handleClose}>
+        <li
+          className="sidebar-section"
+          onClick={() => setTournamentOpen(!tournamentOpen)}
+        >
 
-              🏆 Create Tournament
+          🏆 Tournament Management {tournamentOpen ? "▼" : "▶"}
 
-            </Link>
+        </li>
 
-          </li>
+        {tournamentOpen && (
+
+          <>
+
+            {isAdmin && (
+
+              <li>
+                <Link to="/create-tournament" onClick={handleClose}>
+                  Create Tournament
+                </Link>
+              </li>
+
+            )}
+
+            <li>
+              <Link to="/tournament-registration" onClick={handleClose}>
+                Tournament Registration
+              </Link>
+            </li>
+
+            <li>
+              <Link to="/tournament-interest" onClick={handleClose}>
+                Tournament Interest
+              </Link>
+            </li>
+
+            <li>
+              <Link to="/admin/tournaments" onClick={handleClose}>
+                Tournament Admin
+              </Link>
+            </li>
+
+            <li>
+              <Link to="/tournament-points" onClick={handleClose}>
+                Tournament Points
+              </Link>
+            </li>
+
+          </>
 
         )}
 
-        <li>
 
-          <Link
-            to="/tournament-registration"
-            onClick={handleClose}
-          >
+        {/* BOARD */}
 
-            📋 Tournament Registration
-
-          </Link>
-
-        </li>
-
-        <li>
-
-          <Link
-            to="/tournament-interest"
-            onClick={handleClose}
-          >
-
-            📊 Tournament Interest
-
-          </Link>
-
-        </li>
-
-        {/* 🏏 Boards & Analytics */}
         <li>
           <Link to="/all-boards" onClick={handleClose}>
-            <span role="img" aria-label="view" style={{ marginRight: 6 }}>
-              📋
-            </span>
             View Boards & Teams
           </Link>
         </li>
+
         <li>
           <Link to="/boards/analytics" onClick={handleClose}>
-            <FaChartLine className="me-2" /> Board Analytics (Pro)
-          </Link>
-        </li>
-        <li>
-          <Link to="/funds-wallet" onClick={handleClose}>
-            <FaWallet className="me-2 text-success" /> CrickEdge Funds
-          </Link>
-        </li>
-        <li>
-          <Link to="/funds-analytics" onClick={handleClose}>
-            📊 Funds Analytics
+            Board Analytics
           </Link>
         </li>
 
-        <li>
-          <Link to="/reward-banks" onClick={handleClose}>
-            🏆 Tournament Reward Pools
-          </Link>
+
+        {/* FUNDS SECTION */}
+
+        <li
+          className="sidebar-section"
+          onClick={() => setFundsOpen(!fundsOpen)}
+        >
+
+          💰 CrickEdge Funds {fundsOpen ? "▼" : "▶"}
+
         </li>
 
-        <li>
-          <Link to="/funds-leaderboard" onClick={handleClose}>
-            <FaChartLine className="me-2 text-warning" /> Funds Leaderboard
-          </Link>
-        </li>
-        <li>
-          <Link to="/tournament-points" onClick={handleClose}>
-            <FaChartLine className="me-2" /> Tournament Points
-          </Link>
-        </li>
+        {fundsOpen && (
+
+          <>
+
+            <li>
+              <Link to="/funds-wallet" onClick={handleClose}>
+                Funds Wallet
+              </Link>
+            </li>
+
+            <li>
+              <Link to="/funds-analytics" onClick={handleClose}>
+                Funds Analytics
+              </Link>
+            </li>
+
+            <li>
+              <Link to="/reward-banks" onClick={handleClose}>
+                Reward Pools
+              </Link>
+            </li>
+
+            <li>
+              <Link to="/funds-leaderboard" onClick={handleClose}>
+                Funds Leaderboard
+              </Link>
+            </li>
+
+            {isAdmin && (
+
+              <>
+
+                <li>
+                  <Link to="/failed-registrations" onClick={handleClose}>
+                    Failed Registrations
+                  </Link>
+                </li>
+
+                <li>
+                  <Link to="/admin/funds-alerts" onClick={handleClose}>
+                    Funds Alerts
+                  </Link>
+                </li>
+
+                <li>
+                  <Link to="/admin/match-rewards" onClick={handleClose}>
+                    Match Reward Audit
+                  </Link>
+                </li>
+
+              </>
+
+            )}
+
+          </>
+
+        )}
+
+
+        {/* OTHER */}
 
         <li>
           <Link to="/season-leaderboard" onClick={handleClose}>
-            <FaChartLine className="me-2 text-success" /> Season Leaderboard
+            Season Leaderboard
           </Link>
         </li>
 
         <li>
           <Link to="/rules-and-regulations" onClick={handleClose}>
-            <FaBook className="me-2 text-primary" /> Rules & Regulations
+            Rules & Regulations
           </Link>
         </li>
 
-        {/* ✅ NEW MODULE – Man of the Match Insights */}
         <li>
           <Link to="/mom-insights" onClick={handleClose}>
-            <FaMedal className="me-2 text-warning" /> MoM Insights
+            MoM Insights
           </Link>
         </li>
 
-        {/* 🧰 Admin-only Section */}
+
+        {/* ADMIN */}
+
         {isAdmin && (
+
           <>
-            <li>
 
-              <Link
-                to="/failed-registrations"
-                onClick={handleClose}
-              >
-
-                ⚠ Failed Registrations
-
-              </Link>
-
-            </li>
-
-            <li>
-
-              <Link
-                to="/admin/tournaments"
-                onClick={handleClose}
-              >
-
-                🏆 Tournament Admin
-
-              </Link>
-
-            </li>
-
-            <li>
-
-              <Link
-                to="/admin/funds-alerts"
-                onClick={handleClose}
-              >
-
-                ⚠️ Funds Alerts
-
-              </Link>
-
-            </li>
-
-            <li>
-
-              <Link
-                to="/admin/match-rewards"
-                onClick={handleClose}
-              >
-
-                💰 Match Reward Audit
-
-              </Link>
-
-            </li>
             <li>
               <Link to="/admin/manage" onClick={handleClose}>
-                <FaUsers className="me-2" /> Manage Admins
+                Manage Admins
               </Link>
             </li>
+
             <li>
               <Link to="/register-board" onClick={handleClose}>
-                <span
-                  role="img"
-                  aria-label="create"
-                  style={{ marginRight: 6 }}
-                >
-                  ➕
-                </span>
                 Create New Board
               </Link>
             </li>
+
           </>
+
         )}
 
-        {/* 🎨 Gallery */}
         <li>
           <Link to="/gallery" onClick={handleClose}>
-            <span role="img" aria-label="gallery" style={{ marginRight: 6 }}>
-              🖼️
-            </span>
             Gallery
           </Link>
         </li>
+
       </ul>
     </div>
   );
