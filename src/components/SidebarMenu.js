@@ -28,6 +28,10 @@ import { FaWallet } from "react-icons/fa";
 const SidebarMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  /* ✅ Sidebar section expand states */
+const [tournamentOpen,setTournamentOpen] = useState(false);
+const [fundsOpen,setFundsOpen] = useState(false);
+const [analyticsOpen,setAnalyticsOpen] = useState(false);
 
   // ✅ Listen for global sidebar toggle event
   useEffect(() => {

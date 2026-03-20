@@ -287,30 +287,58 @@
     0 0 28px rgba(77, 166, 255, 0.7),
     0 0 40px rgba(155, 109, 255, 0.5);
 }
+
 /* Gradient Animation */
 @keyframes seasonGlowMove {
   0% {
     background-position: 0% center;
   }
+
   100% {
     background-position: 250% center;
   }
 }
+
 /* Pulse Animation */
 @keyframes seasonGlowPulse {
   0% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.85;
   }
+
   100% {
-   opacity: 1;
+    opacity: 1;
   }
 }
+
 /* Mobile Calm Mode */
 @media (max-width:768px) {
   .sidebar-menu a[href="/season-leaderboard"] {
     animation-duration: 7s, 4s;
   }
+}
+
+.sidebar-section {
+
+  font-weight: 600;
+
+  padding: 10px;
+
+  cursor: pointer;
+
+  color: #ffd369;
+
+  margin-top: 10px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+}
+
+.sidebar-section:hover {
+
+  background: rgba(255, 255, 255, 0.05);
+
 }
