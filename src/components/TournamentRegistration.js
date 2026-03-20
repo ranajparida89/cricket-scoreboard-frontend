@@ -129,7 +129,7 @@ export default function TournamentRegistration() {
 
     const interested = (t) => {
 
-        if (!board) {
+        if (!board || !board.id) {
 
             alert("Please register a Board first");
 
@@ -138,7 +138,7 @@ export default function TournamentRegistration() {
         }
 
         setSelected(t);
-        setShowPopup(true);
+        setTimeout(() => setShowPopup(true), 0);
 
     };
 
@@ -283,7 +283,7 @@ export default function TournamentRegistration() {
 
             {/* POPUP */}
 
-            {showPopup && (
+            {showPopup && selected && (
 
                 <div className="infoOverlay">
 
