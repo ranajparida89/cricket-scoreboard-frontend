@@ -63,11 +63,12 @@ export default function BoardFundsWallet() {
 
             const boardRes =
                 await axios.get(
-                    `https://cricket-scoreboard-backend.onrender.com/api/boards/by-owner/${email}`
+                    `https://cricket-scoreboard-backend.onrender.com/api/funds/by-owner/${email}`
                 );
 
             const boardId =
-                boardRes?.data?.id;
+                boardRes?.data?.board_id;
+                
             if (!boardId) return;
 
             setBoardId(boardId);
