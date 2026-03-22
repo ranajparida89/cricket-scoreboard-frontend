@@ -69,41 +69,25 @@ export default function FundsAnalytics() {
 
             <div className="analyticsHeader">
 
-                <div className="analyticsHeader">
+                <div>
 
-                    <div>
-
-                        <div className="sectionTitle">
-                            CrickEdge Funds – System Economy
-                        </div>
-
-                        <div className="analyticsSubtitle">
-
-                            System-wide CE$ financial overview across all registered boards.
-
-                        </div>
-
+                    <div className="sectionTitle">
+                        CrickEdge Funds – System Economy
                     </div>
 
-                    <button
-                        className="infoBtn"
-                        onClick={() => setShowInfo(true)}
-                    >
-                        i
-                    </button>
+                    <div className="analyticsSubtitle">
+
+                        System-wide CE$ financial overview across all registered boards.
+
+                    </div>
 
                 </div>
 
                 <button
-
                     className="infoBtn"
-
                     onClick={() => setShowInfo(true)}
-
                 >
-
                     i
-
                 </button>
 
             </div>

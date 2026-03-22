@@ -716,3 +716,15 @@ Enterprise Finance UI
     background: #475569;
 
 }
+
+.analyticsHeader {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 20px;
+
+}
