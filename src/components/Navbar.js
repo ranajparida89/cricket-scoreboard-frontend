@@ -38,7 +38,7 @@ const AppNavbar = ({ onAuthClick }) => {
     try {
       await deferredPrompt.prompt();
       await deferredPrompt.userChoice;
-    } catch {}
+    } catch { }
     setDeferredPrompt(null);
   };
 
@@ -167,14 +167,24 @@ const AppNavbar = ({ onAuthClick }) => {
             </Nav.Link>
 
             <Nav.Link
-                as={Link}
-                to="/forum"
-                className="slumber-link hover-slide-emoji forum-golden-link"
-                onClick={() => playSound("click")}
-                onMouseEnter={() => playSound("hover")}
-              >
-                Crickedge Adda
-              </Nav.Link>
+              as={Link}
+              to="/forum"
+              className="slumber-link hover-slide-emoji forum-golden-link"
+              onClick={() => playSound("click")}
+              onMouseEnter={() => playSound("hover")}
+            >
+              Crickedge Adda
+            </Nav.Link>
+
+            <Nav.Link
+              as={Link}
+              to="/announcements"
+              className="slumber-link hover-slide-emoji"
+              onClick={() => playSound("click")}
+              onMouseEnter={() => playSound("hover")}
+            >
+              📢 CrickEdge Announcement
+            </Nav.Link>
 
             {/* ----- More Dropdown (glassy) ----- */}
             <NavDropdown
@@ -319,21 +329,21 @@ const AppNavbar = ({ onAuthClick }) => {
               📥 Get App
             </Button>
 
-<Button
-  ref={addBtnRef}
-  className={
-    "navbar-action-btn hover-slide-emoji slumber-ghost-btn ce-add-match-trigger ce-add-glow" +
-    (showAddMenu ? " is-open" : "")
-  }
-  onClick={() => {
-    playSound("click");
-    setShowAddMenu((v) => !v);
-  }}
-  onMouseEnter={() => playSound("hover")}
->
-  + Add Match Details
-  <span className="ms-1 ce-add-caret">▼</span>
-</Button>
+            <Button
+              ref={addBtnRef}
+              className={
+                "navbar-action-btn hover-slide-emoji slumber-ghost-btn ce-add-match-trigger ce-add-glow" +
+                (showAddMenu ? " is-open" : "")
+              }
+              onClick={() => {
+                playSound("click");
+                setShowAddMenu((v) => !v);
+              }}
+              onMouseEnter={() => playSound("hover")}
+            >
+              + Add Match Details
+              <span className="ms-1 ce-add-caret">▼</span>
+            </Button>
 
             {showAddMenu && (
               <div ref={addMenuRef} className="ce-add-match-menu">

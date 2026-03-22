@@ -57,6 +57,7 @@ import BoardAnalyticsPro from "./components/BoardAnalyticsPro";
 import TournamentPoints from "./components/TournamentPoints";
 import RulesAndRegulations from "./components/RulesAndRegulations";
 import ForumPage from "./components/ForumPage";
+import AnnouncementPage from "./components/AnnouncementPage";
 import PlayerAuctionSetup from "./components/PlayerAuctionSetup";
 import AuctionResults from "./components/AuctionResults"; // for player auction not Live Auction
 import SeasonLeaderboard from "./components/SeasonLeaderboard";
@@ -73,6 +74,7 @@ import TournamentInterestLog from "./components/TournamentInterestLog";
 import TournamentAdminDashboard from "./components/TournamentAdminDashboard";
 import MatchRewardsAudit from "./components/MatchRewardsAudit";
 import FundsAlerts from "./components/FundsAlerts";
+
 
 // 🔥 NEW
 import PitchRandomizer from "./components/PitchRandomizer";
@@ -695,6 +697,22 @@ function App() {
             element={
               <PageWrapper>
                 <ForumPage />
+              </PageWrapper>
+            }
+          />
+          <Route
+            path="/announcements"
+            element={
+              <PageWrapper>
+                <AnnouncementPage user={{ role: isAdmin ? "admin" : "user" }} />
+              </PageWrapper>
+            }
+          />
+          <Route
+            path="/announcement/:id"
+            element={
+              <PageWrapper>
+                <AnnouncementPage user={{ role: isAdmin ? "admin" : "user" }} />
               </PageWrapper>
             }
           />
