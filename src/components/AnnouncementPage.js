@@ -295,15 +295,16 @@ function AnnouncementPage({ user }) {
     ////////////////////////////////////////////////
 
     // STEP 13 — Rich editor toolbar (IMPROVED)
+    // STEP — Full professional editor toolbar
     const modules = {
 
         toolbar: [
 
-            [{ header: [1, 2, 3, false] }],
+            [{ header: [1, 2, 3, 4, false] }],
 
-            ["bold", "italic", "underline"],
+            ["bold", "italic", "underline", "strike"],
 
-            [{ color: [] }],
+            [{ color: [] }, { background: [] }],
 
             [{ list: "ordered" }, { list: "bullet" }],
 
@@ -316,7 +317,6 @@ function AnnouncementPage({ user }) {
         ]
 
     };
-
     ////////////////////////////////////////////////
 
     return (

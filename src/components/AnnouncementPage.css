@@ -558,3 +558,19 @@
         0 4px 12px rgba(0, 0, 0, 0.08);
 
 }
+
+/* Fix editor text color */
+
+.ql-editor {
+
+    color: #2c3e50;
+
+    font-size: 15px;
+
+}
+
+.ql-toolbar {
+
+    background: white;
+
+}
