@@ -8,6 +8,26 @@
 
     animation: fade .5s ease;
 
+    /* ADD THIS LINE */
+    color: #0f172a;
+
+}
+
+.cbCard {
+    color: #0f172a;
+}
+
+.cbSection {
+    color: #0f172a;
+}
+
+.txTable {
+    color: #0f172a;
+}
+
+.txTable th {
+    color: #0f172a;
+    background: #eef2ff;
 }
 
 .cbHeader {
