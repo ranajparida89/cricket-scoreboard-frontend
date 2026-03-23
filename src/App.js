@@ -67,6 +67,7 @@ import BoardFundsWallet from "./components/BoardFundsWallet";
 import FundsLeaderboard from "./components/FundsLeaderboard";
 import RewardBankView from "./components/RewardBankView";
 import CentralBank from "./components/CentralBank"; // Central Bank for Fund
+import BoardLoanStatus from "./components/BoardLoanStatus"; // loan status
 import FundsAnalytics from "./components/FundsAnalytics";
 import CreateNewTournament from "./components/CreateNewTournament";
 import TournamentRegistration from "./components/TournamentRegistration";
@@ -412,7 +413,23 @@ function App() {
           />
           <Route
             path="/central-bank"
-            element={<CentralBank />}
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <CentralBank />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/loan-status"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <BoardLoanStatus />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
           />
           <Route
             path="/funds-analytics"

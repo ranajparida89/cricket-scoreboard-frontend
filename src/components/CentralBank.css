@@ -367,3 +367,33 @@
     }
 
 }
+
+.status {
+
+    padding: 4px 10px;
+
+    border-radius: 10px;
+
+    font-size: 12px;
+
+    color: white;
+
+}
+
+.stable {
+
+    background: #16a34a;
+
+}
+
+.weak {
+
+    background: #f97316;
+
+}
+
+.danger {
+
+    background: #dc2626;
+
+}

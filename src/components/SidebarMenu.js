@@ -265,6 +265,11 @@ const SidebarMenu = () => {
                   Funds Wallet
                 </Link>
               </li>
+              <li>
+                <Link to="/loan-status" onClick={handleClose}>
+                  Loan Status
+                </Link>
+              </li>
 
               <li>
                 <Link to="/funds-analytics" onClick={handleClose}>
