@@ -417,3 +417,54 @@
     background: #dc2626;
 
 }
+
+/* FORCE LIGHT TABLE ROWS */
+
+.cbSection .txTable tr {
+    background: white !important;
+    color: #0f172a !important;
+}
+
+.cbSection .txTable tbody tr {
+    background: white !important;
+    color: #0f172a !important;
+}
+
+.cbSection .txTable tbody tr:nth-child(even) {
+    background: #f8fafc !important;
+}
+
+.cbSection .txTable tbody tr:nth-child(odd) {
+    background: white !important;
+}
+
+.cbSection .txTable td {
+    color: #0f172a !important;
+    font-weight: 500;
+}
+
+.cbSection .txTable th {
+    background: #eef2ff !important;
+    color: #0f172a !important;
+    font-weight: 600;
+}
+
+.cbSection .txTable tr:hover {
+
+    background: #e0f2fe !important;
+    transition: .2s;
+
+}
+
+.cbSection .txTable td:first-child {
+
+    font-weight: 600;
+    color: #020617 !important;
+
+}
+
+.cbSection {
+
+    border: 1px solid #e2e8f0;
+
+}

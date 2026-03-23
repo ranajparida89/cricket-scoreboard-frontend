@@ -245,7 +245,7 @@ export default function CentralBank() {
 
                     <div className="cbSubtitle">
 
-                        Central treasury, lending authority and financial regulator
+                        Crickedge Central treasury, lending authority and financial regulator for Boards
 
                     </div>
 
