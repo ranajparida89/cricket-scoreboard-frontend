@@ -277,6 +277,11 @@ const SidebarMenu = () => {
                   Reward Bank
                 </Link>
               </li>
+              <li>
+                <Link to="/central-bank" onClick={handleClose}>
+                  🏦 Central Bank
+                </Link>
+              </li>
 
               <li>
                 <Link to="/funds-leaderboard" onClick={handleClose}>

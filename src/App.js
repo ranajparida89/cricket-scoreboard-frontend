@@ -66,6 +66,7 @@ import LiveMatchPage from "./components/LiveMatchPage";
 import BoardFundsWallet from "./components/BoardFundsWallet";
 import FundsLeaderboard from "./components/FundsLeaderboard";
 import RewardBankView from "./components/RewardBankView";
+import CentralBank from "./components/CentralBank"; // Central Bank for Fund
 import FundsAnalytics from "./components/FundsAnalytics";
 import CreateNewTournament from "./components/CreateNewTournament";
 import TournamentRegistration from "./components/TournamentRegistration";
@@ -408,6 +409,10 @@ function App() {
                 </PageWrapper>
               </ProtectedRoute>
             }
+          />
+          <Route
+            path="/central-bank"
+            element={<CentralBank />}
           />
           <Route
             path="/funds-analytics"
