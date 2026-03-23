@@ -32,38 +32,75 @@ export default function CentralBank() {
 
         try {
 
+            /* CENTRAL SUMMARY */
+
             const s =
                 await axios.get(
                     `${BACKEND}/api/funds/central-bank-summary`
                 );
+
+            setSummary(s.data || {});
+
+            /* FAILED TRANSACTIONS */
 
             const f =
                 await axios.get(
                     `${BACKEND}/api/funds/failed-transactions`
                 );
 
+            setFailed(f.data || []);
+
+            /* RATINGS */
+
             const r =
                 await axios.get(
                     `${BACKEND}/api/funds/financial-ratings`
                 );
 
-            /* NEW */
-            const l =
-                await axios.get(
-                    `${BACKEND}/api/funds/loans`
-                );
-
-            const lg =
-                await axios.get(
-                    `${BACKEND}/api/funds/loan-transactions`
-                );
-
-            setSummary(s.data || {});
-            setFailed(f.data || []);
             setRatings(r.data || []);
-            setLoans(l.data || []);
-            setLogs(lg.data || []);
 
+            /* LOANS (safe loading) */
+
+            let loansData = [];
+
+            try {
+
+                const l =
+                    await axios.get(
+                        `${BACKEND}/api/funds/loans`
+                    );
+
+                loansData = l.data || [];
+
+            } catch {
+
+                /* backend not ready */
+                loansData = [];
+
+            }
+
+            setLoans(loansData);
+
+            /* LOAN LOGS */
+
+            let logsData = [];
+
+            try {
+
+                const lg =
+                    await axios.get(
+                        `${BACKEND}/api/funds/loan-transactions`
+                    );
+
+                logsData = lg.data || [];
+
+            } catch {
+
+                logsData = [];
+
+            }
+
+            setLogs(logsData);
         } catch (err) {
 
             console.log(err);
@@ -421,64 +458,81 @@ export default function CentralBank() {
 
                     <tbody>
 
-                        {loans.map(l => (
+                        {loans.length === 0 ? (
 
-                            <tr key={l.loan_id}>
+                            <tr>
 
-                                <td>{l.board_name}</td>
+                                <td colSpan="7"
+                                    style={{ textAlign: "center" }}
+                                >
 
-                                <td>
-
-                                    CE$ {l.loan_amount}
-
-                                </td>
-
-                                <td>
-
-                                    CE$ {l.remaining_amount}
-
-                                </td>
-
-                                <td>
-
-                                    {l.interest_rate}%
-
-                                </td>
-
-                                <td>
-
-                                    {l.due_date?.substring(0, 10)}
-
-                                </td>
-
-                                <td>
-
-                                    {daysLeft(l.due_date)}
-
-                                </td>
-
-                                <td>
-
-                                    <span className={
-                                        loanStatus(l) === "ACTIVE"
-                                            ? "status stable"
-                                            : loanStatus(l) === "OVERDUE"
-                                                ? "status weak"
-                                                : "status danger"
-                                    }>
-
-                                        {loanStatus(l)}
-
-                                    </span>
+                                    No active loans
 
                                 </td>
 
                             </tr>
 
-                        ))}
+                        ) : (
+
+                            loans.map(l => (
+
+                                <tr key={l.loan_id}>
+
+                                    <td>{l.board_name}</td>
+
+                                    <td>
+
+                                        CE$ {l.loan_amount}
+
+                                    </td>
+
+                                    <td>
+
+                                        CE$ {l.remaining_amount}
+
+                                    </td>
+
+                                    <td>
+
+                                        {l.interest_rate}%
+
+                                    </td>
+
+                                    <td>
+
+                                        {l.due_date?.substring(0, 10)}
+
+                                    </td>
+
+                                    <td>
+
+                                        {daysLeft(l.due_date)}
+
+                                    </td>
+
+                                    <td>
+
+                                        <span className={
+                                            loanStatus(l) === "ACTIVE"
+                                                ? "status stable"
+                                                : loanStatus(l) === "OVERDUE"
+                                                    ? "status weak"
+                                                    : "status danger"
+                                        }>
+
+                                            {loanStatus(l)}
+
+                                        </span>
+
+                                    </td>
+
+                                </tr>
+
+                            ))
+
+                        )}
 
                     </tbody>
-
                 </table>
 
             </div>
@@ -510,29 +564,47 @@ export default function CentralBank() {
 
                     <tbody>
 
-                        {logs.map(l => (
+                        {logs.length === 0 ? (
 
-                            <tr key={l.txn_id}>
+                            <tr>
 
-                                <td>{l.board_name}</td>
+                                <td colSpan="4"
+                                    style={{ textAlign: "center" }}
+                                >
 
-                                <td>{l.txn_type}</td>
-
-                                <td>
-
-                                    CE$ {l.amount}
-
-                                </td>
-
-                                <td>
-
-                                    {l.created_at?.substring(0, 10)}
+                                    No loan transactions
 
                                 </td>
 
                             </tr>
 
-                        ))}
+                        ) : (
+
+                            logs.map(l => (
+
+                                <tr key={l.txn_id}>
+
+                                    <td>{l.board_name}</td>
+
+                                    <td>{l.txn_type}</td>
+
+                                    <td>
+
+                                        CE$ {l.amount}
+
+                                    </td>
+
+                                    <td>
+
+                                        {l.created_at?.substring(0, 10)}
+
+                                    </td>
+
+                                </tr>
+
+                            ))
+
+                        )}
 
                     </tbody>
 
