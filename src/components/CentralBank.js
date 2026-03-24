@@ -26,13 +26,11 @@ export default function CentralBank() {
 
     }, []);
 
-    /* LOAD ALL CENTRAL DATA */
+    /* LOAD DATA */
 
     const loadData = async () => {
 
         try {
-
-            /* CENTRAL SUMMARY */
 
             const s =
                 await axios.get(
@@ -41,16 +39,12 @@ export default function CentralBank() {
 
             setSummary(s.data || {});
 
-            /* FAILED TRANSACTIONS */
-
             const f =
                 await axios.get(
                     `${BACKEND}/api/funds/failed-transactions`
                 );
 
             setFailed(f.data || []);
-
-            /* RATINGS */
 
             const r =
                 await axios.get(
@@ -59,51 +53,43 @@ export default function CentralBank() {
 
             setRatings(r.data || []);
 
-            /* LOANS (safe loading) */
-
-            let loansData = [];
-
-            try {
-
-                const l =
-                    await axios.get(
-                        `${BACKEND}/api/funds/loans`
-                    );
-
-                loansData = l.data || [];
-
-            } catch {
-
-                /* backend not ready */
-                loansData = [];
-
-            }
-
-            setLoans(loansData);
-
-            /* LOAN LOGS */
-
-            let logsData = [];
-
-            try {
-
-                const lg =
-                    await axios.get(
-                        `${BACKEND}/api/funds/loan-transactions`
-                    );
-
-                logsData = lg.data || [];
-
-            } catch {
-
-                logsData = [];
-
-            }
-
-            setLogs(logsData);
         } catch (err) {
 
             console.log(err);
+
+        }
+
+        /* loans optional */
+
+        try {
+
+            const l =
+                await axios.get(
+                    `${BACKEND}/api/funds/loans`
+                );
+
+            setLoans(l.data || []);
+
+        } catch {
+
+            setLoans([]);
+
+        }
+
+        /* logs optional */
+
+        try {
+
+            const lg =
+                await axios.get(
+                    `${BACKEND}/api/funds/loan-transactions`
+                );
+
+            setLogs(lg.data || []);
+
+        } catch {
+
+            setLogs([]);
 
         }
 
@@ -111,12 +97,11 @@ export default function CentralBank() {
 
     };
 
-    /* LOAN POPUP */
+    /* OPEN APPROVAL */
 
     const openLoanPopup = (loan) => {
 
         setSelectedLoan(loan);
-
         setShowPopup(true);
 
     };
@@ -129,7 +114,7 @@ export default function CentralBank() {
 
             await axios.post(
 
-                `${BACKEND}/api/funds/request-loan`,
+                `${BACKEND}/api/funds/approve-loan`,
 
                 {
                     board_id: selectedLoan.board_id,
@@ -138,7 +123,7 @@ export default function CentralBank() {
 
             );
 
-            alert("Loan approved");
+            alert("Loan Approved");
 
             setShowPopup(false);
 
@@ -146,7 +131,39 @@ export default function CentralBank() {
 
         } catch (err) {
 
-            alert(err.response?.data?.message);
+            alert("Approval failed");
+
+        }
+
+    };
+
+    /* REJECT */
+
+    const rejectLoan = async (loan) => {
+
+        if (!window.confirm("Reject loan request?"))
+            return;
+
+        try {
+
+            await axios.post(
+
+                `${BACKEND}/api/funds/reject-loan`,
+
+                {
+                    board_id: loan.board_id,
+                    tournament_id: loan.tournament_id
+                }
+
+            );
+
+            alert("Loan Rejected");
+
+            loadData();
+
+        } catch {
+
+            alert("Reject failed");
 
         }
 
@@ -180,7 +197,7 @@ export default function CentralBank() {
 
     };
 
-    /* DAYS LEFT */
+    /* DAYS */
 
     const daysLeft = (date) => {
 
@@ -190,12 +207,9 @@ export default function CentralBank() {
 
         const due = new Date(date);
 
-        const diff =
-            Math.ceil(
-                (due - now) / (1000 * 60 * 60 * 24)
-            );
-
-        return diff;
+        return Math.ceil(
+            (due - now) / (1000 * 60 * 60 * 24)
+        );
 
     };
 
@@ -216,13 +230,11 @@ export default function CentralBank() {
     if (loading) {
 
         return (
-
             <div className="cbPage">
 
                 Loading Central Bank...
 
             </div>
-
         );
 
     }
@@ -245,7 +257,7 @@ export default function CentralBank() {
 
                     <div className="cbSubtitle">
 
-                        Crickedge Central treasury, lending authority and financial regulator for Boards
+                        Central treasury, lending authority and financial regulator
 
                     </div>
 
@@ -289,9 +301,7 @@ export default function CentralBank() {
 
                     <div className="cardValue">
 
-                        CE$ {Number(
-                            summary.totalSystemFunds || 0
-                        ).toLocaleString()}
+                        CE$ {Number(summary.totalSystemFunds || 0).toLocaleString()}
 
                     </div>
 
@@ -307,9 +317,7 @@ export default function CentralBank() {
 
                     <div className="cardValue green">
 
-                        CE$ {Number(
-                            summary.availableLiquidity || 0
-                        ).toLocaleString()}
+                        CE$ {Number(summary.availableLiquidity || 0).toLocaleString()}
 
                     </div>
 
@@ -325,9 +333,7 @@ export default function CentralBank() {
 
                     <div className="cardValue orange">
 
-                        CE$ {Number(
-                            summary.loanOutstanding || 0
-                        ).toLocaleString()}
+                        CE$ {Number(summary.loanOutstanding || 0).toLocaleString()}
 
                     </div>
 
@@ -343,9 +349,7 @@ export default function CentralBank() {
 
                     <div className="cardValue red">
 
-                        CE$ {Number(
-                            summary.recoveredAmount || 0
-                        ).toLocaleString()}
+                        CE$ {Number(summary.recoveredAmount || 0).toLocaleString()}
 
                     </div>
 
@@ -383,42 +387,70 @@ export default function CentralBank() {
 
                         <tbody>
 
-                            {failed.map(x => (
+                            {failed.length === 0 ? (
 
-                                <tr key={x.failed_id}>
+                                <tr>
 
-                                    <td>{x.board_name}</td>
+                                    <td colSpan="5"
+                                        style={{ textAlign: "center" }}
+                                    >
 
-                                    <td>{x.tournament_name}</td>
-
-                                    <td className="money">
-
-                                        CE$ {x.required_amount}
-
-                                    </td>
-
-                                    <td>
-
-                                        CE$ {x.available_balance}
-
-                                    </td>
-
-                                    <td>
-
-                                        <button
-                                            className="approveBtn"
-                                            onClick={() => openLoanPopup(x)}
-                                        >
-
-                                            Approve
-
-                                        </button>
+                                        No loan requests
 
                                     </td>
 
                                 </tr>
 
-                            ))}
+                            ) : (
+
+                                failed.map(x => (
+
+                                    <tr key={x.failed_id}>
+
+                                        <td>{x.board_name}</td>
+
+                                        <td>{x.tournament_name}</td>
+
+                                        <td className="money">
+
+                                            CE$ {x.required_amount}
+
+                                        </td>
+
+                                        <td>
+
+                                            CE$ {x.available_balance}
+
+                                        </td>
+
+                                        <td>
+
+                                            <button
+                                                className="approveBtn"
+                                                onClick={() => openLoanPopup(x)}
+                                            >
+
+                                                Approve
+
+                                            </button>
+
+                                            <button
+                                                className="cbCancel"
+                                                style={{ marginLeft: "8px" }}
+                                                onClick={() => rejectLoan(x)}
+                                            >
+
+                                                Reject
+
+                                            </button>
+
+                                        </td>
+
+                                    </tr>
+
+                                ))
+
+                            )}
 
                         </tbody>
 
@@ -472,72 +504,49 @@ export default function CentralBank() {
 
                             </tr>
 
-                        ) : (
+                        ) : (loans.map(l => (
 
-                            loans.map(l => (
+                            <tr key={l.loan_id}>
 
-                                <tr key={l.loan_id}>
+                                <td>{l.board_name}</td>
 
-                                    <td>{l.board_name}</td>
+                                <td>CE$ {l.loan_amount}</td>
 
-                                    <td>
+                                <td>CE$ {l.remaining_amount}</td>
 
-                                        CE$ {l.loan_amount}
+                                <td>{l.interest_rate}%</td>
 
-                                    </td>
+                                <td>{l.due_date?.substring(0, 10)}</td>
 
-                                    <td>
+                                <td>{daysLeft(l.due_date)}</td>
 
-                                        CE$ {l.remaining_amount}
+                                <td>
 
-                                    </td>
+                                    <span className={
+                                        loanStatus(l) === "ACTIVE"
+                                            ? "status stable"
+                                            : loanStatus(l) === "OVERDUE"
+                                                ? "status weak"
+                                                : "status danger"
+                                    }>
 
-                                    <td>
+                                        {loanStatus(l)}
 
-                                        {l.interest_rate}%
+                                    </span>
 
-                                    </td>
+                                </td>
 
-                                    <td>
+                            </tr>
 
-                                        {l.due_date?.substring(0, 10)}
-
-                                    </td>
-
-                                    <td>
-
-                                        {daysLeft(l.due_date)}
-
-                                    </td>
-
-                                    <td>
-
-                                        <span className={
-                                            loanStatus(l) === "ACTIVE"
-                                                ? "status stable"
-                                                : loanStatus(l) === "OVERDUE"
-                                                    ? "status weak"
-                                                    : "status danger"
-                                        }>
-
-                                            {loanStatus(l)}
-
-                                        </span>
-
-                                    </td>
-
-                                </tr>
-
-                            ))
-
-                        )}
+                        )))}
 
                     </tbody>
+
                 </table>
 
             </div>
 
-            {/* RECOVERY LOG */}
+            {/* LOGS */}
 
             <div className="cbSection">
 
@@ -578,33 +587,21 @@ export default function CentralBank() {
 
                             </tr>
 
-                        ) : (
+                        ) : (logs.map(l => (
 
-                            logs.map(l => (
+                            <tr key={l.txn_id}>
 
-                                <tr key={l.txn_id}>
+                                <td>{l.board_name}</td>
 
-                                    <td>{l.board_name}</td>
+                                <td>{l.txn_type}</td>
 
-                                    <td>{l.txn_type}</td>
+                                <td>CE$ {l.amount}</td>
 
-                                    <td>
+                                <td>{l.created_at?.substring(0, 10)}</td>
 
-                                        CE$ {l.amount}
+                            </tr>
 
-                                    </td>
-
-                                    <td>
-
-                                        {l.created_at?.substring(0, 10)}
-
-                                    </td>
-
-                                </tr>
-
-                            ))
-
-                        )}
+                        )))}
 
                     </tbody>
 
@@ -702,14 +699,14 @@ export default function CentralBank() {
 
                         <p>
 
-                            Interest:
-                            12%
+                            Interest: 12%
 
                         </p>
 
                         <p>
 
                             Total:
+
                             CE$ {
                                 Math.floor(
                                     selectedLoan.required_amount * 1.12

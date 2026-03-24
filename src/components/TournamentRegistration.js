@@ -15,15 +15,20 @@ export default function TournamentRegistration() {
     const [selected, setSelected] = useState(null);
     const [consent, setConsent] = useState(false);
 
+    /* NEW */
+    const [loanPopup, setLoanPopup] = useState(false);
+    const [loanInfo, setLoanInfo] = useState(null);
+
     const BACKEND_URL =
         "https://cricket-scoreboard-backend.onrender.com";
 
-    /* LOAD DATA */
+    /* LOAD */
 
     useEffect(() => {
-        loadData();
-    }, [currentUser]);
 
+        loadData();
+
+    }, [currentUser]);
 
     const loadData = async () => {
 
@@ -36,8 +41,7 @@ export default function TournamentRegistration() {
 
             setTournaments(tournamentRes.data || []);
 
-            const email =
-                currentUser?.email;
+            const email = currentUser?.email;
 
             if (email) {
 
@@ -48,12 +52,9 @@ export default function TournamentRegistration() {
                             `${BACKEND_URL}/api/funds/by-owner/${email}`
                         );
 
-                    console.log("Board:", boardRes.data);
-
                     setBoard(boardRes.data);
 
-                }
-                catch {
+                } catch {
 
                     setBoard(null);
 
@@ -61,8 +62,7 @@ export default function TournamentRegistration() {
 
             }
 
-        }
-        catch (err) {
+        } catch (err) {
 
             console.log(err);
 
@@ -72,12 +72,9 @@ export default function TournamentRegistration() {
 
     };
 
+    /* BOARD ID */
 
-    /* SAFE BOARD ID */
-
-    const boardId =
-        board?.board_id;
-
+    const boardId = board?.board_id;
 
     /* NOT INTERESTED */
 
@@ -86,7 +83,6 @@ export default function TournamentRegistration() {
         if (!boardId) {
 
             alert("Board not loaded");
-
             return;
 
         }
@@ -94,20 +90,20 @@ export default function TournamentRegistration() {
         try {
 
             await axios.post(
+
                 `${BACKEND_URL}/api/funds/tournament-interest`,
+
                 {
                     board_id: boardId,
                     tournament_id: t.tournament_id,
                     interest_status: "NOT_INTERESTED"
                 }
+
             );
 
-            alert("Interest saved");
+            alert("Saved");
 
-        }
-        catch (err) {
-
-            console.log(err);
+        } catch {
 
             alert("Failed");
 
@@ -115,25 +111,21 @@ export default function TournamentRegistration() {
 
     };
 
-
-    /* YES CLICK */
+    /* INTERESTED */
 
     const interested = (t) => {
 
         if (!boardId) {
 
             alert("Register board first");
-
             return;
 
         }
 
         setSelected(t);
-
         setShowPopup(true);
 
     };
-
 
     /* REGISTER */
 
@@ -142,7 +134,6 @@ export default function TournamentRegistration() {
         if (!boardId) {
 
             alert("Board missing");
-
             return;
 
         }
@@ -150,67 +141,117 @@ export default function TournamentRegistration() {
         try {
 
             await axios.post(
+
                 `${BACKEND_URL}/api/funds/register-tournament`,
+
                 {
                     tournament_id: selected.tournament_id,
                     board_id: boardId,
                     consent_given: true
                 }
+
             );
 
             alert("Tournament Registered");
 
             setShowPopup(false);
-
             setConsent(false);
 
-        }
-        catch (err) {
+        } catch (err) {
 
-            alert(
-                err.response?.data?.message ||
-                "Registration failed"
-            );
+            /* INSUFFICIENT FUNDS */
+
+            if (
+                err.response?.data?.message?.includes("Insufficient")
+            ) {
+
+                setLoanInfo({
+
+                    board_name: board.board_name,
+                    tournament: selected.tournament_name,
+                    required: selected.entry_fee,
+                    available: board.balance,
+                    tournament_id: selected.tournament_id
+
+                });
+
+                setLoanPopup(true);
+
+            } else {
+
+                alert(
+                    err.response?.data?.message ||
+                    "Registration failed"
+                );
+
+            }
 
         }
 
     };
 
+    /* REQUEST LOAN */
+
+    const requestLoan = async () => {
+
+        try {
+
+            await axios.post(
+
+                `${BACKEND_URL}/api/funds/request-loan`,
+
+                {
+                    board_id: boardId,
+                    tournament_id: loanInfo.tournament_id
+                }
+
+            );
+
+            alert("Loan request submitted to Central Bank");
+
+            setLoanPopup(false);
+
+        } catch {
+
+            alert("Loan request failed");
+
+        }
+
+    };
 
     if (loading) {
 
         return (
+
             <div className="fundsPage">
+
                 Loading tournaments...
+
             </div>
+
         );
 
     }
-
-
-    /* UI */
 
     return (
 
         <div className="fundsPage">
 
             <div className="sectionTitle">
-                Tournament Registration
-            </div>
 
+                Tournament Registration
+
+            </div>
 
             {!boardId && (
 
                 <div className="warningBox">
 
-                    Register a board to join tournaments
+                    Register board to join tournaments
 
                 </div>
 
             )}
-
-
-            {/* ✅ RESPONSIVE TABLE FIX */}
 
             <div className="tableContainer">
 
@@ -221,17 +262,13 @@ export default function TournamentRegistration() {
                         <tr>
 
                             <th>Tournament</th>
-
                             <th>Type</th>
-
                             <th>Entry Fee</th>
-
                             <th>Action</th>
 
                         </tr>
 
                     </thead>
-
 
                     <tbody>
 
@@ -243,26 +280,36 @@ export default function TournamentRegistration() {
 
                                 <td>{t.tournament_type}</td>
 
-                                <td>CE$ {t.entry_fee}</td>
+                                <td>
+
+                                    CE$ {t.entry_fee}
+
+                                </td>
 
                                 <td className="registrationActions">
 
-
                                     <button
+
                                         onClick={() => interested(t)}
                                         className="yesBtn"
                                         disabled={!boardId}
+
                                     >
+
                                         YES
+
                                     </button>
 
-
                                     <button
+
                                         onClick={() => notInterested(t)}
                                         className="noBtn"
                                         disabled={!boardId}
+
                                     >
+
                                         NO
+
                                     </button>
 
                                 </td>
@@ -277,8 +324,7 @@ export default function TournamentRegistration() {
 
             </div>
 
-
-            {/* POPUP */}
+            {/* REGISTER POPUP */}
 
             {showPopup && selected && (
 
@@ -289,30 +335,25 @@ export default function TournamentRegistration() {
                         <h3>Tournament Registration</h3>
 
                         <p>
-                            Owner:
-                            {currentUser?.email}
-                        </p>
 
-                        <p>
                             Board:
                             {board?.board_name}
+
                         </p>
 
                         <p>
+
                             Tournament:
                             {selected.tournament_name}
+
                         </p>
 
                         <p>
-                            Type:
-                            {selected.tournament_type}
-                        </p>
 
-                        <p>
                             Entry Fee:
                             CE$ {selected.entry_fee}
-                        </p>
 
+                        </p>
 
                         <label>
 
@@ -328,23 +369,97 @@ export default function TournamentRegistration() {
 
                         </label>
 
-
                         <div className="popupActions">
 
                             <button
+
                                 disabled={!consent}
                                 onClick={register}
                                 className="manage-btn add-btn"
+
                             >
 
                                 Submit
 
                             </button>
 
-
                             <button
+
                                 onClick={() => setShowPopup(false)}
                                 className="manage-btn cancel-btn"
+
+                            >
+
+                                Cancel
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            )}
+
+            {/* LOAN POPUP */}
+
+            {loanPopup && loanInfo && (
+
+                <div className="infoOverlay">
+
+                    <div className="infoBox">
+
+                        <h3>Insufficient Funds</h3>
+
+                        <p>
+
+                            Board:
+                            {loanInfo.board_name}
+
+                        </p>
+
+                        <p>
+
+                            Tournament:
+                            {loanInfo.tournament}
+
+                        </p>
+
+                        <p>
+
+                            Required:
+                            CE$ {loanInfo.required}
+
+                        </p>
+
+                        <p>
+
+                            Available:
+                            CE$ {loanInfo.available}
+
+                        </p>
+
+                        <p style={{ color: "#f87171" }}>
+
+                            You can request loan from Central Bank
+
+                        </p>
+
+                        <div className="popupActions">
+
+                            <button
+                                onClick={requestLoan}
+                                className="yesBtn"
+                            >
+
+                                Request Loan
+
+                            </button>
+
+                            <button
+                                onClick={() => setLoanPopup(false)}
+                                className="noBtn"
                             >
 
                                 Cancel

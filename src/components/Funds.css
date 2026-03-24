@@ -728,3 +728,169 @@ Enterprise Finance UI
     margin-bottom: 20px;
 
 }
+
+/* ================= LOAN REQUEST UI ================= */
+
+/* insufficient funds popup highlight */
+
+.loanWarning {
+
+    background: #3a1212;
+
+    border: 1px solid #ef4444;
+
+    padding: 12px;
+
+    border-radius: 10px;
+
+    margin-top: 10px;
+
+    color: #fecaca;
+
+    font-weight: 500;
+
+}
+
+/* request loan button */
+
+.loanBtn {
+
+    background: linear-gradient(135deg, #f59e0b, #ea580c);
+
+    border: none;
+
+    padding: 9px 18px;
+
+    border-radius: 8px;
+
+    color: white;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: .25s;
+
+}
+
+.loanBtn:hover {
+
+    background: linear-gradient(135deg, #ea580c, #c2410c);
+
+    transform: translateY(-2px);
+
+}
+
+/* loan popup finance info */
+
+.loanInfo {
+
+    background: #0b1220;
+
+    padding: 12px;
+
+    border-radius: 10px;
+
+    margin-top: 10px;
+
+    border: 1px solid #243041;
+
+}
+
+.loanInfo p {
+
+    margin: 4px 0;
+
+    font-size: 14px;
+
+    color: #cbd5f5;
+
+}
+
+/* financial numbers highlight */
+
+.loanAmount {
+
+    color: #34d399;
+
+    font-weight: 700;
+
+}
+
+.loanShort {
+
+    color: #f87171;
+
+    font-weight: 700;
+
+}
+
+/* loan request success indicator */
+
+.loanSuccess {
+
+    background: #052e1f;
+
+    border: 1px solid #22c55e;
+
+    padding: 10px;
+
+    border-radius: 10px;
+
+    color: #86efac;
+
+    margin-top: 10px;
+
+}
+
+/* registration action spacing */
+
+.registrationActions {
+
+    display: flex;
+
+    gap: 10px;
+
+    flex-wrap: wrap;
+
+}
+
+/* popup finance buttons alignment */
+
+.popupActions {
+
+    display: flex;
+
+    gap: 10px;
+
+    margin-top: 18px;
+
+    justify-content: flex-end;
+
+}
+
+/* mobile popup improvement */
+
+@media(max-width:600px) {
+
+    .infoBox {
+
+        width: 95%;
+
+        padding: 20px;
+
+    }
+
+    .loanBtn {
+
+        width: 100%;
+
+    }
+
+    .registrationActions {
+
+        flex-direction: column;
+
+    }
+
+}
