@@ -146,7 +146,7 @@ export default function CentralBank() {
 
     };
 
-// LOAN REJECT MODULE 
+    // LOAN REJECT MODULE 
     const rejectLoan = async (loan) => {
 
         if (!window.confirm("Reject loan request?"))
@@ -233,13 +233,19 @@ export default function CentralBank() {
 
     const loanStatus = (loan) => {
 
-        if (loan.defaulted)
+        if (loan.loan_status === "DEFAULTED")
             return "DEFAULTED";
 
-        if (daysLeft(loan.due_date) <= 0)
+        if (loan.loan_status === "OVERDUE")
             return "OVERDUE";
 
-        return "ACTIVE";
+        if (loan.loan_status === "ACTIVE")
+            return "ACTIVE";
+
+        if (loan.loan_status === "PENDING")
+            return "PENDING";
+
+        return loan.loan_status;
 
     };
 
@@ -403,15 +409,13 @@ export default function CentralBank() {
 
                         <tbody>
 
-                            {failed.length === 0 ? (
+                            {loans.filter(l => l.loan_status === "PENDING").length === 0 ? (
 
                                 <tr>
 
-                                    <td colSpan="5"
-                                        style={{ textAlign: "center" }}
-                                    >
+                                    <td colSpan="5" style={{ textAlign: "center" }}>
 
-                                        No loan requests
+                                        No pending loan requests
 
                                     </td>
 
@@ -419,57 +423,58 @@ export default function CentralBank() {
 
                             ) : (
 
-                                failed.map(x => (
+                                loans
+                                    .filter(l => l.loan_status === "PENDING")
+                                    .map(loan => (
 
-                                    <tr key={x.failed_id}>
+                                        <tr key={loan.loan_id}>
 
-                                        <td>{x.board_name}</td>
+                                            <td>{loan.board_name}</td>
 
-                                        <td>{x.tournament_name}</td>
+                                            <td>{loan.tournament_id}</td>
 
-                                        <td className="money">
+                                            <td className="money">
 
-                                            CE$ {x.required_amount}
+                                                CE$ {loan.loan_amount}
 
-                                        </td>
+                                            </td>
 
-                                        <td>
+                                            <td>
 
-                                            CE$ {x.available_balance}
+                                                CE$ {loan.current_balance}
 
-                                        </td>
+                                            </td>
 
-                                        <td>
+                                            <td>
 
-                                            <button
-                                                className="approveBtn"
-                                                onClick={() => openLoanPopup(x)}
-                                            >
+                                                <button
+                                                    className="approveBtn"
+                                                    onClick={() => openLoanPopup(loan)}
+                                                >
 
-                                                Approve
+                                                    Approve
 
-                                            </button>
+                                                </button>
 
-                                            <button
-                                                className="cbCancel"
-                                                style={{ marginLeft: "8px" }}
-                                                onClick={() => rejectLoan(x)}
-                                            >
+                                                <button
+                                                    className="cbCancel"
+                                                    style={{ marginLeft: "8px" }}
+                                                    onClick={() => rejectLoan(loan)}
+                                                >
 
-                                                Reject
+                                                    Reject
 
-                                            </button>
+                                                </button>
 
-                                        </td>
+                                            </td>
 
-                                    </tr>
+                                        </tr>
 
-                                ))
+                                    ))
 
                             )}
 
                         </tbody>
-
                     </table>
 
                 </div>
@@ -709,13 +714,14 @@ export default function CentralBank() {
                         <p>
 
                             Amount:
-                            CE$ {selectedLoan.required_amount}
+                            CE$ {selectedLoan.loan_amount}
 
                         </p>
 
                         <p>
 
-                            Interest: 12%
+                            Interest:
+                            {selectedLoan.interest_rate}%
 
                         </p>
 
@@ -723,11 +729,7 @@ export default function CentralBank() {
 
                             Total:
 
-                            CE$ {
-                                Math.floor(
-                                    selectedLoan.required_amount * 1.12
-                                )
-                            }
+                            CE$ {selectedLoan.total_payable}
 
                         </p>
 
