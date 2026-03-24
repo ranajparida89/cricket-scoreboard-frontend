@@ -894,3 +894,172 @@ Enterprise Finance UI
     }
 
 }
+
+.modernPopup {
+
+    background: white;
+    color: black;
+
+    padding: 30px;
+
+    border-radius: 14px;
+
+    width: 420px;
+
+    border: 2px solid gold;
+
+    box-shadow:
+
+        0 20px 60px rgba(0, 0, 0, .25);
+
+    animation: fadeUp .3s;
+
+}
+
+.popupTitle {
+
+    color: black;
+
+    font-size: 22px;
+
+    margin-bottom: 20px;
+
+    text-align: center;
+
+    font-weight: 700;
+
+}
+
+.popupRow {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    margin-bottom: 14px;
+
+    font-size: 15px;
+
+}
+
+.popupLabel {
+
+    font-weight: 600;
+
+    color: #374151;
+
+}
+
+.popupValue {
+
+    font-weight: 600;
+
+    color: black;
+
+}
+
+.fee {
+
+    color: #16a34a;
+
+    font-size: 16px;
+
+}
+
+.consentBox {
+
+    margin-top: 20px;
+
+    display: flex;
+
+    gap: 10px;
+
+    align-items: center;
+
+    font-size: 14px;
+
+}
+
+.errorText {
+
+    color: #dc2626;
+
+    margin-top: 10px;
+
+    font-size: 13px;
+
+}
+
+.modernActions {
+
+    margin-top: 25px;
+
+    display: flex;
+
+    gap: 15px;
+
+    justify-content: center;
+
+}
+
+.modernBtn {
+
+    width: 120px;
+
+    height: 42px;
+
+    border-radius: 8px;
+
+    border: none;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: .3s;
+
+}
+
+.submitBtn {
+
+    background: linear-gradient(135deg,
+            #facc15,
+            #eab308);
+
+    color: black;
+
+}
+
+.submitBtn:hover {
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 10px 20px rgba(0, 0, 0, .2);
+
+}
+
+.cancelBtn {
+
+    background: #111827;
+
+    color: white;
+
+}
+
+.cancelBtn:hover {
+
+    background: black;
+
+}
+
+.loanHint {
+
+    margin-top: 15px;
+
+    color: #dc2626;
+
+    font-weight: 500;
+
+    line-height: 1.5;
+
+}

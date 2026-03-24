@@ -207,7 +207,9 @@ export default function TournamentRegistration() {
 
             );
 
-            alert("Loan request submitted to Central Bank");
+            alert(
+                "Loan request submitted. Check with admin for Approval / Reject status."
+            );
 
             setLoanPopup(false);
 
@@ -324,38 +326,38 @@ export default function TournamentRegistration() {
 
             </div>
 
-            {/* REGISTER POPUP */}
-
             {showPopup && selected && (
 
                 <div className="infoOverlay">
 
-                    <div className="infoBox">
+                    <div className="infoBox modernPopup">
 
-                        <h3>Tournament Registration</h3>
+                        <h3 className="popupTitle">
+                            Tournament Registration
+                        </h3>
 
-                        <p>
+                        <div className="popupRow">
+                            <span className="popupLabel">Board</span>
+                            <span className="popupValue">
+                                {board?.board_name}
+                            </span>
+                        </div>
 
-                            Board:
-                            {board?.board_name}
+                        <div className="popupRow">
+                            <span className="popupLabel">Tournament</span>
+                            <span className="popupValue">
+                                {selected.tournament_name}
+                            </span>
+                        </div>
 
-                        </p>
+                        <div className="popupRow">
+                            <span className="popupLabel">Entry Fee</span>
+                            <span className="popupValue fee">
+                                CE$ {selected.entry_fee}
+                            </span>
+                        </div>
 
-                        <p>
-
-                            Tournament:
-                            {selected.tournament_name}
-
-                        </p>
-
-                        <p>
-
-                            Entry Fee:
-                            CE$ {selected.entry_fee}
-
-                        </p>
-
-                        <label>
+                        <div className="consentBox">
 
                             <input
                                 type="checkbox"
@@ -365,17 +367,40 @@ export default function TournamentRegistration() {
                                 }
                             />
 
-                            I agree entry fee rules
+                            <span>
+                                I agree entry fee rules
+                            </span>
 
-                        </label>
+                        </div>
 
-                        <div className="popupActions">
+                        {!consent && (
+
+                            <div className="errorText">
+
+                                Please accept entry rules before submitting
+
+                            </div>
+
+                        )}
+
+                        <div className="popupActions modernActions">
 
                             <button
 
-                                disabled={!consent}
-                                onClick={register}
-                                className="manage-btn add-btn"
+                                onClick={() => {
+                                    if (!consent) {
+
+                                        alert("Please accept entry fee rules");
+
+                                        return;
+
+                                    }
+
+                                    register();
+
+                                }}
+
+                                className="modernBtn submitBtn"
 
                             >
 
@@ -386,7 +411,8 @@ export default function TournamentRegistration() {
                             <button
 
                                 onClick={() => setShowPopup(false)}
-                                className="manage-btn cancel-btn"
+
+                                className="modernBtn cancelBtn"
 
                             >
 
@@ -401,7 +427,6 @@ export default function TournamentRegistration() {
                 </div>
 
             )}
-
             {/* LOAN POPUP */}
 
             {loanPopup && loanInfo && (
@@ -440,10 +465,10 @@ export default function TournamentRegistration() {
 
                         </p>
 
-                        <p style={{ color: "#f87171" }}>
-
-                            You can request loan from Central Bank
-
+                        <p className="loanHint">
+                            Your board has insufficient balance.
+                            You can request loan from Central Bank.
+                            After request check with admin for approval/reject.
                         </p>
 
                         <div className="popupActions">
