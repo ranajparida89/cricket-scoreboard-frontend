@@ -82,7 +82,7 @@ export default function CentralBank() {
 
             const lg =
                 await axios.get(
-                    `${BACKEND}/api/funds/loan-transactions`
+                    `${BACKEND}/api/funds/loan-transactions/all`
                 );
 
             setLogs(lg.data || []);
@@ -105,10 +105,15 @@ export default function CentralBank() {
         setShowPopup(true);
 
     };
-
-    /* APPROVE */
-
+    // APROVE MODULE
     const approveLoan = async () => {
+
+        if (!selectedLoan?.loan_id) {
+
+            alert("Loan id missing");
+            return;
+
+        }
 
         try {
 
@@ -117,19 +122,23 @@ export default function CentralBank() {
                 `${BACKEND}/api/funds/approve-loan`,
 
                 {
-                    board_id: selectedLoan.board_id,
-                    tournament_id: selectedLoan.tournament_id
+                    loan_id: selectedLoan.loan_id,
+                    approved_by: "ADMIN"
                 }
 
             );
 
-            alert("Loan Approved");
+            alert("Loan Approved Successfully");
 
             setShowPopup(false);
+
+            setSelectedLoan(null);
 
             loadData();
 
         } catch (err) {
+
+            console.log(err);
 
             alert("Approval failed");
 
@@ -137,12 +146,18 @@ export default function CentralBank() {
 
     };
 
-    /* REJECT */
-
+// LOAN REJECT MODULE 
     const rejectLoan = async (loan) => {
 
         if (!window.confirm("Reject loan request?"))
             return;
+
+        if (!loan?.loan_id) {
+
+            alert("Loan id missing");
+            return;
+
+        }
 
         try {
 
@@ -151,8 +166,7 @@ export default function CentralBank() {
                 `${BACKEND}/api/funds/reject-loan`,
 
                 {
-                    board_id: loan.board_id,
-                    tournament_id: loan.tournament_id
+                    loan_id: loan.loan_id
                 }
 
             );
@@ -161,7 +175,9 @@ export default function CentralBank() {
 
             loadData();
 
-        } catch {
+        } catch (err) {
+
+            console.log(err);
 
             alert("Reject failed");
 
