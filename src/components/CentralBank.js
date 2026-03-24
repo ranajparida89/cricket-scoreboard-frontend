@@ -105,7 +105,7 @@ export default function CentralBank() {
         setShowPopup(true);
 
     };
-    // APROVE MODULE
+    // APPROVE LOAN MODULE (FIXED)
     const approveLoan = async () => {
 
         if (!selectedLoan?.loan_id) {
@@ -122,8 +122,7 @@ export default function CentralBank() {
                 `${BACKEND}/api/funds/approve-loan`,
 
                 {
-                    loan_id: selectedLoan.loan_id,
-                    approved_by: "ADMIN"
+                    loan_id: selectedLoan.loan_id
                 }
 
             );
@@ -136,16 +135,16 @@ export default function CentralBank() {
 
             loadData();
 
-        } catch (err) {
+        }
+        catch (err) {
 
-            console.log(err);
+            console.log(err.response?.data || err);
 
             alert("Approval failed");
 
         }
 
     };
-
     // LOAN REJECT MODULE 
     const rejectLoan = async (loan) => {
 
@@ -321,9 +320,13 @@ export default function CentralBank() {
 
                     </div>
 
-                    <div className="cardValue">
+                    <div className="cardValue blue">
 
-                        CE$ {Number(summary.totalSystemFunds || 0).toLocaleString()}
+                        CE$ {Number(
+                            summary.total_system_funds ||
+                            summary.totalSystemFunds ||
+                            0
+                        ).toLocaleString()}
 
                     </div>
 
@@ -409,7 +412,10 @@ export default function CentralBank() {
 
                         <tbody>
 
-                            {loans.filter(l => l.loan_status === "PENDING").length === 0 ? (
+                            {loans.filter(l =>
+                                l.loan_status === "PENDING" ||
+                                l.loan_status === "REQUESTED"
+                            ).length === 0 ? (
 
                                 <tr>
 
@@ -431,7 +437,7 @@ export default function CentralBank() {
 
                                             <td>{loan.board_name}</td>
 
-                                            <td>{loan.tournament_id}</td>
+                                            <td>{loan.tournament_name || loan.tournament_id}</td>
 
                                             <td className="money">
 
