@@ -112,7 +112,11 @@
 .cardValue {
 
     font-size: 26px;
+
     font-weight: 700;
+
+    color: #0f172a;
+    /* ADD THIS */
 
 }
 
