@@ -21,7 +21,7 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
       }));
     }
   }, []);
-  
+
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
@@ -34,7 +34,7 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
     confirmNewPassword: "",
     remember: localStorage.getItem("rememberEmail") ? true : false
   });
-  
+
   const [timer, setTimer] = useState(25);
   const [resendVisible, setResendVisible] = useState(false);
   const [message, setMessage] = useState("");
@@ -65,7 +65,7 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
       return setMessage("Passwords do not match");
 
     try {
-        await axios.post(`${API_URL}/signup`, { first_name, last_name, email, password });
+      await axios.post(`${API_URL}/signup`, { first_name, last_name, email, password });
       setStep("otp");
       setTimer(25);
       setMessage("OTP sent to your email");
@@ -84,8 +84,8 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
       console.error("❌ OTP Verify Error:", err.response?.data || err);
       setMessage(err.response?.data?.error || "Invalid OTP");
     }
-  };  
-  
+  };
+
   const handleResendOtp = async () => {
     try {
       await axios.post(`${API_URL}/resend-otp`, { email: form.email });
@@ -96,19 +96,19 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
       setMessage("Failed to resend OTP");
     }
   };
-  
+
   const handleLogin = async () => {
     try {
       const res = await axios.post(`${API_URL}/login`, {
         email: form.email,
         password: form.password,
       });
-  
-      localStorage.setItem("token", res.data.token);
-     localStorage.setItem("user", JSON.stringify(res.data.user)); 
-     localStorage.setItem("board_id", res.data.board_id);
 
-  
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      localStorage.setItem("board_id", res.data.board_id);
+
+
       if (form.remember) {
         localStorage.setItem("rememberEmail", form.email);
         localStorage.setItem("rememberPassword", form.password);
@@ -116,22 +116,28 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
         localStorage.removeItem("rememberEmail");
         localStorage.removeItem("rememberPassword");
       }
-  
+
       setMessage("Login successful");
       setTimeout(() => window.location.reload(), 1500);
     } catch (err) {
       setMessage("Invalid credentials");
     }
   };
-  
-  
+
+
 
   const handleRequestReset = async () => {
     try {
-      await axios.post("/api/request-reset", { email: form.email });
+      await axios.post(`${API_URL}/request-reset`, { email: form.email });
+
       setMessage("Reset link sent to email");
+
     } catch (err) {
-      setMessage("Reset failed");
+      console.error("Reset error:", err.response?.data || err);
+
+      setMessage(
+        err.response?.data?.error || "Reset failed"
+      );
     }
   };
 
@@ -139,7 +145,10 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
     const { newPassword, confirmNewPassword } = form;
     if (newPassword !== confirmNewPassword) return setMessage("Passwords don't match");
     try {
-      await axios.post("/api/reset-password", { token: form.token, newPassword });
+      await axios.post(`${API_URL}/reset-password`, {
+        token: form.token,
+        newPassword
+      });
       setMessage("Password reset successfully");
       setTimeout(() => setStep("login"), 1500);
     } catch (err) {
@@ -187,12 +196,12 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
             <input name="email" placeholder="Email" onChange={handleChange} />
             <input name="password" type="password" placeholder="Password" onChange={handleChange} />
             <div className="d-flex align-items-center mb-2">
-            <input
+              <input
                 type="checkbox"
                 className="form-check-input me-2"
                 checked={form.remember}
                 onChange={(e) => setForm({ ...form, remember: e.target.checked })}
-                /> Remember me
+              /> Remember me
 
             </div>
             <button onClick={handleLogin}>Sign In</button>
