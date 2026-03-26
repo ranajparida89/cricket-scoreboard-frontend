@@ -8,9 +8,9 @@ import { API_URL } from "../services/api"; // ✅ Base URL for backend
 
 const AuthModal = ({ show, onClose, mode = "login" }) => {
   const [step, setStep] = useState(mode); // login | signup | otp | reset-request | reset-form
+
   useEffect(() => {
 
-    // ⭐ Detect token from reset email link
     const params =
       new URLSearchParams(window.location.search);
     const token =
@@ -21,22 +21,27 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
         token: token
       }));
       setStep("reset-form");
+      // ⭐ FORCE MODAL OPEN
+      if (!show) {
+        window.dispatchEvent(
+          new Event("openAuthModal")
+        );
+      }
     }
-    // ⭐ Auto fill remembered login
     const rememberedEmail =
       localStorage.getItem("rememberEmail");
     const rememberedPassword =
       localStorage.getItem("rememberPassword");
     if (rememberedEmail && rememberedPassword) {
-      setForm((prev) => ({
+      setForm(prev => ({
         ...prev,
         email: rememberedEmail,
         password: rememberedPassword,
-        remember: true,
+        remember: true
       }));
     }
-  }, []);
 
+  }, []);
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
@@ -63,9 +68,29 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
     }
     return () => clearInterval(interval);
   }, [step, timer]);
-
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const updated = {
+      ...form,
+      [e.target.name]:
+        e.target.value
+    };
+    setForm(updated);
+    // ⭐ Live password validation
+    if (
+      updated.newPassword &&
+      updated.confirmNewPassword
+    ) {
+      if (
+        updated.newPassword !==
+        updated.confirmNewPassword
+      ) {
+        setMessage(
+          "Passwords do not match"
+        );
+      } else {
+        setMessage("");
+      }
+    }
   };
 
   const handleSignup = async () => {
@@ -251,7 +276,13 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
               placeholder="Confirm Password"
               onChange={handleChange}
             />
-            <button onClick={handleResetPassword}>
+            <button
+              onClick={handleResetPassword}
+              disabled={
+                form.newPassword !==
+                form.confirmNewPassword
+              }
+            >
               Reset Password
             </button>
           </>
