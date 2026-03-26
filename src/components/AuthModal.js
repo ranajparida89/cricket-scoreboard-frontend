@@ -9,9 +9,24 @@ import { API_URL } from "../services/api"; // ✅ Base URL for backend
 const AuthModal = ({ show, onClose, mode = "login" }) => {
   const [step, setStep] = useState(mode); // login | signup | otp | reset-request | reset-form
   useEffect(() => {
-    // ✅ Auto-fill email/password from localStorage on modal open
-    const rememberedEmail = localStorage.getItem("rememberEmail");
-    const rememberedPassword = localStorage.getItem("rememberPassword");
+
+    // ⭐ Detect token from reset email link
+    const params =
+      new URLSearchParams(window.location.search);
+    const token =
+      params.get("token");
+    if (token) {
+      setForm(prev => ({
+        ...prev,
+        token: token
+      }));
+      setStep("reset-form");
+    }
+    // ⭐ Auto fill remembered login
+    const rememberedEmail =
+      localStorage.getItem("rememberEmail");
+    const rememberedPassword =
+      localStorage.getItem("rememberPassword");
     if (rememberedEmail && rememberedPassword) {
       setForm((prev) => ({
         ...prev,
@@ -218,13 +233,29 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
 
         {step === "reset-form" && (
           <>
-            <input name="token" placeholder="Token from email" onChange={handleChange} />
-            <input name="newPassword" placeholder="New Password" onChange={handleChange} />
-            <input name="confirmNewPassword" placeholder="Confirm Password" onChange={handleChange} />
-            <button onClick={handleResetPassword}>Set New Password</button>
+            <input
+              name="token"
+              placeholder="Token"
+              value={form.token}
+              readOnly
+            />
+            <input
+              type="password"
+              name="newPassword"
+              placeholder="New Password"
+              onChange={handleChange}
+            />
+            <input
+              type="password"
+              name="confirmNewPassword"
+              placeholder="Confirm Password"
+              onChange={handleChange}
+            />
+            <button onClick={handleResetPassword}>
+              Reset Password
+            </button>
           </>
         )}
-
         <div className="text-center mt-3">
           {step === "login" ? (
             <p>New User? <span className="text-warning" onClick={() => setStep("signup")}>Create Account</span></p>
