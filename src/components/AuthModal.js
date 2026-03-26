@@ -255,15 +255,8 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
             <button onClick={handleRequestReset}>Request Reset</button>
           </>
         )}
-
         {step === "reset-form" && (
           <>
-            <input
-              name="token"
-              placeholder="Token"
-              value={form.token}
-              readOnly
-            />
             <input
               type="password"
               name="newPassword"
@@ -286,8 +279,7 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
               Reset Password
             </button>
           </>
-        )}
-        <div className="text-center mt-3">
+        )} <div className="text-center mt-3">
           {step === "login" ? (
             <p>New User? <span className="text-warning" onClick={() => setStep("signup")}>Create Account</span></p>
           ) : (
