@@ -235,14 +235,21 @@ const AuthModal = ({ show, onClose, mode = "login" }) => {
           <>
             <input name="email" placeholder="Email" onChange={handleChange} />
             <input name="password" type="password" placeholder="Password" onChange={handleChange} />
-            <div className="d-flex align-items-center mb-2">
+            <div className="remember-box">
               <input
                 type="checkbox"
-                className="form-check-input me-2"
+                id="remember"
                 checked={form.remember}
-                onChange={(e) => setForm({ ...form, remember: e.target.checked })}
-              /> Remember me
-
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    remember: e.target.checked
+                  })
+                }
+              />
+              <label htmlFor="remember">
+                Remember me
+              </label>
             </div>
             <button onClick={handleLogin}>Sign In</button>
             <p className="text-info small mt-2" onClick={() => setStep("reset-request")}>Forgot Password?</p>
