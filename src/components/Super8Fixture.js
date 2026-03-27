@@ -158,7 +158,7 @@ export default function Super8Fixture() {
 
             <div className="header">
 
-                <h2>SUPER 8 FIXTURE DRAW</h2>
+                <h2>CRICKEDGE SUPER 8 FIXTURE</h2>
 
                 <div className="mode">
 
