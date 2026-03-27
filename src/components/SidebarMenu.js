@@ -358,6 +358,18 @@ const SidebarMenu = () => {
                 Manage Admins
               </Link>
             </li>
+            <li>
+              <Link
+                to="/super8-fixture"
+                onClick={handleClose}
+                style={{
+                  color: "#ffd700",
+                  fontWeight: "bold"
+                }}
+              >
+                Super 8 Fixture
+              </Link>
+            </li>
 
             <li>
               <Link to="/register-board" onClick={handleClose}>

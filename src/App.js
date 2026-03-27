@@ -76,6 +76,7 @@ import TournamentInterestLog from "./components/TournamentInterestLog";
 import TournamentAdminDashboard from "./components/TournamentAdminDashboard";
 import MatchRewardsAudit from "./components/MatchRewardsAudit";
 import FundsAlerts from "./components/FundsAlerts";
+import Super8Fixture from "./components/Super8Fixture";
 
 
 // 🔥 NEW
@@ -682,6 +683,28 @@ function App() {
           <Route path="/privacy/delete-account" element={<DeleteAccount />} />
           <Route path="/scheduler" element={<SchedulerPage />} />
           <Route path="/team-distributor" element={<TeamDistributor />} />
+          <Route
+            path="/super8-fixture"
+            element={
+              <ProtectedRoute>
+                {isAdmin ? (
+                  <PageWrapper>
+                    <Super8Fixture />
+                  </PageWrapper>
+                ) : (
+                  <div
+                    style={{
+                      padding: 24,
+                      color: "red",
+                      textAlign: "center"
+                    }}
+                  >
+                    Only Admin can access Super 8 Fixture Randomizer
+                  </div>
+                )}
+              </ProtectedRoute>
+            }
+          />
           <Route path="/past-matches" element={<PastMatchesHub />} />
           <Route path="/player-report-card" element={<PlayerReportCard />} />
           <Route path="/season-leaderboard" element={<SeasonLeaderboard />} />
