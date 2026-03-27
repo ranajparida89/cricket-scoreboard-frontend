@@ -12,11 +12,11 @@ export default function Super8Fixture() {
     const [drawing, setDrawing] = useState(false);
     const [revealed, setRevealed] = useState([]);
 
-    const normalize = (name) => {
+    const normalize = name => {
         return name.toLowerCase().trim();
     };
 
-    const isDC = (name) => {
+    const isDC = name => {
 
         const n = normalize(name);
 
@@ -27,7 +27,7 @@ export default function Super8Fixture() {
 
     };
 
-    const isTVK = (name) => {
+    const isTVK = name => {
 
         const n = normalize(name);
 
@@ -38,7 +38,7 @@ export default function Super8Fixture() {
 
     };
 
-    const shuffle = (arr) => {
+    const shuffle = arr => {
 
         let a = [...arr];
 
@@ -105,7 +105,9 @@ export default function Super8Fixture() {
 
     const randomize = async () => {
 
-        let filled = teams.filter(t => t.trim() != "");
+        let filled = teams.filter(
+            t => t.trim() != ""
+        );
 
         if (filled.length !== 8) {
 
@@ -124,7 +126,10 @@ export default function Super8Fixture() {
 
         let controlled = newCount % 2 === 1;
 
-        let result = buildFixtures(filled, controlled);
+        let result = buildFixtures(
+            filled,
+            controlled
+        );
 
         setFixtures(result);
 
@@ -132,9 +137,14 @@ export default function Super8Fixture() {
 
         for (let i = 0; i < result.length; i++) {
 
-            await new Promise(r => setTimeout(r, 900));
+            await new Promise(
+                r => setTimeout(r, 1000)
+            );
 
-            setRevealed(prev => [...prev, i]);
+            setRevealed(prev => [
+                ...prev,
+                i
+            ]);
 
         }
 
@@ -152,7 +162,11 @@ export default function Super8Fixture() {
 
                 <div className="mode">
 
-                    Next Randomizer :
+                    <span className="nextLabel">
+
+                        Next Randomizer :
+
+                    </span>
 
                     <span className="modeBadge">
 
@@ -180,7 +194,7 @@ export default function Super8Fixture() {
 
                             placeholder={"Team " + (i + 1)}
 
-                            onChange={(e) => {
+                            onChange={e => {
 
                                 let copy = [...teams];
 
@@ -204,7 +218,9 @@ export default function Super8Fixture() {
                 disabled={drawing || !isAdminUser}
             >
 
-                {drawing ? "Drawing Fixtures..." : "S8 Randomizer"}
+                {drawing ?
+                    "Drawing Fixtures..." :
+                    "S8 Randomizer"}
 
             </button>
 
@@ -220,7 +236,7 @@ export default function Super8Fixture() {
                 )
             }
 
-            <div className="fixtureArea">
+            <div className="fixtureGrid">
 
                 {
                     fixtures.map((match, i) => (
@@ -236,21 +252,31 @@ export default function Super8Fixture() {
 
                         >
 
-                            <div className="teamName">
+                            <div className="matchNumber">
 
-                                {match[0]}
-
-                            </div>
-
-                            <div className="vs">
-
-                                VS
+                                MATCH {i + 1}
 
                             </div>
 
-                            <div className="teamName">
+                            <div className="teamRow">
 
-                                {match[1]}
+                                <div className="teamName">
+
+                                    {match[0]}
+
+                                </div>
+
+                                <div className="vs">
+
+                                    VS
+
+                                </div>
+
+                                <div className="teamName">
+
+                                    {match[1]}
+
+                                </div>
 
                             </div>
 
