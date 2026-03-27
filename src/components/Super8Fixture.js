@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "./Super8Fixture.css";
 
 export default function Super8Fixture() {
+
     const isAdminUser =
         localStorage.getItem("isAdmin") === "true";
 
@@ -108,7 +109,7 @@ export default function Super8Fixture() {
 
         if (filled.length !== 8) {
 
-            alert("Please provide all 8 teams");
+            alert("Provide all 8 teams");
 
             return;
 
@@ -131,7 +132,7 @@ export default function Super8Fixture() {
 
         for (let i = 0; i < result.length; i++) {
 
-            await new Promise(r => setTimeout(r, 800));
+            await new Promise(r => setTimeout(r, 900));
 
             setRevealed(prev => [...prev, i]);
 
@@ -151,18 +152,14 @@ export default function Super8Fixture() {
 
                 <div className="mode">
 
-                    NEXT DRAW :
+                    Next Randomizer :
 
-                    <span className={
-                        (drawCount + 1) % 2 === 1 ?
-                            "oddMode" :
-                            "evenMode"
-                    }>
+                    <span className="modeBadge">
 
                         {
                             (drawCount + 1) % 2 === 1 ?
-                                "ODD (Controlled Random)" :
-                                "EVEN (Pure Random)"
+                                "D_TEAM" :
+                                "E_TEAM"
                         }
 
                     </span>
@@ -175,12 +172,13 @@ export default function Super8Fixture() {
 
                 {
                     teams.map((t, i) => (
+
                         <input
                             key={i}
 
                             value={t}
 
-                            placeholder={"Team / Player " + (i + 1)}
+                            placeholder={"Team " + (i + 1)}
 
                             onChange={(e) => {
 
@@ -194,6 +192,7 @@ export default function Super8Fixture() {
 
                             className="teamField"
                         />
+
                     ))
                 }
 
@@ -205,20 +204,14 @@ export default function Super8Fixture() {
                 disabled={drawing || !isAdminUser}
             >
 
-                {drawing ? "Drawing..." : "S8 Randomizer"}
+                {drawing ? "Drawing Fixtures..." : "S8 Randomizer"}
 
             </button>
+
             {
                 !isAdminUser && (
 
-                    <div
-                        style={{
-                            textAlign: "center",
-                            marginTop: "15px",
-                            color: "#ff4d4d",
-                            fontWeight: "bold"
-                        }}
-                    >
+                    <div className="warn">
 
                         Only Admin can run Randomizer
 
