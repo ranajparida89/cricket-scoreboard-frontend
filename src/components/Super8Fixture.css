@@ -166,9 +166,11 @@
 
     display: grid;
 
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 320px);
 
-    gap: 20px;
+    gap: 25px;
+
+    justify-content: center;
 
 }
 
@@ -189,6 +191,8 @@
     transition: .8s;
 
     box-shadow: 0 5px 20px rgba(0, 0, 0, .1);
+
+    width: 320px;
 
 }
 
@@ -291,6 +295,17 @@
     .fixtureGrid {
 
         grid-template-columns: 1fr;
+
+        justify-content: center;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+
+    }
+
+    .matchCard {
+
+        width: 100%;
 
     }
 
