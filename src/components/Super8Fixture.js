@@ -12,6 +12,8 @@ export default function Super8Fixture() {
     const [drawing, setDrawing] = useState(false);
     const [revealed, setRevealed] = useState([]);
 
+    const [currentMode, setCurrentMode] = useState("E_TEAM");
+
     const normalize = name => {
         return name.toLowerCase().trim();
     };
@@ -126,6 +128,12 @@ export default function Super8Fixture() {
 
         let controlled = newCount % 2 === 1;
 
+        setCurrentMode(
+            controlled ?
+                "D_TEAM" :
+                "E_TEAM"
+        );
+
         let result = buildFixtures(
             filled,
             controlled
@@ -138,7 +146,7 @@ export default function Super8Fixture() {
         for (let i = 0; i < result.length; i++) {
 
             await new Promise(
-                r => setTimeout(r, 1000)
+                r => setTimeout(r, 900)
             );
 
             setRevealed(prev => [
@@ -154,7 +162,13 @@ export default function Super8Fixture() {
 
     return (
 
-        <div className="s8Wrapper">
+        <div className={
+            currentMode === "D_TEAM"
+                ?
+                "s8Wrapper strictBg"
+                :
+                "s8Wrapper normalBg"
+        }>
 
             <div className="header">
 
@@ -164,17 +178,13 @@ export default function Super8Fixture() {
 
                     <span className="nextLabel">
 
-                        Next Randomizer :
+                        Current Randomizer :
 
                     </span>
 
                     <span className="modeBadge">
 
-                        {
-                            (drawCount + 1) % 2 === 1 ?
-                                "D_TEAM" :
-                                "E_TEAM"
-                        }
+                        {currentMode}
 
                     </span>
 
