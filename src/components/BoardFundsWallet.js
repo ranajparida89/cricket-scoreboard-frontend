@@ -34,26 +34,40 @@ export default function BoardFundsWallet() {
     /* LOAD WALLET */
 
     const loadFunds = async () => {
-
         try {
-
-            const email = currentUser?.email;
-
-            if (!email) return;
-
-            /* GET BOARD */
-
-            const boardRes =
-                await axios.get(
-                    `https://cricket-scoreboard-backend.onrender.com/api/funds/by-owner/${email}`
-                );
-
-            const boardId =
-                boardRes?.data?.board_id;
-
-            const boardName =
-                boardRes?.data?.board_name;
-
+            /* SAFE BOARD DETECTION */
+            const boardIdFromUser = currentUser?.board_id;
+            let boardId;
+            let boardName;
+            /* PRIMARY METHOD */
+            if (boardIdFromUser) {
+                boardId = boardIdFromUser;
+                const walletRes =
+                    await axios.get(
+                        `https://cricket-scoreboard-backend.onrender.com/api/funds/wallet/${boardId}`
+                    );
+                boardName =
+                    walletRes.data.board_name;
+            }
+            /* FALLBACK */
+            else {
+                const email =
+                    currentUser?.email;
+                const boardRes =
+                    await axios.get(
+                        `https://cricket-scoreboard-backend.onrender.com/api/funds/by-owner/${email}`
+                    );
+                boardId =
+                    boardRes?.data?.board_id;
+                boardName =
+                    boardRes?.data?.board_name;
+            }
+            if (!boardId) {
+                setLoading(false);
+                return;
+            }
+            setBoardId(boardId);
+            setBoardName(boardName);
             if (!boardId) {
 
                 setLoading(false);

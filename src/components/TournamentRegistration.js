@@ -41,20 +41,34 @@ export default function TournamentRegistration() {
 
             setTournaments(tournamentRes.data || []);
 
-            const email = currentUser?.email;
+            /* SAFE BOARD DETECTION */
 
-            if (email) {
+            const boardIdFromUser =
+                currentUser?.board_id;
+
+            /* PRIMARY METHOD */
+
+            if (boardIdFromUser) {
 
                 try {
 
-                    const boardRes =
+                    const walletRes =
                         await axios.get(
-                            `${BACKEND_URL}/api/funds/by-owner/${email}`
+
+                            `${BACKEND_URL}/api/funds/wallet/${boardIdFromUser}`
+
                         );
 
-                    setBoard(boardRes.data);
+                    setBoard({
 
-                } catch {
+                        board_id: boardIdFromUser,
+                        board_name: walletRes.data.board_name,
+                        balance: walletRes.data.balance
+
+                    });
+
+                }
+                catch {
 
                     setBoard(null);
 
@@ -62,6 +76,36 @@ export default function TournamentRegistration() {
 
             }
 
+            /* FALLBACK METHOD (OLD SYSTEM SAFE) */
+
+            else {
+
+                const email =
+                    currentUser?.email;
+
+                if (email) {
+
+                    try {
+
+                        const boardRes =
+                            await axios.get(
+
+                                `${BACKEND_URL}/api/funds/by-owner/${email}`
+
+                            );
+
+                        setBoard(boardRes.data);
+
+                    }
+                    catch {
+
+                        setBoard(null);
+
+                    }
+
+                }
+
+            }
         } catch (err) {
 
             console.log(err);
