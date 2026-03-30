@@ -18,6 +18,8 @@ export default function TournamentRegistration() {
     /* NEW */
     const [loanPopup, setLoanPopup] = useState(false);
     const [loanInfo, setLoanInfo] = useState(null);
+    /* RESPONSE LOCK */
+    const [responses, setResponses] = useState({});
 
     const BACKEND_URL =
         "https://cricket-scoreboard-backend.onrender.com";
@@ -166,6 +168,11 @@ export default function TournamentRegistration() {
 
     const notInterested = async (t) => {
 
+        if (responses[t.tournament_id]) {
+            alert("Response already registered");
+            return;
+        }
+
         if (!boardId) {
 
             alert("Board not loaded");
@@ -187,7 +194,12 @@ export default function TournamentRegistration() {
 
             );
 
-            alert("Saved");
+            setResponses(prev => ({
+                ...prev,
+                [t.tournament_id]: "NO"
+            }));
+
+            alert("Response saved");
 
         } catch {
 
@@ -198,19 +210,19 @@ export default function TournamentRegistration() {
     };
 
     /* INTERESTED */
-
     const interested = (t) => {
-
+        if (responses[t.tournament_id]) {
+            alert("Response already registered");
+            return;
+        }
         if (!boardId) {
 
             alert("Register board first");
             return;
 
         }
-
         setSelected(t);
         setShowPopup(true);
-
     };
 
     /* REGISTER */
@@ -239,6 +251,12 @@ export default function TournamentRegistration() {
             );
 
             alert("Tournament Registered");
+
+            /* LOCK RESPONSE AFTER SUCCESS */
+            setResponses(prev => ({
+                ...prev,
+                [selected.tournament_id]: "YES"
+            }));
 
             setShowPopup(false);
             setConsent(false);
@@ -380,7 +398,7 @@ export default function TournamentRegistration() {
 
                                         onClick={() => interested(t)}
                                         className="yesBtn"
-                                        disabled={!boardId}
+                                        disabled={!boardId || responses[t.tournament_id]}
 
                                     >
 
@@ -392,7 +410,7 @@ export default function TournamentRegistration() {
 
                                         onClick={() => notInterested(t)}
                                         className="noBtn"
-                                        disabled={!boardId}
+                                        disabled={!boardId || responses[t.tournament_id]}
 
                                     >
 
@@ -401,7 +419,6 @@ export default function TournamentRegistration() {
                                     </button>
 
                                 </td>
-
                             </tr>
 
                         ))}
