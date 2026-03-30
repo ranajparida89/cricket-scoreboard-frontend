@@ -43,8 +43,15 @@ export default function TournamentRegistration() {
 
             /* SAFE BOARD DETECTION */
 
-            const boardIdFromUser =
+            let boardIdFromUser =
                 currentUser?.board_id;
+
+            /* FALLBACK FOR ADMIN CREATED BOARDS */
+
+            if (!boardIdFromUser) {
+                boardIdFromUser =
+                    localStorage.getItem("board_id");
+            }
 
             /* PRIMARY METHOD */
 
@@ -67,6 +74,15 @@ export default function TournamentRegistration() {
 
                     });
 
+                    /* SAVE BOARD FOR FUTURE */
+
+                    localStorage.setItem(
+
+                        "board_id",
+                        boardIdFromUser
+
+                    );
+
                 }
                 catch {
 
@@ -76,7 +92,7 @@ export default function TournamentRegistration() {
 
             }
 
-            /* FALLBACK METHOD (OLD SYSTEM SAFE) */
+            /* LAST FALLBACK (VERY OLD SYSTEM) */
 
             else {
 
@@ -95,6 +111,15 @@ export default function TournamentRegistration() {
                             );
 
                         setBoard(boardRes.data);
+
+                        /* SAVE BOARD */
+
+                        localStorage.setItem(
+
+                            "board_id",
+                            boardRes.data.board_id
+
+                        );
 
                     }
                     catch {
