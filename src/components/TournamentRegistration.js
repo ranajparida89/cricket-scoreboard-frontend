@@ -46,16 +46,31 @@ export default function TournamentRegistration() {
             let boardIdFromUser =
                 currentUser?.board_id;
 
-            /* FALLBACK FOR ADMIN CREATED BOARDS */
+            /* SAFE FALLBACK FOR ADMIN CREATED BOARDS */
 
             if (!boardIdFromUser) {
-                boardIdFromUser =
+
+                const storedBoard =
                     localStorage.getItem("board_id");
+
+                if (
+                    storedBoard &&
+                    storedBoard !== "undefined" &&
+                    storedBoard !== "null"
+                ) {
+
+                    boardIdFromUser = storedBoard;
+
+                }
+
             }
 
             /* PRIMARY METHOD */
 
-            if (boardIdFromUser) {
+            if (
+                boardIdFromUser &&
+                boardIdFromUser !== "undefined"
+            ) {
 
                 try {
 
@@ -85,6 +100,8 @@ export default function TournamentRegistration() {
 
                 }
                 catch {
+
+                    console.log("Wallet lookup failed");
 
                     setBoard(null);
 
