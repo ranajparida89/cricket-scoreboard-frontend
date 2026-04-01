@@ -8,7 +8,6 @@ export default function DeclareTournamentResult() {
         "https://cricket-scoreboard-backend.onrender.com";
 
     const [tournaments, setTournaments] = useState([]);
-    const [teams, setTeams] = useState([]);
     const [results, setResults] = useState([]);
 
     const [form, setForm] = useState({
@@ -21,15 +20,11 @@ export default function DeclareTournamentResult() {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [success, setSuccess] = useState(null);
+    const [success, setSuccess] = useState("");
 
     const isAdmin =
         localStorage.getItem("isAdmin") === "true";
 
-
-    /* =========================
-    LOAD INITIAL DATA
-    ========================= */
 
     useEffect(() => {
 
@@ -38,10 +33,6 @@ export default function DeclareTournamentResult() {
 
     }, []);
 
-
-    /* =========================
-    LOAD TOURNAMENTS
-    ========================= */
 
     const loadTournaments = async () => {
 
@@ -59,8 +50,7 @@ export default function DeclareTournamentResult() {
 
             setTournaments(closed);
 
-        }
-        catch {
+        } catch {
 
             setError("Tournament load failed");
 
@@ -69,135 +59,60 @@ export default function DeclareTournamentResult() {
     };
 
 
-    /* =========================
-    LOAD RESULTS
-    ========================= */
-
     const loadResults = async () => {
 
         try {
 
             const res =
                 await axios.get(
-
                     `${BACKEND}/api/funds/tournament-results`
-
                 );
 
             setResults(res.data);
 
-        }
-        catch { }
+        } catch { }
 
     };
 
-
-    /* =========================
-    LOAD TEAMS
-    ========================= */
-
-    const loadTeams = async (id) => {
-
-        if (!id) {
-
-            setTeams([]);
-            return;
-
-        }
-
-        try {
-
-            const res =
-                await axios.get(
-
-                    `${BACKEND}/api/funds/tournament-boards/${id}`
-
-                );
-
-            console.log("Teams:", res.data);
-
-            setTeams(res.data || []);
-
-        }
-        catch (err) {
-
-            console.log("Team load error", err);
-
-            setTeams([]);
-
-        }
-
-    };
-
-
-    /* =========================
-    HANDLE CHANGE
-    ========================= */
 
     const handleChange = (e) => {
 
-        const { name, value } = e.target;
+        setForm({
 
-        setForm(prev => ({
+            ...form,
+            [e.target.name]: e.target.value
 
-            ...prev,
-            [name]: value
-
-        }));
-
-        if (name === "tournament_id") {
-
-            loadTeams(value);
-
-            /* RESET SELECTION */
-
-            setForm({
-
-                tournament_id: value,
-                winner_team: "",
-                runner_team: ""
-
-            });
-
-        }
+        });
 
     };
 
-
-    /* =========================
-    VALIDATION
-    ========================= */
 
     const validate = () => {
 
         if (!form.tournament_id)
-            return "Select tournament";
+            return "Tournament required";
 
-        if (teams.length === 0)
-            return "No teams registered in this tournament";
+        if (!form.winner_team.trim())
+            return "Winner team required";
 
-        if (!form.winner_team)
-            return "Select winner";
+        if (!form.runner_team.trim())
+            return "Runner team required";
 
-        if (!form.runner_team)
-            return "Select runner";
-
-        if (form.winner_team === form.runner_team)
-            return "Winner and Runner cannot be same";
+        if (
+            form.winner_team.toLowerCase() ===
+            form.runner_team.toLowerCase()
+        )
+            return "Winner & Runner cannot match";
 
         return null;
 
     };
 
 
-    /* =========================
-    DECLARE RESULT
-    ========================= */
-
     const declareResult = async () => {
 
         setError("");
-        setSuccess(null);
+        setSuccess("");
 
         const v = validate();
 
@@ -212,15 +127,14 @@ export default function DeclareTournamentResult() {
 
             setLoading(true);
 
-            const res =
-                await axios.post(
+            await axios.post(
 
-                    `${BACKEND}/api/funds/declare-result`,
-                    form
+                `${BACKEND}/api/funds/declare-result`,
+                form
 
-                );
+            );
 
-            setSuccess("Rewards distributed successfully");
+            setSuccess("Reward distributed successfully");
 
             loadResults();
 
@@ -232,10 +146,7 @@ export default function DeclareTournamentResult() {
 
             });
 
-            setTeams([]);
-
-        }
-        catch (err) {
+        } catch (err) {
 
             setError(
 
@@ -250,10 +161,6 @@ export default function DeclareTournamentResult() {
 
     };
 
-
-    /* =========================
-    UI
-    ========================= */
 
     return (
 
@@ -277,14 +184,13 @@ export default function DeclareTournamentResult() {
 
                     <div className="declareSub">
 
-                        Declare result → system distributes rewards automatically.
+                        Declare champion & runner manually.
+                        System distributes rewards automatically.
 
                     </div>
 
 
                     <div className="formGrid">
-
-                        {/* TOURNAMENT */}
 
                         <select
 
@@ -304,10 +210,8 @@ export default function DeclareTournamentResult() {
                             {tournaments.map(t => (
 
                                 <option
-
                                     key={t.tournament_id}
                                     value={t.tournament_id}
-
                                 >
 
                                     {t.tournament_name}
@@ -319,98 +223,43 @@ export default function DeclareTournamentResult() {
                         </select>
 
 
-                        {/* WINNER */}
-
-                        <select
+                        <input
 
                             name="winner_team"
                             value={form.winner_team}
                             onChange={handleChange}
+                            placeholder="Enter Winner Team Name"
                             className="inputBox"
-
-                        >
-
-                            <option value="">
-
-                                Select Winner Team
-
-                            </option>
-
-                            {teams.map(t => (
-
-                                <option
-
-                                    key={t.team_name}
-                                    value={t.team_name}
-
-                                >
-
-                                    {t.team_name}
-
-                                </option>
-
-                            ))}
-
-                        </select>
+                        />
 
 
-                        {/* RUNNER */}
-
-                        <select
+                        <input
 
                             name="runner_team"
                             value={form.runner_team}
                             onChange={handleChange}
+                            placeholder="Enter Runner Team Name"
                             className="inputBox"
-
-                        >
-
-                            <option value="">
-
-                                Select Runner Team
-
-                            </option>
-
-                            {teams.map(t => (
-
-                                <option
-
-                                    key={t.team_name}
-                                    value={t.team_name}
-
-                                >
-
-                                    {t.team_name}
-
-                                </option>
-
-                            ))}
-
-                        </select>
+                        />
 
                     </div>
 
-
-                    {/* ERROR */}
 
                     {error && (
 
                         <div className="errorBox">
 
-                            {error}
+                            ⚠ {error}
 
                         </div>
 
                     )}
 
-
-                    {/* SUCCESS */}
-
                     {success && (
 
                         <div className="successBox">
 
-                            {success}
+                            ✔ {success}
 
                         </div>
 
@@ -426,9 +275,13 @@ export default function DeclareTournamentResult() {
                     >
 
                         {loading ?
-                            "Distributing..."
+
+                            "Processing..."
+
                             :
+
                             "Declare Result"
+
                         }
 
                     </button>
@@ -438,8 +291,6 @@ export default function DeclareTournamentResult() {
             )}
 
 
-
-            {/* RESULTS TABLE */}
 
             <div className="historyCard">
 
@@ -476,13 +327,14 @@ export default function DeclareTournamentResult() {
 
                                     <td colSpan="6">
 
-                                        No results declared yet
+                                        No results declared
 
                                     </td>
 
                                 </tr>
 
                             )}
+
 
                             {results.map(r => (
 
@@ -508,20 +360,18 @@ export default function DeclareTournamentResult() {
 
                                     <td className="creditText">
 
-                                        CE$ {Number(
-
+                                        CE$
+                                        {Number(
                                             r.winner_reward
-
                                         ).toLocaleString()}
 
                                     </td>
 
                                     <td>
 
-                                        CE$ {Number(
-
+                                        CE$
+                                        {Number(
                                             r.runner_reward
-
                                         ).toLocaleString()}
 
                                     </td>
