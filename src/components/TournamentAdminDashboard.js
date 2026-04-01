@@ -72,6 +72,31 @@ export default function TournamentAdminDashboard() {
 
 
     const closeTournament = async (id) => {
+        const deleteTournament = async (id) => {
+
+            if (!window.confirm(
+                "Remove this tournament permanently?"
+            )) return;
+
+            try {
+
+                await axios.delete(
+
+                    `${BACKEND}/api/funds/delete-tournament/${id}`
+
+                );
+
+                loadTournaments();
+
+                alert("Tournament removed");
+
+            } catch (err) {
+
+                console.log(err);
+
+            }
+
+        };
 
         if (!window.confirm(
             "Close this tournament?"
@@ -165,20 +190,41 @@ export default function TournamentAdminDashboard() {
 
                                 <td>
 
-                                    <span className={
-                                        "status " +
-                                        (t.tournament_status === "REGISTRATION_OPEN"
-                                            ? "Stable"
-                                            : "Weak")
-                                    }>
+                                    {t.tournament_status === "REGISTRATION_OPEN" && (
 
-                                        {t.tournament_status}
+                                        <span className="status stable">
+                                            RUNNING
+                                        </span>
 
-                                    </span>
+                                    )}
+
+                                    {t.tournament_status === "REGISTRATION_CLOSED" && (
+
+                                        <span className="status weak">
+                                            CLOSED
+                                        </span>
+
+                                    )}
+
+                                    {t.tournament_status === "COMPLETED" && (
+
+                                        <span className="status strong">
+                                            COMPLETED
+                                        </span>
+
+                                    )}
+
+                                    {t.tournament_status === "CANCELLED" && (
+
+                                        <span className="failedStatus">
+                                            CANCELLED
+                                        </span>
+
+                                    )}
 
                                 </td>
 
-                                <td>
+                                <td className="registrationActions">
 
                                     <button
 
@@ -195,29 +241,45 @@ export default function TournamentAdminDashboard() {
 
                                     </button>
 
+                                    {t.tournament_status === "REGISTRATION_OPEN" && (
 
-                                    {t.tournament_status === "REGISTRATION_OPEN"
-                                        && (
+                                        <button
 
-                                            <button
+                                            className="manage-btn delete-btn"
 
-                                                className="manage-btn delete-btn"
+                                            onClick={() =>
+                                                closeTournament(
+                                                    t.tournament_id
+                                                )}
 
-                                                onClick={() =>
-                                                    closeTournament(
-                                                        t.tournament_id
-                                                    )}
+                                        >
 
-                                            >
+                                            Close
 
-                                                Close
+                                        </button>
 
-                                            </button>
+                                    )}
 
-                                        )}
+                                    {t.tournament_status !== "REGISTRATION_OPEN" && (
+
+                                        <button
+
+                                            className="manage-btn delete-btn"
+
+                                            onClick={() =>
+                                                deleteTournament(
+                                                    t.tournament_id
+                                                )}
+
+                                        >
+
+                                            Remove
+
+                                        </button>
+
+                                    )}
 
                                 </td>
-
                             </tr>
 
                         ))}
