@@ -20,14 +20,16 @@ export default function DeclareTournamentResult() {
     });
 
     const [loading, setLoading] = useState(false);
-    const [success, setSuccess] = useState(null);
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState(null);
 
     const isAdmin =
         localStorage.getItem("isAdmin") === "true";
 
 
-    /* LOAD DATA */
+    /* =========================
+    LOAD INITIAL DATA
+    ========================= */
 
     useEffect(() => {
 
@@ -37,7 +39,9 @@ export default function DeclareTournamentResult() {
     }, []);
 
 
-    /* LOAD TOURNAMENTS */
+    /* =========================
+    LOAD TOURNAMENTS
+    ========================= */
 
     const loadTournaments = async () => {
 
@@ -65,7 +69,9 @@ export default function DeclareTournamentResult() {
     };
 
 
-    /* LOAD RESULTS */
+    /* =========================
+    LOAD RESULTS
+    ========================= */
 
     const loadResults = async () => {
 
@@ -86,11 +92,18 @@ export default function DeclareTournamentResult() {
     };
 
 
-    /* LOAD TEAMS */
+    /* =========================
+    LOAD TEAMS
+    ========================= */
 
     const loadTeams = async (id) => {
 
-        if (!id) return;
+        if (!id) {
+
+            setTeams([]);
+            return;
+
+        }
 
         try {
 
@@ -103,38 +116,44 @@ export default function DeclareTournamentResult() {
 
             console.log("Teams:", res.data);
 
-            setTeams(res.data);
+            setTeams(res.data || []);
 
         }
         catch (err) {
 
             console.log("Team load error", err);
 
+            setTeams([]);
+
         }
 
     };
 
 
-    /* HANDLE CHANGE */
+    /* =========================
+    HANDLE CHANGE
+    ========================= */
 
     const handleChange = (e) => {
 
-        setForm({
+        const { name, value } = e.target;
 
-            ...form,
-            [e.target.name]: e.target.value
+        setForm(prev => ({
 
-        });
+            ...prev,
+            [name]: value
 
-        if (e.target.name === "tournament_id") {
+        }));
 
-            loadTeams(e.target.value);
+        if (name === "tournament_id") {
 
-            /* RESET TEAMS */
+            loadTeams(value);
+
+            /* RESET SELECTION */
 
             setForm({
 
-                tournament_id: e.target.value,
+                tournament_id: value,
                 winner_team: "",
                 runner_team: ""
 
@@ -145,12 +164,17 @@ export default function DeclareTournamentResult() {
     };
 
 
-    /* VALIDATION */
+    /* =========================
+    VALIDATION
+    ========================= */
 
     const validate = () => {
 
         if (!form.tournament_id)
             return "Select tournament";
+
+        if (teams.length === 0)
+            return "No teams registered in this tournament";
 
         if (!form.winner_team)
             return "Select winner";
@@ -159,18 +183,21 @@ export default function DeclareTournamentResult() {
             return "Select runner";
 
         if (form.winner_team === form.runner_team)
-            return "Winner & Runner cannot match";
+            return "Winner and Runner cannot be same";
 
         return null;
 
     };
 
 
-    /* DECLARE RESULT */
+    /* =========================
+    DECLARE RESULT
+    ========================= */
 
     const declareResult = async () => {
 
         setError("");
+        setSuccess(null);
 
         const v = validate();
 
@@ -193,7 +220,7 @@ export default function DeclareTournamentResult() {
 
                 );
 
-            setSuccess(res.data);
+            setSuccess("Rewards distributed successfully");
 
             loadResults();
 
@@ -224,6 +251,10 @@ export default function DeclareTournamentResult() {
     };
 
 
+    /* =========================
+    UI
+    ========================= */
+
     return (
 
         <div className="declarePage">
@@ -252,6 +283,8 @@ export default function DeclareTournamentResult() {
 
 
                     <div className="formGrid">
+
+                        {/* TOURNAMENT */}
 
                         <select
 
@@ -286,13 +319,14 @@ export default function DeclareTournamentResult() {
                         </select>
 
 
+                        {/* WINNER */}
+
                         <select
 
                             name="winner_team"
                             value={form.winner_team}
                             onChange={handleChange}
                             className="inputBox"
-                            size="5"
 
                         >
 
@@ -320,13 +354,14 @@ export default function DeclareTournamentResult() {
                         </select>
 
 
+                        {/* RUNNER */}
+
                         <select
 
                             name="runner_team"
                             value={form.runner_team}
                             onChange={handleChange}
                             className="inputBox"
-                            size="5"
 
                         >
 
@@ -356,11 +391,26 @@ export default function DeclareTournamentResult() {
                     </div>
 
 
+                    {/* ERROR */}
+
                     {error && (
 
                         <div className="errorBox">
 
                             {error}
+
+                        </div>
+
+                    )}
+
+
+                    {/* SUCCESS */}
+
+                    {success && (
+
+                        <div className="successBox">
+
+                            {success}
 
                         </div>
 
@@ -389,7 +439,7 @@ export default function DeclareTournamentResult() {
 
 
 
-            {/* RESULTS */}
+            {/* RESULTS TABLE */}
 
             <div className="historyCard">
 
@@ -419,6 +469,20 @@ export default function DeclareTournamentResult() {
                         </thead>
 
                         <tbody>
+
+                            {results.length === 0 && (
+
+                                <tr>
+
+                                    <td colSpan="6">
+
+                                        No results declared yet
+
+                                    </td>
+
+                                </tr>
+
+                            )}
 
                             {results.map(r => (
 
