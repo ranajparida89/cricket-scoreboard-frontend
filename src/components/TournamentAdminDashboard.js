@@ -22,17 +22,12 @@ export default function TournamentAdminDashboard() {
         loadTournaments();
 
         /* ADMIN CHECK */
-        const userData = localStorage.getItem("user");
 
-        if (userData) {
+        const adminToken = localStorage.getItem("admin_jwt");
 
-            const user = JSON.parse(userData);
+        if (adminToken) {
 
-            if (user.role === "admin") {
-
-                setIsAdmin(true);
-
-            }
+            setIsAdmin(true);
 
         }
 
@@ -96,7 +91,13 @@ export default function TournamentAdminDashboard() {
 
             await axios.put(
 
-                `${BACKEND}/api/funds/close-tournament/${id}`
+                `${BACKEND}/api/funds/close-tournament/${id}`,
+
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("admin_jwt")}`
+                    }
+                }
 
             );
 
@@ -113,17 +114,20 @@ export default function TournamentAdminDashboard() {
 
     };
 
-    const deleteTournament = async (id) => {
 
-        if (!window.confirm(
-            "Remove this tournament permanently?"
-        )) return;
+    const deleteTournament = async (id) => {
 
         try {
 
             await axios.delete(
 
-                `${BACKEND}/api/funds/delete-tournament/${id}`
+                `${BACKEND}/api/funds/delete-tournament/${id}`,
+
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("admin_jwt")}`
+                    }
+                }
 
             );
 
