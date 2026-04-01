@@ -22,14 +22,17 @@ export default function TournamentAdminDashboard() {
         loadTournaments();
 
         /* ADMIN CHECK */
+        const userData = localStorage.getItem("user");
 
-        const token = localStorage.getItem("token");
+        if (userData) {
 
-        const role = localStorage.getItem("role");
+            const user = JSON.parse(userData);
 
-        if (role === "admin") {
+            if (user.role === "admin") {
 
-            setIsAdmin(true);
+                setIsAdmin(true);
+
+            }
 
         }
 
