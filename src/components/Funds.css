@@ -1063,3 +1063,91 @@ Enterprise Finance UI
     line-height: 1.5;
 
 }
+
+/* MOBILE CARD MODE */
+
+.mobileOnly {
+
+    display: none;
+
+}
+
+.desktopOnly {
+
+    display: block;
+
+}
+
+.tournamentCard {
+
+    background: #0f172a;
+
+    padding: 16px;
+
+    border-radius: 12px;
+
+    margin-bottom: 15px;
+
+    border: 1px solid #243041;
+
+}
+
+.cardRow {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    margin-bottom: 8px;
+
+    font-size: 14px;
+
+}
+
+.cardButtons {
+
+    display: flex;
+
+    gap: 10px;
+
+    margin-top: 10px;
+
+}
+
+.cardButtons button {
+
+    flex: 1;
+
+}
+
+/* MOBILE SWITCH */
+
+@media(max-width:768px) {
+
+    .desktopOnly {
+
+        display: none;
+
+    }
+
+    .mobileOnly {
+
+        display: block;
+
+    }
+
+    .cardButtons {
+
+        flex-direction: column;
+
+    }
+
+    .yesBtn,
+    .noBtn {
+
+        width: 100%;
+        padding: 12px;
+
+    }
+
+}

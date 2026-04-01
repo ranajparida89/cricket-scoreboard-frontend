@@ -359,7 +359,9 @@ export default function TournamentRegistration() {
 
             )}
 
-            <div className="tableContainer">
+            {/* DESKTOP TABLE */}
+
+            <div className="tableContainer desktopOnly">
 
                 <table className="txTable">
 
@@ -419,6 +421,7 @@ export default function TournamentRegistration() {
                                     </button>
 
                                 </td>
+
                             </tr>
 
                         ))}
@@ -429,6 +432,86 @@ export default function TournamentRegistration() {
 
             </div>
 
+
+            {/* MOBILE CARD VIEW */}
+
+            <div className="mobileOnly">
+
+                {(tournaments || []).map(t => (
+
+                    <div key={t.tournament_id} className="tournamentCard">
+
+                        <div className="cardRow">
+
+                            <span className="cardLabel">
+                                Tournament
+                            </span>
+
+                            <span className="cardValue">
+                                {t.tournament_name}
+                            </span>
+
+                        </div>
+
+                        <div className="cardRow">
+
+                            <span className="cardLabel">
+                                Type
+                            </span>
+
+                            <span className="cardValue">
+                                {t.tournament_type}
+                            </span>
+
+                        </div>
+
+                        <div className="cardRow">
+
+                            <span className="cardLabel">
+                                Entry Fee
+                            </span>
+
+                            <span className="cardValue fee">
+
+                                CE$ {t.entry_fee}
+
+                            </span>
+
+                        </div>
+
+                        <div className="cardButtons">
+
+                            <button
+
+                                onClick={() => interested(t)}
+                                className="yesBtn"
+                                disabled={!boardId || responses[t.tournament_id]}
+
+                            >
+
+                                YES
+
+                            </button>
+
+                            <button
+
+                                onClick={() => notInterested(t)}
+                                className="noBtn"
+                                disabled={!boardId || responses[t.tournament_id]}
+
+                            >
+
+                                NO
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                ))}
+
+            </div>
             {showPopup && selected && (
 
                 <div className="infoOverlay">
