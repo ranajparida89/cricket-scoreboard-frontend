@@ -228,35 +228,25 @@ export default function TournamentAdminDashboard() {
                                 <td className="registrationActions">
 
                                     <button
-
-                                        className="manage-btn add-btn"
-
+                                        className="manage-btn view-btn"
                                         onClick={() =>
                                             loadBoards(
                                                 t.tournament_id
                                             )}
-
                                     >
-
                                         View Boards
-
                                     </button>
 
                                     {t.tournament_status === "REGISTRATION_OPEN" && (
 
                                         <button
-
-                                            className="manage-btn delete-btn"
-
+                                            className="manage-btn close-btn"
                                             onClick={() =>
                                                 closeTournament(
                                                     t.tournament_id
                                                 )}
-
                                         >
-
-                                            Close
-
+                                            Close Registration
                                         </button>
 
                                     )}
@@ -264,18 +254,24 @@ export default function TournamentAdminDashboard() {
                                     {t.tournament_status !== "REGISTRATION_OPEN" && (
 
                                         <button
+                                            className="manage-btn remove-btn"
+                                            onClick={() => {
 
-                                            className="manage-btn delete-btn"
+                                                if (
+                                                    window.confirm(
+                                                        "ADMIN ACTION:\n\nThis will permanently remove the tournament record.\n\nThis cannot be undone.\n\nProceed?"
+                                                    )
+                                                ) {
 
-                                            onClick={() =>
-                                                deleteTournament(
-                                                    t.tournament_id
-                                                )}
+                                                    deleteTournament(
+                                                        t.tournament_id
+                                                    );
 
+                                                }
+
+                                            }}
                                         >
-
-                                            Remove
-
+                                            Archive
                                         </button>
 
                                     )}

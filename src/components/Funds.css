@@ -1151,3 +1151,71 @@ Enterprise Finance UI
     }
 
 }
+
+.deleteBtn {
+
+    background: #ff4444;
+
+    border: none;
+
+    color: white;
+
+    padding: 8px 14px;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    margin-left: 10px;
+
+}
+
+.deleteBtn:hover {
+
+    background: #cc0000;
+
+}
+
+.runningTag {
+
+    background: #16c784;
+
+    color: white;
+
+    padding: 5px 10px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+}
+
+.view-btn {
+
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+
+}
+
+.close-btn {
+
+    background: linear-gradient(135deg, #f7971e, #ffd200);
+
+    color: black;
+
+}
+
+.remove-btn {
+
+    background: linear-gradient(135deg, #ff416c, #ff4b2b);
+
+}
+
+.remove-btn:hover {
+
+    background: linear-gradient(135deg, #ff1e56, #ff0000);
+
+    transform: scale(1.05);
+
+}
