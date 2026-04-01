@@ -76,6 +76,7 @@ import TournamentInterestLog from "./components/TournamentInterestLog";
 import TournamentAdminDashboard from "./components/TournamentAdminDashboard";
 import MatchRewardsAudit from "./components/MatchRewardsAudit";
 import FundsAlerts from "./components/FundsAlerts";
+import DeclareTournamentResult from "./components/DeclareTournamentResult";
 import Super8Fixture from "./components/Super8Fixture";
 
 
@@ -376,6 +377,16 @@ function App() {
               <ProtectedRoute>
                 <PageWrapper>
                   <TournamentAdminDashboard />
+                </PageWrapper>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/declare-result"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <DeclareTournamentResult />
                 </PageWrapper>
               </ProtectedRoute>
             }

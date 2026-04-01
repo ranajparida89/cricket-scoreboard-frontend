@@ -216,6 +216,30 @@ const SidebarMenu = () => {
                 </Link>
               </li>
 
+              {isAdmin && (
+
+                <li>
+
+                  <Link
+                    to="/admin/declare-result"
+                    onClick={handleClose}
+                    style={{
+                      color: "#FFD700",
+                      fontWeight: "bold",
+                      background: "rgba(255,215,0,.08)",
+                      borderLeft: "4px solid #FFD700",
+                      paddingLeft: "10px"
+                    }}
+                  >
+
+                    🏆 Declare Tournament Result
+
+                  </Link>
+
+                </li>
+
+              )}
+
               <li>
                 <Link to="/tournament-points" onClick={handleClose}>
                   Tournament Points
