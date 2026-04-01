@@ -11,6 +11,7 @@ export default function TournamentAdminDashboard() {
     const [tournaments, setTournaments] = useState([]);
     const [selected, setSelected] = useState(null);
     const [boards, setBoards] = useState([]);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     const BACKEND =
         "https://cricket-scoreboard-backend.onrender.com";
@@ -20,8 +21,17 @@ export default function TournamentAdminDashboard() {
 
         loadTournaments();
 
-    }, []);
+        /* CHECK ADMIN ROLE */
 
+        const user = JSON.parse(localStorage.getItem("user"));
+
+        if (user && user.role === "admin") {
+
+            setIsAdmin(true);
+
+        }
+
+    }, []);
 
     const loadTournaments = async () => {
 
@@ -237,7 +247,9 @@ export default function TournamentAdminDashboard() {
                                         View Boards
                                     </button>
 
-                                    {t.tournament_status === "REGISTRATION_OPEN" && (
+                                    {/* ADMIN ONLY CONTROLS */}
+
+                                    {isAdmin && t.tournament_status === "REGISTRATION_OPEN" && (
 
                                         <button
                                             className="manage-btn close-btn"
@@ -251,7 +263,7 @@ export default function TournamentAdminDashboard() {
 
                                     )}
 
-                                    {t.tournament_status !== "REGISTRATION_OPEN" && (
+                                    {isAdmin && t.tournament_status !== "REGISTRATION_OPEN" && (
 
                                         <button
                                             className="manage-btn remove-btn"
