@@ -1,17 +1,14 @@
-import React,
-{ useEffect, useState }
-    from "react";
-
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-
 import "./DeclareTournamentResult.css";
 
 export default function DeclareTournamentResult() {
 
-    const BACKEND =
-        "https://cricket-scoreboard-backend.onrender.com";
+    const BACKEND = "https://cricket-scoreboard-backend.onrender.com";
 
     const [tournaments, setTournaments] = useState([]);
+    const [teams, setTeams] = useState([]);
+    const [results, setResults] = useState([]);
 
     const [form, setForm] = useState({
 
@@ -22,22 +19,22 @@ export default function DeclareTournamentResult() {
     });
 
     const [loading, setLoading] = useState(false);
-
     const [success, setSuccess] = useState(null);
-
-    const [error, setError] = useState("");
+    const [error, setError] = "";
 
     const isAdmin =
         localStorage.getItem("isAdmin") === "true";
 
+    /* LOAD DATA */
+
     useEffect(() => {
 
         loadTournaments();
+        loadResults();
 
     }, []);
 
-
-    /* LOAD CLOSED TOURNAMENTS */
+    /* TOURNAMENT LIST */
 
     const loadTournaments = async () => {
 
@@ -58,14 +55,55 @@ export default function DeclareTournamentResult() {
         }
         catch {
 
-            setError("Failed loading tournaments");
+            setError("Tournament load failed");
 
         }
 
     };
 
+    /* RESULTS HISTORY */
 
-    /* HANDLE INPUT */
+    const loadResults = async () => {
+
+        try {
+
+            const res =
+                await axios.get(
+
+                    `${BACKEND}/api/funds/tournament-results`
+
+                );
+
+            setResults(res.data);
+
+        }
+        catch { }
+
+    };
+
+    /* LOAD TEAMS */
+
+    const loadTeams = async (id) => {
+
+        if (!id) return;
+
+        try {
+
+            const res =
+                await axios.get(
+
+                    `${BACKEND}/api/funds/tournament-boards/${id}`
+
+                );
+
+            setTeams(res.data);
+
+        }
+        catch { }
+
+    };
+
+    /* CHANGE */
 
     const handleChange = (e) => {
 
@@ -76,8 +114,13 @@ export default function DeclareTournamentResult() {
 
         });
 
-    };
+        if (e.target.name === "tournament_id") {
 
+            loadTeams(e.target.value);
+
+        }
+
+    };
 
     /* VALIDATION */
 
@@ -87,20 +130,19 @@ export default function DeclareTournamentResult() {
             return "Select tournament";
 
         if (!form.winner_team)
-            return "Enter winner team";
+            return "Select winner";
 
         if (!form.runner_team)
-            return "Enter runner team";
+            return "Select runner";
 
         if (form.winner_team === form.runner_team)
-            return "Winner & Runner cannot be same";
+            return "Winner & Runner cannot match";
 
         return null;
 
     };
 
-
-    /* DECLARE RESULT */
+    /* DECLARE */
 
     const declareResult = async () => {
 
@@ -124,25 +166,13 @@ export default function DeclareTournamentResult() {
                 await axios.post(
 
                     `${BACKEND}/api/funds/declare-result`,
-
                     form
 
                 );
 
-            setSuccess({
+            setSuccess(res.data);
 
-                tournament:
-                    tournaments.find(
-                        t => t.tournament_id === form.tournament_id
-                    )?.tournament_name,
-
-                winner:
-                    form.winner_team,
-
-                runner:
-                    form.runner_team
-
-            });
+            loadResults();
 
             setForm({
 
@@ -158,7 +188,6 @@ export default function DeclareTournamentResult() {
             setError(
 
                 err.response?.data?.error ||
-
                 "Distribution failed"
 
             );
@@ -169,224 +198,225 @@ export default function DeclareTournamentResult() {
 
     };
 
-
-    /* ADMIN BLOCK */
-
-    if (!isAdmin) {
-
-        return (
-
-            <div className="declarePage">
-
-                <div className="noAccess">
-
-                    Admin access required
-
-                </div>
-
-            </div>
-
-        );
-
-    }
-
-
     return (
 
         <div className="declarePage">
 
-            <div className="declareCard">
+            {/* ADMIN PANEL */}
 
-                <div className="declareHeader">
+            {isAdmin && (
 
-                    🏆 Tournament Result Declaration
+                <div className="declareCard">
 
-                </div>
+                    <div className="declareHeader">
 
-                <div className="declareSub">
+                        🏆 Result Control Panel
 
-                    Declare winner & runner.
-                    System will automatically distribute rewards.
+                        <span className="adminBadge">
+                            ADMIN CONTROL
+                        </span>
 
-                </div>
+                    </div>
 
+                    <div className="declareSub">
 
-                <div className="formGrid">
+                        Declare result → system distributes rewards automatically.
 
-                    <select
+                    </div>
 
-                        name="tournament_id"
+                    <div className="formGrid">
 
-                        value={form.tournament_id}
+                        <select
 
-                        onChange={handleChange}
+                            name="tournament_id"
+                            value={form.tournament_id}
+                            onChange={handleChange}
+                            className="inputBox"
 
-                        className="inputBox"
+                        >
+
+                            <option value="">
+                                Select Tournament
+                            </option>
+
+                            {tournaments.map(t => (
+
+                                <option
+                                    key={t.tournament_id}
+                                    value={t.tournament_id}
+                                >
+
+                                    {t.tournament_name}
+
+                                </option>
+
+                            ))}
+
+                        </select>
+
+                        <select
+
+                            name="winner_team"
+                            value={form.winner_team}
+                            onChange={handleChange}
+                            className="inputBox"
+
+                        >
+
+                            <option>
+                                Select Winner Team
+                            </option>
+
+                            {teams.map(t => (
+
+                                <option
+                                    key={t.board_id}
+                                    value={t.board_name}
+                                >
+
+                                    {t.board_name}
+
+                                </option>
+
+                            ))}
+
+                        </select>
+
+                        <select
+
+                            name="runner_team"
+                            value={form.runner_team}
+                            onChange={handleChange}
+                            className="inputBox"
+
+                        >
+
+                            <option>
+                                Select Runner Team
+                            </option>
+
+                            {teams.map(t => (
+
+                                <option
+                                    key={t.board_id}
+                                    value={t.board_name}
+                                >
+
+                                    {t.board_name}
+
+                                </option>
+
+                            ))}
+
+                        </select>
+
+                    </div>
+
+                    {error && (
+                        <div className="errorBox">
+                            {error}
+                        </div>
+                    )}
+
+                    <button
+
+                        onClick={declareResult}
+                        className="declareBtn"
+                        disabled={loading}
 
                     >
 
-                        <option value="">
+                        {loading ?
+                            "Distributing..."
+                            :
+                            "Declare Result"
+                        }
 
-                            Select Tournament
-
-                        </option>
-
-                        {tournaments.map(t => (
-
-                            <option
-
-                                key={t.tournament_id}
-
-                                value={t.tournament_id}
-
-                            >
-
-                                {t.tournament_name}
-
-                            </option>
-
-                        ))}
-
-                    </select>
-
-
-                    <input
-
-                        className="inputBox"
-
-                        placeholder="Winner Team"
-
-                        name="winner_team"
-
-                        value={form.winner_team}
-
-                        onChange={handleChange}
-
-                    />
-
-
-                    <input
-
-                        className="inputBox"
-
-                        placeholder="Runner Team"
-
-                        name="runner_team"
-
-                        value={form.runner_team}
-
-                        onChange={handleChange}
-
-                    />
+                    </button>
 
                 </div>
 
+            )}
 
-                {error && (
+            {/* RESULTS HISTORY */}
 
-                    <div className="errorBox">
+            <div className="historyCard">
 
-                        {error}
+                <div className="historyTitle">
 
-                    </div>
+                    🏆 Tournament Results
 
-                )}
+                </div>
 
+                <div className="tableContainer">
 
-                <button
+                    <table className="txTable">
 
-                    onClick={declareResult}
+                        <thead>
 
-                    disabled={loading}
+                            <tr>
 
-                    className="declareBtn"
+                                <th>Tournament</th>
+                                <th>Champion</th>
+                                <th>Runner</th>
+                                <th>Winner Reward</th>
+                                <th>Runner Reward</th>
+                                <th>Date</th>
 
-                >
+                            </tr>
 
-                    {loading ?
+                        </thead>
 
-                        "Processing Distribution..."
+                        <tbody>
 
-                        :
+                            {results.map(r => (
 
-                        "Declare Result & Distribute Rewards"
+                                <tr key={r.result_id}>
 
-                    }
+                                    <td>
+                                        {r.tournament_name}
+                                    </td>
 
-                </button>
+                                    <td className="winnerText">
+                                        🏆 {r.winner_team}
+                                    </td>
 
+                                    <td className="runnerText">
+                                        🥈 {r.runner_team}
+                                    </td>
 
-                {success && (
+                                    <td className="creditText">
 
-                    <div className="successPanel">
+                                        CE$ {Number(
+                                            r.winner_reward
+                                        ).toLocaleString()}
 
-                        <div className="successTitle">
+                                    </td>
 
-                            Result Declared Successfully
+                                    <td>
 
-                        </div>
+                                        CE$ {Number(
+                                            r.runner_reward
+                                        ).toLocaleString()}
 
-                        <div className="resultGrid">
+                                    </td>
 
-                            <div className="winnerCard">
+                                    <td>
 
-                                <div className="medal">
+                                        {r.distributed_at?.
+                                            substring(0, 10)}
 
-                                    🏆
+                                    </td>
 
-                                </div>
+                                </tr>
 
-                                <div className="teamName">
+                            ))}
 
-                                    {success.winner}
+                        </tbody>
 
-                                </div>
+                    </table>
 
-                                <div className="label">
-
-                                    Champion
-
-                                </div>
-
-                            </div>
-
-
-                            <div className="runnerCard">
-
-                                <div className="medal">
-
-                                    🥈
-
-                                </div>
-
-                                <div className="teamName">
-
-                                    {success.runner}
-
-                                </div>
-
-                                <div className="label">
-
-                                    Runner
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-                        <div className="successTournament">
-
-                            Tournament :
-
-                            {success.tournament}
-
-                        </div>
-
-                    </div>
-
-                )}
+                </div>
 
             </div>
 
