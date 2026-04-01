@@ -72,31 +72,6 @@ export default function TournamentAdminDashboard() {
 
 
     const closeTournament = async (id) => {
-        const deleteTournament = async (id) => {
-
-            if (!window.confirm(
-                "Remove this tournament permanently?"
-            )) return;
-
-            try {
-
-                await axios.delete(
-
-                    `${BACKEND}/api/funds/delete-tournament/${id}`
-
-                );
-
-                loadTournaments();
-
-                alert("Tournament removed");
-
-            } catch (err) {
-
-                console.log(err);
-
-            }
-
-        };
 
         if (!window.confirm(
             "Close this tournament?"
@@ -123,6 +98,32 @@ export default function TournamentAdminDashboard() {
 
     };
 
+    const deleteTournament = async (id) => {
+
+        if (!window.confirm(
+            "Remove this tournament permanently?"
+        )) return;
+
+        try {
+
+            await axios.delete(
+
+                `${BACKEND}/api/funds/delete-tournament/${id}`
+
+            );
+
+            loadTournaments();
+
+            alert("Tournament removed");
+
+        }
+        catch (err) {
+
+            console.log(err);
+
+        }
+
+    };
 
     return (
 
