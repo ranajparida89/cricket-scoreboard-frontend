@@ -4,7 +4,8 @@ import "./DeclareTournamentResult.css";
 
 export default function DeclareTournamentResult() {
 
-    const BACKEND = "https://cricket-scoreboard-backend.onrender.com";
+    const BACKEND =
+        "https://cricket-scoreboard-backend.onrender.com";
 
     const [tournaments, setTournaments] = useState([]);
     const [teams, setTeams] = useState([]);
@@ -20,10 +21,11 @@ export default function DeclareTournamentResult() {
 
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(null);
-    const [error, setError] = "";
+    const [error, setError] = useState("");
 
     const isAdmin =
         localStorage.getItem("isAdmin") === "true";
+
 
     /* LOAD DATA */
 
@@ -34,7 +36,8 @@ export default function DeclareTournamentResult() {
 
     }, []);
 
-    /* TOURNAMENT LIST */
+
+    /* LOAD TOURNAMENTS */
 
     const loadTournaments = async () => {
 
@@ -61,7 +64,8 @@ export default function DeclareTournamentResult() {
 
     };
 
-    /* RESULTS HISTORY */
+
+    /* LOAD RESULTS */
 
     const loadResults = async () => {
 
@@ -81,6 +85,7 @@ export default function DeclareTournamentResult() {
 
     };
 
+
     /* LOAD TEAMS */
 
     const loadTeams = async (id) => {
@@ -96,14 +101,21 @@ export default function DeclareTournamentResult() {
 
                 );
 
+            console.log("Teams:", res.data);
+
             setTeams(res.data);
 
         }
-        catch { }
+        catch (err) {
+
+            console.log("Team load error", err);
+
+        }
 
     };
 
-    /* CHANGE */
+
+    /* HANDLE CHANGE */
 
     const handleChange = (e) => {
 
@@ -118,9 +130,20 @@ export default function DeclareTournamentResult() {
 
             loadTeams(e.target.value);
 
+            /* RESET TEAMS */
+
+            setForm({
+
+                tournament_id: e.target.value,
+                winner_team: "",
+                runner_team: ""
+
+            });
+
         }
 
     };
+
 
     /* VALIDATION */
 
@@ -142,7 +165,8 @@ export default function DeclareTournamentResult() {
 
     };
 
-    /* DECLARE */
+
+    /* DECLARE RESULT */
 
     const declareResult = async () => {
 
@@ -153,7 +177,6 @@ export default function DeclareTournamentResult() {
         if (v) {
 
             setError(v);
-
             return;
 
         }
@@ -182,6 +205,8 @@ export default function DeclareTournamentResult() {
 
             });
 
+            setTeams([]);
+
         }
         catch (err) {
 
@@ -198,11 +223,10 @@ export default function DeclareTournamentResult() {
 
     };
 
+
     return (
 
         <div className="declarePage">
-
-            {/* ADMIN PANEL */}
 
             {isAdmin && (
 
@@ -213,7 +237,9 @@ export default function DeclareTournamentResult() {
                         🏆 Result Control Panel
 
                         <span className="adminBadge">
+
                             ADMIN CONTROL
+
                         </span>
 
                     </div>
@@ -223,6 +249,7 @@ export default function DeclareTournamentResult() {
                         Declare result → system distributes rewards automatically.
 
                     </div>
+
 
                     <div className="formGrid">
 
@@ -236,14 +263,18 @@ export default function DeclareTournamentResult() {
                         >
 
                             <option value="">
+
                                 Select Tournament
+
                             </option>
 
                             {tournaments.map(t => (
 
                                 <option
+
                                     key={t.tournament_id}
                                     value={t.tournament_id}
+
                                 >
 
                                     {t.tournament_name}
@@ -254,27 +285,33 @@ export default function DeclareTournamentResult() {
 
                         </select>
 
+
                         <select
 
                             name="winner_team"
                             value={form.winner_team}
                             onChange={handleChange}
                             className="inputBox"
+                            size="5"
 
                         >
 
-                            <option>
+                            <option value="">
+
                                 Select Winner Team
+
                             </option>
 
                             {teams.map(t => (
 
                                 <option
-                                    key={t.board_id}
-                                    value={t.board_name}
+
+                                    key={t.team_name}
+                                    value={t.team_name}
+
                                 >
 
-                                    {t.board_name}
+                                    {t.team_name}
 
                                 </option>
 
@@ -282,27 +319,33 @@ export default function DeclareTournamentResult() {
 
                         </select>
 
+
                         <select
 
                             name="runner_team"
                             value={form.runner_team}
                             onChange={handleChange}
                             className="inputBox"
+                            size="5"
 
                         >
 
-                            <option>
+                            <option value="">
+
                                 Select Runner Team
+
                             </option>
 
                             {teams.map(t => (
 
                                 <option
-                                    key={t.board_id}
-                                    value={t.board_name}
+
+                                    key={t.team_name}
+                                    value={t.team_name}
+
                                 >
 
-                                    {t.board_name}
+                                    {t.team_name}
 
                                 </option>
 
@@ -312,11 +355,17 @@ export default function DeclareTournamentResult() {
 
                     </div>
 
+
                     {error && (
+
                         <div className="errorBox">
+
                             {error}
+
                         </div>
+
                     )}
+
 
                     <button
 
@@ -338,7 +387,9 @@ export default function DeclareTournamentResult() {
 
             )}
 
-            {/* RESULTS HISTORY */}
+
+
+            {/* RESULTS */}
 
             <div className="historyCard">
 
@@ -374,21 +425,29 @@ export default function DeclareTournamentResult() {
                                 <tr key={r.result_id}>
 
                                     <td>
+
                                         {r.tournament_name}
+
                                     </td>
 
                                     <td className="winnerText">
+
                                         🏆 {r.winner_team}
+
                                     </td>
 
                                     <td className="runnerText">
+
                                         🥈 {r.runner_team}
+
                                     </td>
 
                                     <td className="creditText">
 
                                         CE$ {Number(
+
                                             r.winner_reward
+
                                         ).toLocaleString()}
 
                                     </td>
@@ -396,7 +455,9 @@ export default function DeclareTournamentResult() {
                                     <td>
 
                                         CE$ {Number(
+
                                             r.runner_reward
+
                                         ).toLocaleString()}
 
                                     </td>
