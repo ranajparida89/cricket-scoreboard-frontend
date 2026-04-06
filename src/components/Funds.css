@@ -1219,3 +1219,53 @@ Enterprise Finance UI
     transform: scale(1.05);
 
 }
+
+/* ================= REWARD FINANCE BREAKDOWN ================= */
+
+.rewardStats {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    margin-top: 15px;
+
+    padding-top: 12px;
+
+    border-top: 1px solid #243041;
+
+}
+
+.statBox {
+
+    text-align: center;
+
+    flex: 1;
+
+}
+
+.statValue {
+
+    font-size: 18px;
+
+    font-weight: 700;
+
+    color: #38bdf8;
+
+}
+
+.statLabel {
+
+    font-size: 12px;
+
+    color: #94a3b8;
+
+    margin-top: 3px;
+
+}
+
+.statBox:not(:last-child) {
+
+    border-right: 1px solid #1f2a3a;
+
+}
