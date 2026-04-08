@@ -252,15 +252,34 @@ export default function TestMatchForm() {
 
   const formattedPreview = formatTournamentName(newTourName);
   // ✅ Load Active CrickEdge Season
-  axios.get(
-"https://cricket-scoreboard-backend.onrender.com/api/crickedge-season/active")
-      .then(res => {
-        setSeasonsList(res.data || [])
-      })
-      .catch(() => {
-        setSeasonsList([])
-      })
-  }, [])
+  useEffect(() => {
+
+    const loadSeasons = async () => {
+
+      try {
+
+        const res = await axios.get(
+          "https://cricket-scoreboard-backend.onrender.com/api/crickedge-season/active"
+        );
+
+        setSeasonsList(
+          (res.data || []).filter(
+            s => s.status === "ACTIVE"
+          )
+        );
+
+      }
+      catch (err) {
+
+        setSeasonsList([]);
+
+      }
+
+    };
+
+    loadSeasons();
+
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
