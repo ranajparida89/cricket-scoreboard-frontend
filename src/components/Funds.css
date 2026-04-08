@@ -1269,3 +1269,27 @@ Enterprise Finance UI
     border-right: 1px solid #1f2a3a;
 
 }
+
+.rewardCard {
+
+    position: relative;
+
+}
+
+.rewardCard:after {
+
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 2px;
+
+    background: linear-gradient(90deg, #38bdf8, #22c55e);
+
+}

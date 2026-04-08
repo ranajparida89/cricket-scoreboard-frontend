@@ -13,6 +13,7 @@ const SeasonLeaderboard = () => {
 
     const [seasons, setSeasons] = useState([]);
     const [selectedSeason, setSelectedSeason] = useState(null);
+    const [selectedTournament, setSelectedTournament] = useState("");
 
     /* ADMIN DETECTION */
     const [isAdmin, setIsAdmin] = useState(false);
@@ -22,7 +23,7 @@ const SeasonLeaderboard = () => {
             setIsAdmin(true)
     }, [])
 
-    const loadData = async (type, seasonId) => {
+    const loadData = async (type, seasonId, tournament) => {
         setLoading(true);
         let url =
             "https://cricket-scoreboard-backend.onrender.com/api/crickedge-season/leaderboard";
@@ -31,6 +32,8 @@ const SeasonLeaderboard = () => {
             params.push(`match_type=${type}`);
         if (seasonId)
             params.push(`season_id=${seasonId}`);
+        if (tournament)
+            params.push(`tournament=${tournament}`);
         if (params.length > 0)
             url += "?" + params.join("&");
         const res = await fetch(url);
@@ -50,7 +53,8 @@ const SeasonLeaderboard = () => {
         /* AUTO SELECT FIRST SEASON */
         if (json.length > 0) {
             setSelectedSeason(json[0].id);
-            loadData("ALL", json[0].id);
+            setSelectedTournament(json[0].tournament_name);
+            loadData("ALL", json[0].id, json[0].tournament_name);
             loadMatches(json[0].id);
         }
     };
@@ -85,11 +89,13 @@ const SeasonLeaderboard = () => {
                         }
                         onClick={() => {
                             setSelectedSeason(s.id);
-                            loadData(matchType, s.id);
+                            loadData(matchType, s.id, s.tournament_name);
                             loadMatches(s.id);
                         }}
                     >
                         {s.season_name}
+                        <br />
+                        <small>{s.tournament_name}</small>
                     </button>
                 ))}
             </div>
@@ -104,7 +110,7 @@ const SeasonLeaderboard = () => {
                     value={matchType}
                     onChange={(e) => {
                         setMatchType(e.target.value);
-                        loadData(e.target.value, selectedSeason);
+                        loadData(e.target.value, selectedSeason, selectedTournament);
                     }}
                 >
                     <option value="ALL">All Matches</option>
@@ -156,14 +162,14 @@ const SeasonLeaderboard = () => {
                     {/* ODI + T20 MATCHES */}
 
                     <div className="matchSection">
-                    <h3>Latest ODI / T20 Matches</h3>
+                        <h3>Latest ODI / T20 Matches</h3>
                         <div className="matchGrid">
                             {matches.odiT20.map(m => (
                                 <div key={m.match_id} className="matchCard">
                                     <div className="matchTitle">
                                         {m.match_name}
                                     </div>
-                                  <div className="matchTeams">
+                                    <div className="matchTeams">
                                         {m.team1} vs {m.team2}
                                     </div>
                                     <div className="matchWinner">
@@ -172,7 +178,7 @@ const SeasonLeaderboard = () => {
                                     <div className="matchDate">
                                         {m.match_date}
                                     </div>
-                               </div>
+                                </div>
                             ))}
                         </div>
                     </div>
