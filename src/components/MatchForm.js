@@ -297,7 +297,9 @@ export default function MatchForm() {
   // ✅ Load Active CrickEdge Season
   // ✅ Load All Seasons
   useEffect(() => {
-    axios.get("https://cricket-scoreboard-backend.onrender.com/api/crickedge-season/all")
+    axios.get(
+      "https://cricket-scoreboard-backend.onrender.com/api/crickedge-season/active"
+    )
       .then(res => {
         setSeasonsList(res.data || [])
       })

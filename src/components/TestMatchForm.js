@@ -252,8 +252,8 @@ export default function TestMatchForm() {
 
   const formattedPreview = formatTournamentName(newTourName);
   // ✅ Load Active CrickEdge Season
-  useEffect(() => {
-    axios.get("https://cricket-scoreboard-backend.onrender.com/api/crickedge-season/all")
+  axios.get(
+"https://cricket-scoreboard-backend.onrender.com/api/crickedge-season/active")
       .then(res => {
         setSeasonsList(res.data || [])
       })
