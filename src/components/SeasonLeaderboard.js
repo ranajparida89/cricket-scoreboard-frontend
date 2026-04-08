@@ -12,6 +12,7 @@ const SeasonLeaderboard = () => {
     /* SEASONS */
 
     const [seasons, setSeasons] = useState([]);
+    const [seasonGroups, setSeasonGroups] = useState({});
     const [selectedSeason, setSelectedSeason] = useState(null);
     const [selectedTournament, setSelectedTournament] = useState("");
 
@@ -50,11 +51,23 @@ const SeasonLeaderboard = () => {
         );
         const json = await res.json();
         setSeasons(json);
-        /* AUTO SELECT FIRST SEASON */
+        /* GROUP BY SEASON NAME */
+        const grouped = {};
+        json.forEach(s => {
+            if (!grouped[s.season_name])
+                grouped[s.season_name] = [];
+            grouped[s.season_name].push(s);
+        });
+        setSeasonGroups(grouped);
+        /* AUTO SELECT LATEST */
         if (json.length > 0) {
             setSelectedSeason(json[0].id);
             setSelectedTournament(json[0].tournament_name);
-            loadData("ALL", json[0].id, json[0].tournament_name);
+            loadData(
+                "ALL",
+                json[0].id,
+                json[0].tournament_name
+            );
             loadMatches(json[0].id);
         }
     };
@@ -76,27 +89,38 @@ const SeasonLeaderboard = () => {
             <h2>🏆 CrickEdge Season Leaderboard</h2>
             {/* SEASON TABS */}
             <div className="seasonTabs">
-                {seasons.map((s) => (
-                    <button
-                        key={s.id}
-
-                        className={
-                            selectedSeason === s.id
-                                ?
-                                "seasonTab active"
-                                :
-                                "seasonTab"
-                        }
-                        onClick={() => {
-                            setSelectedSeason(s.id);
-                            loadData(matchType, s.id, s.tournament_name);
-                            loadMatches(s.id);
-                        }}
-                    >
-                        {s.season_name}
-                        <br />
-                        <small>{s.tournament_name}</small>
-                    </button>
+                {Object.keys(seasonGroups).map((seasonName) => (
+                    <div key={seasonName} className="seasonGroup">
+                        <div className="seasonTab">
+                            {seasonName}
+                        </div>
+                        <select
+                            className="tournamentSelect"
+                            onChange={(e) => {
+                                const selectedId = e.target.value;
+                                const seasonObj =
+                                    seasonGroups[seasonName]
+                                        .find(s => s.id == selectedId);
+                                setSelectedSeason(selectedId);
+                                setSelectedTournament(
+                                    seasonObj.tournament_name
+                                );
+                                loadData(
+                                    matchType,
+                                    selectedId,
+                                    seasonObj.tournament_name
+                                );
+                                loadMatches(selectedId);
+                            }}
+                        >
+                            {seasonGroups[seasonName].map(s => (
+                                <option key={s.id} value={s.id}>
+                                    {s.tournament_name}
+                                    ({s.status})
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 ))}
             </div>
             {/* ADMIN PANEL */}
