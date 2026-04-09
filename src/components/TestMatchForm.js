@@ -266,13 +266,25 @@ export default function TestMatchForm() {
         let seasons = [];
 
         if (Array.isArray(res.data)) {
+
           seasons = res.data;
+
+        }
+        else if (res.data && res.data.id) {
+
+          // ACTIVE API returns single object
+          seasons = [res.data];
+
         }
         else if (Array.isArray(res.data.seasons)) {
+
           seasons = res.data.seasons;
+
         }
         else if (res.data.data) {
+
           seasons = res.data.data;
+
         }
 
         setSeasonsList(seasons);

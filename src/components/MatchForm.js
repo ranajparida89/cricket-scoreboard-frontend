@@ -311,13 +311,24 @@ export default function MatchForm() {
         let seasons = [];
 
         if (Array.isArray(res.data)) {
+
           seasons = res.data;
+
+        }
+        else if (res.data && res.data.id) {
+
+          seasons = [res.data];
+
         }
         else if (Array.isArray(res.data.seasons)) {
+
           seasons = res.data.seasons;
+
         }
         else if (res.data.data) {
+
           seasons = res.data.data;
+
         }
 
         setSeasonsList(seasons);
