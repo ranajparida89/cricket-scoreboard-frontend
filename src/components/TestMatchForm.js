@@ -261,14 +261,26 @@ export default function TestMatchForm() {
           "https://cricket-scoreboard-backend.onrender.com/api/crickedge-season/active"
         );
 
-        const seasons = Array.isArray(res.data)
-          ? res.data
-          : res.data?.seasons || [];
+        console.log("Season API response:", res.data);
+
+        let seasons = [];
+
+        if (Array.isArray(res.data)) {
+          seasons = res.data;
+        }
+        else if (Array.isArray(res.data.seasons)) {
+          seasons = res.data.seasons;
+        }
+        else if (res.data.data) {
+          seasons = res.data.data;
+        }
 
         setSeasonsList(seasons);
 
       }
       catch (err) {
+
+        console.error("Season load error:", err);
 
         setSeasonsList([]);
 
