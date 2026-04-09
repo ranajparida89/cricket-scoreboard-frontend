@@ -251,7 +251,6 @@ export default function TestMatchForm() {
   const maxOvers = 450;
 
   const formattedPreview = formatTournamentName(newTourName);
-  // ✅ Load Active CrickEdge Season
   useEffect(() => {
 
     const loadSeasons = async () => {
@@ -262,11 +261,11 @@ export default function TestMatchForm() {
           "https://cricket-scoreboard-backend.onrender.com/api/crickedge-season/active"
         );
 
-        setSeasonsList(
-          (res.data || []).filter(
-            s => s.status === "ACTIVE"
-          )
-        );
+        const seasons = Array.isArray(res.data)
+          ? res.data
+          : res.data?.seasons || [];
+
+        setSeasonsList(seasons);
 
       }
       catch (err) {
@@ -877,7 +876,7 @@ export default function TestMatchForm() {
                   Select Season
                 </option>
 
-                {seasonsList.map(s => (
+                {Array.isArray(seasonsList) && seasonsList.map(s => (
                   <option key={s.id} value={s.id}>
                     {s.season_name}
                   </option>

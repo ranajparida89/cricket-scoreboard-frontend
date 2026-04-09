@@ -297,16 +297,22 @@ export default function MatchForm() {
   // ✅ Load Active CrickEdge Season
   // ✅ Load All Seasons
   useEffect(() => {
-    axios.get(
-      "https://cricket-scoreboard-backend.onrender.com/api/crickedge-season/active"
-    )
-      .then(res => {
-        setSeasonsList(res.data || [])
-      })
-      .catch(() => {
-        setSeasonsList([])
-      })
-  }, [])
+    const loadSeasons = async () => {
+      try {
+        const res = await axios.get(
+          "https://cricket-scoreboard-backend.onrender.com/api/crickedge-season/active"
+        );
+        const seasons = Array.isArray(res.data)
+          ? res.data
+          : res.data?.seasons || [];
+        setSeasonsList(seasons);
+      }
+      catch (err) {
+        setSeasonsList([]);
+      }
+    };
+    loadSeasons();
+  }, []);
 
   // 🔄 Load tournaments (ODI/T20 scope=limited)
   useEffect(() => {
@@ -922,7 +928,7 @@ export default function MatchForm() {
                   Select Season
                 </option>
 
-                {seasonsList.map(s => (
+                {Array.isArray(seasonsList) && seasonsList.map(s => (
                   <option key={s.id} value={s.id}>
                     {s.season_name}
                   </option>
