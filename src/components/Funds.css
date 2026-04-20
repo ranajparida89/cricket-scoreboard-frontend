@@ -1405,3 +1405,89 @@ Enterprise Finance UI
     50% { text-shadow: 0 0 18px #4ade80; }
     100% { text-shadow: 0 0 5px #22c55e; }
 }
+/* ================= CARD LEADERBOARD ================= */
+
+.leaderboardCards {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.leaderboardCard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 16px 20px;
+    border-radius: 14px;
+
+    background: linear-gradient(145deg, #111827, #0f172a);
+
+    border: 1px solid #243041;
+
+    transition: 0.25s;
+}
+
+.leaderboardCard:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+/* 🥇 TOP CARD */
+.topCard {
+    background: linear-gradient(90deg, #1f2937, #0f172a);
+    border: 1px solid gold;
+    box-shadow: 0 0 25px rgba(255,215,0,0.3);
+}
+
+/* LEFT SIDE */
+.cardLeft {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.rankBox {
+    font-size: 18px;
+    font-weight: bold;
+    color: gold;
+}
+
+.boardName {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* RIGHT STATS */
+.cardStats {
+    display: flex;
+    gap: 40px;
+}
+
+.statLabel {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.statValue {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.green {
+    color: #22c55e;
+}
+
+/* ================= TOP COIN EFFECT ================= */
+
+.topCoinContainer {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    pointer-events: none;
+}
+
+.topCoin {
+    position: absolute;
+    font-size: 16px;
+}

@@ -20,38 +20,43 @@ export default function FundsLeaderboard() {
                 `${BACKEND_URL}/api/funds/leaderboard`
             );
 
-            // ✅ ALWAYS SORT HIGHEST BALANCE FIRST
-            const sorted = (res.data || []).sort(
-                (a, b) => b.balance - a.balance
-            );
+            let data = res.data || [];
 
-            setBoards(sorted);
+            // ✅ STEP 1: SEPARATE PARTICIPATED vs NON PARTICIPATED
+            const participated = data.filter(b => Number(b.total_spent) > 0);
+            const notParticipated = data.filter(b => Number(b.total_spent) === 0);
+
+            // ✅ STEP 2: SORT ONLY PARTICIPATED
+            participated.sort((a, b) => b.balance - a.balance);
+
+            // ✅ STEP 3: MERGE (participated first)
+            const finalSorted = [...participated, ...notParticipated];
+
+            setBoards(finalSorted);
 
         } catch (err) {
             console.log("Leaderboard load error", err);
         }
     };
 
-    /* ================= WEALTH EXPLOSION (UPWARD) ================= */
-
-    const renderWealthExplosion = () => {
+    /* 💰 PREMIUM COIN BURST (SLOW + ONLY TOP) */
+    const renderTopCoins = () => {
         return (
-            <div className="wealthExplosion">
-                {[...Array(40)].map((_, i) => (
+            <div className="topCoinContainer">
+                {[...Array(15)].map((_, i) => (
                     <motion.div
                         key={i}
-                        className="coinBurst"
-                        initial={{ y: 0, opacity: 0, scale: 0.5 }}
+                        className="topCoin"
+                        initial={{ y: 0, opacity: 0 }}
                         animate={{
-                            y: -200 - Math.random() * 200,
-                            x: Math.random() * 300 - 150,
-                            opacity: [0, 1, 1, 0],
-                            scale: [0.5, 1.3, 1]
+                            y: -150 - Math.random() * 150,
+                            x: Math.random() * 100 - 50,
+                            opacity: [0, 1, 1, 0]
                         }}
                         transition={{
-                            duration: 2 + Math.random(),
+                            duration: 3.5,
                             repeat: Infinity,
-                            delay: Math.random() * 1.5
+                            delay: i * 0.2
                         }}
                     >
                         💰
@@ -60,31 +65,6 @@ export default function FundsLeaderboard() {
             </div>
         );
     };
-
-    /* ================= RANK STYLE ================= */
-
-    const getRankClass = (index) => {
-        if (index === 0) return "rank1";
-        if (index === 1) return "rank2";
-        if (index === 2) return "rank3";
-        return "";
-    };
-
-    /* ================= FINANCIAL STRENGTH ================= */
-
-    const getStrength = (balance) => {
-        if (balance > 300000) return "Strong";
-        if (balance >= 150000) return "Stable";
-        return "Weak";
-    };
-
-    const getStrengthClass = (balance) => {
-        if (balance > 300000) return "strong";
-        if (balance >= 150000) return "stable";
-        return "weak";
-    };
-
-    /* ================= RANK DISPLAY ================= */
 
     const getRankDisplay = (index) => {
         if (index === 0) return "👑 1";
@@ -101,80 +81,63 @@ export default function FundsLeaderboard() {
                 💰 Funds Leaderboard
             </div>
 
-            <div className="tableContainer">
+            {/* ✅ NEW CARD STYLE VIEW */}
+            <div className="leaderboardCards">
 
-                <table className="txTable">
+                {(boards || []).map((b, index) => (
 
-                    <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>Board</th>
-                            <th>Balance</th>
-                            <th>Total Earned</th>
-                            <th>Total Spent</th>
-                            <th>Financial Strength</th>
-                        </tr>
-                    </thead>
+                    <motion.div
+                        key={index}
+                        className={`leaderboardCard ${index === 0 ? "topCard" : ""}`}
+                        initial={{ opacity: 0, y: 40 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        whileHover={{ scale: 1.02 }}
+                    >
 
-                    <tbody>
+                        {/* TOP COIN EFFECT */}
+                        {index === 0 && renderTopCoins()}
 
-                        {(boards || []).map((b, index) => (
+                        <div className="cardLeft">
 
-                            <motion.tr
-                                key={index}
-                                className={getRankClass(index)}
-                                initial={{ opacity: 0, y: 30 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.07 }}
-                                whileHover={{
-                                    scale: 1.02,
-                                    boxShadow: "0px 0px 25px rgba(56,189,248,0.35)"
-                                }}
-                            >
+                            <div className="rankBox">
+                                {getRankDisplay(index)}
+                            </div>
 
-                                <td>
-                                    {getRankDisplay(index)}
-                                </td>
+                            <div className="boardName">
+                                {b.board_name}
+                            </div>
 
-                                <td className="boardNameCell">
+                        </div>
 
-                                    {index === 0 && (
-                                        <>
-                                            <span className="eliteCrown">👑</span>
-                                            {renderWealthExplosion()}
-                                        </>
-                                    )}
+                        <div className="cardStats">
 
-                                    {b.board_name}
-                                </td>
-
-                                <td className="balanceCell animatedBalance">
+                            <div>
+                                <div className="statLabel">Balance</div>
+                                <div className="statValue green">
                                     CE$ {Number(b.balance).toLocaleString()}
-                                </td>
+                                </div>
+                            </div>
 
-                                <td>
+                            <div>
+                                <div className="statLabel">Earned</div>
+                                <div className="statValue">
                                     CE$ {Number(b.total_earned).toLocaleString()}
-                                </td>
+                                </div>
+                            </div>
 
-                                <td>
+                            <div>
+                                <div className="statLabel">Spent</div>
+                                <div className="statValue">
                                     CE$ {Number(b.total_spent).toLocaleString()}
-                                </td>
+                                </div>
+                            </div>
 
-                                <td>
-                                    <span className={
-                                        "status " + getStrengthClass(b.balance)
-                                    }>
-                                        {getStrength(b.balance)}
-                                    </span>
-                                </td>
+                        </div>
 
-                            </motion.tr>
+                    </motion.div>
 
-                        ))}
-
-                    </tbody>
-
-                </table>
+                ))}
 
             </div>
 
