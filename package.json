@@ -24,7 +24,7 @@
     "chart.js": "^4.4.8",
     "chartjs-plugin-datalabels": "^2.2.0",
     "date-fns": "^4.1.0",
-    "framer-motion": "^12.23.12",
+    "framer-motion": "^12.38.0",
     "gsap": "^3.13.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.3",
