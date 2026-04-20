@@ -1493,17 +1493,24 @@ Enterprise Finance UI
 }
 /* ================= FLOATING COINS GLOBAL ================= */
 
+/* ================= SMOOTH FLOATING COINS ================= */
+
 .floatingCoins {
     position: fixed;
     inset: 0;
     pointer-events: none;
-    z-index: 1;
+
+    z-index: 0;              /* behind UI */
+    overflow: hidden;        /* prevents stacking */
 }
 
 .floatingCoin {
     position: absolute;
-    font-size: 18px;
-    opacity: 0.4;
+
+    font-size: 14px;         /* smaller = smoother */
+    opacity: 0.25;           /* subtle */
+
+    will-change: transform;  /* performance boost */
 }
 
 /* Ensure content stays above */

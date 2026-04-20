@@ -5,7 +5,6 @@ import "./Funds.css";
 
 export default function FundsLeaderboard() {
 
-    const [boards, setBoards] = useState([]);
     const [participated, setParticipated] = useState([]);
     const [notParticipated, setNotParticipated] = useState([]);
 
@@ -24,48 +23,58 @@ export default function FundsLeaderboard() {
 
             let data = res.data || [];
 
+            // ✅ Separate boards
             const played = data.filter(b => Number(b.total_spent) > 0);
             const notPlayed = data.filter(b => Number(b.total_spent) === 0);
 
+            // ✅ Sort only participated
             played.sort((a, b) => b.balance - a.balance);
 
             setParticipated(played);
             setNotParticipated(notPlayed);
-
-            setBoards([...played, ...notPlayed]);
 
         } catch (err) {
             console.log("Leaderboard load error", err);
         }
     };
 
-    /* 🌌 GLOBAL FLOATING COINS */
+    /* 🌌 ULTRA SMOOTH FLOATING COINS (NO STUCK) */
     const renderFloatingCoins = () => {
         return (
             <div className="floatingCoins">
-                {[...Array(25)].map((_, i) => (
-                    <motion.div
-                        key={i}
-                        className="floatingCoin"
-                        initial={{
-                            y: window.innerHeight,
-                            x: Math.random() * window.innerWidth,
-                            opacity: 0
-                        }}
-                        animate={{
-                            y: -100,
-                            x: "+=" + (Math.random() * 200 - 100),
-                            opacity: [0, 0.6, 0.6, 0]
-                        }}
-                        transition={{
-                            duration: 10 + Math.random() * 5,
-                            repeat: Infinity,
-                            delay: i * 0.5
-                        }}
-                    >
-                        💰
-                    </motion.div>
-                ))}
+                {[...Array(20)].map((_, i) => {
+
+                    const startX = Math.random() * window.innerWidth;
+
+                    return (
+                        <motion.div
+                            key={i}
+                            className="floatingCoin"
+                            initial={{
+                                y: "110vh",
+                                x: startX,
+                                opacity: 0
+                            }}
+                            animate={{
+                                y: ["110vh", "-10vh"],
+                                x: [
+                                    startX,
+                                    startX + (Math.random() * 80 - 40),
+                                    startX + (Math.random() * 120 - 60)
+                                ],
+                                opacity: [0, 0.5, 0.5, 0]
+                            }}
+                            transition={{
+                                duration: 12 + Math.random() * 6,
+                                repeat: Infinity,
+                                ease: "linear",
+                                delay: i * 0.6
+                            }}
+                        >
+                            💰
+                        </motion.div>
+                    );
+                })}
             </div>
         );
     };
@@ -81,14 +90,14 @@ export default function FundsLeaderboard() {
 
         <div className="fundsPage">
 
-            {/* 🌌 GLOBAL BACKGROUND ANIMATION */}
+            {/* 🌌 Background floating coins */}
             {renderFloatingCoins()}
 
             <div className="sectionTitle">
                 💰 Funds Leaderboard
             </div>
 
-            {/* ✅ PARTICIPATED */}
+            {/* ✅ PARTICIPATED BOARDS */}
             <div className="leaderboardCards">
 
                 {participated.map((b, index) => (
@@ -109,6 +118,7 @@ export default function FundsLeaderboard() {
                             </div>
 
                             <div className="boardName">
+                                {index === 0 && <span className="eliteCrown">👑</span>}
                                 {b.board_name}
                             </div>
 
@@ -118,7 +128,7 @@ export default function FundsLeaderboard() {
 
                             <div>
                                 <div className="statLabel">Balance</div>
-                                <div className="statValue green">
+                                <div className="statValue green animatedBalance">
                                     CE$ {Number(b.balance).toLocaleString()}
                                 </div>
                             </div>
@@ -145,7 +155,7 @@ export default function FundsLeaderboard() {
 
             </div>
 
-            {/* ❌ NOT PARTICIPATED */}
+            {/* ❌ NOT PARTICIPATED SECTION */}
             {notParticipated.length > 0 && (
                 <>
                     <div className="notPlayedHeader">
@@ -156,9 +166,12 @@ export default function FundsLeaderboard() {
 
                         {notParticipated.map((b, index) => (
 
-                            <div
+                            <motion.div
                                 key={index}
                                 className="leaderboardCard notPlayedCard"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.3 }}
                             >
 
                                 <div className="cardLeft">
@@ -174,7 +187,7 @@ export default function FundsLeaderboard() {
                                     </div>
                                 </div>
 
-                            </div>
+                            </motion.div>
 
                         ))}
 
