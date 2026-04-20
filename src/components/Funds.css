@@ -1491,3 +1491,42 @@ Enterprise Finance UI
     position: absolute;
     font-size: 16px;
 }
+/* ================= FLOATING COINS GLOBAL ================= */
+
+.floatingCoins {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.floatingCoin {
+    position: absolute;
+    font-size: 18px;
+    opacity: 0.4;
+}
+
+/* Ensure content stays above */
+.fundsPage {
+    position: relative;
+    z-index: 2;
+}
+
+/* ================= NOT PARTICIPATED ================= */
+
+.notPlayedHeader {
+    margin-top: 30px;
+    margin-bottom: 10px;
+    color: #f87171;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.notPlayedCard {
+    border: 1px solid #7f1d1d;
+    background: linear-gradient(145deg, #1a0f0f, #0f172a);
+}
+
+.red {
+    color: #f87171;
+}

@@ -6,6 +6,8 @@ import "./Funds.css";
 export default function FundsLeaderboard() {
 
     const [boards, setBoards] = useState([]);
+    const [participated, setParticipated] = useState([]);
+    const [notParticipated, setNotParticipated] = useState([]);
 
     const BACKEND_URL =
         "https://cricket-scoreboard-backend.onrender.com";
@@ -22,41 +24,43 @@ export default function FundsLeaderboard() {
 
             let data = res.data || [];
 
-            // ✅ STEP 1: SEPARATE PARTICIPATED vs NON PARTICIPATED
-            const participated = data.filter(b => Number(b.total_spent) > 0);
-            const notParticipated = data.filter(b => Number(b.total_spent) === 0);
+            const played = data.filter(b => Number(b.total_spent) > 0);
+            const notPlayed = data.filter(b => Number(b.total_spent) === 0);
 
-            // ✅ STEP 2: SORT ONLY PARTICIPATED
-            participated.sort((a, b) => b.balance - a.balance);
+            played.sort((a, b) => b.balance - a.balance);
 
-            // ✅ STEP 3: MERGE (participated first)
-            const finalSorted = [...participated, ...notParticipated];
+            setParticipated(played);
+            setNotParticipated(notPlayed);
 
-            setBoards(finalSorted);
+            setBoards([...played, ...notPlayed]);
 
         } catch (err) {
             console.log("Leaderboard load error", err);
         }
     };
 
-    /* 💰 PREMIUM COIN BURST (SLOW + ONLY TOP) */
-    const renderTopCoins = () => {
+    /* 🌌 GLOBAL FLOATING COINS */
+    const renderFloatingCoins = () => {
         return (
-            <div className="topCoinContainer">
-                {[...Array(15)].map((_, i) => (
+            <div className="floatingCoins">
+                {[...Array(25)].map((_, i) => (
                     <motion.div
                         key={i}
-                        className="topCoin"
-                        initial={{ y: 0, opacity: 0 }}
+                        className="floatingCoin"
+                        initial={{
+                            y: window.innerHeight,
+                            x: Math.random() * window.innerWidth,
+                            opacity: 0
+                        }}
                         animate={{
-                            y: -150 - Math.random() * 150,
-                            x: Math.random() * 100 - 50,
-                            opacity: [0, 1, 1, 0]
+                            y: -100,
+                            x: "+=" + (Math.random() * 200 - 100),
+                            opacity: [0, 0.6, 0.6, 0]
                         }}
                         transition={{
-                            duration: 3.5,
+                            duration: 10 + Math.random() * 5,
                             repeat: Infinity,
-                            delay: i * 0.2
+                            delay: i * 0.5
                         }}
                     >
                         💰
@@ -77,14 +81,17 @@ export default function FundsLeaderboard() {
 
         <div className="fundsPage">
 
+            {/* 🌌 GLOBAL BACKGROUND ANIMATION */}
+            {renderFloatingCoins()}
+
             <div className="sectionTitle">
                 💰 Funds Leaderboard
             </div>
 
-            {/* ✅ NEW CARD STYLE VIEW */}
+            {/* ✅ PARTICIPATED */}
             <div className="leaderboardCards">
 
-                {(boards || []).map((b, index) => (
+                {participated.map((b, index) => (
 
                     <motion.div
                         key={index}
@@ -94,9 +101,6 @@ export default function FundsLeaderboard() {
                         transition={{ delay: index * 0.05 }}
                         whileHover={{ scale: 1.02 }}
                     >
-
-                        {/* TOP COIN EFFECT */}
-                        {index === 0 && renderTopCoins()}
 
                         <div className="cardLeft">
 
@@ -140,6 +144,43 @@ export default function FundsLeaderboard() {
                 ))}
 
             </div>
+
+            {/* ❌ NOT PARTICIPATED */}
+            {notParticipated.length > 0 && (
+                <>
+                    <div className="notPlayedHeader">
+                        ❌ Not Participated Boards
+                    </div>
+
+                    <div className="leaderboardCards">
+
+                        {notParticipated.map((b, index) => (
+
+                            <div
+                                key={index}
+                                className="leaderboardCard notPlayedCard"
+                            >
+
+                                <div className="cardLeft">
+                                    <div className="rankBox">—</div>
+                                    <div className="boardName">
+                                        {b.board_name}
+                                    </div>
+                                </div>
+
+                                <div className="cardStats">
+                                    <div className="statValue red">
+                                        No Tournament Activity
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        ))}
+
+                    </div>
+                </>
+            )}
 
         </div>
     );
