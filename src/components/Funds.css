@@ -1336,3 +1336,72 @@ Enterprise Finance UI
     50% { text-shadow: 0 0 18px #4ade80; }
     100% { text-shadow: 0 0 5px #22c55e; }
 }
+/* ================= WEALTH EXPLOSION ================= */
+
+.wealthExplosion {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.coinBurst {
+    position: absolute;
+    font-size: 18px;
+}
+
+/* ================= TOP RANK PREMIUM EFFECT ================= */
+
+.rank1 {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(90deg, #1e293b, #0f172a);
+}
+
+/* GOLD SHINE ANIMATION */
+.rank1::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255, 215, 0, 0.25),
+        transparent
+    );
+    animation: shineMove 3s infinite;
+}
+
+@keyframes shineMove {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* ================= CROWN ANIMATION ================= */
+
+.eliteCrown {
+    font-size: 20px;
+    margin-right: 6px;
+    animation: crownPulse 1.5s infinite;
+}
+
+@keyframes crownPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.25); }
+    100% { transform: scale(1); }
+}
+
+/* ================= BALANCE GLOW ================= */
+
+.animatedBalance {
+    color: #22c55e;
+    font-weight: 700;
+    animation: balanceGlow 2.5s infinite;
+}
+
+@keyframes balanceGlow {
+    0% { text-shadow: 0 0 5px #22c55e; }
+    50% { text-shadow: 0 0 18px #4ade80; }
+    100% { text-shadow: 0 0 5px #22c55e; }
+}

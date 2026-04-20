@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { motion } from "framer-motion"; // ✅ NEW
+import { motion } from "framer-motion";
 import "./Funds.css";
 
 export default function FundsLeaderboard() {
@@ -19,32 +19,39 @@ export default function FundsLeaderboard() {
             const res = await axios.get(
                 `${BACKEND_URL}/api/funds/leaderboard`
             );
-            setBoards(res.data || []);
-        }
-        catch (err) {
+
+            // ✅ ALWAYS SORT HIGHEST BALANCE FIRST
+            const sorted = (res.data || []).sort(
+                (a, b) => b.balance - a.balance
+            );
+
+            setBoards(sorted);
+
+        } catch (err) {
             console.log("Leaderboard load error", err);
         }
     };
 
-    /* ================= MONEY RAIN (INLINE) ================= */
+    /* ================= WEALTH EXPLOSION (UPWARD) ================= */
 
-    const renderMoneyRain = () => {
+    const renderWealthExplosion = () => {
         return (
-            <div className="moneyRain">
-                {[...Array(25)].map((_, i) => (
+            <div className="wealthExplosion">
+                {[...Array(40)].map((_, i) => (
                     <motion.div
                         key={i}
-                        className="coin"
-                        initial={{ y: -100, opacity: 0 }}
+                        className="coinBurst"
+                        initial={{ y: 0, opacity: 0, scale: 0.5 }}
                         animate={{
-                            y: "120vh",
+                            y: -200 - Math.random() * 200,
+                            x: Math.random() * 300 - 150,
                             opacity: [0, 1, 1, 0],
-                            x: Math.random() * 300 - 150
+                            scale: [0.5, 1.3, 1]
                         }}
                         transition={{
-                            duration: 3 + Math.random() * 2,
+                            duration: 2 + Math.random(),
                             repeat: Infinity,
-                            delay: Math.random() * 2
+                            delay: Math.random() * 1.5
                         }}
                     >
                         💰
@@ -91,7 +98,7 @@ export default function FundsLeaderboard() {
         <div className="fundsPage">
 
             <div className="sectionTitle">
-                Funds Leaderboard
+                💰 Funds Leaderboard
             </div>
 
             <div className="tableContainer">
@@ -118,10 +125,10 @@ export default function FundsLeaderboard() {
                                 className={getRankClass(index)}
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.08 }}
+                                transition={{ delay: index * 0.07 }}
                                 whileHover={{
                                     scale: 1.02,
-                                    boxShadow: "0px 0px 25px rgba(56,189,248,0.4)"
+                                    boxShadow: "0px 0px 25px rgba(56,189,248,0.35)"
                                 }}
                             >
 
@@ -131,13 +138,10 @@ export default function FundsLeaderboard() {
 
                                 <td className="boardNameCell">
 
-                                    {/* 🏆 TOP BOARD EFFECT */}
                                     {index === 0 && (
                                         <>
-                                            <span className="crownIcon">
-                                                🏆
-                                            </span>
-                                            {renderMoneyRain()}
+                                            <span className="eliteCrown">👑</span>
+                                            {renderWealthExplosion()}
                                         </>
                                     )}
 
