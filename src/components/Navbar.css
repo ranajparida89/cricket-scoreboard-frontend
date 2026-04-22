@@ -1007,3 +1007,20 @@
   margin: 0 4px !important;
   font-size: 0.92rem;
 }
+/* ================= FINAL FIX FOR CRICKEDGE ADDA ================= */
+
+/* Force visible color for Adda link */
+.forum-golden-link {
+  color: #ffd700 !important;   /* gold */
+  font-weight: 800 !important;
+}
+
+/* Ensure it stays visible on hover */
+.forum-golden-link:hover {
+  color: #fff3a0 !important;
+}
+
+/* Fix global link override conflict */
+.slumber-link.forum-golden-link {
+  color: #ffd700 !important;
+}
