@@ -332,15 +332,12 @@
 }
 
 .slumber-brand-accent {
-  background: linear-gradient(90deg, var(--ce-teal), #8be6de, #b5f7ef, var(--ce-teal));
-  background-size: 300% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #5fd0c7 !important;
   font-weight: 900;
   font-size: 1.15rem;
-  /* Shimmer sweep on brand accent */
-  animation: brandShimmer 4s linear infinite;
+  background: none !important;
+  -webkit-text-fill-color: unset !important;
+  animation: none !important;
 }
 
 @keyframes brandShimmer {
@@ -439,7 +436,7 @@
   content: "";
   position: absolute;
   left: .65rem; right: .65rem;
-  bottom: -4px;
+  bottom: -8px;
   height: 2px;
   background: linear-gradient(90deg, var(--ce-teal), #b6f1ea);
   transform: scaleX(0);
@@ -457,7 +454,7 @@
 .slumber-link.active::before {
   content: "";
   position: absolute;
-  inset: -.15rem -.3rem;
+  inset: -0.08rem -0.2rem;
   background: linear-gradient(180deg, rgba(95,208,199,.16), rgba(95,208,199,.07));
   border: 1px solid rgba(95,208,199,.25);
   border-radius: 10px;
@@ -596,16 +593,10 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   width: 38px;
   height: 38px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(255,255,255,.05);
-  border-radius: 10px;
-  cursor: pointer;
   padding: 0;
-  transition: background .2s ease, box-shadow .2s ease;
-  flex-shrink: 0;
 }
 
 .slumber-hamburger-btn:hover {
@@ -615,7 +606,7 @@
 
 .slumber-hamburger-btn span {
   display: block;
-  width: 18px;
+  width: 20px;
   height: 2px;
   background: #cfe9ff;
   border-radius: 2px;
