@@ -775,13 +775,11 @@
    ────────────────────────────────────────────────────────────── */
 
 .forum-golden-link {
-  background: linear-gradient(90deg, #f5a623, #ffd700, #f5a623) !important;
-  background-size: 250% 100% !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  animation: forumGold 3.5s linear infinite;
+  color: #ffd700 !important;   /* visible gold color */
   font-weight: 800 !important;
+  background: none !important;
+  -webkit-text-fill-color: unset !important;
+  animation: none !important;
 }
 
 @keyframes forumGold {
