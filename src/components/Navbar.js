@@ -51,6 +51,21 @@ const AppNavbar = ({ onAuthClick }) => {
     }
   }, []);
 
+  // ----- scroll progress bar (visual only — sets --ce-prog CSS var) -----
+  // Fixes: --ce-prog was defined in CSS but never set, so the aurora bar
+  // was always stuck at 0%. This useEffect drives it from scroll position.
+  useEffect(() => {
+    const onScroll = () => {
+      const scrollTop  = window.scrollY;
+      const docHeight  = document.documentElement.scrollHeight - window.innerHeight;
+      const pct        = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.querySelector(".slumber-nav")
+        ?.style.setProperty("--ce-prog", `${pct.toFixed(1)}%`);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   // ----- new: add-match dropdown -----
   const [showAddMenu, setShowAddMenu] = useState(false);
   const addBtnRef = useRef(null);

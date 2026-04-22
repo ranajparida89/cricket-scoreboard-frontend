@@ -8,6 +8,12 @@
   --ce-teal:#5fd0c7;
   --ce-link:#cfe9ff;
   --ce-green:#14e29a;
+  /* ── NEW tokens ── */
+  --ce-gold:       #ffd700;
+  --ce-gold-dim:   rgba(255,215,0,.18);
+  --ce-gold-glow:  rgba(255,215,0,.55);
+  --ce-forum-gold: #f5a623;
+  --ce-spring:     cubic-bezier(0.22,1,0.36,1);
 }
 
 /* ===== NAV WRAPPER ===== */
@@ -198,7 +204,7 @@
     content: none !important;
   }
 
-  /* Keep the background simple so the GPU doesn’t recompose huge areas */
+  /* Keep the background simple so the GPU doesn't recompose huge areas */
   .match-card {
     background: #0f1b28 !important;
     border: 1px solid rgba(255,255,255,.08) !important;
@@ -257,5 +263,755 @@
     box-shadow:
       0 0 10px rgba(255, 215, 0, 0.5),
       0 0 25px rgba(255, 200, 0, 0.3);
+  }
+}
+
+/* ================================================================
+   ✨ NEW — ALL ADDITIONS BELOW THIS LINE
+   Original file: lines 1–261 (preserved exactly above)
+   New additions: everything from here down
+   ================================================================ */
+
+/* ──────────────────────────────────────────────────────────────
+   SECTION 1 ▸ SLUMBER-* ALIASES
+   Problem fixed: JS uses slumber-* class names throughout but
+   the original CSS only defines ce-* classes. This caused the
+   navbar background, brand styling, link underlines, buttons,
+   hamburger and all other elements to be completely UNSTYLED.
+   Effect: Now all slumber-* classes work identically to ce-*
+   with extra animation upgrades layered on.
+   ────────────────────────────────────────────────────────────── */
+
+/* ── Navbar shell ── */
+.slumber-nav {
+  position: relative;
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  background:
+    radial-gradient(900px 320px at 6% -35%, rgba(95,208,199,.12), transparent 60%),
+    radial-gradient(600px 200px at 95% 120%,rgba(255,215,0,.05),  transparent 55%),
+    linear-gradient(180deg, rgba(14,25,38,.92), rgba(7,17,28,.86));
+  border-bottom: 1px solid rgba(255,255,255,.09);
+  box-shadow: 0 10px 32px rgba(0,0,0,.38);
+  /* Navbar slides down from top on page load */
+  animation: navbarSlideIn .5s var(--ce-spring) both;
+  will-change: transform;
+}
+
+@keyframes navbarSlideIn {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+/* Aurora progress bar for slumber-nav (mirrors ce-navbar::after) */
+.slumber-nav::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: 0;
+  width: var(--ce-prog, 0%);
+  height: 3px;
+  background: linear-gradient(90deg, var(--ce-teal), #8be6de, #baf7ef);
+  box-shadow: 0 0 16px rgba(95,208,199,.55);
+  border-radius: 0 8px 0 0;
+  transition: width .08s linear;
+}
+
+/* ── Brand ── */
+.slumber-brand {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  text-decoration: none !important;
+  /* Gentle float on page load */
+  animation: brandFloat 6s ease-in-out infinite;
+}
+
+@keyframes brandFloat {
+  0%,100% { transform: translateY(0);   }
+  50%      { transform: translateY(-2px); }
+}
+
+.slumber-brand-word {
+  color: #eaf6ff;
+  font-weight: 800;
+  letter-spacing: .2px;
+  font-size: 1.15rem;
+}
+
+.slumber-brand-accent {
+  background: linear-gradient(90deg, var(--ce-teal), #8be6de, #b5f7ef, var(--ce-teal));
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 900;
+  font-size: 1.15rem;
+  /* Shimmer sweep on brand accent */
+  animation: brandShimmer 4s linear infinite;
+}
+
+@keyframes brandShimmer {
+  0%   { background-position: 0%   50%; }
+  100% { background-position: 300% 50%; }
+}
+
+.slumber-brand-dot {
+  color: #e8caa4;
+  font-weight: 900;
+  font-size: 1.15rem;
+  opacity: .95;
+  display: inline-block;
+  transform-origin: center;
+}
+
+/* .in bounces on brand hover */
+.slumber-brand:hover .slumber-brand-dot {
+  animation: ceBounce .9s ease both;
+}
+
+/* Gold capsule pill behind the brand */
+.slumber-brand-pill {
+  background: linear-gradient(135deg, rgba(255,215,0,.10), rgba(255,215,0,.04));
+  border: 1px solid rgba(255,215,0,.22);
+  border-radius: 30px;
+  padding: 4px 12px 4px 10px !important;
+  transition: background .25s, box-shadow .25s;
+}
+
+.slumber-brand-pill:hover {
+  background: linear-gradient(135deg, rgba(255,215,0,.18), rgba(255,215,0,.08));
+  box-shadow: 0 0 18px rgba(255,215,0,.22);
+}
+
+/* ── Nav toggler (mobile hamburger bootstrap toggle) ── */
+.slumber-toggler {
+  border: 1px solid rgba(255,255,255,.14) !important;
+  background: rgba(255,255,255,.05) !important;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px !important;
+  transition: background .2s, box-shadow .2s;
+}
+
+.slumber-toggler:hover {
+  background: rgba(255,255,255,.09) !important;
+  box-shadow: 0 0 12px rgba(95,208,199,.25);
+}
+
+.slumber-toggler:focus {
+  box-shadow: 0 0 0 3px rgba(95,208,199,.3) !important;
+  outline: none;
+}
+
+/* ── Nav links ── */
+.slumber-link {
+  position: relative;
+  color: var(--ce-link) !important;
+  font-weight: 700;
+  letter-spacing: .2px;
+  padding: .4rem .8rem !important;
+  margin: 0 .1rem;
+  border-radius: 8px;
+  transition: color .18s ease, background .2s ease;
+  /* Stagger entrance via CSS custom counter */
+  opacity: 0;
+  animation: linkFadeIn .45s var(--ce-spring) forwards;
+}
+
+/* Stagger each nav link using nth-child */
+.slumber-link:nth-child(1) { animation-delay: .15s; }
+.slumber-link:nth-child(2) { animation-delay: .22s; }
+.slumber-link:nth-child(3) { animation-delay: .29s; }
+.slumber-link:nth-child(4) { animation-delay: .36s; }
+.slumber-link:nth-child(5) { animation-delay: .43s; }
+.slumber-link:nth-child(6) { animation-delay: .50s; }
+.slumber-link:nth-child(7) { animation-delay: .57s; }
+
+@keyframes linkFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0);     }
+}
+
+.slumber-link:hover {
+  color: #ffffff !important;
+  background: rgba(95,208,199,.06);
+}
+
+.slumber-link.active {
+  color: #ffffff !important;
+}
+
+/* Animated teal underline (same as ce-link) */
+.slumber-link::after {
+  content: "";
+  position: absolute;
+  left: .65rem; right: .65rem;
+  bottom: -4px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--ce-teal), #b6f1ea);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .22s ease;
+  border-radius: 2px;
+}
+
+.slumber-link:hover::after,
+.slumber-link.active::after {
+  transform: scaleX(1);
+}
+
+/* Active pill backdrop */
+.slumber-link.active::before {
+  content: "";
+  position: absolute;
+  inset: -.15rem -.3rem;
+  background: linear-gradient(180deg, rgba(95,208,199,.16), rgba(95,208,199,.07));
+  border: 1px solid rgba(95,208,199,.25);
+  border-radius: 10px;
+  z-index: -1;
+}
+
+/* ── Ghost button (Get App + Logout) ── */
+.slumber-ghost-btn {
+  border: 1px solid rgba(255,255,255,.14) !important;
+  background: rgba(255,255,255,.05) !important;
+  color: #d9f4ff !important;
+  border-radius: 10px !important;
+  font-weight: 600;
+  letter-spacing: .2px;
+  transition:
+    transform .15s var(--ce-spring),
+    background .18s ease,
+    box-shadow .18s ease;
+}
+
+.slumber-ghost-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(255,255,255,.09) !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,.28);
+}
+
+.slumber-ghost-btn:active {
+  transform: translateY(0) scale(.97);
+}
+
+/* ── CTA button (Sign In / Dashboard) ── */
+.slumber-cta {
+  border: 1px solid rgba(20,226,138,.38) !important;
+  background: linear-gradient(135deg, #1f4d58, #163b45) !important;
+  color: #d7fff1 !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+  letter-spacing: .2px;
+  box-shadow: 0 8px 24px rgba(20,226,138,.22);
+  position: relative;
+  overflow: hidden;
+  transition: transform .15s var(--ce-spring), filter .18s ease;
+}
+
+/* Shimmer sweep on CTA */
+.slumber-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 45%;
+  background: linear-gradient(
+    105deg,
+    transparent,
+    rgba(255,255,255,.08),
+    transparent
+  );
+  transform: translateX(-120%);
+  transition: none;
+}
+
+.slumber-cta:hover::before {
+  transform: translateX(280%);
+  transition: transform .55s ease;
+}
+
+.slumber-cta:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(20,226,138,.32);
+}
+
+.slumber-cta:active {
+  transform: translateY(0) scale(.97);
+}
+
+/* ── User name badge ── */
+.slumber-user {
+  color: #eaf6ff;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+/* ── More dropdown ── */
+.slumber-dropdown .dropdown-menu,
+.slumber-glassy-menu .dropdown-menu {
+  background: linear-gradient(180deg, rgba(12,22,34,.97), rgba(8,16,26,.97)) !important;
+  border: 1px solid rgba(255,255,255,.09) !important;
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  box-shadow:
+    0 16px 40px rgba(0,0,0,.55),
+    0 0 0 1px rgba(95,208,199,.06) !important;
+  padding: .4rem !important;
+  border-radius: 14px !important;
+  /* Slide + fade open */
+  animation: dropdownOpen .22s var(--ce-spring) both;
+  transform-origin: top center;
+}
+
+@keyframes dropdownOpen {
+  from { opacity: 0; transform: scaleY(.88) translateY(-8px); }
+  to   { opacity: 1; transform: scaleY(1)   translateY(0);    }
+}
+
+.slumber-dropdown .dropdown-item,
+.slumber-glassy-menu .dropdown-item {
+  color: #dbeeff !important;
+  border-radius: 9px;
+  font-weight: 600;
+  padding: .48rem .7rem !important;
+  transition: background .15s ease, color .15s ease, transform .15s ease;
+}
+
+.slumber-dropdown .dropdown-item:hover,
+.slumber-glassy-menu .dropdown-item:hover {
+  background: rgba(95,208,199,.13) !important;
+  color: #ffffff !important;
+  transform: translateX(3px);
+}
+
+.slumber-dropdown .dropdown-divider,
+.slumber-glassy-menu .dropdown-divider {
+  border-color: rgba(255,255,255,.08) !important;
+  margin: .3rem .5rem !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   SECTION 2 ▸ HAMBURGER BUTTON
+   Problem fixed: .slumber-hamburger-btn had NO CSS at all.
+   The 3 <span> elements inside were invisible/unstyled.
+   Effect: Classic animated 3-line → X hamburger with teal hover.
+   ────────────────────────────────────────────────────────────── */
+
+.slumber-hamburger-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.05);
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 0;
+  transition: background .2s ease, box-shadow .2s ease;
+  flex-shrink: 0;
+}
+
+.slumber-hamburger-btn:hover {
+  background: rgba(95,208,199,.12);
+  box-shadow: 0 0 14px rgba(95,208,199,.25);
+}
+
+.slumber-hamburger-btn span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: #cfe9ff;
+  border-radius: 2px;
+  transition: transform .25s var(--ce-spring), opacity .2s ease, width .2s ease;
+  transform-origin: center;
+}
+
+/* Animate to X when sidebar is open (JS adds .is-open to body or parent) */
+.sidebar-open .slumber-hamburger-btn span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.sidebar-open .slumber-hamburger-btn span:nth-child(2) {
+  opacity: 0;
+  width: 0;
+}
+.sidebar-open .slumber-hamburger-btn span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   SECTION 3 ▸ ADD MATCH TRIGGER (UPGRADED)
+   Problem fixed: Original addMatchBreath used scale(1.08) which
+   causes layout shift — the whole nav row jumps. Also 70px
+   box-shadow blur on every frame is a massive GPU repaint.
+   Effect: Glow-only pulse (no scale), much smoother performance.
+   ────────────────────────────────────────────────────────────── */
+
+/* Override the problematic scale-based breath with glow-only */
+.ce-add-match-trigger {
+  animation: addMatchGlow 2.2s ease-in-out infinite !important;
+  /* scale removed — only glow pulses */
+  transform: none !important;
+}
+
+@keyframes addMatchGlow {
+  0%,100% {
+    box-shadow:
+      0 0 8px  rgba(255,215,0,.4),
+      0 0 18px rgba(255,200,0,.22);
+  }
+  50% {
+    box-shadow:
+      0 0 18px rgba(255,215,0,.85),
+      0 0 36px rgba(255,200,0,.5),
+      0 0 54px rgba(255,190,0,.2);
+  }
+}
+
+/* When the dropdown is open — rotate caret, dim the glow */
+.ce-add-match-trigger.is-open {
+  animation: none !important;
+  box-shadow:
+    0 0 22px rgba(255,215,0,.7),
+    0 0 42px rgba(255,200,0,.4) !important;
+}
+
+.ce-add-match-trigger.is-open .ce-add-caret {
+  transform: rotate(180deg);
+}
+
+/* ── Caret arrow ── */
+.ce-add-caret {
+  font-size: .7rem;
+  opacity: .75;
+  display: inline-block;
+  transition: transform .22s var(--ce-spring);
+}
+
+/* ── Extra glow class ── */
+.ce-add-glow {
+  /* layered on top of ce-add-match-trigger; no extra rules needed */
+}
+
+/* ──────────────────────────────────────────────────────────────
+   SECTION 4 ▸ ADD MATCH DROPDOWN MENU
+   Problem fixed: .ce-add-match-menu and .ce-add-match-item had
+   NO CSS at all — the panel appeared as unstyled block elements.
+   Effect: Polished glassmorphism panel with staggered item reveal.
+   ────────────────────────────────────────────────────────────── */
+
+.ce-add-match-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 2000;
+  min-width: 220px;
+  background: linear-gradient(160deg, rgba(12,22,36,.97), rgba(7,15,25,.97));
+  border: 1px solid rgba(255,215,0,.35);
+  border-radius: 14px;
+  padding: 6px;
+  box-shadow:
+    0 20px 50px rgba(0,0,0,.6),
+    0 0 0 1px rgba(255,215,0,.08),
+    0 0 28px rgba(255,215,0,.12);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  /* Slide down + fade in */
+  animation: addMenuOpen .22s var(--ce-spring) both;
+  transform-origin: top right;
+}
+
+@keyframes addMenuOpen {
+  from { opacity: 0; transform: scaleY(.84) translateY(-10px); }
+  to   { opacity: 1; transform: scaleY(1)   translateY(0);     }
+}
+
+.ce-add-match-item {
+  display: block;
+  width: 100%;
+  padding: 11px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  color: #e8f4ff;
+  font-size: .875rem;
+  font-weight: 600;
+  letter-spacing: .2px;
+  text-align: left;
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease, transform .18s var(--ce-spring);
+  position: relative;
+  overflow: hidden;
+}
+
+.ce-add-match-item::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 2px; height: 0;
+  background: var(--ce-gold);
+  border-radius: 2px;
+  transition: height .2s ease;
+}
+
+.ce-add-match-item:hover {
+  background: rgba(255,215,0,.1);
+  color: #fff;
+  transform: translateX(4px);
+}
+
+.ce-add-match-item:hover::before {
+  height: 60%;
+}
+
+.ce-add-match-item:active {
+  transform: scale(.97);
+  background: rgba(255,215,0,.16);
+}
+
+/* Stagger the two items */
+.ce-add-match-item:nth-child(1) { animation: itemFade .2s .05s both; }
+.ce-add-match-item:nth-child(2) { animation: itemFade .2s .12s both; }
+
+@keyframes itemFade {
+  from { opacity: 0; transform: translateX(8px); }
+  to   { opacity: 1; transform: translateX(0);   }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   SECTION 5 ▸ FORUM GOLDEN LINK
+   Problem fixed: .forum-golden-link had NO CSS — "Crickedge
+   Adda" looked identical to every other nav link.
+   Effect: Animated gold-orange shimmer text that pulses subtly,
+   making the community link visually distinctive.
+   ────────────────────────────────────────────────────────────── */
+
+.forum-golden-link {
+  background: linear-gradient(90deg, #f5a623, #ffd700, #f5a623) !important;
+  background-size: 250% 100% !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  animation: forumGold 3.5s linear infinite;
+  font-weight: 800 !important;
+}
+
+@keyframes forumGold {
+  0%   { background-position: 0%   50%; }
+  100% { background-position: 250% 50%; }
+}
+
+.forum-golden-link::after {
+  background: linear-gradient(90deg, #f5a623, #ffd700) !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   SECTION 6 ▸ DASHBOARD GLOW BUTTON
+   Problem fixed: .dashboard-glow-btn had NO CSS — the Dashboard
+   button was completely unstyled.
+   Effect: Teal-green glow with subtle pulse and shimmer sweep.
+   ────────────────────────────────────────────────────────────── */
+
+.dashboard-glow-btn {
+  border: 1px solid rgba(95,208,199,.45) !important;
+  background: linear-gradient(135deg, #0d3340, #0a2530) !important;
+  color: #b6f7f0 !important;
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 0 14px rgba(95,208,199,.25);
+  position: relative;
+  overflow: hidden;
+  transition: transform .15s var(--ce-spring), box-shadow .2s ease;
+  animation: dashboardPulse 3s ease-in-out infinite;
+}
+
+@keyframes dashboardPulse {
+  0%,100% { box-shadow: 0 0 12px rgba(95,208,199,.2);  }
+  50%      { box-shadow: 0 0 24px rgba(95,208,199,.45); }
+}
+
+.dashboard-glow-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 28px rgba(95,208,199,.55) !important;
+  color: #ffffff !important;
+  animation: none;
+}
+
+/* Shimmer on hover */
+.dashboard-glow-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 45%;
+  background: linear-gradient(105deg, transparent, rgba(255,255,255,.09), transparent);
+  transform: translateX(-120%);
+}
+
+.dashboard-glow-btn:hover::after {
+  transform: translateX(280%);
+  transition: transform .5s ease;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   SECTION 7 ▸ HOVER SLIDE EMOJI
+   Problem fixed: .hover-slide-emoji had NO CSS — was used on
+   many elements but did nothing.
+   Effect: On hover, the emoji/icon inside subtly bounces up 2px.
+   ────────────────────────────────────────────────────────────── */
+
+.hover-slide-emoji {
+  transition: transform .18s var(--ce-spring);
+}
+
+.hover-slide-emoji:hover {
+  transform: translateY(-1px);
+}
+
+/* For links that already have a custom transform, only move subtly */
+.slumber-link.hover-slide-emoji:hover {
+  transform: translateY(-1px);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   SECTION 8 ▸ NAVBAR ACTION BUTTON BASE
+   Problem fixed: .navbar-action-btn had NO CSS.
+   ────────────────────────────────────────────────────────────── */
+
+.navbar-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  font-weight: 700;
+  font-size: .85rem;
+  letter-spacing: .2px;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   SECTION 9 ▸ SCROLL PROGRESS BAR ACTIVATION
+   Problem: --ce-prog CSS variable is defined and referenced in
+   ::after but nothing in the original JS ever sets it, so the
+   bar always stays at 0%.
+   Fix: Added a scroll listener in Navbar.js (see JS file notes).
+   The CSS below also improves the bar with a glow animation.
+   ────────────────────────────────────────────────────────────── */
+
+.slumber-nav::before {
+  content: "";
+  position: absolute;
+  left: 0; bottom: 0;
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(95,208,199,.15) 30%,
+    rgba(255,215,0,.12) 70%,
+    transparent 100%
+  );
+  z-index: 0;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   SECTION 10 ▸ MOBILE OVERRIDES FOR NEW CLASSES
+   Mirror the mobile fixes that ce-navbar has, applied to
+   slumber-nav so both class names behave identically on mobile.
+   ────────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px), (pointer: coarse) {
+  .slumber-nav {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: linear-gradient(180deg, rgba(14,25,38,.99), rgba(7,17,28,.97)) !important;
+    box-shadow: 0 6px 18px rgba(0,0,0,.35);
+    /* Kill entrance animation on mobile — avoids flash */
+    animation: none !important;
+  }
+
+  .slumber-nav::after {
+    content: none !important;
+  }
+
+  /* Stop the gold button from layout-shifting on mobile */
+  .ce-add-match-trigger {
+    animation: addMatchGlowMobile 2.5s ease-in-out infinite !important;
+  }
+
+  @keyframes addMatchGlowMobile {
+    0%,100% { box-shadow: 0 0 6px rgba(255,215,0,.35), 0 0 14px rgba(255,200,0,.18); }
+    50%      { box-shadow: 0 0 14px rgba(255,215,0,.7), 0 0 26px rgba(255,200,0,.4);  }
+  }
+
+  /* Simpler link hover — no translateY to avoid scroll jank */
+  .slumber-link:hover {
+    transform: none;
+  }
+
+  .hover-slide-emoji:hover {
+    transform: none;
+  }
+
+  /* Add-match menu full-width on small screens */
+  .ce-add-match-menu {
+    right: -8px;
+    left: -8px;
+    min-width: unset;
+  }
+
+  /* Kill stagger delays on mobile collapse — all links visible immediately */
+  .slumber-link {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .slumber-link {
+    padding: .55rem .8rem !important;
+  }
+  .slumber-link::after {
+    bottom: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .slumber-brand-pill {
+    padding: 3px 8px 3px 6px !important;
+  }
+  .slumber-brand-word,
+  .slumber-brand-accent,
+  .slumber-brand-dot {
+    font-size: 1rem;
+  }
+  .ce-add-match-menu {
+    min-width: 180px;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   SECTION 11 ▸ ACCESSIBILITY
+   Respect users who prefer no animations.
+   ────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .slumber-nav,
+  .slumber-brand,
+  .slumber-brand-accent,
+  .slumber-cta,
+  .dashboard-glow-btn,
+  .ce-add-match-trigger,
+  .forum-golden-link,
+  .slumber-link,
+  .ce-add-match-item {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .slumber-brand-accent {
+    background-position: 0% 50% !important;
   }
 }
