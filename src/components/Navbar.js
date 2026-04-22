@@ -8,7 +8,6 @@ import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { playSound } from "../utils/playSound";
 import "../styles/theme.css";
-import "./Navbar.css";
 import TournamentTicker from "./TournamentTicker";
 
 const AppNavbar = ({ onAuthClick }) => {
@@ -50,21 +49,6 @@ const AppNavbar = ({ onAuthClick }) => {
       const u = JSON.parse(local);
       setLoggedInUser(u.first_name || u.email?.split("@")[0]);
     }
-  }, []);
-
-  // ----- scroll progress bar (visual only — sets --ce-prog CSS var) -----
-  // Fixes: --ce-prog was defined in CSS but never set, so the aurora bar
-  // was always stuck at 0%. This useEffect drives it from scroll position.
-  useEffect(() => {
-    const onScroll = () => {
-      const scrollTop  = window.scrollY;
-      const docHeight  = document.documentElement.scrollHeight - window.innerHeight;
-      const pct        = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-      document.querySelector(".slumber-nav")
-        ?.style.setProperty("--ce-prog", `${pct.toFixed(1)}%`);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   // ----- new: add-match dropdown -----
@@ -140,7 +124,7 @@ const AppNavbar = ({ onAuthClick }) => {
 
         <Navbar.Collapse id="navbarScroll" style={{ overflow: "visible" }}>
           {/* ----- MAIN LINKS ----- */}
-          <Nav className="my-2 my-lg-0 flex-wrap" navbarScroll>
+          <Nav className="me-auto my-2 my-lg-0" navbarScroll>
             {/* ✅ now goes to our new page */}
             <Nav.Link
               as={Link}
