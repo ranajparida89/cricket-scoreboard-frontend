@@ -140,7 +140,7 @@ const AppNavbar = ({ onAuthClick }) => {
 
         <Navbar.Collapse id="navbarScroll" style={{ overflow: "visible" }}>
           {/* ----- MAIN LINKS ----- */}
-          <Nav className="me-auto my-2 my-lg-0" navbarScroll>
+          <Nav className="my-2 my-lg-0 flex-wrap" navbarScroll>
             {/* ✅ now goes to our new page */}
             <Nav.Link
               as={Link}

@@ -997,3 +997,13 @@
     background-position: 0% 50% !important;
   }
 }
+/* FIX: prevent navbar items from going out of screen */
+.navbar-nav {
+  flex-wrap: wrap !important;
+}
+
+/* Reduce spacing so all links fit */
+.slumber-link {
+  margin: 0 4px !important;
+  font-size: 0.92rem;
+}
