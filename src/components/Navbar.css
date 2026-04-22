@@ -1024,3 +1024,13 @@
 .slumber-link.forum-golden-link {
   color: #ffd700 !important;
 }
+/* 🚨 FINAL FORCE FIX — Crickedge Adda visibility */
+.navbar .nav-link.forum-golden-link {
+  color: #ffd700 !important;
+  font-weight: 800 !important;
+  text-shadow: 0 0 6px rgba(255,215,0,0.6);
+}
+
+.navbar .nav-link.forum-golden-link:hover {
+  color: #fff3a0 !important;
+}
