@@ -8,6 +8,7 @@ import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { playSound } from "../utils/playSound";
 import "../styles/theme.css";
+import "./Navbar.css";
 import TournamentTicker from "./TournamentTicker";
 
 const AppNavbar = ({ onAuthClick }) => {
