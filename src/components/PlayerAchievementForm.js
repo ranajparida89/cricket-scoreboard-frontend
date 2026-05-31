@@ -58,9 +58,6 @@ const PlayerAchievementForm = () => {
 
     runs: "",
     balls: "",
-    fours: "",
-    sixes: "",
-
     wickets: "",
     overs: "",
     runsConceded: "",
@@ -202,17 +199,12 @@ const PlayerAchievementForm = () => {
 
       runs: "",
       balls: "",
-      fours: "",
-      sixes: "",
-
       wickets: "",
       overs: "",
       runsConceded: "",
-
       catches: "",
       stumpings: "",
       runOuts: "",
-
       remarks: "",
     });
 
@@ -251,12 +243,6 @@ const PlayerAchievementForm = () => {
 
         balls_faced:
           Number(formData.balls || 0),
-
-        fours:
-          Number(formData.fours || 0),
-
-        sixes:
-          Number(formData.sixes || 0),
 
         wickets:
           Number(formData.wickets || 0),
@@ -544,21 +530,6 @@ const PlayerAchievementForm = () => {
                       onChange={handleChange}
                     />
 
-                    <input
-                      type="number"
-                      placeholder="Fours"
-                      name="fours"
-                      value={formData.fours}
-                      onChange={handleChange}
-                    />
-
-                    <input
-                      type="number"
-                      placeholder="Sixes"
-                      name="sixes"
-                      value={formData.sixes}
-                      onChange={handleChange}
-                    />
                   </>
                 )}
 
