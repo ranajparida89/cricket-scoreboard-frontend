@@ -1,0 +1,343 @@
+/* ==========================================
+   PLAYER ACHIEVEMENT CENTER
+========================================== */
+
+.achievement-page {
+  min-height: 100vh;
+  padding: 30px;
+  background: linear-gradient(
+    135deg,
+    #f8fafc 0%,
+    #eef4ff 50%,
+    #ffffff 100%
+  );
+  color: #1e293b;
+}
+
+/* ==========================================
+   HEADER
+========================================== */
+
+.achievement-header {
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.achievement-header h1 {
+  font-size: 42px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: #0f172a;
+  letter-spacing: 0.5px;
+}
+
+.achievement-header p {
+  font-size: 16px;
+  color: #64748b;
+}
+
+/* ==========================================
+   DASHBOARD CARDS
+========================================== */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-bottom: 35px;
+}
+
+.dashboard-card {
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 25px;
+  box-shadow:
+    0 10px 35px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 15px 40px rgba(37, 99, 235, 0.12);
+}
+
+.dashboard-card span {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+.dashboard-card h2 {
+  font-size: 42px;
+  margin: 0;
+  font-weight: 800;
+  color: #2563eb;
+}
+
+/* ==========================================
+   MAIN LAYOUT
+========================================== */
+
+.achievement-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+/* ==========================================
+   CARDS
+========================================== */
+
+.card-section,
+.preview-panel {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 25px;
+  margin-bottom: 25px;
+  border: 1px solid #e2e8f0;
+  box-shadow:
+    0 10px 35px rgba(15, 23, 42, 0.08);
+}
+
+.card-section h3,
+.preview-panel h3 {
+  margin-top: 0;
+  margin-bottom: 22px;
+  color: #0f172a;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* ==========================================
+   FORM GRID
+========================================== */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #334155;
+  font-size: 14px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  padding: 0 14px;
+  font-size: 15px;
+  background: #ffffff;
+  transition: all 0.25s ease;
+}
+
+.form-group textarea {
+  height: 120px;
+  padding-top: 12px;
+  resize: vertical;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow:
+    0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+/* ==========================================
+   PREVIEW PANEL
+========================================== */
+
+.preview-panel {
+  position: sticky;
+  top: 90px;
+}
+
+.preview-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.preview-item:last-child {
+  border-bottom: none;
+}
+
+.preview-item strong {
+  color: #0f172a;
+}
+
+.preview-item span {
+  color: #475569;
+  font-weight: 500;
+}
+
+/* ==========================================
+   BUTTONS
+========================================== */
+
+.action-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.btn-save {
+  background: linear-gradient(
+    135deg,
+    #2563eb,
+    #1d4ed8
+  );
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 28px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.btn-save:hover {
+  opacity: 0.92;
+}
+
+.btn-reset {
+  background: #f1f5f9;
+  color: #0f172a;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 28px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* ==========================================
+   ACHIEVEMENT TABLE
+========================================== */
+
+.achievement-table {
+  background: white;
+  border-radius: 24px;
+  padding: 25px;
+  margin-top: 30px;
+  box-shadow:
+    0 10px 35px rgba(15, 23, 42, 0.08);
+}
+
+.achievement-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.achievement-table th {
+  background: #f8fafc;
+  padding: 15px;
+  text-align: left;
+  font-weight: 700;
+}
+
+.achievement-table td {
+  padding: 15px;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* ==========================================
+   RARITY BADGES
+========================================== */
+
+.badge-common,
+.badge-rare,
+.badge-epic,
+.badge-legendary,
+.badge-mythical,
+.badge-historic {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.badge-common {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.badge-rare {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badge-epic {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.badge-legendary {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.badge-mythical {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.badge-historic {
+  background: #fde68a;
+  color: #92400e;
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width: 1100px) {
+
+  .achievement-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-panel {
+    position: relative;
+    top: auto;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .achievement-page {
+    padding: 15px;
+  }
+
+  .achievement-header h1 {
+    font-size: 28px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
