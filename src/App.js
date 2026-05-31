@@ -78,6 +78,7 @@ import MatchRewardsAudit from "./components/MatchRewardsAudit";
 import FundsAlerts from "./components/FundsAlerts";
 import DeclareTournamentResult from "./components/DeclareTournamentResult";
 import Super8Fixture from "./components/Super8Fixture";
+import PlayerAchievementForm from "./components/PlayerAchievementForm";
 
 
 // 🔥 NEW
@@ -598,6 +599,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <PlayerStats />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/player-achievements"
+            element={
+              <ProtectedRoute>
+                <PageWrapper>
+                  <PlayerAchievementForm />
+                </PageWrapper>
               </ProtectedRoute>
             }
           />

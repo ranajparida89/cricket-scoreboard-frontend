@@ -73,6 +73,11 @@ const SidebarMenu = () => {
         </li>
 
         <li>
+          <Link to="/player-achievements" onClick={handleClose}>
+            🏅 Player Achievements
+          </Link>
+        </li>
+        <li>
           <Link to="/player-rankings" onClick={handleClose}>
             🏆 CrickEdge Rankings
           </Link>
