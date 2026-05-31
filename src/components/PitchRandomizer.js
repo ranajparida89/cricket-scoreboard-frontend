@@ -133,12 +133,20 @@ export default function PitchRandomizer() {
     let selectedPitchType;
     let selectedPitchAge;
 
-   if (matchType === "Test") {
-  // Fixed Test Match Conditions
-  hardness = "Soft";
-  selectedPitchType = "Dry";
-  selectedPitchAge = "Day 1";
-} else {
+    if (matchType === "Test") {
+      const r = Math.random() * 100;
+      hardness = r < 70 ? "Medium" : "Soft";
+
+      const testFriendlyTypes = ["Standard", "Dry", "Grassy", "Grassy/Dry"];
+
+      if (hardness === "Hard") {
+        selectedPitchType = getRandom(["Standard", "Dry", "Grassy/Dry"]);
+        selectedPitchAge = "Day 1";
+      } else {
+        selectedPitchType = getRandom(testFriendlyTypes);
+        selectedPitchAge = getRandom(pitchAgesMax2);
+      }
+    } else {
       // ODI / T20
       const r = Math.random() * 100;
       hardness = "Medium";
