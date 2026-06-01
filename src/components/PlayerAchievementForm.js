@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./PlayerAchievementForm.css";
+import Select from "react-select";
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
 
@@ -25,11 +26,19 @@ const PlayerAchievementForm = () => {
     const [showHistoryModal, setShowHistoryModal] =
         useState(false);
 
+    const [showInfoModal, setShowInfoModal] =
+        useState(false);
+
     /* ==========================
        DROPDOWNS
     ========================== */
     const [players, setPlayers] = useState([]);
     const [achievements, setAchievements] = useState([]);
+
+    const playerOptions = players.map((player) => ({
+        value: player,
+        label: player,
+    }));
 
     /* ==========================
        HISTORY
@@ -39,6 +48,12 @@ const PlayerAchievementForm = () => {
 
     const [historyLoading, setHistoryLoading] =
         useState(false);
+
+    const [historyFilters, setHistoryFilters] = useState({
+        playerName: "",
+        matchType: "",
+        category: "",
+    });
 
     /* ==========================
        FORM
@@ -304,6 +319,14 @@ const PlayerAchievementForm = () => {
             {/* HEADER */}
 
             <div className="achievement-header">
+                <button
+                    className="achievement-info-btn"
+                    onClick={() => setShowInfoModal(true)}
+                    title="How this module works"
+                >
+                    ℹ️
+                </button>
+
                 <h1>🏆 CrickEdge Achievement Center</h1>
 
                 <p>
@@ -416,45 +439,34 @@ const PlayerAchievementForm = () => {
                                     onChange={handleChange}
                                 />
                             </div>
-                            <div className="form-group player-search-box">
+                            <div className="form-group">
 
                                 <label>Player Name</label>
 
-                                <input
-                                    type="text"
-                                    name="playerName"
-                                    placeholder="Search or type player name"
-                                    value={formData.playerName}
-                                    onChange={handleChange}
+                                <Select
+                                    className="player-react-select"
+                                    classNamePrefix="player-select"
+                                    options={playerOptions}
+                                    placeholder="Search Player..."
+                                    isSearchable
+                                    isClearable
+                                    value={
+                                        formData.playerName
+                                            ? {
+                                                value: formData.playerName,
+                                                label: formData.playerName,
+                                            }
+                                            : null
+                                    }
+                                    onChange={(selected) =>
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            playerName: selected
+                                                ? selected.value
+                                                : "",
+                                        }))
+                                    }
                                 />
-
-                                {formData.playerName && (
-                                    <div className="player-suggestion-list">
-
-                                        {players
-                                            .filter((player) =>
-                                                player
-                                                    .toLowerCase()
-                                                    .includes(formData.playerName.toLowerCase())
-                                            )
-                                            .slice(0, 10)
-                                            .map((player, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="player-suggestion-item"
-                                                    onClick={() =>
-                                                        setFormData((prev) => ({
-                                                            ...prev,
-                                                            playerName: player,
-                                                        }))
-                                                    }
-                                                >
-                                                    {player}
-                                                </div>
-                                            ))}
-
-                                    </div>
-                                )}
 
                             </div>
 
@@ -635,6 +647,57 @@ const PlayerAchievementForm = () => {
                             </button>
 
                         </div>
+                        <div className="history-filters">
+
+                            <input
+                                type="text"
+                                placeholder="Search Player Name..."
+                                value={historyFilters.playerName}
+                                onChange={(e) =>
+                                    setHistoryFilters({
+                                        ...historyFilters,
+                                        playerName: e.target.value,
+                                    })
+                                }
+                            />
+
+                            <select
+                                value={historyFilters.matchType}
+                                onChange={(e) =>
+                                    setHistoryFilters({
+                                        ...historyFilters,
+                                        matchType: e.target.value,
+                                    })
+                                }
+                            >
+                                <option value="">All Formats</option>
+                                <option value="ODI">ODI</option>
+                                <option value="T20">T20</option>
+                                <option value="TEST">TEST</option>
+                            </select>
+
+                            <select
+                                value={historyFilters.category}
+                                onChange={(e) =>
+                                    setHistoryFilters({
+                                        ...historyFilters,
+                                        category: e.target.value,
+                                    })
+                                }
+                            >
+                                <option value="">All Categories</option>
+                                <option value="Batting">Batting</option>
+                                <option value="Bowling">Bowling</option>
+                                <option value="Fielding">Fielding</option>
+                                <option value="Wicket Keeping">
+                                    Wicket Keeping
+                                </option>
+                                <option value="All Round">
+                                    All Round
+                                </option>
+                            </select>
+
+                        </div>
 
                         {historyLoading ? (
 
@@ -660,41 +723,62 @@ const PlayerAchievementForm = () => {
 
                                     <tbody>
 
-                                        {achievementHistory.map(
-                                            (row) => (
-                                                <tr
-                                                    key={row.id}
-                                                >
-                                                    <td>
-                                                        {row.achievement_id}
-                                                    </td>
+                                        {achievementHistory
+                                            .filter((row) => {
 
-                                                    <td>
-                                                        {row.player_name}
-                                                    </td>
+                                                const playerMatch =
+                                                    !historyFilters.playerName ||
+                                                    row.player_name
+                                                        ?.toLowerCase()
+                                                        .includes(
+                                                            historyFilters.playerName.toLowerCase()
+                                                        );
 
-                                                    <td>
-                                                        {row.team_name}
-                                                    </td>
+                                                const formatMatch =
+                                                    !historyFilters.matchType ||
+                                                    row.match_type === historyFilters.matchType;
 
-                                                    <td>
-                                                        {row.achievement_name}
-                                                    </td>
+                                                const categoryMatch =
+                                                    !historyFilters.category ||
+                                                    row.achievement_category === historyFilters.category;
 
-                                                    <td>
-                                                        {row.achievement_category}
-                                                    </td>
+                                                return playerMatch && formatMatch && categoryMatch;
+                                            })
+                                            .map(
+                                                (row) => (
+                                                    <tr
+                                                        key={row.id}
+                                                    >
+                                                        <td>
+                                                            {row.achievement_id}
+                                                        </td>
 
-                                                    <td>
-                                                        {row.achievement_points}
-                                                    </td>
+                                                        <td>
+                                                            {row.player_name}
+                                                        </td>
 
-                                                    <td>
-                                                        {row.status}
-                                                    </td>
-                                                </tr>
-                                            )
-                                        )}
+                                                        <td>
+                                                            {row.team_name}
+                                                        </td>
+
+                                                        <td>
+                                                            {row.achievement_name}
+                                                        </td>
+
+                                                        <td>
+                                                            {row.achievement_category}
+                                                        </td>
+
+                                                        <td>
+                                                            {row.achievement_points}
+                                                        </td>
+
+                                                        <td>
+                                                            {row.status}
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            )}
 
                                     </tbody>
 
@@ -710,6 +794,83 @@ const PlayerAchievementForm = () => {
 
             )}
 
+            {/* INFO MODAL */}
+
+            {showInfoModal && (
+                <div className="modal-overlay">
+
+                    <div className="info-modal">
+
+                        <div className="history-header">
+
+                            <h2>
+                                ℹ️ How Player Achievements Work
+                            </h2>
+
+                            <button
+                                className="btn-reset"
+                                onClick={() => setShowInfoModal(false)}
+                            >
+                                Close
+                            </button>
+
+                        </div>
+
+                        <div className="info-content">
+
+                            <p>
+                                Use this module to register and track
+                                special player achievements.
+                            </p>
+
+                            <ul>
+
+                                <li>
+                                    Register Achievement →
+                                    Add a new player achievement.
+                                </li>
+
+                                <li>
+                                    Show Achievements →
+                                    View all saved achievements.
+                                </li>
+
+                                <li>
+                                    Player Name →
+                                    Search and select player.
+                                </li>
+
+                                <li>
+                                    Category →
+                                    Batting, Bowling,
+                                    Fielding, Wicket Keeping,
+                                    All Round.
+                                </li>
+
+                                <li>
+                                    Achievement →
+                                    Loaded from achievement master.
+                                </li>
+
+                                <li>
+                                    Achievement Date →
+                                    Current or past date only.
+                                </li>
+
+                                <li>
+                                    Points →
+                                    Auto calculated from
+                                    achievement master.
+                                </li>
+
+                            </ul>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            )}
         </div>
     );
 };
