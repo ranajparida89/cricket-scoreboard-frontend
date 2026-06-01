@@ -6,694 +6,712 @@ const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
 
 const PlayerAchievementForm = () => {
 
-  /* ==========================
-     DASHBOARD
-  ========================== */
-  const [dashboard, setDashboard] = useState({
-    totalAchievements: 0,
-    verifiedAchievements: 0,
-    hallOfFame: 0,
-    legendaryAchievements: 0,
-  });
-
-  /* ==========================
-     MODALS
-  ========================== */
-  const [showRegisterModal, setShowRegisterModal] =
-    useState(false);
-
-  const [showHistoryModal, setShowHistoryModal] =
-    useState(false);
-
-  /* ==========================
-     DROPDOWNS
-  ========================== */
-  const [players, setPlayers] = useState([]);
-  const [achievements, setAchievements] = useState([]);
-
-  /* ==========================
-     HISTORY
-  ========================== */
-  const [achievementHistory, setAchievementHistory] =
-    useState([]);
-
-  const [historyLoading, setHistoryLoading] =
-    useState(false);
-
-  /* ==========================
-     FORM
-  ========================== */
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-
-  const [formData, setFormData] = useState({
-    matchType: "",
-    matchName: "",
-    teamName: "",
-    playerName: "",
-    achievementDate: "",
-
-    category: "",
-    achievement: "",
-
-    runs: "",
-    balls: "",
-    wickets: "",
-    overs: "",
-    runsConceded: "",
-
-    catches: "",
-    stumpings: "",
-    runOuts: "",
-
-    remarks: "",
-  });
-
-  /* ==========================
-     INITIAL LOAD
-  ========================== */
-
-  useEffect(() => {
-    loadDashboard();
-    loadPlayers();
-  }, []);
-
-  /* ==========================
-     DASHBOARD API
-  ========================== */
-
-  const loadDashboard = async () => {
-    try {
-      const res = await axios.get(
-        `${API_BASE}/api/player-achievements/dashboard`
-      );
-
-      setDashboard(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  /* ==========================
-     PLAYER API
-  ========================== */
-
-  const loadPlayers = async () => {
-    try {
-      const res = await axios.get(
-        `${API_BASE}/api/players/list`
-      );
-
-      setPlayers(res.data || []);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  /* ==========================
-     ACHIEVEMENT MASTER
-  ========================== */
-
-  const loadAchievementsByCategory =
-    async (category) => {
-      try {
-        if (!category) {
-          setAchievements([]);
-          return;
-        }
-
-        const res = await axios.get(
-          `${API_BASE}/api/player-achievements/master/${category}`
-        );
-
-        setAchievements(
-          res.data.data || []
-        );
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-  /* ==========================
-     ACHIEVEMENT HISTORY
-  ========================== */
-
-  const loadAchievementHistory =
-    async () => {
-      try {
-
-        setHistoryLoading(true);
-
-        const res = await axios.get(
-          `${API_BASE}/api/player-achievements/all`
-        );
-
-        setAchievementHistory(
-          res.data.data || []
-        );
-
-      } catch (err) {
-
-        console.error(err);
-
-      } finally {
-
-        setHistoryLoading(false);
-
-      }
-    };
-
-  /* ==========================
-     HANDLE CHANGE
-  ========================== */
-
-  const handleChange = (e) => {
-
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    if (name === "category") {
-      loadAchievementsByCategory(value);
-    }
-  };
-
-  /* ==========================
-     RESET FORM
-  ========================== */
-
-  const resetForm = () => {
-
-    setFormData({
-      matchType: "",
-      matchName: "",
-      teamName: "",
-      playerName: "",
-      achievementDate: "",
-
-      category: "",
-      achievement: "",
-
-      runs: "",
-      balls: "",
-      wickets: "",
-      overs: "",
-      runsConceded: "",
-      catches: "",
-      stumpings: "",
-      runOuts: "",
-      remarks: "",
+    /* ==========================
+       DASHBOARD
+    ========================== */
+    const [dashboard, setDashboard] = useState({
+        totalAchievements: 0,
+        verifiedAchievements: 0,
+        hallOfFame: 0,
+        legendaryAchievements: 0,
     });
 
-    setAchievements([]);
-    setMessage("");
-  };
+    /* ==========================
+       MODALS
+    ========================== */
+    const [showRegisterModal, setShowRegisterModal] =
+        useState(false);
 
-  /* ==========================
-     SAVE ACHIEVEMENT
-  ========================== */
+    const [showHistoryModal, setShowHistoryModal] =
+        useState(false);
 
-  const handleSubmit = async () => {
+    /* ==========================
+       DROPDOWNS
+    ========================== */
+    const [players, setPlayers] = useState([]);
+    const [achievements, setAchievements] = useState([]);
 
-    try {
+    /* ==========================
+       HISTORY
+    ========================== */
+    const [achievementHistory, setAchievementHistory] =
+        useState([]);
 
-      setLoading(true);
+    const [historyLoading, setHistoryLoading] =
+        useState(false);
 
-      const payload = {
-        match_type: formData.matchType,
-        match_name: formData.matchName,
+    /* ==========================
+       FORM
+    ========================== */
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState("");
 
-        team_name: formData.teamName,
-        player_name: formData.playerName,
+    const [formData, setFormData] = useState({
+        matchType: "",
+        matchName: "",
+        teamName: "",
+        playerName: "",
+        achievementDate: "",
 
-        achievement_category:
-          formData.category,
+        category: "",
+        achievement: "",
 
-        achievement_name:
-          formData.achievement,
+        runs: "",
+        balls: "",
+        wickets: "",
+        overs: "",
+        runsConceded: "",
 
-        achievement_date:
-          formData.achievementDate,
+        catches: "",
+        stumpings: "",
+        runOuts: "",
 
-        runs_scored:
-          Number(formData.runs || 0),
+        remarks: "",
+    });
 
-        balls_faced:
-          Number(formData.balls || 0),
+    /* ==========================
+       INITIAL LOAD
+    ========================== */
 
-        wickets:
-          Number(formData.wickets || 0),
+    useEffect(() => {
+        loadDashboard();
+        loadPlayers();
+    }, []);
 
-        runs_conceded:
-          Number(
-            formData.runsConceded || 0
-          ),
+    /* ==========================
+       DASHBOARD API
+    ========================== */
 
-        catches:
-          Number(formData.catches || 0),
+    const loadDashboard = async () => {
+        try {
+            const res = await axios.get(
+                `${API_BASE}/api/player-achievements/dashboard`
+            );
 
-        stumpings:
-          Number(formData.stumpings || 0),
+            setDashboard(res.data);
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
-        run_outs:
-          Number(formData.runOuts || 0),
+    /* ==========================
+       PLAYER API
+    ========================== */
 
-        remarks:
-          formData.remarks,
+    const loadPlayers = async () => {
+        try {
+            const res = await axios.get(
+                `${API_BASE}/api/players/list`
+            );
 
-        created_by: "Ranaj",
-      };
+            setPlayers(res.data || []);
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
-      const res = await axios.post(
-        `${API_BASE}/api/player-achievements/register`,
-        payload
-      );
+    /* ==========================
+       ACHIEVEMENT MASTER
+    ========================== */
 
-      setMessage(
-        res.data.message ||
-        "Achievement Saved Successfully"
-      );
+    const loadAchievementsByCategory =
+        async (category) => {
+            try {
+                if (!category) {
+                    setAchievements([]);
+                    return;
+                }
 
-      loadDashboard();
-      loadAchievementHistory();
+                const res = await axios.get(
+                    `${API_BASE}/api/player-achievements/master/${category}`
+                );
 
-      setTimeout(() => {
-        setShowRegisterModal(false);
-        resetForm();
-      }, 1500);
+                setAchievements(
+                    res.data.data || []
+                );
+            } catch (err) {
+                console.error(err);
+            }
+        };
 
-    } catch (err) {
+    /* ==========================
+       ACHIEVEMENT HISTORY
+    ========================== */
 
-      setMessage(
-        err?.response?.data?.message ||
-        "Failed to Save Achievement"
-      );
+    const loadAchievementHistory =
+        async () => {
+            try {
 
-    } finally {
+                setHistoryLoading(true);
 
-      setLoading(false);
+                const res = await axios.get(
+                    `${API_BASE}/api/player-achievements/all`
+                );
 
-    }
-  };
-  return (
-    <div className="achievement-page">
+                setAchievementHistory(
+                    res.data.data || []
+                );
 
-      {/* HEADER */}
+            } catch (err) {
 
-      <div className="achievement-header">
-        <h1>🏆 CrickEdge Achievement Center</h1>
+                console.error(err);
 
-        <p>
-          Capture, verify and celebrate extraordinary cricket performances.
-        </p>
-      </div>
+            } finally {
 
-      {/* DASHBOARD */}
+                setHistoryLoading(false);
 
-      <div className="dashboard-grid">
+            }
+        };
 
-        <div className="dashboard-card">
-          <span>Total Achievements</span>
-          <h2>{dashboard.totalAchievements || 0}</h2>
-        </div>
+    /* ==========================
+       HANDLE CHANGE
+    ========================== */
 
-        <div className="dashboard-card">
-          <span>Verified</span>
-          <h2>{dashboard.verifiedAchievements || 0}</h2>
-        </div>
+    const handleChange = (e) => {
 
-        <div className="dashboard-card">
-          <span>Hall Of Fame</span>
-          <h2>{dashboard.hallOfFame || 0}</h2>
-        </div>
+        const { name, value } = e.target;
 
-        <div className="dashboard-card">
-          <span>Legendary</span>
-          <h2>{dashboard.legendaryAchievements || 0}</h2>
-        </div>
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
 
-      </div>
+        if (name === "category") {
+            loadAchievementsByCategory(value);
+        }
+    };
 
-      {/* ACTION CARDS */}
+    /* ==========================
+       RESET FORM
+    ========================== */
 
-      <div className="achievement-actions">
+    const resetForm = () => {
 
-        <div
-          className="action-card register-card"
-          onClick={() => setShowRegisterModal(true)}
-        >
-          <h2>🏆 Register Achievement</h2>
+        setFormData({
+            matchType: "",
+            matchName: "",
+            teamName: "",
+            playerName: "",
+            achievementDate: "",
 
-          <p>
-            Submit a new achievement for any player.
-          </p>
-        </div>
+            category: "",
+            achievement: "",
 
-        <div
-          className="action-card history-card"
-          onClick={() => {
-            setShowHistoryModal(true);
+            runs: "",
+            balls: "",
+            wickets: "",
+            overs: "",
+            runsConceded: "",
+            catches: "",
+            stumpings: "",
+            runOuts: "",
+            remarks: "",
+        });
+
+        setAchievements([]);
+        setMessage("");
+    };
+
+    /* ==========================
+       SAVE ACHIEVEMENT
+    ========================== */
+
+    const handleSubmit = async () => {
+
+        try {
+
+            setLoading(true);
+
+            const payload = {
+                match_type: formData.matchType,
+                match_name: formData.matchName,
+
+                team_name: formData.teamName,
+                player_name: formData.playerName,
+
+                achievement_category:
+                    formData.category,
+
+                achievement_name:
+                    formData.achievement,
+
+                achievement_date:
+                    formData.achievementDate,
+
+                runs_scored:
+                    Number(formData.runs || 0),
+
+                balls_faced:
+                    Number(formData.balls || 0),
+
+                wickets:
+                    Number(formData.wickets || 0),
+
+                runs_conceded:
+                    Number(
+                        formData.runsConceded || 0
+                    ),
+
+                catches:
+                    Number(formData.catches || 0),
+
+                stumpings:
+                    Number(formData.stumpings || 0),
+
+                run_outs:
+                    Number(formData.runOuts || 0),
+
+                remarks:
+                    formData.remarks,
+
+                created_by: "Ranaj",
+            };
+
+            const res = await axios.post(
+                `${API_BASE}/api/player-achievements/register`,
+                payload
+            );
+
+            setMessage(
+                res.data.message ||
+                "Achievement Saved Successfully"
+            );
+
+            loadDashboard();
             loadAchievementHistory();
-          }}
-        >
-          <h2>📋 Show Achievements</h2>
 
-          <p>
-            View all recorded achievements.
-          </p>
-        </div>
+            setTimeout(() => {
+                setShowRegisterModal(false);
+                resetForm();
+            }, 1500);
 
-      </div>
+        } catch (err) {
 
-      {/* REGISTER MODAL */}
+            setMessage(
+                err?.response?.data?.message ||
+                "Failed to Save Achievement"
+            );
 
-      {showRegisterModal && (
+        } finally {
 
-        <div className="modal-overlay">
+            setLoading(false);
 
-          <div className="achievement-modal">
+        }
+    };
+    return (
+        <div className="achievement-page">
 
-            <h2>🏆 Register Achievement</h2>
+            {/* HEADER */}
 
-            <div className="form-grid">
+            <div className="achievement-header">
+                <h1>🏆 CrickEdge Achievement Center</h1>
 
-              <div className="form-group">
-                <label>Match Type</label>
+                <p>
+                    Capture, verify and celebrate extraordinary cricket performances.
+                </p>
+            </div>
 
-                <select
-                  name="matchType"
-                  value={formData.matchType}
-                  onChange={handleChange}
-                >
-                  <option value="">Select</option>
-                  <option value="ODI">ODI</option>
-                  <option value="T20">T20</option>
-                  <option value="TEST">TEST</option>
-                </select>
-              </div>
+            {/* DASHBOARD */}
 
-              <div className="form-group">
-                <label>Match Name</label>
+            <div className="dashboard-grid">
 
-                <input
-                  type="text"
-                  name="matchName"
-                  value={formData.matchName}
-                  onChange={handleChange}
-                />
-              </div>
+                <div className="dashboard-card">
+                    <span>Total Achievements</span>
+                    <h2>{dashboard.totalAchievements || 0}</h2>
+                </div>
 
-              <div className="form-group">
-                <label>Team Name</label>
+                <div className="dashboard-card">
+                    <span>Verified</span>
+                    <h2>{dashboard.verifiedAchievements || 0}</h2>
+                </div>
 
-                <input
-                  type="text"
-                  name="teamName"
-                  value={formData.teamName}
-                  onChange={handleChange}
-                />
-              </div>
+                <div className="dashboard-card">
+                    <span>Hall Of Fame</span>
+                    <h2>{dashboard.hallOfFame || 0}</h2>
+                </div>
 
-              <div className="form-group">
-
-                <label>Player Name</label>
-
-                <input
-                  list="playerList"
-                  name="playerName"
-                  value={formData.playerName}
-                  onChange={handleChange}
-                />
-
-                <datalist id="playerList">
-
-                  {players.map((player, index) => (
-                    <option
-                      key={index}
-                      value={player}
-                    />
-                  ))}
-
-                </datalist>
-
-              </div>
-
-              <div className="form-group">
-                <label>Achievement Date</label>
-
-                <input
-                  type="date"
-                  name="achievementDate"
-                  value={formData.achievementDate}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="form-group">
-
-                <label>Category</label>
-
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                >
-                  <option value="">Select</option>
-
-                  <option value="Batting">Batting</option>
-                  <option value="Bowling">Bowling</option>
-                  <option value="Fielding">Fielding</option>
-                  <option value="Wicket Keeping">
-                    Wicket Keeping
-                  </option>
-                  <option value="All Round">
-                    All Round
-                  </option>
-                </select>
-
-              </div>
-
-              <div className="form-group">
-
-                <label>Achievement</label>
-
-                <select
-                  name="achievement"
-                  value={formData.achievement}
-                  onChange={handleChange}
-                >
-                  <option value="">
-                    Select Achievement
-                  </option>
-
-                  {achievements.map((item) => (
-                    <option
-                      key={item.id}
-                      value={item.achievement_name}
-                    >
-                      {item.achievement_name}
-                    </option>
-                  ))}
-                </select>
-
-              </div>
+                <div className="dashboard-card">
+                    <span>Legendary</span>
+                    <h2>{dashboard.legendaryAchievements || 0}</h2>
+                </div>
 
             </div>
 
-            {/* PERFORMANCE */}
+            {/* ACTION CARDS */}
 
-            <div className="performance-section">
+            <div className="achievement-actions">
 
-              <h3>Performance Details</h3>
+                <div
+                    className="action-card register-card"
+                    onClick={() => setShowRegisterModal(true)}
+                >
+                    <h2>🏆 Register Achievement</h2>
 
-              <div className="form-grid">
+                    <p>
+                        Submit a new achievement for any player.
+                    </p>
+                </div>
 
-                {(formData.category === "Batting" ||
-                  formData.category === "All Round") && (
-                  <>
-                    <input
-                      type="number"
-                      placeholder="Runs"
-                      name="runs"
-                      value={formData.runs}
-                      onChange={handleChange}
-                    />
+                <div
+                    className="action-card history-card"
+                    onClick={() => {
+                        setShowHistoryModal(true);
+                        loadAchievementHistory();
+                    }}
+                >
+                    <h2>📋 Show Achievements</h2>
 
-                    <input
-                      type="number"
-                      placeholder="Balls"
-                      name="balls"
-                      value={formData.balls}
-                      onChange={handleChange}
-                    />
-
-                  </>
-                )}
-
-                {(formData.category === "Bowling" ||
-                  formData.category === "All Round") && (
-                  <>
-                    <input
-                      type="number"
-                      placeholder="Wickets"
-                      name="wickets"
-                      value={formData.wickets}
-                      onChange={handleChange}
-                    />
-
-                    <input
-                      type="number"
-                      placeholder="Runs Conceded"
-                      name="runsConceded"
-                      value={formData.runsConceded}
-                      onChange={handleChange}
-                    />
-                  </>
-                )}
-
-              </div>
+                    <p>
+                        View all recorded achievements.
+                    </p>
+                </div>
 
             </div>
 
-            {message && (
-              <div className="success-message">
-                {message}
-              </div>
+            {/* REGISTER MODAL */}
+
+            {showRegisterModal && (
+
+                <div className="modal-overlay">
+
+                    <div className="achievement-modal">
+
+                        <h2>🏆 Register Achievement</h2>
+
+                        <div className="form-grid">
+
+                            <div className="form-group">
+                                <label>Match Type</label>
+
+                                <select
+                                    name="matchType"
+                                    value={formData.matchType}
+                                    onChange={handleChange}
+                                >
+                                    <option value="">Select</option>
+                                    <option value="ODI">ODI</option>
+                                    <option value="T20">T20</option>
+                                    <option value="TEST">TEST</option>
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Match Name</label>
+
+                                <input
+                                    type="text"
+                                    name="matchName"
+                                    value={formData.matchName}
+                                    onChange={handleChange}
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Team Name</label>
+
+                                <input
+                                    type="text"
+                                    name="teamName"
+                                    value={formData.teamName}
+                                    onChange={handleChange}
+                                />
+                            </div>
+                            <div className="form-group player-search-box">
+
+                                <label>Player Name</label>
+
+                                <input
+                                    type="text"
+                                    name="playerName"
+                                    placeholder="Search or type player name"
+                                    value={formData.playerName}
+                                    onChange={handleChange}
+                                />
+
+                                {formData.playerName && (
+                                    <div className="player-suggestion-list">
+
+                                        {players
+                                            .filter((player) =>
+                                                player
+                                                    .toLowerCase()
+                                                    .includes(formData.playerName.toLowerCase())
+                                            )
+                                            .slice(0, 10)
+                                            .map((player, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="player-suggestion-item"
+                                                    onClick={() =>
+                                                        setFormData((prev) => ({
+                                                            ...prev,
+                                                            playerName: player,
+                                                        }))
+                                                    }
+                                                >
+                                                    {player}
+                                                </div>
+                                            ))}
+
+                                    </div>
+                                )}
+
+                            </div>
+
+                            <div className="form-group">
+                                <label>Achievement Date</label>
+
+                                <input
+                                    type="date"
+                                    name="achievementDate"
+                                    value={formData.achievementDate}
+                                    max={new Date().toISOString().split("T")[0]}
+                                    onChange={handleChange}
+                                />
+                            </div>
+
+                            <div className="form-group">
+
+                                <label>Category</label>
+
+                                <select
+                                    name="category"
+                                    value={formData.category}
+                                    onChange={handleChange}
+                                >
+                                    <option value="">Select</option>
+
+                                    <option value="Batting">Batting</option>
+                                    <option value="Bowling">Bowling</option>
+                                    <option value="Fielding">Fielding</option>
+                                    <option value="Wicket Keeping">
+                                        Wicket Keeping
+                                    </option>
+                                    <option value="All Round">
+                                        All Round
+                                    </option>
+                                </select>
+
+                            </div>
+
+                            <div className="form-group">
+
+                                <label>Achievement</label>
+
+                                <select
+                                    name="achievement"
+                                    value={formData.achievement}
+                                    onChange={handleChange}
+                                >
+                                    <option value="">
+                                        Select Achievement
+                                    </option>
+
+                                    {achievements.map((item) => (
+                                        <option
+                                            key={item.id}
+                                            value={item.achievement_name}
+                                        >
+                                            {item.achievement_name}
+                                        </option>
+                                    ))}
+                                </select>
+
+                            </div>
+
+                        </div>
+
+                        {/* PERFORMANCE */}
+
+                        <div className="performance-section">
+
+                            <h3>Performance Details</h3>
+
+                            <div className="form-grid">
+
+                                {(formData.category === "Batting" ||
+                                    formData.category === "All Round") && (
+                                        <>
+                                            <input
+                                                type="number"
+                                                placeholder="Runs"
+                                                name="runs"
+                                                value={formData.runs}
+                                                onChange={handleChange}
+                                            />
+
+                                            <input
+                                                type="number"
+                                                placeholder="Balls"
+                                                name="balls"
+                                                value={formData.balls}
+                                                onChange={handleChange}
+                                            />
+
+                                        </>
+                                    )}
+
+                                {(formData.category === "Bowling" ||
+                                    formData.category === "All Round") && (
+                                        <>
+                                            <input
+                                                type="number"
+                                                placeholder="Wickets"
+                                                name="wickets"
+                                                value={formData.wickets}
+                                                onChange={handleChange}
+                                            />
+
+                                            <input
+                                                type="number"
+                                                placeholder="Runs Conceded"
+                                                name="runsConceded"
+                                                value={formData.runsConceded}
+                                                onChange={handleChange}
+                                            />
+                                        </>
+                                    )}
+
+                            </div>
+
+                        </div>
+
+                        {message && (
+                            <div className="success-message">
+                                {message}
+                            </div>
+                        )}
+
+                        <div className="action-buttons">
+
+                            <button
+                                className="btn-save"
+                                onClick={handleSubmit}
+                                disabled={loading}
+                            >
+                                {loading
+                                    ? "Saving..."
+                                    : "Submit Achievement"}
+                            </button>
+
+                            <button
+                                className="btn-reset"
+                                onClick={() =>
+                                    setShowRegisterModal(false)
+                                }
+                            >
+                                Cancel
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
             )}
 
-            <div className="action-buttons">
+            {/* HISTORY MODAL */}
 
-              <button
-                className="btn-save"
-                onClick={handleSubmit}
-                disabled={loading}
-              >
-                {loading
-                  ? "Saving..."
-                  : "Submit Achievement"}
-              </button>
+            {showHistoryModal && (
 
-              <button
-                className="btn-reset"
-                onClick={() =>
-                  setShowRegisterModal(false)
-                }
-              >
-                Cancel
-              </button>
+                <div className="modal-overlay">
 
-            </div>
+                    <div className="history-modal">
 
-          </div>
+                        <div className="history-header">
 
-        </div>
+                            <h2>
+                                📋 Achievement History
+                            </h2>
 
-      )}
+                            <button
+                                className="btn-reset"
+                                onClick={() =>
+                                    setShowHistoryModal(false)
+                                }
+                            >
+                                Close
+                            </button>
 
-      {/* HISTORY MODAL */}
+                        </div>
 
-      {showHistoryModal && (
+                        {historyLoading ? (
 
-        <div className="modal-overlay">
+                            <p>Loading...</p>
 
-          <div className="history-modal">
+                        ) : (
 
-            <div className="history-header">
+                            <div className="history-table">
 
-              <h2>
-                📋 Achievement History
-              </h2>
+                                <table>
 
-              <button
-                className="btn-reset"
-                onClick={() =>
-                  setShowHistoryModal(false)
-                }
-              >
-                Close
-              </button>
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Player</th>
+                                            <th>Team</th>
+                                            <th>Achievement</th>
+                                            <th>Category</th>
+                                            <th>Points</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
 
-            </div>
+                                    <tbody>
 
-            {historyLoading ? (
+                                        {achievementHistory.map(
+                                            (row) => (
+                                                <tr
+                                                    key={row.id}
+                                                >
+                                                    <td>
+                                                        {row.achievement_id}
+                                                    </td>
 
-              <p>Loading...</p>
+                                                    <td>
+                                                        {row.player_name}
+                                                    </td>
 
-            ) : (
+                                                    <td>
+                                                        {row.team_name}
+                                                    </td>
 
-              <div className="history-table">
+                                                    <td>
+                                                        {row.achievement_name}
+                                                    </td>
 
-                <table>
+                                                    <td>
+                                                        {row.achievement_category}
+                                                    </td>
 
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Player</th>
-                      <th>Team</th>
-                      <th>Achievement</th>
-                      <th>Category</th>
-                      <th>Points</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
+                                                    <td>
+                                                        {row.achievement_points}
+                                                    </td>
 
-                  <tbody>
+                                                    <td>
+                                                        {row.status}
+                                                    </td>
+                                                </tr>
+                                            )
+                                        )}
 
-                    {achievementHistory.map(
-                      (row) => (
-                        <tr
-                          key={row.id}
-                        >
-                          <td>
-                            {row.achievement_id}
-                          </td>
+                                    </tbody>
 
-                          <td>
-                            {row.player_name}
-                          </td>
+                                </table>
 
-                          <td>
-                            {row.team_name}
-                          </td>
+                            </div>
 
-                          <td>
-                            {row.achievement_name}
-                          </td>
+                        )}
 
-                          <td>
-                            {row.achievement_category}
-                          </td>
+                    </div>
 
-                          <td>
-                            {row.achievement_points}
-                          </td>
-
-                          <td>
-                            {row.status}
-                          </td>
-                        </tr>
-                      )
-                    )}
-
-                  </tbody>
-
-                </table>
-
-              </div>
+                </div>
 
             )}
 
-          </div>
-
         </div>
-
-      )}
-
-    </div>
-  );
+    );
 };
 
 export default PlayerAchievementForm;

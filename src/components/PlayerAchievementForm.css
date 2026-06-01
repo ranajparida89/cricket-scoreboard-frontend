@@ -454,3 +454,66 @@
     grid-template-columns: 1fr;
   }
 }
+/* ==========================================
+   PLAYER SEARCH DROPDOWN
+========================================== */
+
+.player-search-box {
+  position: relative;
+}
+
+.player-suggestion-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+
+  max-height: 320px;
+  overflow-y: auto;
+
+  background: #ffffff;
+
+  border: 1px solid #dbeafe;
+
+  border-radius: 14px;
+
+  margin-top: 6px;
+
+  box-shadow:
+    0 15px 40px rgba(15, 23, 42, 0.15);
+
+  z-index: 9999;
+}
+
+.player-suggestion-item {
+  padding: 14px 18px;
+
+  font-size: 15px;
+
+  font-weight: 600;
+
+  color: #0f172a;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.player-suggestion-item:hover {
+  background: #eff6ff;
+
+  color: #2563eb;
+}
+
+.player-suggestion-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.player-suggestion-list::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 10px;
+}
+
+.player-suggestion-list::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
