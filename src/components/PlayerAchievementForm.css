@@ -866,3 +866,31 @@
         padding: 14px 18px;
     }
 }
+
+.achievement-modal input[type="date"] {
+    position: relative;
+    cursor: pointer;
+    color-scheme: light;
+}
+
+.achievement-modal input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 1 !important;
+    display: block !important;
+    cursor: pointer;
+    width: 22px;
+    height: 22px;
+    filter: invert(25%);
+}
+.player-select__input-container input {
+  height: auto !important;
+  min-height: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.player-select__input-container {
+  margin: 0 !important;
+  padding: 0 !important;
+}
