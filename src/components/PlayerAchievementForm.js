@@ -35,6 +35,13 @@ const PlayerAchievementForm = () => {
     const [players, setPlayers] = useState([]);
     const [achievements, setAchievements] = useState([]);
 
+    const [tournaments, setTournaments] = useState([]);
+
+    const tournamentOptions = tournaments.map((item) => ({
+        value: item.tournament_name,
+        label: item.tournament_name,
+    }));
+
     const playerOptions = players.map((player) => ({
         value: player,
         label: player,
@@ -125,6 +132,23 @@ const PlayerAchievementForm = () => {
         }
     };
 
+    const loadTournamentsByMatchType = async (matchType) => {
+        try {
+            if (!matchType) {
+                setTournaments([]);
+                return;
+            }
+
+            const res = await axios.get(
+                `${API_BASE}/api/player-achievements/tournaments/${matchType}`
+            );
+
+            setTournaments(res.data.tournaments || []);
+        } catch (err) {
+            console.error("Tournament Load Error:", err);
+        }
+    };
+
     /* ==========================
        ACHIEVEMENT MASTER
     ========================== */
@@ -194,7 +218,17 @@ const PlayerAchievementForm = () => {
         if (name === "category") {
             loadAchievementsByCategory(value);
         }
+        if (name === "matchType") {
+            setFormData((prev) => ({
+                ...prev,
+                matchName: "",
+            }));
+
+            loadTournamentsByMatchType(value);
+        }
     };
+
+
 
     /* ==========================
        RESET FORM
@@ -419,14 +453,32 @@ const PlayerAchievementForm = () => {
                             </div>
 
                             <div className="form-group">
-                                <label>Match Name</label>
 
-                                <input
-                                    type="text"
-                                    name="matchName"
-                                    value={formData.matchName}
-                                    onChange={handleChange}
+                                <label>Tournament Name</label>
+
+                                <Select
+                                    className="player-react-select"
+                                    classNamePrefix="player-select"
+                                    options={tournamentOptions}
+                                    placeholder="Select Tournament..."
+                                    isSearchable
+                                    isClearable
+                                    value={
+                                        formData.matchName
+                                            ? {
+                                                value: formData.matchName,
+                                                label: formData.matchName,
+                                            }
+                                            : null
+                                    }
+                                    onChange={(selected) =>
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            matchName: selected ? selected.value : "",
+                                        }))
+                                    }
                                 />
+
                             </div>
 
                             <div className="form-group">
