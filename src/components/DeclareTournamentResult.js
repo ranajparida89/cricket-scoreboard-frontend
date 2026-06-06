@@ -9,6 +9,7 @@ export default function DeclareTournamentResult() {
 
     const [tournaments, setTournaments] = useState([]);
     const [results, setResults] = useState([]);
+    const [participatedTeams, setParticipatedTeams] = useState([]);
 
     const [form, setForm] = useState({
 
@@ -76,14 +77,51 @@ export default function DeclareTournamentResult() {
     };
 
 
-    const handleChange = (e) => {
+    const handleChange = async (e) => {
 
-        setForm({
+        const { name, value } = e.target;
 
-            ...form,
-            [e.target.name]: e.target.value
+        setForm(prev => ({
 
-        });
+            ...prev,
+
+            [name]: value,
+
+            ...(name === "tournament_id"
+                ? {
+                    winner_team: "",
+                    runner_team: ""
+                }
+                : {})
+
+        }));
+
+        if (name === "tournament_id" && value) {
+
+            try {
+
+                const res = await axios.get(
+
+                    `${BACKEND}/api/funds/tournament-teams/${value}`
+
+                );
+
+                setParticipatedTeams(
+                    res.data || []
+                );
+
+            }
+            catch (err) {
+
+                setParticipatedTeams([]);
+
+                setError(
+                    "Participated teams load failed"
+                );
+
+            }
+
+        }
 
     };
 
@@ -224,24 +262,46 @@ export default function DeclareTournamentResult() {
                         </select>
 
 
-                        <input
-
+                        <select
                             name="winner_team"
                             value={form.winner_team}
                             onChange={handleChange}
-                            placeholder="Enter Winner Team Name"
                             className="inputBox"
-                        />
+                            disabled={!form.tournament_id}
+                        >
+                            <option value="">Select Winner Team</option>
+
+                            {participatedTeams.map(t => (
+                                <option
+                                    key={t.team_name}
+                                    value={t.team_name}
+                                >
+                                    {t.team_name}
+                                </option>
+                            ))}
+                        </select>
 
 
-                        <input
-
+                        <select
                             name="runner_team"
                             value={form.runner_team}
                             onChange={handleChange}
-                            placeholder="Enter Runner Team Name"
                             className="inputBox"
-                        />
+                            disabled={!form.tournament_id || !form.winner_team}
+                        >
+                            <option value="">Select Runner Team</option>
+
+                            {participatedTeams
+                                .filter(t => t.team_name !== form.winner_team)
+                                .map(t => (
+                                    <option
+                                        key={t.team_name}
+                                        value={t.team_name}
+                                    >
+                                        {t.team_name}
+                                    </option>
+                                ))}
+                        </select>
 
                     </div>
 
