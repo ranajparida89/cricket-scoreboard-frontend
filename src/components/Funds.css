@@ -262,6 +262,8 @@ Enterprise Finance UI
 
     font-size: 14px;
 
+    table-layout: auto;
+
 }
 
 
@@ -307,6 +309,12 @@ Enterprise Finance UI
 
     border-bottom:
         1px solid #1f2a3a;
+
+    white-space: normal;
+
+    overflow-wrap: break-word;
+
+    word-break: break-word;
 
 }
 
@@ -2062,4 +2070,22 @@ Enterprise Finance UI
         padding: 9px 12px !important;
         font-size: 12px !important;
     }
+}
+
+/* ================= MOBILE TEXT SAFETY FIX ================= */
+
+.txTable th,
+.txTable td {
+
+    min-width: 80px;
+
+    vertical-align: middle;
+
+}
+
+.txTable th:first-child,
+.txTable td:first-child {
+
+    min-width: 250px;
+
 }
