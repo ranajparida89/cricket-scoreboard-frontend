@@ -43,13 +43,14 @@ export default function DeclareTournamentResult() {
                     `${BACKEND}/api/funds/tournaments`
                 );
 
-            const closed =
+            const eligible =
                 res.data.filter(
-                    t => t.tournament_status === "REGISTRATION_CLOSED"
+                    t =>
+                        t.tournament_status !== "COMPLETED" &&
+                        t.tournament_status !== "CANCELLED"
                 );
 
-            setTournaments(closed);
-
+            setTournaments(eligible);
         } catch {
 
             setError("Tournament load failed");
