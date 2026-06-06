@@ -8,21 +8,21 @@ Enterprise Finance UI
 
 /* ── CSS Custom Properties ── */
 :root {
-    --gold:           #f5c842;
-    --gold-glow:      rgba(245, 200, 66, 0.45);
-    --gold-dim:       rgba(245, 200, 66, 0.18);
-    --green:          #22c55e;
-    --green-glow:     rgba(34, 197, 94, 0.4);
-    --blue:           #38bdf8;
-    --red:            #f87171;
-    --bg-deep:        #070d18;
-    --bg-card:        rgba(13, 20, 38, 0.88);
-    --border:         rgba(36, 48, 65, 0.9);
-    --border-gold:    rgba(245, 200, 66, 0.55);
-    --text:           #e6edf7;
-    --muted:          #94a3b8;
-    --radius:         14px;
-    --spring:         cubic-bezier(0.22, 1, 0.36, 1);
+    --gold: #f5c842;
+    --gold-glow: rgba(245, 200, 66, 0.45);
+    --gold-dim: rgba(245, 200, 66, 0.18);
+    --green: #22c55e;
+    --green-glow: rgba(34, 197, 94, 0.4);
+    --blue: #38bdf8;
+    --red: #f87171;
+    --bg-deep: #070d18;
+    --bg-card: rgba(13, 20, 38, 0.88);
+    --border: rgba(36, 48, 65, 0.9);
+    --border-gold: rgba(245, 200, 66, 0.55);
+    --text: #e6edf7;
+    --muted: #94a3b8;
+    --radius: 14px;
+    --spring: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .fundsPage {
@@ -95,8 +95,13 @@ Enterprise Finance UI
 }
 
 @keyframes titleShimmer {
-    0%   { background-position: 0%   50%; }
-    100% { background-position: 300% 50%; }
+    0% {
+        background-position: 0% 50%;
+    }
+
+    100% {
+        background-position: 300% 50%;
+    }
 }
 
 
@@ -165,8 +170,13 @@ Enterprise Finance UI
 }
 
 @keyframes borderFlow {
-    0%   { background-position: 0%   0%; }
-    100% { background-position: 200% 0%; }
+    0% {
+        background-position: 0% 0%;
+    }
+
+    100% {
+        background-position: 200% 0%;
+    }
 }
 
 
@@ -1362,9 +1372,17 @@ Enterprise Finance UI
 }
 
 @keyframes goldPulse {
-    0%   { box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
-    50%  { box-shadow: 0 0 35px rgba(255, 215, 0, 0.65); }
-    100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
+    0% {
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 35px rgba(255, 215, 0, 0.65);
+    }
+
+    100% {
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+    }
 }
 
 /* ================= BALANCE ANIMATION ================= */
@@ -1376,11 +1394,14 @@ Enterprise Finance UI
 }
 
 @keyframes balanceGlow {
-    0%,100% {
+
+    0%,
+    100% {
         text-shadow:
             0 0 4px rgba(34, 197, 94, 0.4),
             0 0 8px rgba(34, 197, 94, 0.2);
     }
+
     50% {
         text-shadow:
             0 0 10px rgba(74, 222, 128, 0.9),
@@ -1417,22 +1438,28 @@ Enterprise Finance UI
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-        120deg,
-        transparent 0%,
-        rgba(255, 215, 0, 0.08) 40%,
-        rgba(255, 215, 0, 0.28) 50%,
-        rgba(255, 215, 0, 0.08) 60%,
-        transparent 100%
-    );
+    background: linear-gradient(120deg,
+            transparent 0%,
+            rgba(255, 215, 0, 0.08) 40%,
+            rgba(255, 215, 0, 0.28) 50%,
+            rgba(255, 215, 0, 0.08) 60%,
+            transparent 100%);
     animation: shineMove 3.5s ease-in-out infinite;
     pointer-events: none;
 }
 
 @keyframes shineMove {
-    0%   { transform: translateX(-120%); }
-    60%  { transform: translateX(120%); }
-    100% { transform: translateX(120%); }
+    0% {
+        transform: translateX(-120%);
+    }
+
+    60% {
+        transform: translateX(120%);
+    }
+
+    100% {
+        transform: translateX(120%);
+    }
 }
 
 /* ================= CROWN ANIMATION ================= */
@@ -1446,17 +1473,35 @@ Enterprise Finance UI
 }
 
 @keyframes crownFloat {
-    0%,100% { transform: translateY(0)  scale(1); }
-    40%      { transform: translateY(-5px) scale(1.12); }
-    60%      { transform: translateY(-3px) scale(1.08); }
+
+    0%,
+    100% {
+        transform: translateY(0) scale(1);
+    }
+
+    40% {
+        transform: translateY(-5px) scale(1.12);
+    }
+
+    60% {
+        transform: translateY(-3px) scale(1.08);
+    }
 }
 
 /* ================= BALANCE GLOW (kept for legacy) ================= */
 
 @keyframes balanceGlowLegacy {
-    0%   { text-shadow: 0 0 5px #22c55e; }
-    50%  { text-shadow: 0 0 18px #4ade80; }
-    100% { text-shadow: 0 0 5px #22c55e; }
+    0% {
+        text-shadow: 0 0 5px #22c55e;
+    }
+
+    50% {
+        text-shadow: 0 0 18px #4ade80;
+    }
+
+    100% {
+        text-shadow: 0 0 5px #22c55e;
+    }
 }
 
 /* ================= CARD LEADERBOARD ================= */
@@ -1498,13 +1543,11 @@ Enterprise Finance UI
     position: absolute;
     inset: 0 0 auto;
     height: 2px;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(56, 189, 248, 0.7),
-        rgba(34, 197, 94, 0.7),
-        transparent
-    );
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(56, 189, 248, 0.7),
+            rgba(34, 197, 94, 0.7),
+            transparent);
     opacity: 0.45;
     transition: opacity 0.3s;
 }
@@ -1520,12 +1563,10 @@ Enterprise Finance UI
 
 /* 🥇 TOP CARD */
 .topCard {
-    background: linear-gradient(
-        140deg,
-        rgba(32, 22, 4, 0.95)  0%,
-        rgba(18, 26, 44, 0.95) 55%,
-        rgba(10, 16, 30, 0.95) 100%
-    );
+    background: linear-gradient(140deg,
+            rgba(32, 22, 4, 0.95) 0%,
+            rgba(18, 26, 44, 0.95) 55%,
+            rgba(10, 16, 30, 0.95) 100%);
     border: 1px solid var(--border-gold);
     box-shadow:
         0 0 0 1px rgba(245, 200, 66, 0.08),
@@ -1535,12 +1576,15 @@ Enterprise Finance UI
 }
 
 @keyframes topCardPulse {
-    0%,100% {
+
+    0%,
+    100% {
         box-shadow:
             0 0 0 1px rgba(245, 200, 66, 0.08),
             0 0 25px rgba(245, 200, 66, 0.15),
             0 16px 50px rgba(0, 0, 0, 0.55);
     }
+
     50% {
         box-shadow:
             0 0 0 1px rgba(245, 200, 66, 0.18),
@@ -1551,14 +1595,12 @@ Enterprise Finance UI
 
 /* Gold top accent for topCard */
 .topCard::before {
-    background: linear-gradient(
-        90deg,
-        transparent,
-        var(--gold),
-        #fff8c0,
-        var(--gold),
-        transparent
-    );
+    background: linear-gradient(90deg,
+            transparent,
+            var(--gold),
+            #fff8c0,
+            var(--gold),
+            transparent);
     opacity: 0.9;
     height: 2px;
 }
@@ -1677,12 +1719,10 @@ Enterprise Finance UI
 }
 
 .notPlayedCard::before {
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(248, 113, 113, 0.5),
-        transparent
-    );
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(248, 113, 113, 0.5),
+            transparent);
     opacity: 0.4;
 }
 
@@ -1713,18 +1753,29 @@ Enterprise Finance UI
     z-index: -1;
     pointer-events: none;
     background:
-        radial-gradient(ellipse 85% 55% at 15% -8%,  rgba(56, 189, 248, 0.055) 0%, transparent 65%),
+        radial-gradient(ellipse 85% 55% at 15% -8%, rgba(56, 189, 248, 0.055) 0%, transparent 65%),
         radial-gradient(ellipse 70% 55% at 85% 108%, rgba(245, 200, 66, 0.055) 0%, transparent 65%),
-        radial-gradient(ellipse 55% 45% at 50% 50%,  rgba(34, 197, 94, 0.025) 0%, transparent 70%);
+        radial-gradient(ellipse 55% 45% at 50% 50%, rgba(34, 197, 94, 0.025) 0%, transparent 70%);
     animation: bgDrift 20s ease-in-out infinite alternate;
     will-change: transform;
 }
 
 @keyframes bgDrift {
-    0%   { transform: scale(1)    translate(0,    0); }
-    33%  { transform: scale(1.03) translate(-1%,  0.5%); }
-    66%  { transform: scale(1.05) translate(1%,  -0.5%); }
-    100% { transform: scale(1)    translate(0,    0); }
+    0% {
+        transform: scale(1) translate(0, 0);
+    }
+
+    33% {
+        transform: scale(1.03) translate(-1%, 0.5%);
+    }
+
+    66% {
+        transform: scale(1.05) translate(1%, -0.5%);
+    }
+
+    100% {
+        transform: scale(1) translate(0, 0);
+    }
 }
 
 /* ── Skeleton loading cards ── */
@@ -1740,19 +1791,22 @@ Enterprise Finance UI
     height: 88px;
     border-radius: 14px;
     border: 1px solid rgba(36, 48, 65, 0.6);
-    background: linear-gradient(
-        90deg,
-        rgba(22, 33, 51, 0.55)  0%,
-        rgba(40, 56, 80, 0.55)  40%,
-        rgba(22, 33, 51, 0.55) 100%
-    );
+    background: linear-gradient(90deg,
+            rgba(22, 33, 51, 0.55) 0%,
+            rgba(40, 56, 80, 0.55) 40%,
+            rgba(22, 33, 51, 0.55) 100%);
     background-size: 400% 100%;
     animation: skeletonPulse 1.7s ease-in-out infinite;
 }
 
 @keyframes skeletonPulse {
-    0%   { background-position:  100% 50%; }
-    100% { background-position: -100% 50%; }
+    0% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: -100% 50%;
+    }
 }
 
 /* ── Card shimmer sweep ── */
@@ -1760,14 +1814,12 @@ Enterprise Finance UI
     position: absolute;
     inset: 0;
     width: 42%;
-    background: linear-gradient(
-        105deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.035) 45%,
-        rgba(255, 255, 255, 0.055) 50%,
-        rgba(255, 255, 255, 0.035) 55%,
-        transparent 100%
-    );
+    background: linear-gradient(105deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.035) 45%,
+            rgba(255, 255, 255, 0.055) 50%,
+            rgba(255, 255, 255, 0.035) 55%,
+            transparent 100%);
     pointer-events: none;
     z-index: 1;
     will-change: transform;
@@ -1805,8 +1857,7 @@ Enterprise Finance UI
     font-size: 26px;
     color: var(--gold);
     filter:
-        drop-shadow(0 0 6px var(--gold-glow))
-        drop-shadow(0 0 14px rgba(245, 200, 66, 0.3));
+        drop-shadow(0 0 6px var(--gold-glow)) drop-shadow(0 0 14px rgba(245, 200, 66, 0.3));
     min-width: 36px;
     text-align: center;
     will-change: transform;
@@ -1863,8 +1914,15 @@ Enterprise Finance UI
 
 /* ── Fade-up keyframe (used by modernPopup) ── */
 @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(18px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ================================================================
@@ -1912,9 +1970,11 @@ Enterprise Finance UI
     .statCell .statValue {
         font-size: 12px;
     }
+
     .statCell .statLabel {
         font-size: 9px;
     }
+
     .modernPopup {
         width: 95%;
         padding: 18px;
@@ -1923,6 +1983,7 @@ Enterprise Finance UI
 
 /* ── Reduce motion for accessibility ── */
 @media (prefers-reduced-motion: reduce) {
+
     .floatingCoin,
     .bgGlow,
     .sectionTitle,
@@ -1938,5 +1999,67 @@ Enterprise Finance UI
     .skeletonCard {
         animation: none !important;
         transition: none !important;
+    }
+}
+
+/* ================= TOURNAMENT REGISTRATION MOBILE FIX ================= */
+
+@media (max-width: 768px) {
+
+    .tableContainer {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+    }
+
+    .txTable {
+        min-width: 760px !important;
+        width: 760px !important;
+        table-layout: fixed;
+    }
+
+    .txTable th,
+    .txTable td {
+        color: #e6edf7 !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow: visible !important;
+        font-size: 12px !important;
+        padding: 12px 10px !important;
+    }
+
+    .txTable th:nth-child(1),
+    .txTable td:nth-child(1) {
+        width: 360px !important;
+    }
+
+    .txTable th:nth-child(2),
+    .txTable td:nth-child(2) {
+        width: 130px !important;
+    }
+
+    .txTable th:nth-child(3),
+    .txTable td:nth-child(3) {
+        width: 140px !important;
+    }
+
+    .txTable th:nth-child(4),
+    .txTable td:nth-child(4) {
+        width: 130px !important;
+    }
+
+    .registrationActions {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 8px !important;
+        flex-wrap: nowrap !important;
+    }
+
+    .yesBtn,
+    .noBtn {
+        width: auto !important;
+        min-width: 58px;
+        padding: 9px 12px !important;
+        font-size: 12px !important;
     }
 }
