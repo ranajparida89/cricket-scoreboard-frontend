@@ -392,6 +392,27 @@ export default function TournamentRegistration() {
 
                                     CE$ {t.entry_fee}
 
+                                    {
+                                        t.registration_deadline &&
+                                        new Date() >
+                                        new Date(t.registration_deadline) && (
+
+                                            <div
+                                                style={{
+                                                    color: "#ff4d4f",
+                                                    fontSize: "12px",
+                                                    marginTop: "5px",
+                                                    fontWeight: "bold"
+                                                }}
+                                            >
+
+                                                Registration Closed
+
+                                            </div>
+
+                                        )
+                                    }
+
                                 </td>
 
                                 <td className="registrationActions">
@@ -400,7 +421,15 @@ export default function TournamentRegistration() {
 
                                         onClick={() => interested(t)}
                                         className="yesBtn"
-                                        disabled={!boardId || responses[t.tournament_id]}
+                                        disabled={
+                                            !boardId ||
+                                            responses[t.tournament_id] ||
+                                            (
+                                                t.registration_deadline &&
+                                                new Date() >
+                                                new Date(t.registration_deadline)
+                                            )
+                                        }
 
                                     >
 
@@ -412,8 +441,15 @@ export default function TournamentRegistration() {
 
                                         onClick={() => notInterested(t)}
                                         className="noBtn"
-                                        disabled={!boardId || responses[t.tournament_id]}
-
+                                        disabled={
+                                            !boardId ||
+                                            responses[t.tournament_id] ||
+                                            (
+                                                t.registration_deadline &&
+                                                new Date() >
+                                                new Date(t.registration_deadline)
+                                            )
+                                        }
                                     >
 
                                         NO
@@ -471,11 +507,36 @@ export default function TournamentRegistration() {
                                 Entry Fee
                             </span>
 
-                            <span className="cardValue fee">
+                            <div>
 
-                                CE$ {t.entry_fee}
+                                <span className="cardValue fee">
 
-                            </span>
+                                    CE$ {t.entry_fee}
+
+                                </span>
+
+                                {
+                                    t.registration_deadline &&
+                                    new Date() >
+                                    new Date(t.registration_deadline) && (
+
+                                        <div
+                                            style={{
+                                                color: "#ff4d4f",
+                                                fontSize: "12px",
+                                                marginTop: "5px",
+                                                fontWeight: "bold"
+                                            }}
+                                        >
+
+                                            Registration Closed
+
+                                        </div>
+
+                                    )
+                                }
+
+                            </div>
 
                         </div>
 
@@ -485,7 +546,15 @@ export default function TournamentRegistration() {
 
                                 onClick={() => interested(t)}
                                 className="yesBtn"
-                                disabled={!boardId || responses[t.tournament_id]}
+                                disabled={
+                                    !boardId ||
+                                    responses[t.tournament_id] ||
+                                    (
+                                        t.registration_deadline &&
+                                        new Date() >
+                                        new Date(t.registration_deadline)
+                                    )
+                                }
 
                             >
 
@@ -497,7 +566,15 @@ export default function TournamentRegistration() {
 
                                 onClick={() => notInterested(t)}
                                 className="noBtn"
-                                disabled={!boardId || responses[t.tournament_id]}
+                                disabled={
+                                    !boardId ||
+                                    responses[t.tournament_id] ||
+                                    (
+                                        t.registration_deadline &&
+                                        new Date() >
+                                        new Date(t.registration_deadline)
+                                    )
+                                }
 
                             >
 
