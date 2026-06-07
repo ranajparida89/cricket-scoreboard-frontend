@@ -53,9 +53,42 @@ const BoardFinancialHistory = ({ boardId }) => {
 
         if (type === "ALL") {
 
-            setFilteredTransactions(transactions);
+            try {
 
-            return;
+                const res = await axios.get(
+                    `${BACKEND_URL}/api/funds/transactions/tournament-rewards`
+                );
+
+                const globalRewards = res.data || [];
+
+                const merged = [
+                    ...globalRewards,
+                    ...transactions.filter(
+                        t =>
+                            ![
+                                "TOURNAMENT_WINNER",
+                                "TOURNAMENT_RUNNER"
+                            ].includes(
+                                String(t.transaction_type || "")
+                                    .trim()
+                                    .toUpperCase()
+                            )
+                    )
+                ];
+
+                setFilteredTransactions(merged);
+
+                return;
+
+            } catch (err) {
+
+                console.error("Global reward transaction fetch error", err);
+
+                setFilteredTransactions(transactions);
+
+                return;
+
+            }
 
         }
 
