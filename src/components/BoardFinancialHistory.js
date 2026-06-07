@@ -47,7 +47,7 @@ const BoardFinancialHistory = ({ boardId }) => {
     };
 
 
-    const handleFilter = (type) => {
+    const handleFilter = async (type) => {
 
         setFilter(type);
 
@@ -59,16 +59,45 @@ const BoardFinancialHistory = ({ boardId }) => {
 
         }
 
+        if (
+            type === "TOURNAMENT_WINNER" ||
+            type === "TOURNAMENT_RUNNER"
+        ) {
+
+            try {
+
+                const res = await axios.get(
+                    `${BACKEND_URL}/api/funds/transactions/tournament-rewards`
+                );
+
+                const filtered = (res.data || []).filter(
+                    t =>
+                        String(t.transaction_type || "")
+                            .trim()
+                            .toUpperCase() === type
+                );
+
+                setFilteredTransactions(filtered);
+
+                return;
+
+            } catch (err) {
+
+                console.error("Global reward transaction fetch error", err);
+
+                setFilteredTransactions([]);
+
+                return;
+
+            }
+
+        }
+
         const filtered = transactions.filter(
-
             t =>
-
-                String(
-                    t.transaction_type || ""
-                )
+                String(t.transaction_type || "")
                     .trim()
                     .toUpperCase() === type
-
         );
 
         setFilteredTransactions(filtered);
@@ -134,20 +163,27 @@ const BoardFinancialHistory = ({ boardId }) => {
                     ALL
                 </button>
 
-
                 <button
+                    className={
+                        filter === "TOURNAMENT_ENTRY"
+                            ? "active"
+                            : ""
+                    }
                     onClick={() => handleFilter("TOURNAMENT_ENTRY")}
                 >
                     ENTRY
                 </button>
 
-
                 <button
+                    className={
+                        filter === "TOURNAMENT_WINNER"
+                            ? "active"
+                            : ""
+                    }
                     onClick={() => handleFilter("TOURNAMENT_WINNER")}
                 >
                     WINNER
                 </button>
-
 
                 <button
                     className={
@@ -160,15 +196,23 @@ const BoardFinancialHistory = ({ boardId }) => {
                     RUNNER
                 </button>
 
-
                 <button
+                    className={
+                        filter === "TOURNAMENT_REFUND"
+                            ? "active"
+                            : ""
+                    }
                     onClick={() => handleFilter("TOURNAMENT_REFUND")}
                 >
                     REFUND
                 </button>
 
-
                 <button
+                    className={
+                        filter === "MATCH_WIN"
+                            ? "active"
+                            : ""
+                    }
                     onClick={() => handleFilter("MATCH_WIN")}
                 >
                     MATCH WIN
