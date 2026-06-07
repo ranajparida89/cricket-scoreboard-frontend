@@ -219,7 +219,22 @@ export default function FundsLeaderboard() {
                             .toLowerCase()
                     )
                 )
-                .sort((a, b) => b.balance - a.balance);
+                .sort((a, b) => {
+
+                    const aInactive =
+                        Number(a.total_earned) === 0 &&
+                        Number(a.total_spent) === 0;
+
+                    const bInactive =
+                        Number(b.total_earned) === 0 &&
+                        Number(b.total_spent) === 0;
+
+                    if (aInactive && !bInactive) return 1;
+                    if (!aInactive && bInactive) return -1;
+
+                    return Number(b.balance) - Number(a.balance);
+
+                });
 
             const notPlayed = data
                 .filter(b =>
