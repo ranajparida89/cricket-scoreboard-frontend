@@ -61,14 +61,19 @@ const BoardFinancialHistory = ({ boardId }) => {
 
         const filtered = transactions.filter(
 
-            t => t.transaction_type === type
+            t =>
+
+                String(
+                    t.transaction_type || ""
+                )
+                    .trim()
+                    .toUpperCase() === type
 
         );
 
         setFilteredTransactions(filtered);
 
     };
-
 
     const getTransactionClass = (type) => {
 
@@ -145,6 +150,11 @@ const BoardFinancialHistory = ({ boardId }) => {
 
 
                 <button
+                    className={
+                        filter === "TOURNAMENT_RUNNER"
+                            ? "active"
+                            : ""
+                    }
                     onClick={() => handleFilter("TOURNAMENT_RUNNER")}
                 >
                     RUNNER
