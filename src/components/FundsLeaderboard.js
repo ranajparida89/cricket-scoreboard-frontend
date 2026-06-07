@@ -36,12 +36,12 @@ const COIN_EMOJIS = ["💰", "🪙", "💵", "💎"];
 const isMobile = () => window.innerWidth < 768;
 
 function FloatingCoin({ index }) {
-    const x     = useRef(Math.random() * 100).current;   // vw %
-    const delay  = index * 0.45;
-    const dur    = isMobile() ? 9 + Math.random() * 5 : 12 + Math.random() * 7;
-    const size   = isMobile() ? 12 + Math.random() * 8 : 14 + Math.random() * 10;
-    const emoji  = COIN_EMOJIS[index % COIN_EMOJIS.length];
-    const drift  = (Math.random() - 0.5) * 120;   // horizontal sway
+    const x = useRef(Math.random() * 100).current;   // vw %
+    const delay = index * 0.45;
+    const dur = isMobile() ? 9 + Math.random() * 5 : 12 + Math.random() * 7;
+    const size = isMobile() ? 12 + Math.random() * 8 : 14 + Math.random() * 10;
+    const emoji = COIN_EMOJIS[index % COIN_EMOJIS.length];
+    const drift = (Math.random() - 0.5) * 120;   // horizontal sway
 
     return (
         <motion.span
@@ -75,18 +75,18 @@ function GoldBurst() {
         <div className="goldBurstWrap" aria-hidden>
             {[...Array(count)].map((_, i) => {
                 const angle = (360 / count) * i;
-                const dist  = 55 + Math.random() * 35;
-                const tx    = Math.cos((angle * Math.PI) / 180) * dist;
-                const ty    = Math.sin((angle * Math.PI) / 180) * dist;
+                const dist = 55 + Math.random() * 35;
+                const tx = Math.cos((angle * Math.PI) / 180) * dist;
+                const ty = Math.sin((angle * Math.PI) / 180) * dist;
                 return (
                     <motion.span
                         key={i}
                         className="burstDot"
                         initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
                         animate={{
-                            x:       [0, tx * 0.6, tx],
-                            y:       [0, ty * 0.6, ty],
-                            scale:   [0, 1.4, 0],
+                            x: [0, tx * 0.6, tx],
+                            y: [0, ty * 0.6, ty],
+                            scale: [0, 1.4, 0],
                             opacity: [1, 0.9, 0],
                         }}
                         transition={{
@@ -140,9 +140,10 @@ function LeaderboardCard({ b, index, isTop }) {
             initial={{ opacity: 0, y: 35, scale: 0.97 }}
             animate={visible ? { opacity: 1, y: 0, scale: 1 } : {}}
             transition={{ delay: index * 0.07, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-            whileHover={{ y: -5, boxShadow: isTop
-                ? "0 20px 50px rgba(255,215,0,0.22)"
-                : "0 16px 40px rgba(0,0,0,0.7)"
+            whileHover={{
+                y: -5, boxShadow: isTop
+                    ? "0 20px 50px rgba(255,215,0,0.22)"
+                    : "0 16px 40px rgba(0,0,0,0.7)"
             }}
             whileTap={{ scale: 0.98 }}
         >
@@ -172,9 +173,9 @@ function LeaderboardCard({ b, index, isTop }) {
             </div>
 
             <div className="cardStats">
-                <AnimatedStat label="Balance" value={b.balance}      className="green animatedBalance" animate={visible} />
-                <AnimatedStat label="Earned"  value={b.total_earned} animate={visible} />
-                <AnimatedStat label="Spent"   value={b.total_spent}  animate={visible} />
+                <AnimatedStat label="Balance" value={b.balance} className="green animatedBalance" animate={visible} />
+                <AnimatedStat label="Earned" value={b.total_earned} animate={visible} />
+                <AnimatedStat label="Spent" value={b.total_spent} animate={visible} />
             </div>
         </motion.div>
     );
@@ -182,21 +183,53 @@ function LeaderboardCard({ b, index, isTop }) {
 
 /* ─── Main Component ─── */
 export default function FundsLeaderboard() {
-    const [participated,    setParticipated]    = useState([]);
+    const [participated, setParticipated] = useState([]);
     const [notParticipated, setNotParticipated] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const BACKEND_URL = "https://cricket-scoreboard-backend.onrender.com";
-    const COIN_COUNT  = isMobile() ? 10 : 18;
+    const COIN_COUNT = isMobile() ? 10 : 18;
 
     useEffect(() => { loadLeaderboard(); }, []);
 
     const loadLeaderboard = async () => {
         try {
-            const res  = await axios.get(`${BACKEND_URL}/api/funds/leaderboard`);
+            const res = await axios.get(`${BACKEND_URL}/api/funds/leaderboard`);
             const data = res.data || [];
-            const played    = data.filter(b => Number(b.total_spent) > 0).sort((a, b) => b.balance - a.balance);
-            const notPlayed = data.filter(b => Number(b.total_spent) === 0);
+
+            const interestRes = await axios.get(
+                `${BACKEND_URL}/api/funds/tournament-interest`
+            );
+
+            const noBoards = new Set(
+                (interestRes.data || [])
+                    .filter(x => x.interest_status === "NOT_INTERESTED")
+                    .map(x =>
+                        String(x.board_name || "")
+                            .trim()
+                            .toLowerCase()
+                    )
+            );
+
+            const played = data
+                .filter(b =>
+                    !noBoards.has(
+                        String(b.board_name || "")
+                            .trim()
+                            .toLowerCase()
+                    )
+                )
+                .sort((a, b) => b.balance - a.balance);
+
+            const notPlayed = data
+                .filter(b =>
+                    noBoards.has(
+                        String(b.board_name || "")
+                            .trim()
+                            .toLowerCase()
+                    )
+                );
+
             setParticipated(played);
             setNotParticipated(notPlayed);
         } catch (err) {
@@ -211,7 +244,7 @@ export default function FundsLeaderboard() {
 
             {/* ── Background Layer ── */}
             <div className="bgNoise" aria-hidden />
-            <div className="bgGlow"  aria-hidden />
+            <div className="bgGlow" aria-hidden />
 
             {/* ── Floating Coins ── */}
             <div className="floatingCoins" aria-hidden>
