@@ -1,41 +1,46 @@
 import React, { useEffect, useState } from "react";
-
+import axios from "axios";
 import "./Funds.css";
-import { getBoardFunds } from "./FundsAPI";
-import { useAuth } from "../services/auth";
 
 export default function BoardFundsBar() {
 
-    const { currentUser } = useAuth();
-
-    const [wallet, setWallet] = useState(null);
+    const [topBoard, setTopBoard] = useState(null);
 
     useEffect(() => {
 
-        if (currentUser?.board_id) {
+        loadTopBoard();
 
-            load();
+    }, []);
+
+    const loadTopBoard = async () => {
+
+        try {
+
+            const res = await axios.get(
+                "https://cricket-scoreboard-backend.onrender.com/api/funds/leaderboard"
+            );
+
+            const list = res.data || [];
+
+            if (list.length > 0) {
+
+                setTopBoard(list[0]);
+
+            }
+
+        } catch (err) {
+
+            console.error(
+                "Top board load failed",
+                err
+            );
 
         }
-
-    }, [currentUser]);
-
-    const load = async () => {
-
-        const boardId =
-            currentUser?.board_id;
-
-        if (!boardId) return;
-
-        const res =
-            await getBoardFunds(boardId);
-
-        setWallet(res.data);
 
     };
 
     const balance =
-        wallet?.balance || 0;
+        Number(topBoard?.balance || 0);
 
     let status = "Stable";
 
@@ -51,7 +56,7 @@ export default function BoardFundsBar() {
 
             <div className="boardName">
 
-                {wallet?.board_name || "Board"}
+                {topBoard?.board_name || "Board"}
 
                 <span className="rankBadge">
 
