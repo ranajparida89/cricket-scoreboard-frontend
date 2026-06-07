@@ -163,6 +163,54 @@ export default function TournamentRegistration() {
     /* BOARD ID */
 
     const boardId = board?.board_id;
+    const getRegistrationStatus = (deadline) => {
+
+        if (!deadline) {
+
+            return {
+                expired: false,
+                label: "Registration deadline not set"
+            };
+
+        }
+
+        const now =
+            new Date();
+
+        const end =
+            new Date(deadline);
+
+        const diff =
+            end - now;
+
+        if (diff <= 0) {
+
+            return {
+                expired: true,
+                label: "Registration Closed"
+            };
+
+        }
+
+        const days =
+            Math.floor(diff / (1000 * 60 * 60 * 24));
+
+        const hours =
+            Math.floor(
+                (diff / (1000 * 60 * 60)) % 24
+            );
+
+        const minutes =
+            Math.floor(
+                (diff / (1000 * 60)) % 60
+            );
+
+        return {
+            expired: false,
+            label: `Registration closes in ${days}d ${hours}h ${minutes}m`
+        };
+
+    };
 
     /* NOT INTERESTED */
 
@@ -325,6 +373,43 @@ export default function TournamentRegistration() {
 
     };
 
+
+    const extendRegistration = async (t, days) => {
+
+        try {
+
+            await axios.put(
+
+                `${BACKEND_URL}/api/funds/extend-registration`,
+
+                {
+                    tournament_id: t.tournament_id,
+                    days: days
+                }
+
+            );
+
+            alert(
+                `Registration extended by ${days} day(s)`
+            );
+
+            loadData();
+
+        } catch (err) {
+
+            alert(
+
+                err.response?.data?.message ||
+                "Failed to extend registration"
+
+            );
+
+        }
+
+    };
+
+
+
     if (loading) {
 
         return (
@@ -392,26 +477,20 @@ export default function TournamentRegistration() {
 
                                     CE$ {t.entry_fee}
 
-                                    {
-                                        t.registration_deadline &&
-                                        new Date() >
-                                        new Date(t.registration_deadline) && (
+                                    <div
+                                        style={{
+                                            color: getRegistrationStatus(t.registration_deadline).expired
+                                                ? "#ff4d4f"
+                                                : "#22c55e",
+                                            fontSize: "12px",
+                                            marginTop: "5px",
+                                            fontWeight: "bold"
+                                        }}
+                                    >
 
-                                            <div
-                                                style={{
-                                                    color: "#ff4d4f",
-                                                    fontSize: "12px",
-                                                    marginTop: "5px",
-                                                    fontWeight: "bold"
-                                                }}
-                                            >
+                                        {getRegistrationStatus(t.registration_deadline).label}
 
-                                                Registration Closed
-
-                                            </div>
-
-                                        )
-                                    }
+                                    </div>
 
                                 </td>
 
@@ -450,12 +529,26 @@ export default function TournamentRegistration() {
                                                 new Date(t.registration_deadline)
                                             )
                                         }
+
                                     >
 
                                         NO
 
                                     </button>
 
+                                    {localStorage.getItem("isAdmin") === "true" && (
+
+                                        <button
+                                            type="button"
+                                            className="loanBtn"
+                                            onClick={() => extendRegistration(t, 3)}
+                                        >
+
+                                            +3 Days
+
+                                        </button>
+
+                                    )}
                                 </td>
 
                             </tr>
@@ -515,26 +608,20 @@ export default function TournamentRegistration() {
 
                                 </span>
 
-                                {
-                                    t.registration_deadline &&
-                                    new Date() >
-                                    new Date(t.registration_deadline) && (
+                                <div
+                                    style={{
+                                        color: getRegistrationStatus(t.registration_deadline).expired
+                                            ? "#ff4d4f"
+                                            : "#22c55e",
+                                        fontSize: "12px",
+                                        marginTop: "5px",
+                                        fontWeight: "bold"
+                                    }}
+                                >
 
-                                        <div
-                                            style={{
-                                                color: "#ff4d4f",
-                                                fontSize: "12px",
-                                                marginTop: "5px",
-                                                fontWeight: "bold"
-                                            }}
-                                        >
+                                    {getRegistrationStatus(t.registration_deadline).label}
 
-                                            Registration Closed
-
-                                        </div>
-
-                                    )
-                                }
+                                </div>
 
                             </div>
 
@@ -581,6 +668,20 @@ export default function TournamentRegistration() {
                                 NO
 
                             </button>
+
+                            {localStorage.getItem("isAdmin") === "true" && (
+
+                                <button
+                                    type="button"
+                                    className="loanBtn"
+                                    onClick={() => extendRegistration(t, 3)}
+                                >
+
+                                    +3 Days
+
+                                </button>
+
+                            )}
 
                         </div>
 
