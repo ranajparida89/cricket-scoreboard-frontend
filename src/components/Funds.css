@@ -2033,3 +2033,88 @@ Enterprise Finance UI
     min-width: 250px;
 
 }
+
+/* ================= PARTICIPATION ANALYTICS CARD ================= */
+
+.participationAnalyticsCard {
+    background: linear-gradient(145deg, #111827, #0f172a);
+    border: 1px solid #243041;
+    border-radius: 18px;
+    padding: 22px;
+    margin-bottom: 22px;
+    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.45);
+}
+
+.analyticsCardHeader {
+    font-size: 18px;
+    font-weight: 800;
+    color: #38bdf8;
+    margin-bottom: 18px;
+    letter-spacing: 0.3px;
+}
+
+.analyticsStatsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+}
+
+.analyticsStat {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid #1f2a3a;
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.analyticsStat span {
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.analyticsStat span::after {
+    content: " :";
+}
+
+.analyticsStat strong {
+    font-size: 24px;
+    font-weight: 900;
+    color: #e6edf7;
+}
+
+.successStat strong {
+    color: #22c55e;
+}
+
+.dangerStat strong {
+    color: #f87171;
+}
+
+.orangeStat strong {
+    color: #fb923c;
+}
+
+.watchStat strong {
+    color: #facc15;
+}
+
+.warningStat strong {
+    color: #f97316;
+}
+
+.flaggedStat strong {
+    color: #ef4444;
+}
+
+@media(max-width: 600px) {
+    .analyticsStat {
+        padding: 14px;
+    }
+
+    .analyticsStat strong {
+        font-size: 21px;
+    }
+}

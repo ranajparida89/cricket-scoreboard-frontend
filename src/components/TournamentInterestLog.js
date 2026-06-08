@@ -173,45 +173,52 @@ export default function TournamentInterestLog() {
 
             </div>
 
-            <div className="participationSummaryGrid">
+            <div className="participationAnalyticsCard">
 
-                <div className="participationBox">
-                    <span>Total Boards</span>
-                    <strong>{summary.totalBoards}</strong>
+                <div className="analyticsCardHeader">
+                    📊 Registration Response Summary
                 </div>
 
-                <div className="participationBox greenBox">
-                    <span>Total Participations</span>
-                    <strong>{summary.participated}</strong>
-                </div>
+                <div className="analyticsStatsGrid">
 
-                <div className="participationBox redBox">
-                    <span>Declined By Member</span>
-                    <strong>{summary.declined}</strong>
-                </div>
+                    <div className="analyticsStat">
+                        <span>Total Boards</span>
+                        <strong>{summary.totalBoards}</strong>
+                    </div>
 
-                <div className="participationBox orangeBox">
-                    <span>No Response</span>
-                    <strong>{summary.noResponse}</strong>
-                </div>
+                    <div className="analyticsStat successStat">
+                        <span>Total Participations</span>
+                        <strong>{summary.participated}</strong>
+                    </div>
 
-                <div className="participationBox watchBox">
-                    <span>Watch</span>
-                    <strong>{summary.watch}</strong>
-                </div>
+                    <div className="analyticsStat dangerStat">
+                        <span>Declined By Member</span>
+                        <strong>{summary.declined}</strong>
+                    </div>
 
-                <div className="participationBox warningBoxMini">
-                    <span>Warning</span>
-                    <strong>{summary.warning}</strong>
-                </div>
+                    <div className="analyticsStat orangeStat">
+                        <span>No Response</span>
+                        <strong>{summary.noResponse}</strong>
+                    </div>
 
-                <div className="participationBox flaggedBox">
-                    <span>Flagged</span>
-                    <strong>{summary.flagged}</strong>
+                    <div className="analyticsStat watchStat">
+                        <span>Watch</span>
+                        <strong>{summary.watch}</strong>
+                    </div>
+
+                    <div className="analyticsStat warningStat">
+                        <span>Warning</span>
+                        <strong>{summary.warning}</strong>
+                    </div>
+
+                    <div className="analyticsStat flaggedStat">
+                        <span>Flagged</span>
+                        <strong>{summary.flagged}</strong>
+                    </div>
+
                 </div>
 
             </div>
-
             <div className="participationToolbar">
 
                 <button
