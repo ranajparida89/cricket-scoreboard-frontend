@@ -117,21 +117,32 @@ export default function TournamentInterestLog() {
                                     {x.tournament_name}
 
                                 </td>
-
                                 <td>
 
-                                    <span className={
-                                        x.interest_status === "NOT_INTERESTED"
-                                            ? "declined"
-                                            : "accepted"
-                                    }>
+                                    <span
+                                        className={
+                                            x.interest_status === "INTERESTED"
+                                                ? "accepted"
+                                                : "declined"
+                                        }
+                                    >
 
-                                        {x.interest_status}
+                                        {
+                                            x.interest_status === "INTERESTED"
+                                                ? "✅ Participating"
+
+                                                : x.interest_status === "NOT_INTERESTED"
+                                                    ? "❌ Declined By Member"
+
+                                                    : x.interest_status === "AUTO_NOT_INTERESTED"
+                                                        ? "⏰ No Response (Auto Declined)"
+
+                                                        : x.interest_status
+                                        }
 
                                     </span>
 
                                 </td>
-
                                 <td>
 
                                     {x.created_at?.substring(0, 10)}
