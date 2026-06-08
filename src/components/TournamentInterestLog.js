@@ -271,7 +271,15 @@ export default function TournamentInterestLog() {
 
                             {filteredWarningData.map(x => (
 
-                                <tr key={x.board_id}>
+                                <tr
+                                    key={x.board_id}
+                                    className={
+                                        Number(x.declined_by_member_count || 0) > 0 ||
+                                            Number(x.auto_declined_count || 0) > 0
+                                            ? "participationDeclinedRow"
+                                            : ""
+                                    }
+                                >
 
                                     <td>{x.board_name}</td>
 
