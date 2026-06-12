@@ -10,6 +10,7 @@ import afterPowerPlay5 from "../assets/5.jpg";
 import fieldingDescription from "../assets/how to put desc.jpg";
 import restrictedPoints from "../assets/don't touch those points.jpg";
 import beforePowerPlay from "../assets/before pp.jpeg";
+import teamTemplate from "../assets/team template.jpg";
 
 const api = axios.create({
   baseURL: "https://cricket-scoreboard-backend.onrender.com/api",
@@ -456,6 +457,50 @@ function RulesAndRegulations({ user }) {
           />
         </div>
       </section>
+
+      <div className="fielding-rule-card skill-card">
+        <div className="fielding-rule-content">
+          <span className="rule-pill success">Team Template</span>
+
+          <h3>Player Skill Template (Mandatory)</h3>
+
+          <p>
+            Every newly assigned team must follow the official CrickEdge player
+            skill template before submitting the squad for approval.
+          </p>
+
+          <div className="skill-rules-grid">
+
+            <div className="skill-rule batsman">
+              🏏 Batsman = <strong>99</strong>
+            </div>
+
+            <div className="skill-rule allrounder">
+              ⚡ All Rounder = <strong>92</strong>
+            </div>
+
+            <div className="skill-rule licensed">
+              ✅ Licensed Bowler = <strong>83</strong>
+            </div>
+
+            <div className="skill-rule nonlicensed">
+              ❌ Non Licensed Bowler = <strong>75</strong>
+            </div>
+
+          </div>
+
+          <div className="important-note">
+            ⚠️ Any deviation from the approved skill template may result in
+            rejection of the squad during Admin verification.
+          </div>
+        </div>
+
+        <img
+          src={teamTemplate}
+          alt="CrickEdge Team Skill Template"
+          className="fielding-main-img"
+        />
+      </div>
 
       <section className="rules-section">
         <h2 className="section-title">📘 ODI / T20 Rules</h2>
