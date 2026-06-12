@@ -1,0 +1,296 @@
+/* src/components/NewUserGuide.css */
+
+.new-user-guide-page {
+  min-height: 100vh;
+  padding: 28px;
+  color: #eaf6ff;
+  background:
+    radial-gradient(circle at top left, rgba(0, 229, 255, 0.14), transparent 30%),
+    radial-gradient(circle at top right, rgba(255, 214, 10, 0.12), transparent 28%),
+    linear-gradient(135deg, #06111d, #081b2b 45%, #050b12);
+}
+
+.nug-hero {
+  max-width: 1180px;
+  margin: 0 auto 26px;
+  padding: 28px;
+  border: 1px solid rgba(0, 229, 255, 0.28);
+  border-radius: 24px;
+  background: rgba(9, 24, 38, 0.82);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.nug-tag {
+  color: #00e5ff;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.nug-hero h1 {
+  margin: 8px 0;
+  font-size: 42px;
+  color: #00e5ff;
+}
+
+.nug-hero p {
+  color: #cfe0ee;
+  max-width: 720px;
+  line-height: 1.7;
+}
+
+.nug-progress-card {
+  min-width: 260px;
+  padding: 20px;
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 214, 10, 0.25);
+  align-self: center;
+}
+
+.nug-progress-card span {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 800;
+  color: #ffd60a;
+}
+
+.nug-progress-bar {
+  height: 12px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nug-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00e5ff, #00ff9d);
+  transition: 0.35s ease;
+}
+
+.nug-step-list {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  gap: 20px;
+}
+
+.nug-card {
+  border-radius: 22px;
+  background: rgba(8, 21, 34, 0.88);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  box-shadow: 0 14px 45px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.nug-card.done {
+  border-color: rgba(0, 255, 157, 0.55);
+}
+
+.nug-card-head {
+  padding: 22px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  background: linear-gradient(90deg, rgba(0, 229, 255, 0.08), rgba(255, 214, 10, 0.06));
+}
+
+.nug-step-no {
+  color: #ffd60a;
+  font-weight: 900;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.nug-card h2 {
+  margin: 6px 0 0;
+  color: #ffffff;
+}
+
+.nug-card-head button {
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  background: rgba(0, 229, 255, 0.12);
+  color: #eaf6ff;
+  padding: 10px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.nug-card-head button:hover {
+  background: rgba(0, 229, 255, 0.25);
+}
+
+.nug-card-body {
+  padding: 22px;
+}
+
+.nug-card-body p,
+.nug-card-body li {
+  color: #d6e8f5;
+  line-height: 1.7;
+}
+
+.nug-step-img {
+  width: 100%;
+  border-radius: 18px;
+  margin-bottom: 18px;
+  border: 2px solid rgba(0, 229, 255, 0.25);
+}
+
+.nug-note {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 214, 10, 0.1);
+  border: 1px solid rgba(255, 214, 10, 0.26);
+  color: #fff3b0;
+  font-weight: 700;
+}
+
+.nug-two-grid,
+.nug-skill-grid,
+.nug-approval-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.nug-mini-card {
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.22);
+}
+
+.nug-mini-card h4 {
+  margin: 0 0 8px;
+  color: #00e5ff;
+}
+
+.nug-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.nug-flow span {
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.nug-flow b {
+  color: #ffd60a;
+}
+
+.nug-badge {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  color: #06111d;
+  background: linear-gradient(90deg, #ffd60a, #00e5ff);
+  font-weight: 900;
+}
+
+.nug-skill-grid div {
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-weight: 800;
+  display: flex;
+  justify-content: space-between;
+}
+
+.nug-skill-grid b {
+  color: #00ff9d;
+  font-size: 22px;
+}
+
+.nug-approved,
+.nug-rejected {
+  padding: 18px;
+  border-radius: 16px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.nug-approved {
+  background: rgba(0, 255, 157, 0.12);
+  border: 1px solid rgba(0, 255, 157, 0.35);
+  color: #00ff9d;
+}
+
+.nug-rejected {
+  background: rgba(255, 82, 82, 0.12);
+  border: 1px solid rgba(255, 82, 82, 0.35);
+  color: #ff8a8a;
+}
+
+.nug-rules-card {
+  max-width: 1180px;
+  margin: 24px auto 0;
+  padding: 28px;
+  border-radius: 24px;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.12), rgba(255, 214, 10, 0.1));
+  border: 1px solid rgba(255, 214, 10, 0.3);
+}
+
+.nug-rules-card h2 {
+  color: #ffd60a;
+}
+
+.nug-rules-card p {
+  color: #d6e8f5;
+}
+
+.nug-rules-card a {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 12px 22px;
+  border-radius: 14px;
+  background: #ffd60a;
+  color: #07131f;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .new-user-guide-page {
+    padding: 16px;
+  }
+
+  .nug-hero,
+  .nug-card-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nug-hero h1 {
+    font-size: 30px;
+  }
+
+  .nug-progress-card {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .nug-two-grid,
+  .nug-skill-grid,
+  .nug-approval-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nug-card-head button {
+    width: 100%;
+  }
+}

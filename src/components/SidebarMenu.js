@@ -364,6 +364,12 @@ const SidebarMenu = () => {
         </li>
 
         <li>
+          <Link to="/new-user-guide" onClick={handleClose}>
+             New User Guide
+          </Link>
+        </li>
+
+        <li>
           <Link to="/rules-and-regulations" onClick={handleClose}>
             Rules & Regulations
           </Link>

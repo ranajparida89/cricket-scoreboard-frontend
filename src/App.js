@@ -95,6 +95,7 @@ import PastMatchesHub from "./components/PastMatchesHub";
 import "bootstrap/dist/css/bootstrap.min.css";
 import PlayerReportCard from "./components/PlayerReportCard";
 import NewYear2026Overlay from "./components/NewYear2026Overlay";
+import NewUserGuide from "./components/NewUserGuide";
 //import AuctionLobby from "./components/AuctionLobby";
 //import AuctionRoom from "./components/AuctionRoom";
 //import AuctionMyPlayers from "./components/AuctionMyPlayers";
@@ -803,6 +804,14 @@ function App() {
                 </PageWrapper>
               </ProtectedRoute>
             } // For Player Auction added
+          />
+          <Route
+            path="/new-user-guide"
+            element={
+              <PageWrapper>
+                <NewUserGuide />
+              </PageWrapper>
+            }
           />
 
         </Routes>
