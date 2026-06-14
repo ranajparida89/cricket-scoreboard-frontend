@@ -365,7 +365,7 @@ const SidebarMenu = () => {
 
         <li>
           <Link to="/new-user-guide" onClick={handleClose}>
-             New User Guide
+            New User Guide
           </Link>
         </li>
 
@@ -391,6 +391,11 @@ const SidebarMenu = () => {
             <li>
               <Link to="/admin/manage" onClick={handleClose}>
                 Manage Admins
+              </Link>
+            </li>
+            <li>
+              <Link to="/admin/user-board-mapping" onClick={handleClose}>
+                User Board Mapping
               </Link>
             </li>
             <li>

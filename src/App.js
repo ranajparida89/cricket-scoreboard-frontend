@@ -96,6 +96,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import PlayerReportCard from "./components/PlayerReportCard";
 import NewYear2026Overlay from "./components/NewYear2026Overlay";
 import NewUserGuide from "./components/NewUserGuide";
+import UserBoardMapping from "./components/UserBoardMapping";
 //import AuctionLobby from "./components/AuctionLobby";
 //import AuctionRoom from "./components/AuctionRoom";
 //import AuctionMyPlayers from "./components/AuctionMyPlayers";
@@ -701,6 +702,28 @@ function App() {
           />
           <Route path="/dashboard-v2" element={<UserDashboardV2Page />} />
           <Route path="/admin/manage" element={<ManageAdmins />} />
+          <Route
+            path="/admin/user-board-mapping"
+            element={
+              <ProtectedRoute>
+                {isAdmin ? (
+                  <PageWrapper>
+                    <UserBoardMapping />
+                  </PageWrapper>
+                ) : (
+                  <div
+                    style={{
+                      padding: 24,
+                      color: "red",
+                      textAlign: "center"
+                    }}
+                  >
+                    You are not authorized to access this page.
+                  </div>
+                )}
+              </ProtectedRoute>
+            }
+          />
           <Route path="/admin/pending" element={<PendingMatches />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/privacy/delete-account" element={<DeleteAccount />} />
