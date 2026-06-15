@@ -4,7 +4,7 @@
 // ✅ "Matches" now goes to /past-matches
 
 import React, { useEffect, useRef, useState } from "react";
-import { Navbar, Nav, Container, Button, NavDropdown, Dropdown } from "react-bootstrap";
+import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { playSound } from "../utils/playSound";
 import "../styles/theme.css";
@@ -329,37 +329,39 @@ const AppNavbar = ({ onAuthClick }) => {
               📥 Get App
             </Button>
 
-            <Dropdown align="end" className="ce-add-match-dropdown-wrap">
-              <Dropdown.Toggle
-                as={Button}
-                id="ce-add-match-dropdown"
+            <details className="ce-add-match-details">
+              <summary
                 className="navbar-action-btn slumber-ghost-btn ce-add-match-trigger ce-add-glow"
-                onMouseEnter={() => playSound("hover")}
                 onClick={() => playSound("click")}
               >
                 + Add Match Details
-              </Dropdown.Toggle>
+                <span className="ms-1 ce-add-caret">▼</span>
+              </summary>
 
-              <Dropdown.Menu className="ce-add-match-menu">
-                <Dropdown.Item
-                  as="button"
+              <div className="ce-add-match-menu">
+                <button
                   type="button"
                   className="ce-add-match-item"
-                  onClick={handleAddOdiT20}
+                  onClick={(e) => {
+                    e.currentTarget.closest("details")?.removeAttribute("open");
+                    handleAddOdiT20();
+                  }}
                 >
                   Add ODI / T20 Details
-                </Dropdown.Item>
+                </button>
 
-                <Dropdown.Item
-                  as="button"
+                <button
                   type="button"
                   className="ce-add-match-item"
-                  onClick={handleAddTest}
+                  onClick={(e) => {
+                    e.currentTarget.closest("details")?.removeAttribute("open");
+                    handleAddTest();
+                  }}
                 >
                   Add Test Match Details
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
+                </button>
+              </div>
+            </details>
           </div>
         </Navbar.Collapse>
       </Container>
