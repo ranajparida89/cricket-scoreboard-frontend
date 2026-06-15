@@ -5,6 +5,9 @@ import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
+const isAdminUser = () => {
+    return !!localStorage.getItem("admin_jwt");
+};
 
 const PlayerAchievementForm = () => {
 
@@ -853,39 +856,45 @@ const PlayerAchievementForm = () => {
 
                                                         <td>
                                                             {row.status === "Pending Verification" ? (
-                                                                <div style={{ display: "flex", gap: "8px" }}>
-                                                                    <button
-                                                                        onClick={() =>
-                                                                            updateAchievementStatus(row.achievement_id, "Verified")
-                                                                        }
-                                                                        style={{
-                                                                            background: "#28a745",
-                                                                            color: "#fff",
-                                                                            border: "none",
-                                                                            padding: "4px 10px",
-                                                                            borderRadius: "4px",
-                                                                            cursor: "pointer",
-                                                                        }}
-                                                                    >
-                                                                        Approve
-                                                                    </button>
+                                                                isAdminUser() ? (
+                                                                    <div style={{ display: "flex", gap: "8px" }}>
+                                                                        <button
+                                                                            onClick={() =>
+                                                                                updateAchievementStatus(row.achievement_id, "Verified")
+                                                                            }
+                                                                            style={{
+                                                                                background: "#28a745",
+                                                                                color: "#fff",
+                                                                                border: "none",
+                                                                                padding: "4px 10px",
+                                                                                borderRadius: "4px",
+                                                                                cursor: "pointer",
+                                                                            }}
+                                                                        >
+                                                                            Approve
+                                                                        </button>
 
-                                                                    <button
-                                                                        onClick={() =>
-                                                                            updateAchievementStatus(row.achievement_id, "Rejected")
-                                                                        }
-                                                                        style={{
-                                                                            background: "#dc3545",
-                                                                            color: "#fff",
-                                                                            border: "none",
-                                                                            padding: "4px 10px",
-                                                                            borderRadius: "4px",
-                                                                            cursor: "pointer",
-                                                                        }}
-                                                                    >
-                                                                        Reject
-                                                                    </button>
-                                                                </div>
+                                                                        <button
+                                                                            onClick={() =>
+                                                                                updateAchievementStatus(row.achievement_id, "Rejected")
+                                                                            }
+                                                                            style={{
+                                                                                background: "#dc3545",
+                                                                                color: "#fff",
+                                                                                border: "none",
+                                                                                padding: "4px 10px",
+                                                                                borderRadius: "4px",
+                                                                                cursor: "pointer",
+                                                                            }}
+                                                                        >
+                                                                            Reject
+                                                                        </button>
+                                                                    </div>
+                                                                ) : (
+                                                                    <span style={{ color: "#888", fontWeight: "600" }}>
+                                                                        Admin only
+                                                                    </span>
+                                                                )
                                                             ) : (
                                                                 "-"
                                                             )}
