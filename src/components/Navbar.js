@@ -4,7 +4,7 @@
 // ✅ "Matches" now goes to /past-matches
 
 import React, { useEffect, useRef, useState } from "react";
-import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
+import { Navbar, Nav, Container, Button, NavDropdown, Dropdown } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { playSound } from "../utils/playSound";
 import "../styles/theme.css";
@@ -317,7 +317,7 @@ const AppNavbar = ({ onAuthClick }) => {
           {/* ----- Actions ----- */}
           <div
             className="navbar-actions-group ms-auto d-flex flex-row align-items-center gap-2"
-            style={{ position: "relative", zIndex: 999999 }}
+            style={{ position: "relative", zIndex: 99999 }}
           >
             <Button
               type="button"
@@ -329,59 +329,37 @@ const AppNavbar = ({ onAuthClick }) => {
               📥 Get App
             </Button>
 
-            <Button
-              ref={addBtnRef}
-              type="button"
-              className={
-                "navbar-action-btn slumber-ghost-btn ce-add-match-trigger ce-add-glow" +
-                (showAddMenu ? " is-open" : "")
-              }
-              onPointerDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                playSound("click");
-                setShowAddMenu((v) => !v);
-              }}
-              onMouseEnter={() => playSound("hover")}
-              aria-expanded={showAddMenu}
-              aria-haspopup="menu"
-            >
-              + Add Match Details
-              <span className="ms-1 ce-add-caret">▼</span>
-            </Button>
-
-            {showAddMenu && (
-              <div
-                ref={addMenuRef}
-                className="ce-add-match-menu"
-                onPointerDown={(e) => e.stopPropagation()}
-                role="menu"
+            <Dropdown align="end" className="ce-add-match-dropdown-wrap">
+              <Dropdown.Toggle
+                as={Button}
+                id="ce-add-match-dropdown"
+                className="navbar-action-btn slumber-ghost-btn ce-add-match-trigger ce-add-glow"
+                onMouseEnter={() => playSound("hover")}
+                onClick={() => playSound("click")}
               >
-                <button
+                + Add Match Details
+              </Dropdown.Toggle>
+
+              <Dropdown.Menu className="ce-add-match-menu">
+                <Dropdown.Item
+                  as="button"
                   type="button"
                   className="ce-add-match-item"
-                  onPointerDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleAddOdiT20();
-                  }}
+                  onClick={handleAddOdiT20}
                 >
                   Add ODI / T20 Details
-                </button>
+                </Dropdown.Item>
 
-                <button
+                <Dropdown.Item
+                  as="button"
                   type="button"
                   className="ce-add-match-item"
-                  onPointerDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleAddTest();
-                  }}
+                  onClick={handleAddTest}
                 >
                   Add Test Match Details
-                </button>
-              </div>
-            )}
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
           </div>
         </Navbar.Collapse>
       </Container>
