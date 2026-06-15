@@ -440,7 +440,7 @@ export default function MatchForm() {
         setTeamsLoading(true);
 
         const res = await axios.get(
-          "https://cricket-scoreboard-backend.onrender.com/api/teams"
+          "https://cricket-scoreboard-backend.onrender.com/api/team-dropdown"
         );
 
         if (cancelled) return;
@@ -623,7 +623,7 @@ export default function MatchForm() {
 
       // Reload teams list
       const res = await axios.get(
-        "https://cricket-scoreboard-backend.onrender.com/api/teams"
+        "https://cricket-scoreboard-backend.onrender.com/api/team-dropdown"
       );
 
       const uniqueTeams = Array.from(
