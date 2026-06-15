@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./PlayerAchievementForm.css";
 import Select from "react-select";
+import CreatableSelect from "react-select/creatable";
 
 const API_BASE = "https://cricket-scoreboard-backend.onrender.com";
 
@@ -495,11 +496,11 @@ const PlayerAchievementForm = () => {
 
                                 <label>Player Name</label>
 
-                                <Select
+                                <CreatableSelect
                                     className="player-react-select"
                                     classNamePrefix="player-select"
                                     options={playerOptions}
-                                    placeholder="Search Player..."
+                                    placeholder="Search or type player name..."
                                     isSearchable
                                     isClearable
                                     value={
@@ -513,11 +514,19 @@ const PlayerAchievementForm = () => {
                                     onChange={(selected) =>
                                         setFormData((prev) => ({
                                             ...prev,
-                                            playerName: selected
-                                                ? selected.value
-                                                : "",
+                                            playerName: selected ? selected.value : "",
                                         }))
                                     }
+                                    onCreateOption={(inputValue) => {
+                                        const typedName = inputValue.trim();
+
+                                        if (!typedName) return;
+
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            playerName: typedName,
+                                        }));
+                                    }}
                                 />
 
                             </div>
