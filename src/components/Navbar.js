@@ -314,13 +314,13 @@ const AppNavbar = ({ onAuthClick }) => {
           <div className="ms-lg-3 mt-2 mt-lg-0 d-flex align-items-center">
             <TournamentTicker />
           </div>
-
           {/* ----- Actions ----- */}
           <div
             className="navbar-actions-group ms-auto d-flex flex-row align-items-center gap-2"
-            style={{ position: "relative" }}
+            style={{ position: "relative", zIndex: 999999 }}
           >
             <Button
+              type="button"
               onClick={handleInstallClick}
               className="btn slumber-ghost-btn hover-slide-emoji"
               onMouseEnter={() => playSound("hover")}
@@ -331,33 +331,52 @@ const AppNavbar = ({ onAuthClick }) => {
 
             <Button
               ref={addBtnRef}
+              type="button"
               className={
-                "navbar-action-btn hover-slide-emoji slumber-ghost-btn ce-add-match-trigger ce-add-glow" +
+                "navbar-action-btn slumber-ghost-btn ce-add-match-trigger ce-add-glow" +
                 (showAddMenu ? " is-open" : "")
               }
-              onClick={() => {
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 playSound("click");
                 setShowAddMenu((v) => !v);
               }}
               onMouseEnter={() => playSound("hover")}
+              aria-expanded={showAddMenu}
+              aria-haspopup="menu"
             >
               + Add Match Details
               <span className="ms-1 ce-add-caret">▼</span>
             </Button>
 
             {showAddMenu && (
-              <div ref={addMenuRef} className="ce-add-match-menu">
+              <div
+                ref={addMenuRef}
+                className="ce-add-match-menu"
+                onPointerDown={(e) => e.stopPropagation()}
+                role="menu"
+              >
                 <button
                   type="button"
                   className="ce-add-match-item"
-                  onClick={handleAddOdiT20}
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleAddOdiT20();
+                  }}
                 >
                   Add ODI / T20 Details
                 </button>
+
                 <button
                   type="button"
                   className="ce-add-match-item"
-                  onClick={handleAddTest}
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleAddTest();
+                  }}
                 >
                   Add Test Match Details
                 </button>
