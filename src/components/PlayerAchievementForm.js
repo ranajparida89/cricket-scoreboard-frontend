@@ -265,6 +265,21 @@ const PlayerAchievementForm = () => {
     /* ==========================
        SAVE ACHIEVEMENT
     ========================== */
+    const updateAchievementStatus = async (achievementId, status) => {
+        try {
+            await axios.put(
+                `${API_BASE}/api/player-achievements/update/${achievementId}`,
+                { status }
+            );
+
+            loadAchievementHistory();
+            loadDashboard();
+
+        } catch (err) {
+            console.error(err);
+            alert("Failed to update achievement status");
+        }
+    };
 
     const handleSubmit = async () => {
 
@@ -779,6 +794,7 @@ const PlayerAchievementForm = () => {
                                             <th>Category</th>
                                             <th>Points</th>
                                             <th>Status</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
 
@@ -833,9 +849,46 @@ const PlayerAchievementForm = () => {
                                                         <td>
                                                             {row.achievement_points}
                                                         </td>
+                                                        <td>{row.status}</td>
 
                                                         <td>
-                                                            {row.status}
+                                                            {row.status === "Pending Verification" ? (
+                                                                <div style={{ display: "flex", gap: "8px" }}>
+                                                                    <button
+                                                                        onClick={() =>
+                                                                            updateAchievementStatus(row.achievement_id, "Verified")
+                                                                        }
+                                                                        style={{
+                                                                            background: "#28a745",
+                                                                            color: "#fff",
+                                                                            border: "none",
+                                                                            padding: "4px 10px",
+                                                                            borderRadius: "4px",
+                                                                            cursor: "pointer",
+                                                                        }}
+                                                                    >
+                                                                        Approve
+                                                                    </button>
+
+                                                                    <button
+                                                                        onClick={() =>
+                                                                            updateAchievementStatus(row.achievement_id, "Rejected")
+                                                                        }
+                                                                        style={{
+                                                                            background: "#dc3545",
+                                                                            color: "#fff",
+                                                                            border: "none",
+                                                                            padding: "4px 10px",
+                                                                            borderRadius: "4px",
+                                                                            cursor: "pointer",
+                                                                        }}
+                                                                    >
+                                                                        Reject
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                "-"
+                                                            )}
                                                         </td>
                                                     </tr>
                                                 )
