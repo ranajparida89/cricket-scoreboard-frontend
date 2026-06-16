@@ -73,6 +73,7 @@ const PlayerAchievementForm = () => {
     const [message, setMessage] = useState("");
 
     const [formData, setFormData] = useState({
+        matchId: "",
         matchType: "",
         matchName: "",
         teamName: "",
@@ -241,6 +242,7 @@ const PlayerAchievementForm = () => {
     const resetForm = () => {
 
         setFormData({
+            matchId: "",
             matchType: "",
             matchName: "",
             teamName: "",
@@ -291,6 +293,7 @@ const PlayerAchievementForm = () => {
             setLoading(true);
 
             const payload = {
+                match_id: formData.matchId,
                 match_type: formData.matchType,
                 match_name: formData.matchName,
 
@@ -455,6 +458,18 @@ const PlayerAchievementForm = () => {
                         <h2>🏆 Register Achievement</h2>
 
                         <div className="form-grid">
+
+                            <div className="form-group">
+                                <label>Match ID</label>
+
+                                <input
+                                    type="text"
+                                    name="matchId"
+                                    placeholder="Example: CPL M-72"
+                                    value={formData.matchId}
+                                    onChange={handleChange}
+                                />
+                            </div>
 
                             <div className="form-group">
                                 <label>Match Type</label>
