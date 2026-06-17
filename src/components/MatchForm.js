@@ -264,6 +264,11 @@ export default function MatchForm() {
   // 🆕 MoM fields (ID-based)
   const [momPlayerId, setMomPlayerId] = useState("");
   const [momReason, setMomReason] = useState("");
+  const [showAddMomPlayerModal, setShowAddMomPlayerModal] = useState(false);
+const [newMomPlayerName, setNewMomPlayerName] = useState("");
+const [newMomPlayerTeam, setNewMomPlayerTeam] = useState("");
+const [newMomPlayerSkill, setNewMomPlayerSkill] = useState("BATSMAN");
+const [addingMomPlayer, setAddingMomPlayer] = useState(false);
 
   // 🆕 All players (for MoM dropdown)
   const [players, setPlayers] = useState([]);
@@ -599,6 +604,70 @@ export default function MatchForm() {
       (players || []).find((p) => String(p.id) === String(momPlayerId)) || null,
     [players, momPlayerId]
   );
+const handleAddMomPlayer = async () => {
+  const playerName = newMomPlayerName.trim();
+  const selectedTeam = newMomPlayerTeam.trim();
+
+  if (!playerName) {
+    alert("Player name is required.");
+    return;
+  }
+
+  if (!selectedTeam) {
+    alert("Please select team for this player.");
+    return;
+  }
+
+  try {
+    setAddingMomPlayer(true);
+
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    const userId = storedUser?.id;
+
+    const res = await axios.post(
+      `${API_BASE}/ensure-mom-player`,
+      {
+        player_name: playerName,
+        team_name: selectedTeam,
+        lineup_type: matchType,
+        skill_type: newMomPlayerSkill,
+        user_id: userId,
+      }
+    );
+
+    const addedPlayer = res.data.player;
+
+    setPlayers((prev) => {
+      const exists = prev.some(
+        (p) => String(p.id) === String(addedPlayer.id)
+      );
+
+      if (exists) return prev;
+
+      return [...prev, addedPlayer];
+    });
+
+    setMomPlayerId(addedPlayer.id);
+    setMomSearch("");
+    setMomOpen(false);
+
+    setShowAddMomPlayerModal(false);
+    setNewMomPlayerName("");
+    setNewMomPlayerTeam("");
+    setNewMomPlayerSkill("BATSMAN");
+
+    alert(res.data.message || "Player added and selected as MoM.");
+
+  } catch (err) {
+    alert(
+      "❌ Error adding MoM player: " +
+      (err?.response?.data?.error || err.message)
+    );
+  } finally {
+    setAddingMomPlayer(false);
+  }
+};
+
   // 🆕 Add new team (Admin only)
   const handleAddTeam = async () => {
     if (!newTeamName.trim()) {
@@ -1241,10 +1310,29 @@ export default function MatchForm() {
             </div>
 
             {playersError && (
-              <small className="text-danger d-block mt-1">
-                {playersError}
-              </small>
-            )}
+                <small className="text-danger d-block mt-1">
+                  {playersError}
+                </small>
+              )}
+              <button
+    type="button"
+    className="btn btn-outline-warning btn-sm mt-2"
+    onClick={() => {
+      setNewMomPlayerName(momSearch.trim());
+      setNewMomPlayerTeam("");
+      setNewMomPlayerSkill("BATSMAN");
+      setShowAddMomPlayerModal(true);
+    }}
+    disabled={!team1 || !team2}
+  >
+    + Player Not Found? Add New Player
+  </button>
+
+  {(!team1 || !team2) && (
+    <small className="text-muted d-block mt-1">
+      Select both teams first to add a new MoM player.
+    </small>
+  )}
           </div>
 
           <textarea
@@ -1268,6 +1356,63 @@ export default function MatchForm() {
             {resultMsg}
           </div>
         )}
+{showAddMomPlayerModal && (
+  <div className="addteam-backdrop">
+    <div className="addteam-modal">
+      <h5>Add New MoM Player</h5>
+
+      <input
+        type="text"
+        className="form-control"
+        placeholder="Enter Player Name"
+        value={newMomPlayerName}
+        onChange={(e) => setNewMomPlayerName(e.target.value)}
+      />
+
+      <label className="form-label mt-3">Select Team</label>
+      <select
+        className="form-select"
+        value={newMomPlayerTeam}
+        onChange={(e) => setNewMomPlayerTeam(e.target.value)}
+      >
+        <option value="">Select Team</option>
+        {team1 && <option value={normalizeTeamName(team1)}>{normalizeTeamName(team1)}</option>}
+        {team2 && <option value={normalizeTeamName(team2)}>{normalizeTeamName(team2)}</option>}
+      </select>
+
+      <label className="form-label mt-3">Skill Type</label>
+      <select
+        className="form-select"
+        value={newMomPlayerSkill}
+        onChange={(e) => setNewMomPlayerSkill(e.target.value)}
+      >
+        <option value="BATSMAN">BATSMAN</option>
+        <option value="BOWLER">BOWLER</option>
+        <option value="ALLROUNDER">ALLROUNDER</option>
+        <option value="WICKETKEEPER">WICKETKEEPER</option>
+      </select>
+
+      <div style={{ marginTop: "12px", display: "flex", gap: "10px" }}>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={handleAddMomPlayer}
+          disabled={addingMomPlayer}
+        >
+          {addingMomPlayer ? "Adding..." : "Add & Select"}
+        </button>
+
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => setShowAddMomPlayerModal(false)}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
         {showAddTeamModal && (
           <div className="addteam-backdrop">
             <div className="addteam-modal">
