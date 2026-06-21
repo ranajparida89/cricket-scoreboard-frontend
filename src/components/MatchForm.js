@@ -358,7 +358,7 @@ const [addingMomPlayer, setAddingMomPlayer] = useState(false);
     let cancelled = false;
     setTournamentsLoading(true);
     axios
-      .get(`${API_BASE}/match/tournaments`, { params: { scope: "limited" } })
+      .get(`${API_BASE}/match/active-tournaments`)
       .then(({ data }) => {
         if (cancelled) return;
         const list = Array.isArray(data?.tournaments) ? data.tournaments : [];
