@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import "./Rules.css";
 
@@ -54,6 +54,38 @@ function RulesAndRegulations({ user }) {
 
   const [searchText, setSearchText] = useState("");
   const [filterKey, setFilterKey] = useState("ALL");
+
+  const [openSections, setOpenSections] = useState({
+    visual: false,
+    skill: false,
+    odi: true,
+    test: false
+  });
+
+  const [openRules, setOpenRules] = useState({});
+  const [openVisuals, setOpenVisuals] = useState({});
+  const [previewImage, setPreviewImage] = useState(null);
+
+  const toggleSection = (key) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const toggleRule = (ruleId) => {
+    setOpenRules((prev) => ({
+      ...prev,
+      [ruleId]: !prev[ruleId]
+    }));
+  };
+
+  const toggleVisual = (key) => {
+    setOpenVisuals((prev) => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
 
   const loadRules = async () => {
     try {
@@ -129,6 +161,8 @@ function RulesAndRegulations({ user }) {
     setEditingId(rule.id);
     setIsEdit(true);
     setShowForm(true);
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = async (ruleId) => {
@@ -154,6 +188,7 @@ function RulesAndRegulations({ user }) {
       ${rule.title}
       ${rule.description}
       ${rule.category}
+      ${rule.format}
     `.toLowerCase();
 
     const matchesSearch =
@@ -162,6 +197,8 @@ function RulesAndRegulations({ user }) {
     const matchesFilter =
       filterKey === "ALL" ||
       (filterKey === "MANDATORY" && rule.is_mandatory) ||
+      (filterKey === "UPDATED" && rule.rule_status === "UPDATED") ||
+      (filterKey === "NEW" && rule.rule_status === "NEW") ||
       rule.category?.toUpperCase().includes(filterKey) ||
       rule.title?.toUpperCase().includes(filterKey) ||
       rule.format?.toUpperCase().includes(filterKey);
@@ -169,22 +206,44 @@ function RulesAndRegulations({ user }) {
     return matchesSearch && matchesFilter;
   };
 
-  const odiT20Rules = rules.filter(
-    (r) =>
-      (r.format === "ODI" || r.format === "T20" || r.format === "ALL") &&
-      applySearchFilter(r)
+  const odiT20Rules = useMemo(
+    () =>
+      rules.filter(
+        (r) =>
+          (r.format === "ODI" || r.format === "T20" || r.format === "ALL") &&
+          applySearchFilter(r)
+      ),
+    [rules, searchText, filterKey]
   );
 
-  const testRules = rules.filter(
-    (r) =>
-      (r.format === "TEST" || r.format === "ALL") &&
-      applySearchFilter(r)
+  const testRules = useMemo(
+    () =>
+      rules.filter(
+        (r) =>
+          (r.format === "TEST" || r.format === "ALL") &&
+          applySearchFilter(r)
+      ),
+    [rules, searchText, filterKey]
   );
+
+  const stats = useMemo(() => {
+    return {
+      total: rules.length,
+      mandatory: rules.filter((r) => r.is_mandatory).length,
+      updated: rules.filter((r) => r.rule_status === "UPDATED").length,
+      fresh: rules.filter((r) => r.rule_status === "NEW").length,
+      odi: rules.filter(
+        (r) => r.format === "ODI" || r.format === "T20" || r.format === "ALL"
+      ).length,
+      test: rules.filter((r) => r.format === "TEST" || r.format === "ALL").length
+    };
+  }, [rules]);
 
   const highlightText = (text, search) => {
     if (!search || !text) return text;
 
-    const regex = new RegExp(`(${search})`, "gi");
+    const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`(${escapedSearch})`, "gi");
     const parts = text.split(regex);
 
     return parts.map((part, index) =>
@@ -198,53 +257,101 @@ function RulesAndRegulations({ user }) {
     );
   };
 
-  const renderRule = (rule) => (
-    <div key={rule.id} className={`rule-card ${rule.rule_status?.toLowerCase()}`}>
-      <div className="rule-header">
-        <span className="rule-number">Rule {rule.rule_number}</span>
-        <span className="rule-title">
-          {highlightText(rule.title, searchText)}
-        </span>
+  const scrollToSection = (id, sectionKey) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [sectionKey]: true
+    }));
 
-        {rule.is_mandatory && <span className="badge mandatory">MANDATORY</span>}
-        {rule.rule_status === "NEW" && <span className="badge new">NEW</span>}
-        {rule.rule_status === "UPDATED" && (
-          <span className="badge updated">UPDATED</span>
-        )}
-      </div>
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+  };
 
-      <div className="rule-description">
-        {highlightText(rule.description, searchText)}
-      </div>
-
-      {user?.role === "admin" && rule.admin_comment && (
-        <div className="admin-comment">
-          <strong>Admin Note:</strong> {rule.admin_comment}
-        </div>
-      )}
-
-      {user?.role === "admin" && (
-        <div className="rule-actions">
-          <button className="edit-btn" onClick={() => handleEdit(rule)}>
-            ✏️ Edit
-          </button>
-
-          <button
-            className="edit-btn delete-btn"
-            onClick={() => handleDelete(rule.id)}
-          >
-            🗑 Delete
-          </button>
-        </div>
+  const renderBadge = (rule) => (
+    <div className="rule-badges">
+      {rule.is_mandatory && <span className="badge mandatory">MANDATORY</span>}
+      {rule.rule_status === "NEW" && <span className="badge new">NEW</span>}
+      {rule.rule_status === "UPDATED" && (
+        <span className="badge updated">UPDATED</span>
       )}
     </div>
   );
+
+  const renderRule = (rule) => {
+    const isOpen = !!openRules[rule.id];
+
+    return (
+      <div key={rule.id} className={`rule-card ${rule.rule_status?.toLowerCase() || ""}`}>
+        <button className="rule-summary" onClick={() => toggleRule(rule.id)}>
+          <div className="rule-summary-left">
+            <span className={`accordion-arrow ${isOpen ? "open" : ""}`}>▶</span>
+            <span className="rule-number">Rule {rule.rule_number}</span>
+            <span className="rule-title">
+              {highlightText(rule.title, searchText)}
+            </span>
+          </div>
+
+          {renderBadge(rule)}
+        </button>
+
+        {isOpen && (
+          <div className="rule-details">
+            <div className="rule-description">
+              {highlightText(rule.description, searchText)}
+            </div>
+
+            {user?.role === "admin" && rule.admin_comment && (
+              <div className="admin-comment">
+                <strong>Admin Note:</strong> {rule.admin_comment}
+              </div>
+            )}
+
+            {user?.role === "admin" && (
+              <div className="rule-actions">
+                <button className="edit-btn" onClick={() => handleEdit(rule)}>
+                  ✏️ Edit
+                </button>
+
+                <button
+                  className="edit-btn delete-btn"
+                  onClick={() => handleDelete(rule.id)}
+                >
+                  🗑 Delete
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const VisualAccordion = ({ id, title, pill, pillType, description, children }) => {
+    const isOpen = !!openVisuals[id];
+
+    return (
+      <div className="visual-accordion-card">
+        <button className="visual-summary" onClick={() => toggleVisual(id)}>
+          <div>
+            <span className={`rule-pill ${pillType || ""}`}>{pill}</span>
+            <h3>{title}</h3>
+            <p>{description}</p>
+          </div>
+          <span className={`accordion-arrow big ${isOpen ? "open" : ""}`}>▶</span>
+        </button>
+
+        {isOpen && <div className="visual-details">{children}</div>}
+      </div>
+    );
+  };
 
   return (
     <div className="rules-container">
       <h1 className="rules-title">CrickEdge – Rules & Regulations</h1>
 
-      <div className="rules-toolbar">
+      <div className="rules-toolbar sticky-toolbar">
         <input
           type="text"
           className="rules-search"
@@ -260,6 +367,8 @@ function RulesAndRegulations({ user }) {
         >
           <option value="ALL">All Rules</option>
           <option value="MANDATORY">Mandatory</option>
+          <option value="UPDATED">Updated</option>
+          <option value="NEW">New</option>
           <option value="BOWLING">Bowling</option>
           <option value="BATTING">Batting</option>
           <option value="FIELDING">Fielding</option>
@@ -268,6 +377,40 @@ function RulesAndRegulations({ user }) {
           <option value="TEST">Test</option>
           <option value="ODI">ODI / T20</option>
         </select>
+      </div>
+
+      <div className="rules-stats-grid">
+        <div className="stat-card">
+          <span>Total Rules</span>
+          <strong>{stats.total}</strong>
+        </div>
+        <div className="stat-card danger-stat">
+          <span>Mandatory</span>
+          <strong>{stats.mandatory}</strong>
+        </div>
+        <div className="stat-card warning-stat">
+          <span>Updated</span>
+          <strong>{stats.updated}</strong>
+        </div>
+        <div className="stat-card success-stat">
+          <span>New</span>
+          <strong>{stats.fresh}</strong>
+        </div>
+      </div>
+
+      <div className="quick-nav">
+        <button onClick={() => scrollToSection("visual-guide", "visual")}>
+          🏏 Visual Guide
+        </button>
+        <button onClick={() => scrollToSection("team-skill", "skill")}>
+          🧩 Team Skill
+        </button>
+        <button onClick={() => scrollToSection("odi-rules", "odi")}>
+          📘 ODI / T20 Rules
+        </button>
+        <button onClick={() => scrollToSection("test-rules", "test")}>
+          📕 Test Rules
+        </button>
       </div>
 
       {user?.role === "admin" && (
@@ -365,155 +508,219 @@ function RulesAndRegulations({ user }) {
         </div>
       )}
 
-      <section className="fielding-guide-section">
-        <div className="fielding-guide-header">
-          <span className="fielding-guide-tag">Visual Fielding Guide</span>
-          <h2>🏏 ODI / T20 Field Placement Rules</h2>
-          <p>
-            These screenshots help users clearly understand legal field placement
-            before powerplay, after powerplay, restricted positions and balanced
-            field distribution.
-          </p>
-        </div>
-
-        <div className="fielding-rule-card before-pp">
-          <div className="fielding-rule-content">
-            <span className="rule-pill">Before Powerplay</span>
-            <h3>Powerplay Field Setup</h3>
+      <section id="visual-guide" className="collapsible-section">
+        <button className="section-toggle" onClick={() => toggleSection("visual")}>
+          <div>
+            <span className="section-kicker">Visual Fielding Guide</span>
+            <h2>🏏 ODI / T20 Field Placement Rules</h2>
             <p>
-              This image shows the fielding setup before powerplay in ODI / T20
-              format. Users must follow the allowed fielding restrictions during
-              powerplay.
+              Open only when required. This keeps the page short for new members.
             </p>
           </div>
+          <span className={`accordion-arrow big ${openSections.visual ? "open" : ""}`}>
+            ▶
+          </span>
+        </button>
 
-          <img
-            src={beforePowerPlay}
-            alt="Before powerplay field setup"
-            className="fielding-main-img"
-          />
-        </div>
-
-        <div className="fielding-rule-card after-pp">
-          <div className="fielding-rule-content">
-            <span className="rule-pill success">After Powerplay</span>
-            <h3>Allowed Field Setup After Powerplay</h3>
-            <p>
-              These images show valid examples of field placement after powerplay
-              for ODI / T20 format.
-            </p>
-          </div>
-
-          <div className="fielding-gallery">
-            {[
-              afterPowerPlay1,
-              afterPowerPlay2,
-              afterPowerPlay3,
-              afterPowerPlay4,
-              afterPowerPlay5
-            ].map((img, index) => (
+        {openSections.visual && (
+          <div className="section-body">
+            <VisualAccordion
+              id="before-pp"
+              pill="Before Powerplay"
+              title="Powerplay Field Setup"
+              description="Allowed fielding setup before powerplay in ODI / T20."
+            >
               <img
-                key={index}
-                src={img}
-                alt={`After powerplay field setup ${index + 1}`}
+                src={beforePowerPlay}
+                alt="Before powerplay field setup"
+                className="fielding-main-img clickable-img"
+                onClick={() => setPreviewImage(beforePowerPlay)}
               />
-            ))}
-          </div>
-        </div>
+            </VisualAccordion>
 
-        <div className="fielding-rule-card danger-card">
-          <div className="fielding-rule-content">
-            <span className="rule-pill danger">Restricted Points</span>
-            <h3>Only 1 Fielder Allowed in These 4 Points</h3>
+            <VisualAccordion
+              id="after-pp"
+              pill="After Powerplay"
+              pillType="success"
+              title="Allowed Field Setup After Powerplay"
+              description="Valid examples of field placement after powerplay."
+            >
+              <div className="fielding-gallery">
+                {[
+                  afterPowerPlay1,
+                  afterPowerPlay2,
+                  afterPowerPlay3,
+                  afterPowerPlay4,
+                  afterPowerPlay5
+                ].map((img, index) => (
+                  <img
+                    key={index}
+                    src={img}
+                    alt={`After powerplay field setup ${index + 1}`}
+                    onClick={() => setPreviewImage(img)}
+                    className="clickable-img"
+                  />
+                ))}
+              </div>
+            </VisualAccordion>
+
+            <VisualAccordion
+              id="restricted-points"
+              pill="Restricted Points"
+              pillType="danger"
+              title="Only 1 Fielder Allowed in These 4 Points"
+              description="Only one fielder can be deployed in any one of the four restricted points."
+            >
+              <img
+                src={restrictedPoints}
+                alt="Restricted points fielding rule"
+                className="fielding-main-img clickable-img"
+                onClick={() => setPreviewImage(restrictedPoints)}
+              />
+            </VisualAccordion>
+
+            <VisualAccordion
+              id="distribution-rule"
+              pill="Distribution Rule"
+              pillType="warning"
+              title="Balanced Inner Circle Fielding"
+              description="Fielders should be balanced between off side and leg side."
+            >
+              <img
+                src={fieldingDescription}
+                alt="Fielding distribution explanation"
+                className="fielding-main-img clickable-img"
+                onClick={() => setPreviewImage(fieldingDescription)}
+              />
+            </VisualAccordion>
+          </div>
+        )}
+      </section>
+
+      <section id="team-skill" className="collapsible-section">
+        <button className="section-toggle skill-toggle" onClick={() => toggleSection("skill")}>
+          <div>
+            <span className="section-kicker">Team Template</span>
+            <h2>🧩 Player Skill Template</h2>
             <p>
-              In the marked red positions, only <b>1 fielder</b> can be deployed
-              in any one of the 4 points. More than 1 fielder is not allowed in
-              those restricted points during powerplay or after powerplay.
+              Mandatory player skill setup for all newly assigned teams.
             </p>
           </div>
+          <span className={`accordion-arrow big ${openSections.skill ? "open" : ""}`}>
+            ▶
+          </span>
+        </button>
 
-          <img
-            src={restrictedPoints}
-            alt="Restricted points fielding rule"
-            className="fielding-main-img"
-          />
-        </div>
+        {openSections.skill && (
+          <div className="section-body">
+            <div className="fielding-rule-card skill-card">
+              <div className="fielding-rule-content">
+                <span className="rule-pill success">Team Template</span>
 
-        <div className="fielding-rule-card warning-card">
-          <div className="fielding-rule-content">
-            <span className="rule-pill warning">Distribution Rule</span>
-            <h3>Balanced Inner Circle Fielding</h3>
-            <p>
-              Fielders inside or around the circle should be distributed properly
-              between off side and leg side. Slip is optional. If no slip is used,
-              fielders should be balanced in a <b>4:5</b> or <b>5:4</b> ratio.
-            </p>
+                <h3>Player Skill Template (Mandatory)</h3>
+
+                <p>
+                  Every newly assigned team must follow the official CrickEdge
+                  player skill template before submitting the squad for approval.
+                </p>
+
+                <div className="skill-rules-grid">
+                  <div className="skill-rule batsman">
+                    🏏 Batsman = <strong>99</strong>
+                  </div>
+
+                  <div className="skill-rule allrounder">
+                    ⚡ All Rounder = <strong>92</strong>
+                  </div>
+
+                  <div className="skill-rule licensed">
+                    ✅ Licensed Bowler = <strong>83</strong>
+                  </div>
+
+                  <div className="skill-rule nonlicensed">
+                    ❌ Non Licensed Bowler = <strong>75</strong>
+                  </div>
+                </div>
+
+                <div className="important-note">
+                  ⚠️ Any deviation from the approved skill template may result in
+                  rejection of the squad during Admin verification.
+                </div>
+              </div>
+
+              <img
+                src={teamTemplate}
+                alt="CrickEdge Team Skill Template"
+                className="fielding-main-img clickable-img"
+                onClick={() => setPreviewImage(teamTemplate)}
+              />
+            </div>
           </div>
-
-          <img
-            src={fieldingDescription}
-            alt="Fielding distribution explanation"
-            className="fielding-main-img"
-          />
-        </div>
+        )}
       </section>
 
-      <div className="fielding-rule-card skill-card">
-        <div className="fielding-rule-content">
-          <span className="rule-pill success">Team Template</span>
-
-          <h3>Player Skill Template (Mandatory)</h3>
-
-          <p>
-            Every newly assigned team must follow the official CrickEdge player
-            skill template before submitting the squad for approval.
-          </p>
-
-          <div className="skill-rules-grid">
-
-            <div className="skill-rule batsman">
-              🏏 Batsman = <strong>99</strong>
-            </div>
-
-            <div className="skill-rule allrounder">
-              ⚡ All Rounder = <strong>92</strong>
-            </div>
-
-            <div className="skill-rule licensed">
-              ✅ Licensed Bowler = <strong>83</strong>
-            </div>
-
-            <div className="skill-rule nonlicensed">
-              ❌ Non Licensed Bowler = <strong>75</strong>
-            </div>
-
+      <section id="odi-rules" className="collapsible-section">
+        <button className="section-toggle" onClick={() => toggleSection("odi")}>
+          <div>
+            <span className="section-kicker">ODI / T20</span>
+            <h2>📘 ODI / T20 Rules ({odiT20Rules.length})</h2>
+            <p>Click any rule to view full details.</p>
           </div>
+          <span className={`accordion-arrow big ${openSections.odi ? "open" : ""}`}>
+            ▶
+          </span>
+        </button>
 
-          <div className="important-note">
-            ⚠️ Any deviation from the approved skill template may result in
-            rejection of the squad during Admin verification.
+        {openSections.odi && (
+          <div className="rules-list">
+            {odiT20Rules.length ? (
+              odiT20Rules.map(renderRule)
+            ) : (
+              <p className="empty-state">No ODI / T20 rules found.</p>
+            )}
           </div>
-        </div>
-
-        <img
-          src={teamTemplate}
-          alt="CrickEdge Team Skill Template"
-          className="fielding-main-img"
-        />
-      </div>
-
-      <section className="rules-section">
-        <h2 className="section-title">📘 ODI / T20 Rules</h2>
-        {odiT20Rules.map(renderRule)}
+        )}
       </section>
 
-      <section className="rules-section">
-        <h2 className="section-title">📕 Test Match Rules</h2>
-        {testRules.map(renderRule)}
+      <section id="test-rules" className="collapsible-section">
+        <button className="section-toggle test-toggle" onClick={() => toggleSection("test")}>
+          <div>
+            <span className="section-kicker">Test Match</span>
+            <h2>📕 Test Match Rules ({testRules.length})</h2>
+            <p>Click any rule to view full details.</p>
+          </div>
+          <span className={`accordion-arrow big ${openSections.test ? "open" : ""}`}>
+            ▶
+          </span>
+        </button>
+
+        {openSections.test && (
+          <div className="rules-list">
+            {testRules.length ? (
+              testRules.map(renderRule)
+            ) : (
+              <p className="empty-state">No Test rules found.</p>
+            )}
+          </div>
+        )}
       </section>
 
-      {loading && <p>Loading rules...</p>}
+      {loading && <p className="loading-text">Loading rules...</p>}
       {error && <p className="error">{error}</p>}
+
+      <button
+        className="back-to-top"
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      >
+        ↑
+      </button>
+
+      {previewImage && (
+        <div className="image-modal" onClick={() => setPreviewImage(null)}>
+          <button className="image-modal-close">×</button>
+          <img src={previewImage} alt="Preview" onClick={(e) => e.stopPropagation()} />
+        </div>
+      )}
     </div>
   );
 }

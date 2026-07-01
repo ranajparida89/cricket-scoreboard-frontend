@@ -8,7 +8,7 @@
   --warning: #f59e0b;
   --danger: #dc2626;
   --bg-main: #f1f5f9;
-  --card-bg: rgba(255, 255, 255, 0.9);
+  --card-bg: rgba(255, 255, 255, 0.94);
   --border-soft: #e5e7eb;
   --text-dark: #020617;
   --text-muted: #475569;
@@ -20,7 +20,7 @@
 .rules-container {
   max-width: 1250px;
   margin: 0 auto;
-  padding: 40px 40px 80px;
+  padding: 36px 40px 90px;
   background: linear-gradient(180deg, #f8fafc, #eef2ff);
   min-height: 100vh;
   font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
@@ -28,9 +28,6 @@
   overflow-x: hidden;
 }
 
-/* ==================================================
-   CRICKEDGE WATERMARK
-================================================== */
 .rules-container::before {
   content: "CRICKEDGE";
   position: fixed;
@@ -48,35 +45,41 @@
   z-index: 0;
 }
 
-.rules-container>* {
+.rules-container > * {
   position: relative;
   z-index: 1;
 }
 
 /* ==================================================
-   PAGE TITLE
+   TITLE
 ================================================== */
 .rules-title {
   text-align: center;
   font-size: 34px;
-  font-weight: 800;
-  margin-bottom: 36px;
+  font-weight: 900;
+  margin-bottom: 28px;
   color: var(--text-dark);
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
 }
 
 /* ==================================================
-   SEARCH + FILTER TOOLBAR
+   SEARCH + FILTER
 ================================================== */
 .rules-toolbar {
   display: flex;
   gap: 14px;
   background: var(--card-bg);
-  padding: 16px;
-  border-radius: 14px;
+  padding: 14px;
+  border-radius: 16px;
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08);
-  margin-bottom: 28px;
+  margin-bottom: 20px;
   backdrop-filter: blur(12px);
+}
+
+.sticky-toolbar {
+  position: sticky;
+  top: 70px;
+  z-index: 20;
 }
 
 .rules-search,
@@ -84,7 +87,7 @@
   flex: 1;
   padding: 12px 14px;
   font-size: 15px;
-  border-radius: 10px;
+  border-radius: 11px;
   border: 1px solid var(--border-soft);
   outline: none;
   transition: all 0.2s ease;
@@ -92,14 +95,96 @@
 
 .rules-filter {
   max-width: 260px;
-  background: #ffffff;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  font-weight: 600;
   cursor: pointer;
+}
+
+.rules-filter option {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+  font-weight: 500;
 }
 
 .rules-search:focus,
 .rules-filter:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+/* ==================================================
+   STATS
+================================================== */
+.rules-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 18px 0 20px;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.96);
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid #dbeafe;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+}
+
+.stat-card span {
+  display: block;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+}
+
+.stat-card strong {
+  font-size: 30px;
+  color: var(--primary-dark);
+}
+
+.danger-stat strong {
+  color: var(--danger);
+}
+
+.warning-stat strong {
+  color: var(--warning);
+}
+
+.success-stat strong {
+  color: var(--success);
+}
+
+/* ==================================================
+   QUICK NAV
+================================================== */
+.quick-nav {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 26px;
+}
+
+.quick-nav button {
+  border: none;
+  background: linear-gradient(135deg, #ffffff, #eff6ff);
+  color: #1e3a8a;
+  padding: 14px 12px;
+  border-radius: 14px;
+  font-weight: 900;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid #bfdbfe;
+  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.1);
+  transition: all 0.2s ease;
+}
+
+.quick-nav button:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #dbeafe, #ffffff);
 }
 
 /* ==================================================
@@ -110,156 +195,16 @@
   color: #fff;
   padding: 12px 26px;
   font-size: 15px;
-  font-weight: 700;
-  border-radius: 10px;
+  font-weight: 800;
+  border-radius: 12px;
   border: none;
   cursor: pointer;
-  margin-bottom: 30px;
+  margin-bottom: 26px;
   box-shadow: 0 10px 24px rgba(37, 99, 235, 0.35);
 }
 
 .add-btn:hover {
   background: linear-gradient(135deg, var(--primary-dark), var(--primary));
-}
-
-/* ==================================================
-   SECTIONS
-================================================== */
-.rules-section {
-  margin-top: 50px;
-}
-
-.section-title {
-  font-size: 26px;
-  font-weight: 800;
-  color: var(--text-dark);
-  margin-bottom: 22px;
-  padding-left: 6px;
-  border-left: 6px solid var(--primary);
-}
-
-/* ==================================================
-   RULE CARD
-================================================== */
-.rule-card {
-  background: var(--card-bg);
-  padding: 22px 26px 24px;
-  margin-bottom: 22px;
-  border-radius: 16px;
-  border-left: 7px solid var(--border-soft);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-  backdrop-filter: blur(14px);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.rule-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.12);
-}
-
-/* Status */
-.rule-card.new {
-  border-left-color: var(--success);
-}
-
-.rule-card.updated {
-  border-left-color: var(--warning);
-}
-
-/* ==================================================
-   RULE HEADER
-================================================== */
-.rule-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.rule-number {
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--primary-dark);
-}
-
-.rule-title {
-  font-size: 19px;
-  font-weight: 800;
-  color: var(--text-dark);
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-}
-
-/* ==================================================
-   BADGES
-================================================== */
-.badge {
-  margin-left: auto;
-  padding: 6px 14px;
-  font-size: 11px;
-  font-weight: 800;
-  border-radius: 999px;
-  color: #fff;
-  letter-spacing: 0.8px;
-}
-
-.badge.mandatory {
-  background: linear-gradient(135deg, var(--danger), #f87171);
-}
-
-.badge.new {
-  background: linear-gradient(135deg, var(--success), #4ade80);
-}
-
-.badge.updated {
-  background: linear-gradient(135deg, var(--warning), #fde047);
-  color: #1f2937;
-}
-
-/* ==================================================
-   DESCRIPTION
-================================================== */
-.rule-description {
-  margin-top: 14px;
-  font-size: 15.5px;
-  line-height: 1.75;
-  color: var(--text-muted);
-  white-space: pre-line;
-}
-
-/* ==================================================
-   ADMIN NOTE
-================================================== */
-.admin-comment {
-  margin-top: 16px;
-  padding: 14px 18px;
-  background: linear-gradient(135deg, #eff6ff, #dbeafe);
-  border-left: 5px solid var(--primary);
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e3a8a;
-}
-
-/* ==================================================
-   EDIT BUTTON
-================================================== */
-.edit-btn {
-  margin-top: 16px;
-  padding: 8px 20px;
-  font-size: 14px;
-  font-weight: 700;
-  border-radius: 10px;
-  background: transparent;
-  border: 2px solid var(--primary);
-  color: var(--primary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.edit-btn:hover {
-  background: var(--primary);
-  color: #fff;
 }
 
 /* ==================================================
@@ -269,13 +214,13 @@
   background: var(--card-bg);
   border-radius: 18px;
   padding: 32px;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.18);
 }
 
 .rule-form h3 {
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 900;
   margin-bottom: 22px;
 }
 
@@ -300,12 +245,9 @@
   align-items: center;
   gap: 10px;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
-/* ==================================================
-   FORM ACTIONS
-================================================== */
 .form-actions {
   display: flex;
   justify-content: flex-end;
@@ -315,7 +257,7 @@
 .form-actions button {
   padding: 10px 26px;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 900;
   border-radius: 10px;
   border: none;
   cursor: pointer;
@@ -332,141 +274,289 @@
 }
 
 /* ==================================================
-   RESPONSIVE
+   COLLAPSIBLE SECTIONS
 ================================================== */
-@media (max-width: 768px) {
-  .rules-container {
-    padding: 26px;
-  }
-
-  .rules-toolbar {
-    flex-direction: column;
-  }
-
-  .rules-filter {
-    max-width: 100%;
-  }
-
-  .badge {
-    margin-left: 0;
-  }
+.collapsible-section {
+  margin: 20px 0;
+  scroll-margin-top: 150px;
 }
 
-/* ==================================================
-   DROPDOWN (FILTER) VISIBILITY FIX
-================================================== */
-.rules-filter {
-  background-color: #ffffff !important;
-  color: #000000 !important;
+.section-toggle {
+  width: 100%;
+  border: none;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 20px;
+  padding: 22px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  border-left: 7px solid var(--primary);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.1);
+  transition: all 0.2s ease;
+}
+
+.section-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 26px 58px rgba(15, 23, 42, 0.14);
+}
+
+.section-toggle h2 {
+  margin: 5px 0 5px;
+  font-size: 25px;
+  font-weight: 900;
+  color: var(--text-dark);
+}
+
+.section-toggle p {
+  margin: 0;
+  color: var(--text-muted);
   font-weight: 600;
 }
 
-/* Dropdown options */
-.rules-filter option {
-  color: #000000 !important;
-  background-color: #ffffff !important;
-  font-weight: 500;
+.section-kicker {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
 }
 
-/* Hover / selected option (browser dependent) */
-.rules-filter option:checked {
-  background-color: #bfdbfe !important;
-  color: #000000 !important;
+.skill-toggle {
+  border-left-color: #8b5cf6;
 }
 
-/* For Webkit browsers (Chrome / Edge) */
-.rules-filter:focus {
-  color: #000000 !important;
+.test-toggle {
+  border-left-color: #ef4444;
 }
 
-.delete-btn {
-  background-color: #ff4d4f !important;
-  color: #ffffff !important;
+.section-body,
+.rules-list {
+  margin-top: 18px;
 }
 
-.delete-btn:hover {
-  background-color: #d9363e !important;
-  cursor: pointer;
-  display: inline-flex;
+/* ==================================================
+   ACCORDION ARROW
+================================================== */
+.accordion-arrow {
+  display: inline-block;
+  font-size: 14px;
+  color: var(--primary-dark);
+  transition: transform 0.2s ease;
+}
+
+.accordion-arrow.open {
+  transform: rotate(90deg);
+}
+
+.accordion-arrow.big {
+  font-size: 23px;
+  margin-left: 18px;
+}
+
+/* ==================================================
+   RULE CARD COMPACT
+================================================== */
+.rule-card {
+  background: var(--card-bg);
+  margin-bottom: 12px;
+  border-radius: 16px;
+  border-left: 6px solid var(--border-soft);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+}
+
+.rule-card.new {
+  border-left-color: var(--success);
+}
+
+.rule-card.updated {
+  border-left-color: var(--warning);
+}
+
+.rule-summary {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 16px 18px;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 4px;
+  gap: 12px;
+  cursor: pointer;
+  text-align: left;
 }
 
-.delete-btn:hover {
-  background-color: #d9363e;
+.rule-summary-left {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  flex-wrap: wrap;
+}
+
+.rule-number {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--primary-dark);
+  background: #eff6ff;
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+
+.rule-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--text-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.rule-details {
+  padding: 0 20px 20px 20px;
+  border-top: 1px solid #e5e7eb;
+  animation: fadeIn 0.18s ease;
+}
+
+.rule-description {
+  margin-top: 14px;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text-muted);
+  white-space: pre-line;
+}
+
+/* ==================================================
+   BADGES
+================================================== */
+.rule-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.badge {
+  padding: 6px 12px;
+  font-size: 10.5px;
+  font-weight: 900;
+  border-radius: 999px;
+  color: #fff;
+  letter-spacing: 0.7px;
+  white-space: nowrap;
+}
+
+.badge.mandatory {
+  background: linear-gradient(135deg, var(--danger), #f87171);
+}
+
+.badge.new {
+  background: linear-gradient(135deg, var(--success), #4ade80);
+}
+
+.badge.updated {
+  background: linear-gradient(135deg, var(--warning), #fde047);
+  color: #1f2937;
+}
+
+/* ==================================================
+   ADMIN NOTE / ACTIONS
+================================================== */
+.admin-comment {
+  margin-top: 16px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border-left: 5px solid var(--primary);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e3a8a;
 }
 
 .rule-actions {
   display: flex;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 14px;
 }
 
-.highlight {
-  background-color: #ecb709;
-  /* soft yellow */
-  color: #000;
-  padding: 0 3px;
-  border-radius: 3px;
-  font-weight: 600;
+.edit-btn {
+  padding: 8px 20px;
+  font-size: 14px;
+  font-weight: 800;
+  border-radius: 10px;
+  background: transparent;
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.edit-btn:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+.delete-btn {
+  background-color: #ff4d4f !important;
+  border-color: #ff4d4f !important;
+  color: #ffffff !important;
+}
+
+.delete-btn:hover {
+  background-color: #d9363e !important;
+  border-color: #d9363e !important;
 }
 
 /* ==================================================
-   FIELDING VISUAL GUIDE
+   VISUAL GUIDE
 ================================================== */
-
-.fielding-guide-section {
-  margin: 40px 0 55px;
-}
-
-.fielding-guide-header {
-  text-align: center;
-  background: linear-gradient(135deg, #07131f, #0f2f24);
-  color: #ffffff;
-  padding: 30px;
-  border-radius: 22px;
-  margin-bottom: 26px;
-  box-shadow: 0 24px 55px rgba(0, 0, 0, 0.22);
-}
-
-.fielding-guide-tag {
-  display: inline-block;
-  background: #22c55e;
-  color: #052e16;
-  padding: 7px 16px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-}
-
-.fielding-guide-header h2 {
-  font-size: 30px;
-  font-weight: 900;
-  margin-bottom: 12px;
-}
-
-.fielding-guide-header p {
-  max-width: 820px;
-  margin: 0 auto;
-  color: #d1fae5;
-  font-size: 15.5px;
-  line-height: 1.7;
-}
-
+.visual-accordion-card,
 .fielding-rule-card {
-  background: rgba(255, 255, 255, 0.94);
-  border-radius: 22px;
-  padding: 24px;
-  margin-bottom: 26px;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 18px;
+  padding: 0;
+  margin-bottom: 16px;
   border: 1px solid #dbeafe;
-  box-shadow: 0 22px 48px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.1);
+  overflow: hidden;
 }
 
-.fielding-rule-content {
-  margin-bottom: 18px;
+.visual-summary {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 22px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+}
+
+.visual-summary h3,
+.fielding-rule-content h3 {
+  font-size: 21px;
+  font-weight: 900;
+  color: #020617;
+  margin: 8px 0;
+}
+
+.visual-summary p,
+.fielding-rule-content p {
+  color: #475569;
+  font-size: 15px;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.visual-details {
+  padding: 0 22px 22px;
+  animation: fadeIn 0.18s ease;
 }
 
 .rule-pill {
@@ -478,7 +568,7 @@
   font-size: 12px;
   font-weight: 900;
   text-transform: uppercase;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
 }
 
 .rule-pill.success {
@@ -496,25 +586,19 @@
   color: #92400e;
 }
 
-.fielding-rule-content h3 {
-  font-size: 22px;
-  font-weight: 900;
-  color: #020617;
-  margin-bottom: 8px;
+.fielding-rule-card {
+  padding: 24px;
 }
 
-.fielding-rule-content p {
-  color: #475569;
-  font-size: 15.5px;
-  line-height: 1.75;
-  margin: 0;
+.fielding-rule-content {
+  margin-bottom: 18px;
 }
 
 .fielding-main-img {
   width: 100%;
-  max-height: 680px;
+  max-height: 650px;
   object-fit: contain;
-  border-radius: 18px;
+  border-radius: 16px;
   border: 2px solid #e5e7eb;
   background: #020617;
 }
@@ -522,66 +606,31 @@
 .fielding-gallery {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
+  gap: 14px;
 }
 
 .fielding-gallery img {
   width: 100%;
-  height: 360px;
+  height: 330px;
   object-fit: contain;
-  border-radius: 18px;
+  border-radius: 16px;
   border: 2px solid #e5e7eb;
   background: #020617;
+}
+
+.clickable-img {
+  cursor: zoom-in;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.fielding-gallery img:hover {
-  transform: scale(1.02);
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.22);
+.clickable-img:hover {
+  transform: scale(1.01);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.18);
 }
 
-.before-pp {
-  border-left: 7px solid #2563eb;
-}
-
-.after-pp {
-  border-left: 7px solid #16a34a;
-}
-
-.danger-card {
-  border-left: 7px solid #dc2626;
-}
-
-.warning-card {
-  border-left: 7px solid #f59e0b;
-}
-
-@media (max-width: 768px) {
-  .fielding-guide-header {
-    padding: 22px;
-  }
-
-  .fielding-guide-header h2 {
-    font-size: 24px;
-  }
-
-  .fielding-gallery {
-    grid-template-columns: 1fr;
-  }
-
-  .fielding-gallery img {
-    height: auto;
-  }
-
-  .fielding-main-img {
-    max-height: none;
-  }
-}
-
-/* ==========================================
+/* ==================================================
    TEAM TEMPLATE CARD
-========================================== */
-
+================================================== */
 .skill-card {
   border-left: 7px solid #8b5cf6;
 }
@@ -597,7 +646,7 @@
 .skill-rule {
   padding: 14px;
   border-radius: 12px;
-  font-weight: 800;
+  font-weight: 900;
   text-align: center;
   font-size: 15px;
 }
@@ -607,25 +656,25 @@
 }
 
 .skill-rule.batsman {
-  background: rgba(59, 130, 246, .12);
+  background: rgba(59, 130, 246, 0.12);
   border: 2px solid #3b82f6;
   color: #1e40af;
 }
 
 .skill-rule.allrounder {
-  background: rgba(245, 158, 11, .12);
+  background: rgba(245, 158, 11, 0.12);
   border: 2px solid #f59e0b;
   color: #92400e;
 }
 
 .skill-rule.licensed {
-  background: rgba(34, 197, 94, .12);
+  background: rgba(34, 197, 94, 0.12);
   border: 2px solid #22c55e;
   color: #166534;
 }
 
 .skill-rule.nonlicensed {
-  background: rgba(239, 68, 68, .12);
+  background: rgba(239, 68, 68, 0.12);
   border: 2px solid #ef4444;
   color: #991b1b;
 }
@@ -637,11 +686,193 @@
   background: #fff7ed;
   border-left: 5px solid #f97316;
   color: #9a3412;
+  font-weight: 800;
+}
+
+/* ==================================================
+   IMAGE MODAL
+================================================== */
+.image-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(2, 6, 23, 0.86);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.image-modal img {
+  max-width: 96vw;
+  max-height: 92vh;
+  object-fit: contain;
+  border-radius: 14px;
+  background: #020617;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+}
+
+.image-modal-close {
+  position: fixed;
+  top: 18px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: none;
+  background: #ffffff;
+  color: #020617;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+/* ==================================================
+   MISC
+================================================== */
+.highlight {
+  background-color: #ecb709;
+  color: #000;
+  padding: 0 3px;
+  border-radius: 3px;
   font-weight: 700;
 }
 
-@media (max-width:768px) {
+.loading-text,
+.empty-state {
+  padding: 18px;
+  background: #ffffff;
+  border-radius: 14px;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.error {
+  color: var(--danger);
+  font-weight: 800;
+}
+
+.back-to-top {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 30;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, var(--primary), #60a5fa);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 16px 36px rgba(37, 99, 235, 0.35);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==================================================
+   RESPONSIVE
+================================================== */
+@media (max-width: 900px) {
+  .rules-container {
+    padding: 24px 18px 80px;
+  }
+
+  .rules-title {
+    font-size: 25px;
+    margin-bottom: 20px;
+  }
+
+  .sticky-toolbar {
+    top: 60px;
+  }
+
+  .rules-toolbar {
+    flex-direction: column;
+  }
+
+  .rules-filter {
+    max-width: 100%;
+  }
+
+  .rules-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .quick-nav {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .section-toggle {
+    padding: 18px;
+  }
+
+  .section-toggle h2 {
+    font-size: 21px;
+  }
+
+  .rule-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .rule-badges {
+    justify-content: flex-start;
+  }
+
+  .fielding-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .fielding-gallery img {
+    height: auto;
+  }
+
+  .fielding-main-img {
+    max-height: none;
+  }
+
   .skill-rules-grid {
     grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .back-to-top {
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .rules-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-nav {
+    grid-template-columns: 1fr;
+  }
+
+  .rule-title {
+    font-size: 14.5px;
+  }
+
+  .rules-container::before {
+    font-size: 70px;
+    letter-spacing: 8px;
   }
 }
