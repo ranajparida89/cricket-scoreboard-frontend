@@ -101,10 +101,22 @@ function LiveAuctionPage() {
             MULTI-DEVICE SOLD DETECTION (FINAL)
             */
 
-            setStatus(prev => ({
-                ...s.data,
-                playerClosed: false
-            }));
+            setStatus(prev => {
+                // ✅ Freeze player card when auction is paused
+                if (prev.is_paused && s.data.is_paused) {
+                    return {
+                        ...prev,
+                        timer_seconds: s.data.timer_seconds,
+                        is_paused: true,
+                        playerClosed: false
+                    };
+                }
+
+                return {
+                    ...s.data,
+                    playerClosed: false
+                };
+            });
             // ✅ AUTO CLOSE PLAYER WHEN TIMER ENDS
             if (
                 !s.data.is_paused &&
