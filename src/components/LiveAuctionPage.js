@@ -732,68 +732,77 @@ PLAYER SEARCH (AUTO SUGGESTION)
 
                         </button>
 
-                        {/* SELECT ALL BOARDS */}
+                        <div className="admin-board-panel">
 
-                        <div style={{ marginTop: "10px" }}>
+                            <div className="admin-board-header">
 
-                            <input
-                                type="checkbox"
-                                className="selectAllCheckbox"
-                                checked={selectAllBoards}
-                                onChange={toggleSelectAllBoards}
-                            />
+                                <div>
+                                    <h3>Participating Boards</h3>
 
-                            <b style={{ marginLeft: "10px" }}>
-                                Select All Boards
-                            </b>
+                                    <p>
+                                        {selectedBoards.length} Selected • {registeredBoards.length} Total Boards
+                                    </p>
+                                </div>
 
-                        </div>
+                                <button
+                                    className="admin-small-btn"
+                                    onClick={toggleSelectAllBoards}
+                                >
+                                    {selectAllBoards ? "Clear All" : "Select All"}
+                                </button>
 
+                            </div>
 
-                        {/* BOARD LIST */}
+                            <div className="admin-board-grid">
 
-                        {
-                            registeredBoards.map(b => {
+                                {registeredBoards.map(b => {
 
-                                const checked =
-                                    selectedBoards.find(
-                                        x => x.board_id === b.board_id
+                                    const checked =
+                                        selectedBoards.find(
+                                            x => x.board_id === b.board_id
+                                        );
+
+                                    return (
+
+                                        <label
+                                            key={b.board_id}
+                                            className={
+                                                checked
+                                                    ? "admin-board-card selected"
+                                                    : "admin-board-card"
+                                            }
+                                        >
+
+                                            <input
+                                                type="checkbox"
+                                                checked={checked ? true : false}
+                                                onChange={() => toggleBoard(b)}
+                                            />
+
+                                            <div className="board-name">
+                                                {b.board_name}
+                                            </div>
+
+                                            <div className="owner-name">
+                                                {b.owner_name}
+                                            </div>
+
+                                        </label>
+
                                     );
 
-                                return (
+                                })}
 
-                                    <div key={b.board_id}>
+                            </div>
 
-                                        <input
-                                            type="checkbox"
+                            <button
+                                className="save-participants-btn"
+                                onClick={saveParticipants}
+                            >
+                                Save Participants
+                            </button>
 
-                                            checked={checked ? true : false}
-
-                                            onChange={() => toggleBoard(b)}
-                                        />
-
-                                        {b.board_name}
-
-                                    </div>
-
-                                )
-
-                            })
-                        }
-                        <button
-                            onClick={saveParticipants}
-                            style={{
-                                marginTop: "10px",
-                                padding: "10px 20px",
-                                background: "green",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "6px"
-                            }}
-
-                        >
-                            Save Participants
-                        </button>
+                        </div>
                         <div style={{ marginTop: "10px" }}>
                             {setupMessage}
                         </div>

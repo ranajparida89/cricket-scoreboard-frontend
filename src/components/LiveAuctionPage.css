@@ -982,3 +982,88 @@ cursor:pointer;
 background:#0097a7;
 
 }
+.admin-board-panel {
+    margin-top: 18px;
+    padding: 18px;
+    border-radius: 16px;
+    background: linear-gradient(145deg, #111, #1b1b1b);
+    border: 1px solid rgba(0, 229, 255, 0.25);
+}
+
+.admin-board-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.admin-board-header h3 {
+    margin: 0;
+    color: #00e5ff;
+}
+
+.admin-board-header p {
+    margin: 4px 0 0;
+    color: #aaa;
+    font-size: 13px;
+}
+
+.admin-small-btn {
+    background: #263238;
+    color: white;
+    border: 1px solid #00e5ff;
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.admin-board-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 10px;
+    max-height: 260px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+.admin-board-card {
+    padding: 12px;
+    border-radius: 12px;
+    background: #242424;
+    border: 1px solid #333;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.admin-board-card input {
+    display: none;
+}
+
+.admin-board-card.selected {
+    border-color: #00e5ff;
+    background: rgba(0, 229, 255, 0.12);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+}
+
+.board-name {
+    color: white;
+    font-weight: bold;
+}
+
+.owner-name {
+    margin-top: 4px;
+    color: #bbb;
+    font-size: 12px;
+}
+
+.save-participants-btn {
+    margin-top: 14px;
+    padding: 10px 20px;
+    background: #00c853;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
