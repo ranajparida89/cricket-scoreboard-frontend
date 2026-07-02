@@ -1000,9 +1000,7 @@ PLAYER SEARCH (AUTO SUGGESTION)
                     </p>
                     <p>
                         Role:
-                        {status.role
-                            ||
-                            "-"}
+                        {status.role_category || status.role || "-"}
                     </p>
                     <p>
                         Base Price:
