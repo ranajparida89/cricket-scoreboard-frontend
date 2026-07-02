@@ -106,7 +106,11 @@ function LiveAuctionPage() {
                 playerClosed: false
             }));
             // ✅ AUTO CLOSE PLAYER WHEN TIMER ENDS
-            if (s.data.timer_seconds === 0 && !status.playerClosed) {
+            if (
+                !s.data.is_paused &&
+                s.data.timer_seconds === 0 &&
+                !status.playerClosed
+            ) {
 
                 try {
 
