@@ -1067,3 +1067,141 @@ background:#0097a7;
     font-weight: bold;
     cursor: pointer;
 }
+/* =========================
+NON ADMIN AUCTION PAGE MODERN UI
+========================= */
+
+.auction-title-row {
+    background: linear-gradient(135deg, #111, #1c1c1c);
+    padding: 18px 22px;
+    border-radius: 18px;
+    border: 1px solid rgba(0, 229, 255, 0.18);
+    box-shadow: 0 0 22px rgba(0, 229, 255, 0.08);
+    justify-content: space-between;
+}
+
+.auction-title-row h1 {
+    margin: 0;
+    font-size: 30px;
+    color: #ffffff;
+}
+
+.auction-grid {
+    margin-top: 22px;
+}
+
+.player-panel,
+.bid-panel,
+.board-panel,
+.bid-history,
+.board-squad-table {
+    backdrop-filter: blur(8px);
+}
+
+.player-panel {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(0, 229, 255, 0.35);
+}
+
+.player-panel h2 {
+    font-size: 32px;
+    margin-bottom: 18px;
+}
+
+.player-panel p {
+    background: rgba(255, 255, 255, 0.04);
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border-left: 4px solid #00e5ff;
+}
+
+.bid-panel {
+    text-align: center;
+    border: 1px solid rgba(0, 230, 118, 0.35);
+}
+
+.bid-panel h2 {
+    background: rgba(0, 230, 118, 0.08);
+    padding: 14px;
+    border-radius: 14px;
+}
+
+.bid-panel h3 {
+    background: rgba(255, 255, 255, 0.04);
+    padding: 10px;
+    border-radius: 10px;
+    margin: 10px 0;
+}
+
+.bid-panel select {
+    width: 100%;
+    margin-top: 10px;
+    margin-right: 0;
+}
+
+.bid-button {
+    width: 100%;
+    margin-top: 16px;
+}
+
+.bid-button:disabled {
+    background: #555;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.board-panel {
+    max-height: 430px;
+    overflow-y: auto;
+}
+
+.board-row {
+    display: grid;
+    gap: 6px;
+    font-size: 14px;
+}
+
+.board-row b {
+    color: #ffffff;
+}
+
+.bid-history {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bid-history div {
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.sold-scroll div {
+    border-left: 4px solid #ffd700;
+}
+
+@media (max-width: 768px) {
+    .auction-container {
+        padding: 14px;
+    }
+
+    .auction-title-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .auction-title-row h1 {
+        font-size: 24px;
+    }
+
+    .player-panel h2 {
+        font-size: 26px;
+    }
+
+    .bid-panel h2 {
+        font-size: 32px;
+    }
+}
