@@ -943,7 +943,7 @@ PLAYER SEARCH (AUTO SUGGESTION)
 
                                                 <td>{p.player_name}</td>
 
-                                                <td>{p.role || "-"}</td>
+                                                <td>{p.role_category || p.role || "-"}</td>
 
                                                 <td>{p.category}</td>
 
